@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEvent as ReactFocusEvent,
+  type RefObject,
+} from "react";
 import type { TimelineElement } from "../store/playerStore";
 import { resolveTimelineFocusIdentity } from "./timelineFocusIdentity";
 import { getTimelineScrollTopForGeometryChange } from "./timelineViewportGeometry";
@@ -25,12 +33,19 @@ interface UseTimelineRowVirtualizationInput {
   syncScrollViewport: (element: HTMLDivElement, isScrolling?: boolean) => void;
 }
 
-function getFocusedTimelineRowKey(target: EventTarget | null): number | undefined {
+interface TimelineDomFocusPin {
+  readonly rowKey?: number;
+  readonly elementId?: string;
+}
+
+function getTimelineDomFocusPin(target: EventTarget | null): TimelineDomFocusPin | undefined {
   if (!(target instanceof Element)) return undefined;
   const value = target.closest<HTMLElement>("[data-timeline-row-key]")?.dataset.timelineRowKey;
-  if (value === undefined) return undefined;
-  const rowKey = Number(value);
-  return Number.isFinite(rowKey) ? rowKey : undefined;
+  const parsedRowKey = value === undefined ? undefined : Number(value);
+  const rowKey =
+    parsedRowKey !== undefined && Number.isFinite(parsedRowKey) ? parsedRowKey : undefined;
+  const elementId = target.closest<HTMLElement>("[data-el-id]")?.dataset.elId;
+  return rowKey === undefined && elementId === undefined ? undefined : { rowKey, elementId };
 }
 
 export function useTimelineRowVirtualization({
@@ -49,23 +64,13 @@ export function useTimelineRowVirtualization({
   syncScrollViewport,
 }: UseTimelineRowVirtualizationInput) {
   const enabled = STUDIO_TIMELINE_ROW_VIRTUALIZATION_ENABLED;
-  const [domFocusedRowKey, setDomFocusedRowKey] = useState<number>();
-  useEffect(() => {
-    const scroll = scrollRef.current;
-    if (!scroll) return;
-    const handleFocusIn = (event: FocusEvent) => {
-      setDomFocusedRowKey(getFocusedTimelineRowKey(event.target));
-    };
-    const handleFocusOut = (event: FocusEvent) => {
-      setDomFocusedRowKey(getFocusedTimelineRowKey(event.relatedTarget));
-    };
-    scroll.addEventListener("focusin", handleFocusIn);
-    scroll.addEventListener("focusout", handleFocusOut);
-    return () => {
-      scroll.removeEventListener("focusin", handleFocusIn);
-      scroll.removeEventListener("focusout", handleFocusOut);
-    };
-  }, [scrollRef, sessionEpoch]);
+  const [domFocusPin, setDomFocusPin] = useState<TimelineDomFocusPin>();
+  const onTimelineFocus = useCallback((event: ReactFocusEvent<HTMLDivElement>) => {
+    setDomFocusPin(getTimelineDomFocusPin(event.target));
+  }, []);
+  const onTimelineBlur = useCallback((event: ReactFocusEvent<HTMLDivElement>) => {
+    setDomFocusPin(getTimelineDomFocusPin(event.relatedTarget));
+  }, []);
   const focusIdentity = useMemo(
     () => resolveTimelineFocusIdentity(elements, selectedElementId),
     [elements, selectedElementId],
@@ -98,7 +103,7 @@ export function useTimelineRowVirtualization({
     rowGeometry,
     sessionEpoch,
     pinnedRowKeys,
-    focusedRowKey: domFocusedRowKey ?? focusIdentity?.rowKey,
+    focusedRowKey: domFocusPin?.rowKey ?? focusIdentity?.rowKey,
   });
 
   const previousLayoutRef = useRef(rowGeometry);
@@ -128,5 +133,10 @@ export function useTimelineRowVirtualization({
     previousLayoutRef.current = rowGeometry;
   }, [lastScrollLeftRef, rowGeometry, scrollRef, sessionEpoch, syncScrollViewport]);
 
-  return { enabled, virtualRows };
+  return {
+    enabled,
+    virtualRows,
+    focusedElementId: domFocusPin?.elementId,
+    timelineFocusProps: { onFocus: onTimelineFocus, onBlur: onTimelineBlur },
+  };
 }
