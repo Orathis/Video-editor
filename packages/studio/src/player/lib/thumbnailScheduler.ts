@@ -479,3 +479,5 @@ export class ThumbnailScheduler {
     }
   }
 }
+
+export const thumbnailScheduler = new ThumbnailScheduler();
