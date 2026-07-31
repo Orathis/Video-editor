@@ -1,0 +1,35 @@
+---
+title: "Thread Message Stack"
+description: "Message bubbles land on the bottom line over a moving background, push older messages upward under a mask, and show a typing pill before each incoming message."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">List assembly</span>
+
+<PrimitivePlayer name="thread-message-stack" width={1920} height={1080} />
+
+## Variables
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--tms-roll-bg` | `color` |  | base under the moving blobs and letterbox color for replacement footage. |
+| `--tms-out-fill` | `color` | `#2D89E1` | outgoing bubble fill. |
+| `--tms-out-ink` | `color` |  | outgoing bubble text color. |
+| `--tms-in-fill` | `color` |  | incoming bubble fill. |
+| `--tms-in-ink` | `color` |  | incoming bubble text color. |
+| `--tms-tag-ink` | `color` |  | sender tag text color. |
+| `--tms-radius` | `length` |  | bubble corner radius. |
+
+## When to use it
+
+A conversation must build through alternating incoming and outgoing bubbles while the background continues moving.
+
+## When to avoid it
+
+Avoid it when frame zero must be empty, because the thread deliberately opens on three settled bubbles.
+
+## Pairs with
+
+- [persona-card-fan](/primitives/persona-card-fan)
+- [receipt-card](/primitives/receipt-card)

@@ -1,0 +1,326 @@
+<!doctype html>
+<!--
+  z-punch-through: HyperFrames video primitive (depth / transition)
+
+  Concept: the frame is a wall with a hole in it. The camera punches through the
+  hole, the wall passes the lens and is gone, and what was behind arrives already
+  settling. One move: forward through an aperture. It is the zoom-as-transition
+  everyone is asking for, done with real Z instead of a scale fake.
+
+  Variables:
+    - front (string, default "BEFORE"): label on the wall.
+    - back (string, default "AFTER"): label on what is behind.
+    - accent (blue | violet | amber, default blue): the light behind the hole.
+
+  Envelope (D = 2.10s, and the move fills it, there is no hold):
+    PUNCH  0.00 to 1.25   aperture opens, wall scales past the lens
+    ARRIVE 0.42 to 2.10   back plane pushes forward, overlapping the punch
+    LAND   1.12 to 1.94   label rises and the rule draws, under the tail of the push
+
+  The duration is measured, not chosen. At 2.6 the last 0.25s was a parked frame,
+  which the audit reports FROZEN and a viewer reads as the clip dying early; a tail
+  that short cannot be rescued by a gentler curve, because at 34px of travel over
+  0.6s at 30fps EVERY curve in the palette goes dead for at least four frames. At
+  2.45 the gate passed but the contact sheet showed 0.6s of empty blue between the
+  wall clearing and the label arriving. Nothing frozen, nothing worth watching
+  either. The label now lands while the wall is still leaving. And 2.10 rather than
+  1.95 because 32 samples over anything under 2.07s land closer than two rendered
+  frames apart, at which point the audit cannot tell a freeze from its own sampling.
+
+  Mount contract: the runtime clones only this template. #root fills the host box,
+  establishes the container query basis, has no data-width or data-height, and
+  registers one paused timeline under the hardcoded z-punch-through id.
+-->
+<html
+  lang="en"
+  data-composition-id="z-punch-through"
+  data-composition-duration="2.1"
+  data-composition-variables='[
+    { "id": "front", "type": "string", "role": "content", "label": "Front label", "description": "Text on the wall the camera punches through.", "default": "BEFORE" },
+    { "id": "back", "type": "string", "role": "content", "label": "Back label", "description": "Text on the plane behind the wall.", "default": "AFTER" },
+    { "id": "accent", "type": "enum", "role": "style", "label": "Accent", "description": "Light behind the aperture.", "default": "blue", "options": [{ "value": "blue", "label": "Blue" }, { "value": "violet", "label": "Violet" }, { "value": "amber", "label": "Amber" }] }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Z Punch Through</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="z-punch-through" data-duration="2.1" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--bg, #0b0b0d);
+            color: var(--fg, #f8fafc);
+            font-family: var(--font-display, Inter, system-ui, sans-serif);
+            pointer-events: none;
+          }
+
+          .zp-plane {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            transform-origin: 50% 50%;
+            will-change: transform;
+          }
+
+          .zp-back {
+            z-index: 1;
+            background:
+              radial-gradient(
+                circle at 50% 46%,
+                color-mix(in srgb, var(--zp-glow) 40%, transparent),
+                transparent 60%
+              ),
+              linear-gradient(160deg, #10141c, #07080b);
+          }
+
+          /* The wall carries the hole. A basic clip-path shape cannot cut a hole
+             out of a rectangle, only keep one, so the aperture is a mask: opaque
+             everywhere, transparent inside --zp-r. That is a paint-level property
+             rather than a composite one, and it is worth it here because the hole
+             IS the primitive. Everything else in this file stays on transform and
+             opacity. */
+          .zp-wall {
+            z-index: 2;
+          }
+
+          .zp-wall-face {
+            position: absolute;
+            inset: 0;
+            background:
+              repeating-linear-gradient(
+                90deg,
+                transparent 0 7.4cqmin,
+                rgba(255, 255, 255, 0.028) 7.4cqmin 7.5cqmin
+              ),
+              repeating-linear-gradient(
+                0deg,
+                transparent 0 7.4cqmin,
+                rgba(255, 255, 255, 0.028) 7.4cqmin 7.5cqmin
+              ),
+              linear-gradient(155deg, #262a34, #14161c 62%, #0d0f13);
+            -webkit-mask-image: radial-gradient(
+              circle at 50% 50%,
+              transparent calc(var(--zp-r) * 1cqmin),
+              #000 calc(var(--zp-r) * 1cqmin + 0.5cqmin)
+            );
+            mask-image: radial-gradient(
+              circle at 50% 50%,
+              transparent calc(var(--zp-r) * 1cqmin),
+              #000 calc(var(--zp-r) * 1cqmin + 0.5cqmin)
+            );
+          }
+
+          /* The rim rides the same radius, so the hole reads as a cut edge and not
+             as a vignette. One tween drives both. */
+          .zp-rim {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: calc(var(--zp-r) * 2cqmin + 1cqmin);
+            height: calc(var(--zp-r) * 2cqmin + 1cqmin);
+            border: 0.34cqmin solid color-mix(in srgb, var(--zp-glow) 70%, transparent);
+            border-radius: 50%;
+            box-shadow: 0 0 3cqmin color-mix(in srgb, var(--zp-glow) 42%, transparent);
+            transform: translate(-50%, -50%);
+          }
+
+          .zp-label {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            font-size: 11cqmin;
+            font-weight: 760;
+            letter-spacing: 0.16em;
+            line-height: 1;
+            text-align: center;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+
+          /* Off the optical centre on purpose: the hole owns the middle of the
+             frame, and a label sitting across it would be read as damage. */
+          .zp-front-label {
+            top: 17cqh;
+            z-index: 3;
+            color: #9aa0b0;
+          }
+
+          .zp-back-label {
+            top: 40cqh;
+            color: var(--zp-glow);
+          }
+
+          .zp-rule {
+            position: absolute;
+            top: 55cqh;
+            left: 37cqw;
+            width: 26cqw;
+            height: 0.6cqmin;
+            border-radius: 1cqmin;
+            background: var(--zp-glow);
+            transform-origin: 0% 50%;
+          }
+        </style>
+
+        <div class="zp-plane zp-back">
+          <div class="zp-label zp-back-label">AFTER</div>
+          <div class="zp-rule"></div>
+        </div>
+        <div class="zp-plane zp-wall">
+          <div class="zp-wall-face"></div>
+          <div class="zp-rim"></div>
+          <div class="zp-label zp-front-label">BEFORE</div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier evaluated as a GSAP ease. Pure function of progress, so
+            // it is seek-safe: seek(t) always yields the same value, no internal
+            // state to drift. Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var C = function (a) { return 3 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Named for what they do in a shot. No GSAP preset appears in this file
+            // on purpose: a named ease is a category, not a curve.
+            var E = {
+              enter: cb(0.22, 0.9, 0.3, 1.0),
+              camPush: cb(0.4, 0.0, 0.2, 1.0),
+              camSettle: cb(0.16, 0.84, 0.28, 1.0),
+              morph: cb(0.65, 0.05, 0.35, 1.0),
+              exitAway: cb(0.5, 0.0, 0.75, 0.2),
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var wall = root.querySelector(".zp-wall");
+            var back = root.querySelector(".zp-back");
+            var rule = root.querySelector(".zp-rule");
+            var frontLabel = root.querySelector(".zp-front-label");
+            var backLabel = root.querySelector(".zp-back-label");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            var glows = { blue: "#4da3ff", violet: "#a98cff", amber: "#ffb454" };
+            var accent = glows[vars.accent] ? vars.accent : "blue";
+            root.style.setProperty("--zp-glow", glows[accent]);
+            frontLabel.textContent = vars.front == null ? "BEFORE" : String(vars.front);
+            backLabel.textContent = vars.back == null ? "AFTER" : String(vars.back);
+
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "2.1"));
+            var s = D < 2.1 ? D / 2.1 : 1; // compress the beats, never the order
+
+            var PUNCH = 1.25 * s;
+            var ARRIVE_AT = 0.42 * s;
+            var LAND_AT = 1.12 * s;
+
+            // Rest state pinned outside the timeline. Every tween writes both ends,
+            // so a seek can never pick up a start value from whatever is on screen.
+            root.style.setProperty("--zp-r", "8");
+            gsap.set(wall, { scale: 1, opacity: 1 });
+            gsap.set(back, { scale: 1 });
+            gsap.set(backLabel, { y: "4cqh", opacity: 0 });
+            gsap.set(rule, { scaleX: 0, opacity: 0 });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // The punch. Aperture and wall travel together: opening the hole without
+            // moving the wall reads as a mask effect, not as a camera.
+            tl.fromTo(
+              root,
+              { "--zp-r": 8 },
+              { "--zp-r": 104, duration: PUNCH, ease: E.morph },
+              0,
+            );
+            tl.fromTo(wall, { scale: 1 }, { scale: 2.6, duration: PUNCH, ease: E.camPush }, 0);
+            // The wall only fades over the last third of its own travel, once it is
+            // large enough that the fade reads as passing the lens rather than as a
+            // dissolve.
+            tl.fromTo(
+              wall,
+              { opacity: 1 },
+              { opacity: 0, duration: 0.34 * s, ease: E.exitAway },
+              PUNCH - 0.34 * s,
+            );
+
+            // Arrival starts BEFORE the punch ends. That overlap is the tail rule:
+            // camSettle has a dead tail at 30fps, and the only honest fix is to have
+            // another layer still moving through it, not a weaker curve.
+            tl.fromTo(
+              back,
+              { scale: 1 },
+              { scale: 1.14, duration: D - ARRIVE_AT, ease: E.camSettle },
+              ARRIVE_AT,
+            );
+
+            // And the label picks up exactly where the settle goes quiet.
+            tl.fromTo(
+              backLabel,
+              { y: "4cqh", opacity: 0 },
+              { y: "0cqh", opacity: 1, duration: 0.5 * s, ease: E.enter },
+              LAND_AT,
+            );
+            tl.fromTo(
+              rule,
+              { scaleX: 0, opacity: 0 },
+              { scaleX: 1, opacity: 1, duration: 0.72 * s, ease: E.enter },
+              LAND_AT + 0.1 * s,
+            );
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["z-punch-through"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

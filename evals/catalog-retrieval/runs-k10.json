@@ -1,0 +1,462 @@
+[
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.91,
+        "usage": {
+          "completion_tokens": 43,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1190,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1233
+        }
+      }
+    ],
+    "brief": "01",
+    "condition": "c",
+    "confidence": "high",
+    "context_chars": 5619,
+    "picks": [
+      {
+        "move": "pill-row-collapse",
+        "why": "This move effectively narrows down the five steps to the first step, aligning with the need to emphasize the current focus."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"pill-row-collapse\",\"why\":\"This move effectively narrows down the five steps to the first step, aligning with the need to emphasize the current focus.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "state-chip-rail",
+      "pill-row-collapse",
+      "version-plate-type",
+      "orbit-ring-camera",
+      "depth-rack-focus",
+      "particle-text-dissolve",
+      "thread-message-stack",
+      "rank-list-settle",
+      "press-ripple",
+      "grade-split-reveal"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.85,
+        "usage": {
+          "completion_tokens": 44,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1195,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1239
+        }
+      }
+    ],
+    "brief": "01",
+    "condition": "d",
+    "confidence": "high",
+    "context_chars": 5532,
+    "picks": [
+      {
+        "move": "pill-row-collapse",
+        "why": "This move effectively narrows down the five steps to the first one, making it clear which step is currently being focused on."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"pill-row-collapse\",\"why\":\"This move effectively narrows down the five steps to the first one, making it clear which step is currently being focused on.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "caption-camera-follow",
+      "pill-row-collapse",
+      "orbit-ring-camera",
+      "z-punch-through",
+      "grade-split-reveal",
+      "depth-rack-focus",
+      "plan-room-audit",
+      "focus-rack",
+      "echo-trail",
+      "persona-card-fan"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.99,
+        "usage": {
+          "completion_tokens": 45,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1198,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1243
+        }
+      }
+    ],
+    "brief": "02",
+    "condition": "c",
+    "confidence": "high",
+    "context_chars": 5617,
+    "picks": [
+      {
+        "move": "grade-split-reveal",
+        "why": "This move effectively showcases the before-and-after comparison of the photograph, allowing the viewer to see the treatment's impact directly."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"grade-split-reveal\",\"why\":\"This move effectively showcases the before-and-after comparison of the photograph, allowing the viewer to see the treatment's impact directly.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "glyph-ring-assemble",
+      "kinetic-type-swap",
+      "pill-row-collapse",
+      "particle-text-dissolve",
+      "z-punch-through",
+      "version-plate-type",
+      "press-ripple",
+      "grade-split-reveal",
+      "caliper-caption-rail",
+      "caption-camera-follow"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.93,
+        "usage": {
+          "completion_tokens": 38,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1188,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1226
+        }
+      }
+    ],
+    "brief": "02",
+    "condition": "d",
+    "confidence": "high",
+    "context_chars": 5476,
+    "picks": [
+      {
+        "move": "grade-split-reveal",
+        "why": "This move effectively showcases the before-and-after comparison of the photograph in a single frame."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"grade-split-reveal\",\"why\":\"This move effectively showcases the before-and-after comparison of the photograph in a single frame.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "grade-split-reveal",
+      "z-punch-through",
+      "depth-rack-focus",
+      "orbit-ring-camera",
+      "focus-rack",
+      "match-cut",
+      "caption-camera-follow",
+      "caliper-caption-rail",
+      "echo-trail",
+      "plan-room-audit"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.89,
+        "usage": {
+          "completion_tokens": 36,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1144,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1180
+        }
+      }
+    ],
+    "brief": "03",
+    "condition": "c",
+    "confidence": "high",
+    "context_chars": 5343,
+    "picks": [
+      {
+        "move": "thread-message-stack",
+        "why": "This move effectively showcases a conversation building through alternating message bubbles while keeping the background dynamic."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"thread-message-stack\",\"why\":\"This move effectively showcases a conversation building through alternating message bubbles while keeping the background dynamic.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "z-punch-through",
+      "halftone-dissolve",
+      "depth-rack-focus",
+      "match-cut",
+      "focus-rack",
+      "thread-message-stack",
+      "plan-room-audit",
+      "marker-highlight",
+      "receipt-card",
+      "kinetic-type-swap"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.76,
+        "usage": {
+          "completion_tokens": 42,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1173,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1215
+        }
+      }
+    ],
+    "brief": "03",
+    "condition": "d",
+    "confidence": "high",
+    "context_chars": 5486,
+    "picks": [
+      {
+        "move": "thread-message-stack",
+        "why": "This move effectively captures the back-and-forth nature of a conversation with alternating message bubbles while keeping the background dynamic."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"thread-message-stack\",\"why\":\"This move effectively captures the back-and-forth nature of a conversation with alternating message bubbles while keeping the background dynamic.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "chevron-pill-card-morph",
+      "thread-message-stack",
+      "z-punch-through",
+      "press-ripple",
+      "depth-rack-focus",
+      "caption-camera-follow",
+      "focus-rack",
+      "halftone-dissolve",
+      "persona-card-fan",
+      "orbit-ring-camera"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.85,
+        "usage": {
+          "completion_tokens": 46,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1191,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1237
+        }
+      }
+    ],
+    "brief": "04",
+    "condition": "c",
+    "confidence": "high",
+    "context_chars": 5645,
+    "picks": [
+      {
+        "move": "kinetic-type-swap",
+        "why": "This move allows for a fixed sentence layout while changing a specific word, perfectly matching the requirement of keeping the surrounding text stable."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"kinetic-type-swap\",\"why\":\"This move allows for a fixed sentence layout while changing a specific word, perfectly matching the requirement of keeping the surrounding text stable.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "thread-message-stack",
+      "rank-list-settle",
+      "kinetic-type-swap",
+      "caption-camera-follow",
+      "version-plate-type",
+      "persona-card-fan",
+      "particle-text-dissolve",
+      "match-cut",
+      "z-punch-through",
+      "press-ripple"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.91,
+        "usage": {
+          "completion_tokens": 43,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1166,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1209
+        }
+      }
+    ],
+    "brief": "04",
+    "condition": "d",
+    "confidence": "high",
+    "context_chars": 5466,
+    "picks": [
+      {
+        "move": "kinetic-type-swap",
+        "why": "This move allows for the central word to change while keeping the surrounding text fixed, maintaining the layout as required."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"kinetic-type-swap\",\"why\":\"This move allows for the central word to change while keeping the surrounding text fixed, maintaining the layout as required.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "caption-camera-follow",
+      "kinetic-type-swap",
+      "pill-row-collapse",
+      "depth-rack-focus",
+      "version-plate-type",
+      "marker-highlight",
+      "particle-text-dissolve",
+      "z-punch-through",
+      "receipt-card",
+      "grade-split-reveal"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.72,
+        "usage": {
+          "completion_tokens": 39,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1176,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1215
+        }
+      }
+    ],
+    "brief": "05",
+    "condition": "c",
+    "confidence": "high",
+    "context_chars": 5375,
+    "picks": [
+      {
+        "move": "focus-rack",
+        "why": "This move effectively transitions attention from the sharp foreground to the blurred background, creating a clear handoff."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"focus-rack\",\"why\":\"This move effectively transitions attention from the sharp foreground to the blurred background, creating a clear handoff.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "depth-rack-focus",
+      "focus-rack",
+      "z-punch-through",
+      "glyph-ring-assemble",
+      "particle-text-dissolve",
+      "rank-list-settle",
+      "orbit-ring-camera",
+      "marker-highlight",
+      "chevron-pill-card-morph",
+      "press-ripple"
+    ]
+  },
+  {
+    "attempts": [
+      {
+        "ok": true,
+        "seconds": 0.92,
+        "usage": {
+          "completion_tokens": 44,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": 0,
+            "audio_tokens": 0,
+            "reasoning_tokens": 0,
+            "rejected_prediction_tokens": 0
+          },
+          "prompt_tokens": 1206,
+          "prompt_tokens_details": {
+            "audio_tokens": 0,
+            "cached_tokens": 0
+          },
+          "total_tokens": 1250
+        }
+      }
+    ],
+    "brief": "05",
+    "condition": "d",
+    "confidence": "high",
+    "context_chars": 5503,
+    "picks": [
+      {
+        "move": "focus-rack",
+        "why": "This move provides a clear handoff from the sharp foreground to the blurred background, aligning perfectly with the viewer's refocusing."
+      }
+    ],
+    "raw": "{\"picks\":[{\"move\":\"focus-rack\",\"why\":\"This move provides a clear handoff from the sharp foreground to the blurred background, aligning perfectly with the viewer's refocusing.\"}],\"confidence\":\"high\"}",
+    "shown": [
+      "depth-rack-focus",
+      "focus-rack",
+      "orbit-ring-camera",
+      "z-punch-through",
+      "caption-camera-follow",
+      "grade-split-reveal",
+      "match-cut",
+      "persona-card-fan",
+      "halftone-dissolve",
+      "echo-trail"
+    ]
+  }
+]

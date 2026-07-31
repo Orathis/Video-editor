@@ -1,0 +1,31 @@
+---
+title: "Z Punch Through"
+description: "The camera moves through an opening in a front wall as that wall passes the lens and the back plane advances into its settled state."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">Transitions</span>
+
+<PrimitivePlayer name="z-punch-through" width={1920} height={1080} />
+
+## Variables
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `front` | `string` | `BEFORE` | Text on the wall the camera punches through. |
+| `back` | `string` | `AFTER` | Text on the plane behind the wall. |
+| `accent` | `enum` | `blue` | Light behind the aperture. |
+
+## When to use it
+
+A scene change must feel like forward travel through an aperture rather than a flat scale zoom.
+
+## When to avoid it
+
+Avoid it when the clip needs a hold, because the documented 2.10-second envelope is filled by the move and has no hold.
+
+## Pairs with
+
+- [match-cut](/primitives/match-cut)
+- [depth-rack-focus](/primitives/depth-rack-focus)

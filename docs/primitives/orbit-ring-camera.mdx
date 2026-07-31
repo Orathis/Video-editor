@@ -1,0 +1,23 @@
+---
+title: "Orbit Ring Camera"
+description: "A camera tracks a lit head around a tilted ring, then dollies out to reveal the full ellipse, eight stations, and three rotating inner rails."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">Camera moves</span>
+
+<PrimitivePlayer name="orbit-ring-camera" width={1920} height={1080} />
+
+## When to use it
+
+A close tracked journey along a loop must resolve into a complete system view with all stations visible.
+
+## When to avoid it
+
+Avoid it when square or portrait framing needs the same composition quality as landscape, because those aspects are only re-aimed while the move is composed for 16x9.
+
+## Pairs with
+
+- [echo-trail](/primitives/echo-trail)
+- [plan-room-audit](/primitives/plan-room-audit)

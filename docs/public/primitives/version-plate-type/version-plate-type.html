@@ -1,0 +1,642 @@
+<!doctype html>
+<!--
+  version-plate-type: HyperFrames video primitive (word assembles, then resolves).
+
+  A word is stamped one glyph at a time as a cluster of white plates, each plate
+  cropping an oversized letter, each carrying a red misregistration layer and a
+  red version tab. Hard cut to the resolved state: one word per beat inside a
+  selection box that is dragged wider, then shorter, then closed on its own
+  letters, then pushed off frame.
+
+  THE PRIMITIVE IS THE PLATES AND THE BOX, NOT THE LETTERS. A glyph is a clipping
+  box with an oversized letter measured into it, and every resolved word is fitted
+  to one constant ink width, so any string you drop in keeps the geometry.
+
+  REFERENCE: whop.mp4 1920x1080 30fps, 12.867s to 14.900s, re-extracted at 30fps
+  (61 content frames, cut on twos). Every number below is measured off those PNGs
+  with a white-ink mask (min channel > 130, saturation < 28), never off a sheet.
+
+  THERE IS NO CAMERA IN THE REFERENCE, and the falsifier is in the numbers: a
+  camera scales both axes at once, in proportion. Measured across the resolved
+  phase, the two axes never move together. 13.567 to 13.933: ink width 49.85 ->
+  88.96% of frame width while cap height holds 70.56 -> 70.46%. 13.933 to 14.400:
+  cap height 70.46 -> 43.70% (-38%) while width moves 88.96 -> 82.45% (-7%) and
+  the ink's RIGHT edge stays pinned at 94.74 to 95.10% through four word cuts.
+  The ink's vertical centre holds at 49.3 to 49.7% throughout. That is one axis
+  at a time, which is a selection box being dragged by its handles, and it is why
+  there is a cursor parked on the top-right handle. The four measured phases are
+  shipped as four separate moves:
+
+    A STRETCH  13.567-13.933  ink width 49.84 -> 88.96% of frame, cap height
+               pinned at 70.6%. Crosses two word cuts, so it is the BOX widening
+               and each word being stretched to it, not a word growing.
+               fit cb(0.503, 0.000, 0.262, 1.000), max err 3.34% of travel, 7
+               samples (an unconstrained fit reaches 1.54% at cb(0.747, 0.279,
+               0.006, 0.819) but that end control point does not settle).
+    B SQUEEZE  13.933-14.467  cap height 70.46 -> 43.15% of frame height while
+               the ink's RIGHT edge holds 95.05 -> 94.74% for most of the phase
+               (width 88.96 -> 82.45% by 14.400, 77.09% by 14.467, against a 38%
+               fall in height), vertical centre 49.58 -> 49.54%.
+               fit cb(0.532, 0.180, 0.000, 1.000), max err 2.39%, 9 samples.
+    C CONVERGE 14.500-14.700  the last word's letters close on their own centre,
+               ink width 42.50 -> 25.26% at constant cap height, box following.
+               fit cb(0.207, 0.670, 0.634, 1.000). 4 samples against 3 free
+               parameters, so this is an interpolation, not a test: what it
+               encodes is 64% of the travel inside the first third.
+    D PUSH     14.767-14.900  uniform scale up until the word leaves frame. Two
+               usable samples before it clips, so the curve is shape-matched
+               (accelerating), not fitted, and says so.
+
+  STAMP, measured: the shot OPENS in extreme close-up (two glyphs, ink bbox 100%
+  of frame height, R plate 1.70x its settled width) and whips out through one
+  motion-blurred frame at 13.067, then settles laterally, decelerating, to 13.433.
+  Plate arrival by slot: {2,4} already down at 12.867, then 6, 5, 3, 7, and slot 1
+  LAST at 13.267. Slots 7 and 2 blink back out together at 13.433.
+  settle curve fitted to that post-whip lateral pan: cb(0.410, 0.773, 0.987,
+  1.000), max err 0.62% of travel, 6 samples. The whip itself is one frame at
+  30fps, so it cannot be fitted; it is stretched over 3 audit samples and shaped.
+
+  COLOUR, sampled unquantised: background #0B0B0B under the plates and #131313
+  under the type (one value here, #0D0D0D), plate face #EBEBEB drifting to
+  #E2E2E2 (#EDEDEF here), letter #010101, tab red #D41E10, selection #6599BE
+  median, which is a 2px antialiased line, so #4C8FD6 is shipped.
+
+  DELIBERATE DEVIATIONS:
+    1. PRESENTER SAFE ZONE. The presenter owns the left 32% of a landscape frame
+       at full height, so the move lives in a stage inset to 34%. The reference
+       centres its box on the frame; this centres it on the STAGE, which is the
+       fix for the round-2 build's left anchor. Measured on the built PNGs, the
+       left-most non-black pixel over all 32 frames is 36.04% of frame width,
+       including the terminal push, which is taken about 16% of the stage (the
+       closed box's own left edge) rather than about its centre.
+    2. CADENCE. The reference cuts on twos (1/15s) and its word beats run 0.10s
+       to 0.13s. The audit samples 32 frames across the clip, 0.11s apart, so a
+       reference beat is under one sample. Beats are stretched about 2.1x. Same
+       order, same hard cuts.
+    3. The reference's ink fills 89% of frame WIDTH. The stage is 66% of frame
+       width, so the same 94% fill of the stage is 62% of the frame, and the type
+       reads smaller than the reference by that ratio. Unavoidable, not a choice.
+    4. Reference cap height is set per word by a stretched face; here each word is
+       fitted uniformly to the constant ink width, so cap height falls out of
+       character count instead. The phrase's lengths (3,4,5,6,4,5) make the height
+       sequence go down AND back up, which is the read a camera cannot produce.
+    5. The registration starts wider than the reference's ~4px and settles to it,
+       so the stamp phase has something resolving under the hard cuts.
+    6. Phase C runs the other way. The reference closes DESIGN by 41% because it
+       is set on TWO LINES, so its letters have room to overlap columns; one line
+       of five letters closing that far is an illegible blob. Beat 6 is therefore
+       sized so its SPREAD state (1.35x letter offsets) is the same constant box
+       every other beat lands on, and it closes to that box. Same travel, same
+       curve, same "the box is being dragged shut" read, no collision.
+
+  FONTS, local and system only, no remote fetch:
+    plates    "Helvetica Neue" / Helvetica / Arial at 700, the reference's face
+    resolved  Impact, then Haettenschweiler, then Arial Narrow Bold, the closest
+              system match to the reference's condensed grotesque. Override
+              --vpt-face-display for a licensed face.
+
+  ENVELOPE (D = 3.40s, 30fps):
+    0.000-0.300 WHIP. Cluster 1.70x to 1.06x, cropping off frame, then out.
+    0.000-1.320 Plates cut on at 0 ({2,4}), 0.14 (6), 0.28 (5), 0.56 (3),
+                0.70 (7), 0.84 (1); slots 7 and 2 cut back out at 1.18. Under
+                them: the lateral settle 0.300-1.320 and the registration settle.
+    1.320       HARD CUT to the resolved type.
+    1.320-1.940 A, box stretches. Beats 1 and 2.
+    1.940-2.720 B, box squeezes. Beats 3, 4 and 5.
+    2.720-3.060 C, beat 6's letters converge, box and cursor following.
+    3.060-3.400 D, terminal push. The word and its box overflow here and nowhere
+                else; the only other overflow in the file is the opening whip,
+                which crops plates the way the reference's own opening does.
+
+  SLOTS. No media. Seven plate glyphs and six words are text nodes; swap them and
+  the geometry re-measures. Overridable on #root: --vpt-bg, --vpt-plate,
+  --vpt-ink, --vpt-red, --vpt-sel, --vpt-face-plate, --vpt-face-display,
+  --vpt-safe. Mount contract: the runtime clones only this template, #root fills
+  its host and carries no data-width or data-height, and one paused timeline
+  registers under the hardcoded version-plate-type id.
+-->
+<html lang="en" data-composition-id="version-plate-type" data-composition-duration="3.4">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Version Plate Type</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="version-plate-type" data-duration="3.4" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--vpt-bg, #0d0d0d);
+            pointer-events: none;
+
+            --vpt-safe: 32%;
+            --vpt-face-plate: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --vpt-face-display: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+          }
+
+          /* The presenter owns the left --vpt-safe of a landscape frame, full
+             height, so the whole move lives in this box. It starts two points
+             RIGHT of that boundary because the things that stick out to the left
+             of a stage-anchored element are exactly the ones the safe zone cares
+             about: the misregistration offset behind the left-most plate, a
+             left-edge tab, and the selection box's own padding. It is its own
+             size container, so every cq unit below is a share of the WORKING
+             area rather than of the frame. */
+          .vpt-stage {
+            position: absolute;
+            inset: 0 0 0 calc(var(--vpt-safe) + 2%);
+            container-type: size;
+          }
+
+          /* Portrait and square: the presenter moves to the lower band instead of
+             the left column, so the stage does. Graceful, not equal: this move was
+             composed for 16:9 and only has to survive the other two. */
+          @container (aspect-ratio < 1.2) {
+            .vpt-stage {
+              inset: 0 0 40% 0;
+            }
+          }
+
+          .vpt-fit {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            inset: 0;
+          }
+
+          /* The reference cluster bbox is 1.770 wide to tall inside a 1.778
+             frame. The presenter's column leaves a working area of 1.17, and
+             holding 1.770 inside it would leave a third of the picture empty,
+             which is a different, smaller idea. The box is reproportioned to
+             1.45: every plate rect keeps its place in the collage, the lateral
+             gaps compress about 18%, and the cluster owns ~75% of frame height
+             the way the reference does.
+
+             Scaled about its own LEFT edge, so the opening close-up at 1.70x
+             crops off the top, the bottom and the right the way the reference's
+             does, and never off the left into the presenter. */
+          .vpt-cluster {
+            position: relative;
+            width: min(93cqw, 141cqh);
+            aspect-ratio: 1.45;
+            transform-origin: 0% 50%;
+            font-family: var(--vpt-face-plate);
+          }
+
+          .vpt-plate {
+            position: absolute;
+            left: calc(var(--l) * 1%);
+            top: calc(var(--t) * 1%);
+            width: calc(var(--w) * 1%);
+            height: calc(var(--h) * 1%);
+          }
+
+          /* The misregistration. A duplicate of the plate in ink red, sitting
+             behind it and offset, so a thin red edge shows along two sides. GSAP
+             owns its transform; the rest offset is pinned by gsap.set, never here,
+             so a seek can never inherit whatever the last frame left. */
+          .vpt-mis {
+            position: absolute;
+            inset: 0;
+            background: var(--vpt-red, #d51b0f);
+          }
+
+          /* The crop. The letter is measured to fill --fill of the plate's height
+             with its INK flush to the plate's top edge, which is what the
+             reference does on all seven plates (ink height over plate height 0.94
+             to 1.00, top margin 0.00). Wide letters then run off the plate's
+             sides, which is the crop; narrow ones leave white to the right, which
+             the reference also does. */
+          .vpt-face {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            background: var(--vpt-plate, #ededef);
+          }
+
+          .vpt-g {
+            position: absolute;
+            color: var(--vpt-ink, #010101);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1;
+          }
+
+          .vpt-tab {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            width: calc(var(--tw, 46) * 1%);
+            height: 3.1cqh;
+            background: var(--vpt-red, #d51b0f);
+            color: var(--vpt-plate, #ededef);
+            padding: 0 0.7cqh;
+            font-size: 2.1cqh;
+            font-weight: 700;
+            line-height: 3.1cqh;
+          }
+
+          /* Two tabs break the pattern in the reference: one runs down the left
+             edge, one hangs off the bottom. Without them the cluster reads as a
+             grid of identical widgets rather than as a sheet of press plates. */
+          .vpt-tab--l {
+            right: 100%;
+            bottom: auto;
+            left: auto;
+            top: 44%;
+            width: 3.1cqh;
+            height: calc(var(--tw, 46) * 1%);
+            padding: 0.7cqh 0;
+            line-height: 3.1cqh;
+            text-align: center;
+            writing-mode: vertical-rl;
+          }
+
+          .vpt-tab--b {
+            top: 100%;
+            bottom: auto;
+          }
+
+          /* Resolved type. Phases A and B are taken about the stage's centre,
+             because the reference's box is dragged symmetrically: its centre
+             holds at 50.00% of frame on every beat. */
+          .vpt-type {
+            position: absolute;
+            inset: 0;
+            font-family: var(--vpt-face-display);
+            transform-origin: 50% 50%;
+          }
+
+          /* Phase D. The reference's push is a centred blow-up (ink 34.84 to 68.07%
+             of frame at 14.767, 20.94 to 82.76% at 14.800, full frame by 14.867:
+             the centre holds at 51.7%). A centred blow-up here would drive the left
+             edge straight through the presenter, so the origin is moved onto the
+             closed box's own left edge (16% of the stage, 44.6% of frame). Same
+             gesture, same overflow off the right, the top and the bottom, but the
+             left edge is the one thing that stays put. */
+          .vpt-beat {
+            position: absolute;
+            inset: 0;
+            transform-origin: 16% 50%;
+          }
+
+          .vpt-w {
+            position: absolute;
+            inset: 0;
+            color: var(--vpt-plate, #ededef);
+            font-size: 20cqh;
+            font-weight: 400;
+          }
+
+          /* One span per letter, each parked at its own measured advance, so the
+             convergence is a transform per letter and never a letter-spacing
+             tween (which the runtime's static guard rejects). */
+          .vpt-w > span {
+            position: absolute;
+            line-height: 1;
+            white-space: pre;
+          }
+
+          /* Eight handles, four corners and four edge midpoints, painted as eight
+             background layers on the one box element. A design canvas selection,
+             and no extra nodes. */
+          .vpt-box {
+            position: absolute;
+            border: 0.24cqh solid var(--vpt-sel, #4c8fd6);
+            --hs: 1.9cqh;
+            background-image: linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6)),
+              linear-gradient(var(--vpt-sel, #4c8fd6), var(--vpt-sel, #4c8fd6));
+            background-position: 0 0, 50% 0, 100% 0, 0 50%, 100% 50%, 0 100%, 50% 100%, 100% 100%;
+            background-repeat: no-repeat;
+            background-size: var(--hs) var(--hs);
+          }
+
+          .vpt-cur {
+            position: absolute;
+            width: 2.9cqh;
+            fill: var(--vpt-plate, #ededef);
+            stroke: var(--vpt-ink, #010101);
+            stroke-width: 1.1;
+          }
+        </style>
+
+        <div class="vpt-stage">
+          <div class="vpt-fit">
+            <div class="vpt-cluster">
+              <div class="vpt-plate" style="--l: 0; --t: 2.26; --w: 16.89; --h: 31.73; --fill: 0.97; --gx: 4; --tw: 46">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">S</span></span>
+                <span class="vpt-tab">V1</span>
+              </div>
+              <div class="vpt-plate" style="--l: 31.94; --t: 12.19; --w: 26.71; --h: 26.36; --fill: 0.95; --gx: 5; --tw: 40">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">A</span></span>
+                <span class="vpt-tab">V2</span>
+              </div>
+              <div class="vpt-plate" style="--l: 65.88; --t: 0; --w: 31.61; --h: 41.35; --fill: 1; --gx: 4; --tw: 30">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">N</span></span>
+                <span class="vpt-tab vpt-tab--l">V3</span>
+              </div>
+              <div class="vpt-plate" style="--l: 2.92; --t: 49.7; --w: 19.93; --h: 44.95; --fill: 0.99; --gx: -10; --tw: 62">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">d</span></span>
+                <span class="vpt-tab">V4</span>
+              </div>
+              <div class="vpt-plate" style="--l: 28.91; --t: 50.56; --w: 29.66; --h: 38.49; --fill: 0.96; --gx: 5; --tw: 38">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">b</span></span>
+                <span class="vpt-tab vpt-tab--b">V5</span>
+              </div>
+              <div class="vpt-plate" style="--l: 61.92; --t: 63.65; --w: 17.15; --h: 36.35; --fill: 1; --gx: -27; --tw: 68">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">o</span></span>
+                <span class="vpt-tab">V6</span>
+              </div>
+              <div class="vpt-plate" style="--l: 83.49; --t: 40.65; --w: 16.51; --h: 51.63; --fill: 0.98; --gx: -56; --tw: 78">
+                <span class="vpt-mis"></span>
+                <span class="vpt-face"><span class="vpt-g">x</span></span>
+                <span class="vpt-tab">V7</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="vpt-type">
+            <div class="vpt-beat"><span class="vpt-w">SET</span><span class="vpt-box"></span></div>
+            <div class="vpt-beat"><span class="vpt-w">EACH</span><span class="vpt-box"></span></div>
+            <div class="vpt-beat"><span class="vpt-w">PLATE</span><span class="vpt-box"></span></div>
+            <div class="vpt-beat"><span class="vpt-w">SQUARE</span><span class="vpt-box"></span></div>
+            <div class="vpt-beat"><span class="vpt-w">THEN</span><span class="vpt-box"></span></div>
+            <div class="vpt-beat"><span class="vpt-w">PRINT</span><span class="vpt-box"></span></div>
+            <svg class="vpt-cur" viewBox="0 0 12 18" aria-hidden="true">
+              <path d="M0.6 0.6 L0.6 14.6 L4.4 11.2 L6.8 17.2 L9.2 16.2 L6.8 10.4 L11.4 10.3 Z" />
+            </svg>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek-safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            // Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Every curve below is fitted to a table in spec-version-plate-type.md.
+            var E = {
+              // Recedes to an off state but stays in frame: the misprint pulling
+              // into register. The one palette curve in the file.
+              exitSettle: cb(0.3, 0.8, 0.4, 1.0),
+              // One motion-blurred frame in the reference, so shaped, not fitted.
+              whip: cb(0.16, 0.9, 0.3, 1.0),
+              // The reference's post-whip lateral pan, 6 samples, max err 0.62%.
+              settle: cb(0.41, 0.773, 0.987, 1.0),
+              // Box widening, 7 samples, max err 3.34% of travel.
+              stretch: cb(0.503, 0.0, 0.262, 1.0),
+              // Box shortening, 9 samples, max err 2.39% of travel.
+              squeeze: cb(0.532, 0.18, 0.0, 1.0),
+              // Letters closing, 4 samples against 3 parameters: an interpolation.
+              converge: cb(0.207, 0.67, 0.634, 1.0),
+              // Two usable samples before the reference clips: shape, not fit.
+              push: cb(0.4, 0.3, 0.7, 1.0),
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var stage = root.querySelector(".vpt-stage");
+            var plates = [].slice.call(root.querySelectorAll(".vpt-plate"));
+            var mis = root.querySelectorAll(".vpt-mis");
+            var cluster = root.querySelector(".vpt-cluster");
+            var type = root.querySelector(".vpt-type");
+            var cur = root.querySelector(".vpt-cur");
+            var beats = [].slice.call(root.querySelectorAll(".vpt-beat"));
+
+            // GSAP writes transforms as px, so a cq distance would not survive on a
+            // tween. Read the unit once, at build time, off the STAGE and not the
+            // frame, because the stage is the working area. (Law 0b.)
+            var SW = stage.clientWidth, SH = stage.clientHeight;
+            var U = Math.min(SW, SH) / 100 || 10.8;
+
+            // GLYPH METRICS. The layout box is not the ink: line boxes carry
+            // half-leading and exclude the overshoot on round glyphs, which is why
+            // the round-2 selection box let O and U bowls break out of it by 14px.
+            // Canvas actualBoundingBox* is the painted bbox, so everything below is
+            // measured off the ink. Deterministic, no network, no layout thrash.
+            var CV = document.createElement("canvas").getContext("2d");
+            function ink(el, txt) {
+              var cs = getComputedStyle(el), F = parseFloat(cs.fontSize);
+              CV.font = cs.fontWeight + " " + F + "px " + cs.fontFamily;
+              var m = CV.measureText(txt), acc = 0, L = 0, R = 0, A = 0, D = 0;
+              var adv = [], cen = [];
+              txt.split("").forEach(function (ch, i) {
+                var c = CV.measureText(ch);
+                if (i === 0) L = acc - c.actualBoundingBoxLeft;
+                R = acc + c.actualBoundingBoxRight;
+                A = Math.max(A, c.actualBoundingBoxAscent);
+                D = Math.max(D, c.actualBoundingBoxDescent);
+                adv.push(acc);
+                cen.push(acc + c.width / 2);
+                acc += c.width;
+              });
+              return {
+                F: F, l: L, w: R - L, a: A, h: A + D, adv: adv, cen: cen,
+                // Top of a line-height:1 box to the baseline, from the font's own
+                // ascent and Chrome's half-leading.
+                base: (F - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent,
+              };
+            }
+
+            // PLATES. Each letter is sized so its INK is --fill of the plate's
+            // height and its ink top is flush with the plate's top edge, which is
+            // the reference's own geometry on all seven plates. --gx is then the
+            // ink's left inset as a share of plate width, negative where the
+            // reference crops the letter off the plate's left.
+            plates.forEach(function (p) {
+              var g = p.querySelector(".vpt-g"), t = g.textContent;
+              var cs = getComputedStyle(p), H = p.clientHeight, W = p.clientWidth;
+              var m0 = ink(g, t);
+              g.style.fontSize = (m0.F * H * parseFloat(cs.getPropertyValue("--fill")) / m0.h) + "px";
+              var m = ink(g, t);
+              g.style.left = (W * parseFloat(cs.getPropertyValue("--gx")) / 100 - m.l) + "px";
+              g.style.top = (m.a - m.base) + "px";
+            });
+
+            // RESOLVED WORDS. One constant ink width for every beat, centred on the
+            // stage, exactly as the reference holds x0 6.09 to x1 95.05 with its
+            // centre at 50.6 across six different words. Cap height is then a
+            // consequence of character count, not a camera.
+            var TW = SW * 0.88;
+            var PAD = 1.4 * U;
+            var KS = 1.35;
+            var live = beats.map(function (beat, i) {
+              var w = beat.querySelector(".vpt-w"), box = beat.querySelector(".vpt-box");
+              var txt = w.textContent, m0 = ink(w, txt);
+              // The last beat is set so that its SPREAD state is the same constant
+              // box every other beat lands on, and it closes from there.
+              w.style.fontSize = (m0.F * (i === 5 ? TW / KS : TW) / m0.w) + "px";
+              var m = ink(w, txt);
+              var x0 = (SW - m.w) / 2, top = (SH - m.h) / 2 - (m.base - m.a);
+              var cx = x0 + m.w / 2, dx = [];
+              w.textContent = "";
+              var ls = txt.split("").map(function (ch, i) {
+                var s = document.createElement("span");
+                s.textContent = ch;
+                s.style.left = (x0 - m.l + m.adv[i]) + "px";
+                s.style.top = top + "px";
+                w.appendChild(s);
+                dx.push(x0 - m.l + m.cen[i] - cx);
+                return s;
+              });
+              // The box wraps the INK bbox plus one padding, which puts the
+              // reference's measured 1.05x to 1.08x box-to-cap-height ratio on
+              // every beat whatever letters it holds.
+              var bt = (SH - m.h) / 2 - PAD;
+              box.style.top = bt + "px";
+              box.style.height = (m.h + 2 * PAD) + "px";
+              return { box: box, ls: ls, dx: dx, cx: cx, w: m.w, bt: bt };
+            });
+            function bx(b, k) { return b.cx - b.w * k / 2 - PAD; }
+            function bw(b, k) { return b.w * k + 2 * PAD; }
+            live.forEach(function (b) {
+              b.box.style.left = bx(b, 1) + "px";
+              b.box.style.width = bw(b, 1) + "px";
+            });
+
+            var D = 3.4;
+            var CUT = 1.32;                      // stamp -> type
+            var B = [CUT, 1.68, 1.94, 2.2, 2.46, 2.72];
+            var PUSH = 3.06;
+            var REG = 0.36 * U;                  // the reference's ~4px misregistration
+            var SX0 = 0.56;                      // 49.84 / 88.96, phase A's start
+            var SQ = 0.62;                       // 43.15 / 70.46, phase B's end
+            var PS = 9;                          // enough that the last word leaves frame
+
+            // Rest state pinned outside the timeline, both ends written on every
+            // tween, so a seek never inherits a start value from the screen.
+            gsap.set(mis, { x: -REG, y: -REG });
+            gsap.set(cluster, { opacity: 1, scale: 1 });
+            gsap.set(type, { opacity: 0, scaleX: 1, scaleY: 1 });
+            gsap.set(beats, { opacity: 0, scale: 1 });
+            gsap.set(cur, { opacity: 1 });
+            // Frame zero is a deliverable (Law 8): the reference opens with slots
+            // 2 and 4 already down, in close-up, and slot 1 arrives LAST.
+            gsap.set(plates, { opacity: 0 });
+            gsap.set([plates[1], plates[3]], { opacity: 1 });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // STAMP. No entrance tween anywhere: the reference stamps each plate as
+            // a hard cut on twos, and easing one in reads as a softer, different
+            // idea. Order is the reference's, measured slot by slot.
+            [[5, 0.14], [4, 0.28], [2, 0.56], [6, 0.7], [0, 0.84]].forEach(function (s) {
+              tl.set(plates[s[0]], { opacity: 1 }, s[1]);
+            });
+            // Slots 7 and 2 blink back out on one frame at the reference's 13.433,
+            // which is its last state before the cut.
+            tl.set([plates[6], plates[1]], { opacity: 0 }, 1.18);
+
+            // The opening close-up and its whip out, then the decelerating lateral
+            // settle that runs under every plate cut (Law 3, overlap). One tween
+            // drives all seven red plates, because a misprint is one separation
+            // shifting, not seven elements each deciding to.
+            tl.fromTo(cluster, { scale: 1.7 }, { scale: 1.06, duration: 0.3, ease: E.whip }, 0);
+            tl.fromTo(cluster, { scale: 1.06 }, { scale: 1, duration: CUT - 0.3, ease: E.settle }, 0.3);
+            tl.fromTo(mis, { x: -4.2 * REG, y: -2.7 * REG }, { x: -REG, y: -REG, duration: CUT, ease: E.exitSettle }, 0);
+
+            // HARD CUT. The reference does not cross fade these two states and
+            // neither does this: one frame is plates, the next is type.
+            tl.set(cluster, { opacity: 0 }, CUT);
+            tl.set(type, { opacity: 1 }, CUT);
+
+            // One word per beat, every one a cut, with the cursor parked on the top
+            // right handle of whichever box is live.
+            live.forEach(function (b, i) {
+              tl.set(beats[i], { opacity: 1 }, B[i]);
+              tl.set(cur, { x: bx(b, 1) + bw(b, 1), y: b.bt }, B[i]);
+              if (i) tl.set(beats[i - 1], { opacity: 0 }, B[i]);
+            });
+
+            // A, the box widening: one axis, so the cap height does not move.
+            tl.fromTo(type, { scaleX: SX0, scaleY: 1 }, { scaleX: 1, duration: B[2] - CUT, ease: E.stretch }, CUT);
+            // B, the box shortening: the other axis, so the ink width does not move.
+            tl.fromTo(type, { scaleY: 1 }, { scaleY: SQ, duration: B[5] - B[2], ease: E.squeeze }, B[2]);
+
+            // C, the last word's letters closing on their own centre while the box
+            // and the cursor follow them in. Per-letter transforms, never a
+            // letter-spacing tween.
+            var L = live[5], CD = PUSH - B[5];
+            tl.fromTo(L.ls, { x: function (i) { return L.dx[i] * (KS - 1); } }, {
+              x: 0, duration: CD, ease: E.converge,
+            }, B[5]);
+            tl.fromTo(L.box, { left: bx(L, KS), width: bw(L, KS) }, {
+              left: bx(L, 1), width: bw(L, 1), duration: CD, ease: E.converge,
+            }, B[5]);
+            tl.fromTo(cur, { x: bx(L, KS) + bw(L, KS) }, {
+              x: bx(L, 1) + bw(L, 1), duration: CD, ease: E.converge,
+            }, B[5]);
+
+            // D, the terminal push. Taken on the beat, not on .vpt-type, so it
+            // rides the stage's 20% origin and leaves frame right, top and bottom
+            // while its left edge walks away from the presenter.
+            tl.set(cur, { opacity: 0 }, PUSH);
+            tl.fromTo(beats[5], { scale: 1 }, { scale: PS, duration: D - PUSH, ease: E.push }, PUSH);
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["version-plate-type"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

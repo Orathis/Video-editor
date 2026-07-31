@@ -1,0 +1,23 @@
+---
+title: "Glyph Ring Assemble"
+description: "Arc-set letters leave a wordmark in reverse reading order, each completes one full orbit around a shared ring, and the letters close back into the word."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">Text effects</span>
+
+<PrimitivePlayer name="glyph-ring-assemble" width={1920} height={1080} />
+
+## When to use it
+
+A readable wordmark must break into individually staggered glyphs without leaving a single shared circular path.
+
+## When to avoid it
+
+Avoid it when every glyph must remain visible throughout the orbit, because a glyph crossing the central mark vanishes for about 0.3 seconds.
+
+## Pairs with
+
+- [kinetic-type-swap](/primitives/kinetic-type-swap)
+- [version-plate-type](/primitives/version-plate-type)

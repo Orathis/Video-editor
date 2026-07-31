@@ -1,0 +1,353 @@
+<!doctype html>
+<!--
+  depth-rack-focus: HyperFrames video primitive (depth / 2.5D)
+
+  Concept: a rack focus. The foreground is sharp and the message behind it is
+  soft; the lens pulls, the foreground dissolves into bokeh, and the message
+  resolves. One move: attention handed from the near plane to the far one,
+  using the only cue a flat screen shares with a real lens.
+
+  Variables:
+    - kicker (string, default "Q3 RESULTS"): the small line above the message.
+    - headline (string, default "Revenue doubled"): the message that resolves.
+    - accent (amber | blue | violet, default amber): the foreground bokeh.
+
+  Envelope (D = 2.60s, the move fills it):
+    CREEP  0.00 to 2.60   the whole stack pushes in at a constant rate
+    RACK   0.40 to 1.35   focus leaves the foreground and arrives on the message
+    LAND   1.20 to 2.05   kicker and rule arrive as the message finishes resolving
+
+  Blur is a paint property and this file animates it on purpose: it is the
+  primitive. Everything else stays on transform and opacity. One custom property
+  per plane drives the blur so a seek writes a single number, never a filter
+  string it has to re-parse.
+
+  The creep runs on a linear curve, which is the one place in this shelf a
+  preset-looking ease is correct: a dolly at constant rate is what a real camera
+  on rails does, and it is also the layer that keeps a frame sampler alive
+  through every other tween's dead tail.
+
+  Mount contract: the runtime clones only this template. #root fills the host
+  box, establishes the container query basis, has no data-width or data-height,
+  and registers one paused timeline under the hardcoded depth-rack-focus id.
+-->
+<html
+  lang="en"
+  data-composition-id="depth-rack-focus"
+  data-composition-duration="2.6"
+  data-composition-variables='[
+    { "id": "kicker", "type": "string", "role": "content", "label": "Kicker", "description": "Small line above the message.", "default": "Q3 RESULTS" },
+    { "id": "headline", "type": "string", "role": "content", "label": "Headline", "description": "The message the focus resolves onto.", "default": "Revenue doubled" },
+    { "id": "accent", "type": "enum", "role": "style", "label": "Accent", "description": "Foreground bokeh colour.", "default": "amber", "options": [{ "value": "amber", "label": "Amber" }, { "value": "blue", "label": "Blue" }, { "value": "violet", "label": "Violet" }] }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Depth Rack Focus</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="depth-rack-focus" data-duration="2.6" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background:
+              radial-gradient(circle at 50% 44%, #191c25, #0a0b0f 72%),
+              var(--bg, #0b0b0d);
+            color: var(--fg, #f8fafc);
+            font-family: var(--font-display, Inter, system-ui, sans-serif);
+            pointer-events: none;
+          }
+
+          .drf-plane {
+            position: absolute;
+            inset: 0;
+            will-change: transform, filter;
+          }
+
+          /* The far plane. A faint rule grid, kept soft for the whole shot: it is
+             the depth cue, not something the eye is ever asked to read.
+
+             Pitch, line weight and alpha are all set against the blur, not in
+             isolation, and both directions are wrong. A 2px line at 5% alpha under
+             a 34px blur spreads to a third of a percent and the plane may as well
+             not exist. A tight pitch at readable alpha goes the other way: the
+             lines merge into a fine dark check that reads as screen-door noise.
+             A wide pitch with a heavy soft line is the one that reads as a wall
+             standing some distance behind the copy. */
+          .drf-far {
+            background:
+              repeating-linear-gradient(
+                0deg,
+                transparent 0 20cqmin,
+                rgba(255, 255, 255, 0.22) 20cqmin 20.9cqmin
+              ),
+              repeating-linear-gradient(
+                90deg,
+                transparent 0 20cqmin,
+                rgba(255, 255, 255, 0.22) 20cqmin 20.9cqmin
+              );
+            filter: blur(calc(var(--drf-far, 3) * 1cqmin));
+          }
+
+          .drf-mid {
+            display: grid;
+            align-content: center;
+            justify-items: center;
+            padding: 0 8cqmin;
+            filter: blur(calc(var(--drf-mid, 2.4) * 1cqmin));
+          }
+
+          .drf-kicker {
+            color: var(--drf-accent);
+            font-size: 3.4cqmin;
+            font-weight: 640;
+            letter-spacing: 0.24em;
+            line-height: 1;
+            text-transform: uppercase;
+          }
+
+          .drf-rule {
+            width: 22cqmin;
+            height: 0.5cqmin;
+            border-radius: 1cqmin;
+            margin: 2.6cqmin 0 3.4cqmin;
+            background: color-mix(in srgb, var(--drf-accent) 70%, transparent);
+            transform-origin: 50% 50%;
+          }
+
+          .drf-headline {
+            max-width: 100%;
+            font-size: 11cqmin;
+            font-weight: 730;
+            letter-spacing: -0.03em;
+            line-height: 1.02;
+            text-align: center;
+          }
+
+          /* The near plane. Three soft shapes low in frame, doing what an
+             out-of-focus foreground does in a real shot: framing the subject
+             without ever being the subject. */
+          .drf-near {
+            filter: blur(calc(var(--drf-near, 0.4) * 1cqmin));
+          }
+
+          /* The falloff is long on purpose. A tight one (opaque to transparent
+             over the last tenth of the radius) draws a hard circle, and the sheet
+             read those as plastic balls sitting on the frame rather than as light
+             passing in front of the lens. */
+          .drf-blob {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(
+              circle at 38% 34%,
+              color-mix(in srgb, var(--drf-accent) 78%, white),
+              color-mix(in srgb, var(--drf-accent) 62%, transparent) 44%,
+              transparent 88%
+            );
+          }
+
+          .drf-b1 {
+            bottom: -14cqmin;
+            left: 6cqmin;
+            width: 34cqmin;
+            height: 34cqmin;
+            opacity: 0.72;
+          }
+
+          .drf-b2 {
+            right: 2cqmin;
+            bottom: -22cqmin;
+            width: 46cqmin;
+            height: 46cqmin;
+            opacity: 0.56;
+          }
+
+          .drf-b3 {
+            bottom: -8cqmin;
+            left: 44cqmin;
+            width: 18cqmin;
+            height: 18cqmin;
+            opacity: 0.8;
+          }
+        </style>
+
+        <div class="drf-plane drf-far"></div>
+        <div class="drf-plane drf-mid">
+          <div class="drf-kicker">Q3 RESULTS</div>
+          <div class="drf-rule"></div>
+          <div class="drf-headline">Revenue doubled</div>
+        </div>
+        <div class="drf-plane drf-near">
+          <div class="drf-blob drf-b1"></div>
+          <div class="drf-blob drf-b2"></div>
+          <div class="drf-blob drf-b3"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier evaluated as a GSAP ease. Pure function of progress, so
+            // it is seek-safe: seek(t) always yields the same value, no internal
+            // state to drift. Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var C = function (a) { return 3 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Named for what they do in a shot. No GSAP preset appears in this file
+            // on purpose: a named ease is a category, not a curve.
+            var E = {
+              enter: cb(0.22, 0.9, 0.3, 1.0),
+              camSettle: cb(0.16, 0.84, 0.28, 1.0),
+              // A focus pull is a hand on a barrel: slow to break static friction,
+              // quick through the middle, slow onto the mark.
+              rack: cb(0.62, 0.02, 0.24, 1.0),
+              linear: function (p) { return p; },
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var far = root.querySelector(".drf-far");
+            var mid = root.querySelector(".drf-mid");
+            var near = root.querySelector(".drf-near");
+            var kicker = root.querySelector(".drf-kicker");
+            var rule = root.querySelector(".drf-rule");
+            var headline = root.querySelector(".drf-headline");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            var accents = { amber: "#ffb454", blue: "#4da3ff", violet: "#a98cff" };
+            var accent = accents[vars.accent] ? vars.accent : "amber";
+            root.style.setProperty("--drf-accent", accents[accent]);
+            kicker.textContent = vars.kicker == null ? "Q3 RESULTS" : String(vars.kicker);
+            headline.textContent = vars.headline == null ? "Revenue doubled" : String(vars.headline);
+
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "2.6"));
+            var s = D < 2.6 ? D / 2.6 : 1; // compress the beats, never the order
+            var RACK_AT = 0.4 * s;
+            var RACK = 0.95 * s;
+            var LAND_AT = 1.2 * s;
+
+            // Rest state pinned outside the timeline, and both ends written on every
+            // tween, so a seek can never inherit a start value from the screen.
+            // 0.9, not 0.35. The near plane is in focus at t=0 but it is also the
+            // closest thing to the lens, so a real one is never razor sharp; at
+            // 0.35 it rendered as cut vector, which is the tell.
+            root.style.setProperty("--drf-near", "0.9");
+            root.style.setProperty("--drf-mid", "2.4");
+            root.style.setProperty("--drf-far", "2.4");
+            gsap.set(far, { scale: 1.02 });
+            gsap.set(mid, { scale: 1.06, y: "1.6cqmin" });
+            gsap.set(near, { scale: 1.0, y: "0cqmin" });
+            gsap.set(kicker, { y: "1.4cqmin", opacity: 0 });
+            gsap.set(rule, { scaleX: 0, opacity: 0 });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // The creep. Each plane pushes at its own rate, which is parallax, and
+            // together they are the layer that is never not moving.
+            // 1.18, not 1.09. Once the grid is actually visible its lines are what
+            // carries the creep, and a 7% push over 2.6s moves a 20cqmin pitch by
+            // less than a line width: real on paper, invisible on screen.
+            tl.fromTo(far, { scale: 1.02 }, { scale: 1.18, duration: D, ease: E.linear }, 0);
+            tl.fromTo(near, { scale: 1.0 }, { scale: 1.22, duration: D, ease: E.linear }, 0);
+            tl.fromTo(near, { y: "0cqmin" }, { y: "7cqmin", duration: D, ease: E.linear }, 0);
+
+            // The rack. Near and mid trade sharpness on the same curve and the same
+            // window: a focus pull is one continuous mechanical action, so splitting
+            // it into two differently timed fades is the tell that it is fake.
+            tl.fromTo(
+              root,
+              { "--drf-near": 0.9 },
+              { "--drf-near": 3.8, duration: RACK, ease: E.rack },
+              RACK_AT,
+            );
+            tl.fromTo(
+              root,
+              { "--drf-mid": 2.4 },
+              { "--drf-mid": 0, duration: RACK, ease: E.rack },
+              RACK_AT,
+            );
+            tl.fromTo(
+              root,
+              { "--drf-far": 2.4 },
+              { "--drf-far": 3.8, duration: RACK, ease: E.rack },
+              RACK_AT,
+            );
+
+            // Focus breathing. A lens changes magnification slightly as it racks,
+            // and leaving it out is what makes a CSS blur read as a CSS blur.
+            tl.fromTo(
+              mid,
+              { scale: 1.06, y: "1.6cqmin" },
+              { scale: 1, y: "0cqmin", duration: RACK, ease: E.rack },
+              RACK_AT,
+            );
+
+            // Landing copy, timed into the rack's tail rather than after it.
+            tl.fromTo(
+              kicker,
+              { y: "1.4cqmin", opacity: 0 },
+              { y: "0cqmin", opacity: 1, duration: 0.5 * s, ease: E.enter },
+              LAND_AT,
+            );
+            tl.fromTo(
+              rule,
+              { scaleX: 0, opacity: 0 },
+              { scaleX: 1, opacity: 1, duration: 0.62 * s, ease: E.camSettle },
+              LAND_AT + 0.14 * s,
+            );
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["depth-rack-focus"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

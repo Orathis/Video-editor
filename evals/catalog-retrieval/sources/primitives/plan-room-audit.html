@@ -1,0 +1,544 @@
+<!doctype html>
+<!--
+  plan-room-audit: HyperFrames video primitive (spec audit / floor plan).
+
+  A floor plan sheet spins into square, draws itself on the way, then audits
+  itself room by room. Native orientation 9:16, composed for it only.
+
+  Envelope (D = 3.20s, all beats scale with D):
+    SPIN    0.00-1.70  the sheet sweeps 69.5deg clockwise, from -69.5 to
+                       square, and grows 0.897 to 1.000. Its silhouette goes
+                       landscape (1.019) through 1.000 at 45deg to portrait
+                       (0.960): the sheet changes orientation as it turns.
+                       1.70s is reference C's own measured settle duration.
+    DRAW    0.00-0.62  one continuous outer wall path strokes on while the
+                       sheet is still turning, seeded 34% inked at t=0, which
+                       is past the first corner, so frame zero holds a plan
+                       rather than a bare bar.
+    PARTS   0.48-1.08  four interior partitions draw, 0.10 apart. The outer
+                       corners land at 0.62, before any fill starts.
+    AUDIT   1.24-3.02  five rooms fill in reading order, 0.30 apart, each fill
+                       scaling out of its OWN centroid (0.60 to 1.00); its
+                       leader draws 0.10 later, its value tag drops onto the
+                       leader 0.18 later over 0.40s, and the meter ticks 0/5 to
+                       5/5 in step so the number and the filled rooms always
+                       agree. The audit opens inside the spin's tail (first
+                       fill at -11.0deg) so no beat is spent on a parked frame,
+                       and every tag lands after the sheet is square: that is
+                       how the full amplitude is bought without counter
+                       rotating a single label.
+    LOCK    2.66-3.20  every room fill ramps 0.20 to 0.32 alpha, the plan
+                       reading as resolved rather than merely still.
+
+  Three references, because the vertical ships this pattern as a held
+  screenshot and never animates it. Full tables in batch6/spec-plan-room-audit.md.
+
+  A, the pattern and the gap (refs/b6/frames/plan-room-audit, 26 frames at
+  10fps). A white plan sheet fades over blurred interior footage and is HELD
+  DEAD STILL the whole time it is up, while the narration counts the spec
+  aloud. Frame 001 at 540x960: sheet x 16.30% to 83.52% of width, y 36.46% to
+  63.44% of height. Its wordmark, address and hairline rule sit ON that sheet,
+  immediately above the plans, as ONE card, and that is the construction taken
+  here: the header row, the hairline and the plan are all inside the sheet
+  panel and turn with it. None of A's stillness is taken, and no wordmark,
+  address, square footage or spec figure from it is reproduced: every value
+  here is invented (FLOOR PLAN, UNIT 4B / LEVEL 2, 340 / 96 / 120 / 84 / 260).
+
+  B, the fill and tag timing (refs/b6/frames/plan-room-audit-b, 150 frames at
+  10fps, dark teal #021F26, card #344C53, line art #6FBAD4, white values).
+  Measured per tile, ink onset then white-label onset: icons draw over 0.30 to
+  0.40s each, staggered 0.40 to 0.60s; value labels rise over 0.40 to 0.60s
+  each, staggered 0.10 to 0.20s. The per-item durations here sit inside those
+  ranges, unchanged: fill 0.36s (B's icon range 0.30 to 0.40) and tag 0.40s
+  (B's label range 0.40 to 0.60). Only the stagger compresses, to 0.30s, since
+  B spends 4.0s on six tiles and this spends 1.5s on five rooms. B's ORDERING
+  is not taken: B runs every icon first and every label after, and tags
+  staggered WITH their fills is the only way one room at a time stays the
+  single subject (Law 6).
+
+  C, the settle (refs/b6/frames/plan-room-audit-c, 40 frames at 10fps). Per
+  frame minimum-area-rectangle angle over the wall pixels, unwrapped through
+  the 90deg fold at frame 17, gives 18 samples running 20.5deg to 90.0deg:
+  69.5deg of travel over 1.7s, and cb(0.53, 0.04, 0.51, 0.93) fits it to a max
+  error of 0.69% of travel. morph is 11.0% off, camPush 34.2% and camSettle
+  67.5%, because all three are ease-outs and this is a real ease-in-out. The
+  full amplitude is taken, not a fraction of it: C's gesture is a plan that
+  spins into square, and its screen silhouette (axis aligned bounding box of
+  the wall pixels, measured here frame by frame) runs 320x288 landscape at
+  frame 9 to 290x302 portrait at frame 26, bulging to 374x357 at frame 17
+  halfway through. A rigid sheet of aspect 0.960, which is C's own landed
+  proportion (289 by 301), swept 69.5deg reproduces that signature: 1.019
+  landscape, 1.000 at 45deg, 0.960 portrait, with the bounding box peaking at
+  t=0.84 of 1.70, the same normalised instant C peaks at. Direction is C's too:
+  at frame 9 C's topmost wall pixel sits left of centre and its leftmost sits
+  below centre, which is the pose of a rectangle held at -69.5deg, so the sweep
+  runs clockwise into square. Growth over the same window: min-rect diagonal
+  372.0 to 417.3, so 0.897 to 1.000.
+
+  Deliberate deviations, each with its reason:
+  1. C's shadow is a large soft cast to the lower LEFT of a plan sitting on
+     white paper. That cannot be reproduced here: the stage is 14/255, so a
+     black shadow has 14 levels of room and any gradient inside it bands or
+     crushes in H.264. The lift is therefore made of light, not dark. The sheet
+     is a panel stepped off the stage (#1A2026 on #0C0F11), which is reference
+     A's own construction, and its edge carries a rim gradient that is bright
+     along the top and right and falls to almost nothing along the bottom and
+     left. That encodes C's light direction exactly: the dim corner of the rim
+     is where C's cast shadow sits. The rim dims 0.60 to 0.34 as the sheet
+     seats, because an airborne edge catches more of the environment than a
+     seated one. Luminance numbers measured on the rendered 9:16 PNG are in
+     batch6/spec-plan-room-audit.md.
+  2. Fills start at scale 0.60, not the 0.90 to 0.95 Law 4 asks for. A fill is
+     an area revealed out of a point, not an object arriving; at 0.90 the bloom
+     out of the centroid is invisible, which is the one thing the fills are for.
+  3. No U unit is read. Law 0b covers tweened px transforms and there are none:
+     the sheet tweens rotation and scale, which are unitless, and every tween
+     inside the SVG is in viewBox user units, which GSAP writes in user space.
+  4. The meter is driven by linear, which is a stepper here and not motion: the
+     rooms are evenly staggered, so a curved driver would tick the number on a
+     different rhythm than the fills it counts and the two would stop agreeing.
+  5. The meter is the one element outside the sheet. It is a stage readout
+     about the plan, not a mark printed on it, so it does not turn with it.
+
+  Frame zero (Law 8): stage, meter reading 0 / 5, and the sheet held at
+  -69.5deg and 0.897 scale with its header, hairline and 34% of its outer wall
+  already inked. Presenter safe zone: at 9:16 the sheet's deepest reach over
+  the whole sweep is 47.96% of frame height, at t=0.84 where the turning
+  bounding box peaks, and the deepest lit pixel in the frame is the meter
+  caption. The lower 38% is empty at every frame; checked against the local
+  a-roll, a QA asset referenced nowhere in this file.
+
+  Media slot: none, this draws everything it shows. To composite over footage,
+  set --pra-bg to transparent on #root and mount it above the video. Colours,
+  both header strings, the five tag values and the meter caption are all
+  overridable: --pra-bg, --pra-sheet, --pra-wall, --pra-accent, --pra-ink,
+  --pra-dim, and the markup itself.
+
+  Mount contract: the runtime clones only this template, #root fills the host,
+  carries no data-width or data-height, and registers one paused timeline under
+  the hardcoded plan-room-audit id.
+-->
+<html lang="en" data-composition-id="plan-room-audit" data-composition-duration="3.2">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Plan Room Audit</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="plan-room-audit" data-duration="3.2" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--pra-bg, #0c0f11);
+            color: var(--pra-ink, #edf3f6);
+            font-family: Inter, "Helvetica Neue", system-ui, -apple-system, sans-serif;
+            pointer-events: none;
+          }
+
+          /* Everything hangs off .pra-stage, never off #root, because a
+             container query cannot restyle its own container. */
+          .pra-stage {
+            position: absolute;
+            inset: 0;
+          }
+
+          /* The sheet. Aspect 0.960 (289 by 301 user units), which is reference
+             C's own landed proportion, sized in cqmin so the panel keeps that
+             aspect and never overruns the short side when this file is shot
+             outside its native 9:16. Header, hairline and plan all live inside
+             it, so the whole card turns as one object, which is what A shows
+             and what C does. */
+          .pra-svg {
+            position: absolute;
+            top: 26cqh;
+            left: 50%;
+            width: 57.6cqmin;
+            height: 60cqmin;
+            overflow: visible;
+            transform: translate(-50%, -50%);
+          }
+
+          .pra-card {
+            fill: var(--pra-sheet, #1a2026);
+          }
+
+          /* The lift. Not a drop shadow: on a 14/255 stage a black shadow has
+             nowhere to go. A rim gradient, bright along the top and right and
+             near zero along the bottom and left, puts C's light direction on
+             the edge and leaves the dim corner where C's cast shadow sits. */
+          .pra-rim {
+            fill: none;
+            stroke: url(#pra-rim-g);
+            stroke-width: 1.8;
+          }
+
+          .pra-mark {
+            fill: var(--pra-ink, #edf3f6);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+          }
+
+          .pra-addr {
+            fill: var(--pra-dim, #8fa3ac);
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+          }
+
+          .pra-hair {
+            stroke: var(--pra-dim, #8fa3ac);
+            stroke-width: 0.7;
+            opacity: 0.45;
+          }
+
+          .pra-fill {
+            fill: var(--pra-accent, #6fbad4);
+          }
+
+          .pra-outer,
+          .pra-part {
+            fill: none;
+            stroke: var(--pra-wall, #e8eef1);
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+          }
+
+          .pra-outer {
+            stroke-width: 4.1;
+          }
+
+          .pra-part {
+            stroke-width: 2.8;
+          }
+
+          .pra-lead {
+            stroke: var(--pra-accent, #6fbad4);
+            stroke-width: 1.65;
+          }
+
+          .pra-dot {
+            fill: var(--pra-accent, #6fbad4);
+          }
+
+          .pra-tag {
+            fill: var(--pra-ink, #edf3f6);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+          }
+
+          /* The meter. A CSS counter fed by a GSAP snapped custom property, so
+             the number is pure style and lands on any cold seek. Nothing here
+             is ever written from a callback: seek() suppresses onUpdate by
+             default, and a callback painted readout renders its start value on
+             every single frame. */
+          .pra-meter {
+            position: absolute;
+            top: 51cqh;
+            right: 0;
+            left: 0;
+            text-align: center;
+          }
+
+          .pra-num {
+            counter-reset: pra-n var(--pra-n, 0) pra-d var(--pra-total, 5);
+            display: block;
+            font-size: 11cqmin;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1;
+          }
+
+          .pra-num::before {
+            content: counter(pra-n) " / " counter(pra-d);
+          }
+
+          .pra-cap {
+            display: block;
+            margin-top: 1.6cqmin;
+            color: var(--pra-dim, #8fa3ac);
+            font-size: 3.1cqmin;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+          }
+
+          /* Fallbacks, graceful rather than equal. The move is authored for
+             9:16, where cqh is 1.78x cqmin; at 1:1 and 16:9 cqh equals cqmin,
+             so the same numbers would push the turning sheet off the top and
+             the meter off the bottom. One band covers both, because square and
+             landscape share that cqh, and it shrinks the sheet and re-spaces
+             the column so the turn still clears the frame. */
+          @container (aspect-ratio >= 0.95) {
+            .pra-svg {
+              top: 32cqh;
+              width: 34.6cqmin;
+              height: 36cqmin;
+            }
+
+            .pra-meter {
+              top: 62cqh;
+            }
+
+            .pra-num {
+              font-size: 9cqmin;
+            }
+          }
+
+          /* At 16:9 the presenter owns the left 32%, so the whole stage moves
+             into the right 68% and keeps its proportions. */
+          @container (aspect-ratio > 1.3) {
+            .pra-stage {
+              left: 32cqw;
+              width: 68cqw;
+            }
+          }
+        </style>
+
+        <div class="pra-stage">
+          <svg class="pra-svg" viewBox="0 0 289 301" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pra-rim-g" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#e8eef1" stop-opacity="1" />
+                <stop offset="0.55" stop-color="#e8eef1" stop-opacity="0.42" />
+                <stop offset="1" stop-color="#e8eef1" stop-opacity="0.12" />
+              </linearGradient>
+            </defs>
+
+            <rect class="pra-card" x="0" y="0" width="289" height="301" rx="5" />
+
+            <g class="pra-head">
+              <text class="pra-mark" x="18" y="32">FLOOR PLAN</text>
+              <text class="pra-addr" x="271" y="32" text-anchor="end">UNIT 4B / LEVEL 2</text>
+              <line class="pra-hair" x1="18" y1="44" x2="271" y2="44" />
+            </g>
+
+            <g class="pra-fills">
+              <rect class="pra-fill" x="18" y="60" width="153" height="145" />
+              <rect class="pra-fill" x="171" y="60" width="100" height="72" />
+              <rect class="pra-fill" x="171" y="132" width="100" height="73" />
+              <rect class="pra-fill" x="18" y="205" width="90" height="78" />
+              <rect class="pra-fill" x="108" y="205" width="163" height="78" />
+            </g>
+
+            <g class="pra-walls">
+              <path class="pra-outer" d="M18 60 H271 V283 H18 Z" />
+              <path class="pra-part" d="M171 60 V205" />
+              <path class="pra-part" d="M171 132 H271" />
+              <path class="pra-part" d="M18 205 H271" />
+              <path class="pra-part" d="M108 205 V283" />
+            </g>
+
+            <g class="pra-tags">
+              <line class="pra-lead" x1="94.5" y1="132.5" x2="94.5" y2="121" />
+              <line class="pra-lead" x1="221" y1="96" x2="221" y2="84.5" />
+              <line class="pra-lead" x1="221" y1="168.5" x2="221" y2="157" />
+              <line class="pra-lead" x1="63" y1="244" x2="63" y2="232.5" />
+              <line class="pra-lead" x1="189.5" y1="244" x2="189.5" y2="232.5" />
+              <circle class="pra-dot" cx="94.5" cy="132.5" r="2.6" />
+              <circle class="pra-dot" cx="221" cy="96" r="2.6" />
+              <circle class="pra-dot" cx="221" cy="168.5" r="2.6" />
+              <circle class="pra-dot" cx="63" cy="244" r="2.6" />
+              <circle class="pra-dot" cx="189.5" cy="244" r="2.6" />
+              <text class="pra-tag" x="94.5" y="117" text-anchor="middle">340 SF</text>
+              <text class="pra-tag" x="221" y="80.5" text-anchor="middle">96 SF</text>
+              <text class="pra-tag" x="221" y="153" text-anchor="middle">120 SF</text>
+              <text class="pra-tag" x="63" y="228.5" text-anchor="middle">84 SF</text>
+              <text class="pra-tag" x="189.5" y="228.5" text-anchor="middle">260 SF</text>
+            </g>
+
+            <rect class="pra-rim" x="0" y="0" width="289" height="301" rx="5" />
+          </svg>
+
+          <div class="pra-meter">
+            <span class="pra-num"></span>
+            <span class="pra-cap">ROOMS AUDITED</span>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek-safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            // Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Named for what they do in a shot. A named GSAP preset is a
+            // category, not a curve, so none appears here.
+            var E = {
+              enter: cb(0.22, 0.9, 0.3, 1.0),
+              enterSoft: cb(0.33, 0.7, 0.35, 1.0),
+              camSettle: cb(0.16, 0.84, 0.28, 1.0),
+              camPush: cb(0.4, 0.0, 0.2, 1.0),
+              morph: cb(0.65, 0.05, 0.35, 1.0),
+              // Fitted to reference C's per-frame angle table: 18 samples, 1.7s,
+              // 69.5deg, max error 0.69% of travel. morph is 11.0% off, camPush
+              // 34.2%, camSettle 67.5%, because all three are ease-outs and this
+              // is a real ease-in-out.
+              settle: cb(0.53, 0.04, 0.51, 0.93),
+              // Stepper for the meter, not motion. See deviation 4 in the header.
+              linear: function (p) { return p; },
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var svg = root.querySelector(".pra-svg");
+            var rim = root.querySelector(".pra-rim");
+            var outer = root.querySelector(".pra-outer");
+            var parts = [].slice.call(root.querySelectorAll(".pra-part"));
+            var fills = [].slice.call(root.querySelectorAll(".pra-fill"));
+            var leads = [].slice.call(root.querySelectorAll(".pra-lead"));
+            var dots = [].slice.call(root.querySelectorAll(".pra-dot"));
+            var tags = [].slice.call(root.querySelectorAll(".pra-tag"));
+            var num = root.querySelector(".pra-num");
+
+            // Dash the whole path so stroke-dashoffset is a draw, and hand back
+            // the length so both ends of every tween can be written out.
+            function dash(el) {
+              var L = el.getTotalLength();
+              el.style.strokeDasharray = L + " " + L;
+              return L;
+            }
+            var Louter = dash(outer);
+            var Lpart = parts.map(dash);
+            var Llead = leads.map(dash);
+
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "3.2"));
+            var s = D / 3.2; // every beat scales, so nothing can run past D
+
+            // Reference C's amplitude, whole: -69.5 to square, clockwise, with
+            // C's own 0.897 to 1.000 growth over C's own 1.70s.
+            // SEED 0.66 inks 34% of the outer wall at t=0. 26.6% is where the
+            // first corner sits, so anything less than that leaves frame zero
+            // holding a bare diagonal bar instead of a plan.
+            var ROT = -69.5, SC = 0.897, SET = 1.7 * s, SEED = 0.66;
+            var FILL0 = 1.24 * s, STEP = 0.3 * s, FILLA = 0.2, FILLB = 0.32;
+            var RIMA = 0.6, RIMB = 0.34, LOCK0 = 2.66 * s;
+
+            // Rest state pinned outside the timeline, both ends written on every
+            // tween, so a seek never inherits a start value from the screen.
+            gsap.set(svg, { rotation: ROT, scale: SC, transformOrigin: "50% 50%" });
+            gsap.set(rim, { strokeOpacity: RIMA });
+            gsap.set(outer, { strokeDashoffset: Louter * SEED });
+            gsap.set(parts, { strokeDashoffset: function (i) { return Lpart[i]; } });
+            gsap.set(leads, { strokeDashoffset: function (i) { return Llead[i]; } });
+            gsap.set(fills, { opacity: 0, scale: 0.6, fillOpacity: FILLA, transformOrigin: "50% 50%" });
+            gsap.set(dots, { opacity: 0, scale: 0.5, transformOrigin: "50% 50%" });
+            gsap.set(tags, { opacity: 0, y: -3 });
+            gsap.set(num, { "--pra-n": 0, "--pra-total": fills.length });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // SPIN. Reference C's curve AND reference C's amplitude, on a sheet
+            // whose aspect is C's landed proportion, so the silhouette turns
+            // landscape to portrait exactly as C's does. It runs first, not
+            // last, because every value tag then lands on a square sheet and
+            // none of them has to be counter rotated to stay readable.
+            tl.fromTo(svg, { rotation: ROT, scale: SC }, { rotation: 0, scale: 1, duration: SET, ease: E.settle }, 0);
+            // The lift seats with it: an airborne edge catches more of the
+            // environment than a landed one.
+            tl.fromTo(rim, { strokeOpacity: RIMA }, { strokeOpacity: RIMB, duration: SET, ease: E.settle }, 0);
+
+            // DRAW. One continuous outer wall, seeded 34% inked at t=0 so no beat
+            // is spent on an empty sheet. Ease-out, for the same reason pill 1
+            // rides one in pill-row-collapse: restarting an ease-in-out from rest
+            // mid stroke reads as a stutter on frame zero.
+            tl.fromTo(outer, { strokeDashoffset: Louter * SEED }, { strokeDashoffset: 0, duration: 0.62 * s, ease: E.camSettle }, 0);
+
+            // PARTS. The corners are down before any of these start, so the plan
+            // reads as an enclosure being subdivided, not strokes in a pile.
+            parts.forEach(function (p, i) {
+              tl.fromTo(p, { strokeDashoffset: Lpart[i] }, { strokeDashoffset: 0, duration: 0.3 * s, ease: E.morph }, (0.48 + i * 0.1) * s);
+            });
+
+            // AUDIT. One room at a time, in reading order. GSAP resolves
+            // transformOrigin against each rect's own bbox, so five rooms bloom
+            // from five different centroids with no geometry in the script. The
+            // first fill opens at 1.24, inside the spin's tail (Law 3).
+            fills.forEach(function (f, i) {
+              var at = FILL0 + i * STEP;
+              tl.fromTo(f, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.36 * s, ease: E.enter }, at);
+              tl.fromTo(dots[i], { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.24 * s, ease: E.enter }, at + 0.06 * s);
+              tl.fromTo(leads[i], { strokeDashoffset: Llead[i] }, { strokeDashoffset: 0, duration: 0.2 * s, ease: E.morph }, at + 0.1 * s);
+              // The tag drops from above ONTO the leader just drawn, so the
+              // leader is something it lands on rather than a decoration. 0.40s
+              // is the bottom of reference B's measured label range.
+              tl.fromTo(tags[i], { opacity: 0, y: -3 }, { opacity: 1, y: 0, duration: 0.4 * s, ease: E.camSettle }, at + 0.18 * s);
+              tl.fromTo(tags[i], { opacity: 0 }, { opacity: 1, duration: 0.26 * s, ease: E.enterSoft }, at + 0.18 * s);
+            });
+
+            // METER. One snapped custom property, painted by a CSS counter. The
+            // 0.08 offset puts each tick 0.02s after its own room finishes
+            // blooming, so the number counts rooms that are done and never
+            // claims one the eye can still see arriving.
+            tl.fromTo(
+              num,
+              { "--pra-n": 0 },
+              { "--pra-n": fills.length, duration: fills.length * STEP, ease: E.linear, snap: { "--pra-n": 1 } },
+              FILL0 + 0.08 * s
+            );
+
+            // LOCK. Every fill ramps together, so the plan reads as resolved
+            // instead of merely stopped, and the last tag's tail has a full
+            // frame area moving through it. No stagger: the rooms were
+            // individuated on the way in, and doing it twice would re-open a
+            // question the audit already answered.
+            tl.fromTo(fills, { fillOpacity: FILLA }, { fillOpacity: FILLB, duration: 0.54 * s, ease: E.camPush }, LOCK0);
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["plan-room-audit"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,578 @@
+<!doctype html>
+<!--
+  caliper-caption-rail
+  ====================
+  A spec callout opens along a measurement rail, then the whole instrument
+  rotates onto the product's long axis and locks the type against it.
+
+  REFERENCE  reversals/_pool/adagency/reference-clip.mp4 @ 23.976fps
+             (one frame = 1000/23.976 = 41.708ms)
+             Every number below was measured at full resolution, 1080x1920, on
+             frames pulled one pass from the source with ffmpeg -q:v 1. Caption
+             mask: min(RGB) > 238 and (max-min) < 26, whole mask, no component
+             filtering. At f192 the mask IS the caption: the product is a brushed
+             phone edge that never clears 238, so nothing else is in it.
+             Measured windows: f119-f145, f176-f204, f229-f238.
+
+  FORMAT     1080x1920, portrait, not negotiable. The reference lands its caption
+             at 90 degrees running most of the product's length. A 1080-tall
+             landscape frame cannot hold a 1200px vertical axis with jaws on it.
+
+  THE LOCKUP IS THE POINT, AND IT IS A LATERAL FACT
+             Reference f192, full resolution:
+               caption ink bbox            x 388-467, y 378-1187
+               caption axial length        809.0   cross-axis ink  78.8
+               phone near edge             497.6   (column profile over
+                                           y600-1150 ramps 493 -> 502, half
+                                           rise 497.6; the ramp START is 493)
+               phone far edge              544     so the phone is 46px wide,
+                                           edge on: 1195 / 46 = 26:1, a 160mm
+                                           x 6.5mm handset seen on its side
+               phone top / bottom          371.7 / 1570 +/- 5
+             So: clearance from the caption's ink to the product's near edge is
+             28px, which is 0.36 cap heights. The type is not beside the product,
+             it is ON it. Round 2 shipped 147px, 5.2x too far, and the whole
+             channel between them was empty (max pixel 29/255 across 90 columns),
+             which is what made the type read as an annotation floating next to a
+             diagram. CLEAR below is that 28px and it is the single most
+             load-bearing number in this file.
+
+             Two more lockup facts from the same frame, both now built:
+               near-end flush   caption ymin 378 against product ymin 371.7, so
+                                the type starts 6px inside the product's near end
+               far-end tail     383px of bare product below the caption's end
+               length ratio     809.0 / 1195 = 0.677
+
+  THE TYPE IS THE SUBJECT, AND THE LABEL IS WHAT SIZES IT
+             Reference caption, f179 through f204: cross-axis ink 78.8 to 80.5,
+             axial length 809.1 +/- 0.5 (rigid, no scale), 21035 ink px at f192,
+             string "The thinnest and", 16 chars. That is a headline lying along
+             the product, not an annotation beside it. The other instance in the
+             same film ("lightest Z Flip", f235) measures 96px of ink WITH
+             descenders, the same cap height once the g and p are taken off. One
+             house scale, two strings.
+
+             So font-size is the constant and the label is the variable. At this
+             type scale the honest 21-character label "5.8 mm at its thinnest"
+             renders 1090px in this stack, wider than the frame; the fix is the
+             label, not the font-size. The rail-fits-the-frame check at the
+             bottom of the file is that budget, and it warns rather than clipping.
+
+  WHAT THE HORIZONTAL RAIL IS, AND WHAT IT IS NOT
+             Round 2 set the jaw-to-jaw SPAN equal to PRODUCT_H. That one line
+             was three defects at once: it made the horizontal rail 1068px inside
+             a 1080px frame, it therefore capped PRODUCT_H at about 1032 (ratio
+             0.815 against the reference's 0.677), and it pinned the beam to
+             540 +/- 6, frame centre, which is what forced the 147px channel.
+             None of the three could be closed by nudging a constant.
+
+             THE RAIL SPANS THE CALLOUT, NOT THE PRODUCT. SPAN is the caption's
+             own ink length plus one JAW_PAD at each end, so the jaws bracket the
+             thing the instrument is actually reading out: the label. That is
+             forced, not chosen. PRODUCT_H is 1228 (see below) and a horizontal
+             rail bracketing it would be 1264px wide in a 1080px frame, so a
+             product-spanning caliper cannot exist in this format at all. It is
+             also what the reference does: its horizontal caption instance is
+             535px in a 1080 frame, half the width, not 99% of it.
+
+             The consequence is not a compromise, it is the reference's own
+             lockup falling out of the arithmetic. Set JAW_PAD equal to the
+             measured 6px near-end flush and the fixed jaw's face lands exactly
+             on the product's near end, the type starts 6px after it, and 385px
+             of bare product is left below the sliding jaw against the
+             reference's 383. Those three were separate targets before; now they
+             are one identity, JAW_PAD == FLUSH.
+
+             With SPAN off PRODUCT_H, the beam is free, so it is placed where the
+             reference puts the type: BEAM_X is derived backwards from CLEAR.
+             The rotation axis CX is no longer RIG_W/2 either, which is what buys
+             the rail the room to sit off-centre without cropping.
+
+  THE JAWS GRIP THE WHOLE WORKPIECE
+             Round 2's arms ran x540 to x690 and covered 40 of the product's
+             150px, 27%, which is a caliper holding the near quarter of the thing
+             it claims to be measuring. JAW_REACH is now derived: the arms start
+             at the beam and end JAW_OVER past the product's FAR edge, so they
+             cross 100% of it. JAW_REACH sets nothing else now; in round 2 it also
+             set BEAM_X, which is why it could not be reduced.
+
+  WHAT THE PRODUCT PLACEHOLDER IS, AND THE ONE INPUT THAT IS NOT THE REFERENCE'S
+             #product is a hatched slab with a dashed outline, deliberately ugly
+             so nobody ships it. SWAP POINT: replace that one div with an <img> or
+             <video>. PRODUCT_TOP / PRODUCT_H / PRODUCT_LEFT / PRODUCT_W are the
+             whole input and every other number is arithmetic on them.
+             PRODUCT_H = 1228 is the reference's ratio solved for this label:
+             832 rendered ink / 0.677 = 1228.9. PRODUCT_TOP = 346 centres it in
+             1920 the way the reference's 371.7 / 1570 centres a 1195px phone.
+             PRODUCT_W = 150 is the one input that is NOT the reference's: its
+             product is 46px wide because it is a phone shot edge on, and a 46px
+             placeholder would be useless for any other swap. It is also the only
+             input that does not enter a measured ratio. Stated so nobody reads it
+             as unmeasured.
+
+  THE MOVE, AS MEASURED
+   1. OPEN. The sliding jaw rides left along the rail and the caption is uncovered
+      behind it, right end first. Both reference instances reveal right to left
+      with the right end pinned: f229-f238 pins xmax at 825-826 while the front
+      runs 818 -> 254, and f120-f140 pins xmax at 815-817 while the front runs
+      817 -> 282.
+   2. LOCK. The instrument rotates 90 degrees onto the product's axis and travels
+      there at the same time. Not one after the other: see ROT.
+
+  WHY THE CLIP ENDS WHEN THE MOVE DOES
+      The reference holds after the lock. From f196 through f204 the caption's
+      mask is identical to the pixel (n=21208, cx 432.3, cy 776.0, L 808.1 on
+      every frame; re-extracted this round and reproduced exactly). There is
+      nothing still resolving to copy, so the clip stops when the move stops
+      instead of welding a freeze on. Neither beat is scaled: OPEN is the
+      reference's own measured mean wipe speed applied over this rail's length,
+      and ROT is the measured rotation duration.
+
+      That lands DUR at 2.090s, which is 23ms above the 2.067s floor below which
+      32 samples sit closer than two rendered frames. It is close, and it is close
+      because it is derived: SPAN over WIPE_SPEED plus ROT, nothing padded. The
+      batch auditor still flags UNDER-RESOLVED on this clip, because it recovers
+      the duration from a snapshot filename rounded to one decimal, so 2.028s
+      reads as 2.0 and it computes 1.995 instead of 2.023. Re-shot at 63 frames,
+      roughly one rendered frame apart, all 62 consecutive pairs differ, minimum
+      mean absolute delta 0.089/255. Nothing here is frozen; do not lengthen the
+      clip to move an estimator.
+-->
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { width: 1080px; height: 1920px; overflow: hidden; margin: 0; }
+
+  #root {
+    position: absolute; inset: 0;
+    /* Tokens live on #root, never :root, so they cannot leak into a sibling clip. */
+    --bg: #0e0d0c;
+    --ink: #ffffff;
+    --rail: rgba(255, 255, 255, 0.5);
+    --slab-a: #26231f;
+    --slab-b: #1b1916;
+    background: var(--bg);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* ---- the placeholder product -------------------------------------------
+     Diagonal hatch plus a dashed outline. Reads as "not the real asset" from
+     across the room, which is the job. Its BOX is set from the script, not
+     here, so there is exactly one place the product's geometry lives. ----- */
+  #product {
+    position: absolute;
+    border-radius: 44px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background: repeating-linear-gradient(45deg,
+      var(--slab-a) 0 14px, var(--slab-b) 14px 28px);
+  }
+
+  /* ---- the instrument -----------------------------------------------------
+     #rig is the ONLY thing the lock beat transforms, so the beam, the ticks,
+     the two jaws, the cover and the caption stay rigid relative to each other
+     through the rotation. Rotating them separately is how a caliper comes apart
+     mid-move, and the reference is rigid to half a pixel across 26 frames.
+
+     DOM ORDER IS LOAD BEARING HERE. #cover is an opaque slab of --bg that hides
+     the caption, and it must paint OVER #cap and UNDER everything metal, so the
+     beam and ticks stay visible to the left of the slider. Move #cover after
+     #beam and the rail disappears behind it.
+
+     Every position inside the rig is written by the script in rig-local pixels.
+     Nothing here carries a number, on purpose: a hardcoded left or top in this
+     block is a number that stops agreeing with the product the moment someone
+     swaps it. ----------------------------------------------------------- */
+  #rig    { position: absolute; }
+  #beam   { position: absolute; left: 0; background: var(--rail); }
+  /* Ruler ticks, on the side AWAY from the workpiece, because post-lock the only
+     thing between the beam and the product is the 28px of clearance the caption
+     needs. Static: the reference's rail is a prop that exists before the caption
+     does, it never draws itself on. */
+  #ticks  { position: absolute; left: 0; }
+  /* The span being measured: a bright segment of the beam between the two jaws.
+     Right-anchored at the fixed jaw's face so it grows leftward with the slider. */
+  #span   { position: absolute; width: 0; background: var(--ink); }
+  .jaw    { position: absolute; width: 6px; background: var(--ink); }
+  /* The slider thumb. Chunky on purpose: it is the part of a caliper you push,
+     and it is what makes the open beat read at a glance. */
+  #thumb  { position: absolute; width: 30px; background: var(--ink); border-radius: 4px; }
+
+  #cap    { position: absolute; white-space: nowrap;
+            color: var(--ink); font-weight: 600; letter-spacing: -0.015em; }
+  /* The wipe. This is an opaque slab travelling on the SAME x tween as the jaw,
+     with its right edge on the jaw's face, so the reveal front IS the jaw by
+     construction and cannot drift from it under any ease. Round 2 animated a
+     wrapper's width on a second tween with its own start time and duration,
+     which is only equivalent while both are linear. It is clipped to the
+     caption's ink band, not to the whole rig: a full-height cover would sweep a
+     bg-coloured rectangle across the product post-lock and erase its lower end. */
+  #cover  { position: absolute; background: var(--bg); }
+</style>
+</head>
+<body>
+<div id="root" class="clip" data-composition-id="caliper-caption-rail" data-start="0"
+     data-width="1080" data-height="1920" data-duration="2.090">
+
+  <!-- SWAP POINT: your product goes here. Keep the id, drop the hatch. -->
+  <div id="product"></div>
+
+  <div id="rig">
+    <!-- SWAP POINT: the label. The budget is checked at load, see the bottom. -->
+    <div id="cap">Just 5.8 mm thin</div>
+    <div id="cover"></div>
+    <div id="beam"></div>
+    <div id="ticks"></div>
+    <div id="span"></div>
+    <div class="jaw" id="jawFixed"></div>
+    <div class="jaw" id="jawSlide"></div>
+    <div id="thumb"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+  // CSS owns every rest state and the timeline only ever moves things away from it.
+  // Without this, a fromTo scheduled late stamps its FROM value at construction and
+  // the opening frame shows the end of the clip.
+  gsap.defaults({ immediateRender: false });
+
+  // =========================================================================
+  // THE SWAP CONTRACT
+  // =========================================================================
+  // These four numbers are the whole input. Everything below them is arithmetic,
+  // and there is no second copy of any of them in the CSS.
+  //
+  // The one thing that does NOT follow automatically is data-duration in the
+  // markup, because the runtime reads that attribute before this script runs.
+  // The check at the bottom of this file tells you the number to paste.
+  const PRODUCT_TOP  = 346;   // (1920 - PRODUCT_H) / 2, the reference's own centring
+  const PRODUCT_H    = 1228;  // 832 rendered axial ink / 0.677 measured ratio = 1228.9
+  const PRODUCT_LEFT = 544;   // chosen so the rail clears both frame edges, see the check
+  const PRODUCT_W    = 150;   // NOT the reference's 46, see the header
+
+  // ---- reference constants, lateral ---------------------------------------
+  // ref f192: caption ink xmax 467, phone near edge 497.6 by half-rise on a
+  // column profile over y600-1150 (the ramp runs 493 to 502). Taking the ramp's
+  // start, the first column that is unambiguously product, gives 493 and a
+  // clearance of 26; the half-rise gives 30.6. 28 is the centre and it is the
+  // number the whole lockup hangs on.
+  const CLEAR     = 28;
+  // ref f192: caption ymin 378 against product ymin 371.7. The type starts just
+  // inside the product's near end. Reused as the jaw pad, which is what puts the
+  // fixed jaw's face exactly on the product's end. See the header.
+  const FLUSH     = 6;
+  const JAW_PAD   = FLUSH;
+  // Gap from the beam's axis to the caption's near ink edge. Not a reference
+  // number: the reference has no instrument. It is the smallest gap that leaves
+  // the 3px beam a visible sliver of its own, and it comes OUT of CLEAR, so
+  // raising it walks the caption away from the product.
+  const BEAM_GAP  = 16;
+  // Cosmetic overhang past each jaw's outermost position, and the jaw tip's
+  // overhang past the product's far edge.
+  const RAIL_END  = 18;
+  const TICK_LEN  = 14;
+  const JAW_OVER  = 14;
+
+  // ---- reference constants, timing ----------------------------------------
+  // WIPE SPEED. ref f119-f140, the slow reveal instance, re-measured this round
+  // at full resolution with a cumulative-ink front estimator: for each frame,
+  // total caption ink in the band y850-1000, solved back through the fully
+  // revealed frame's column profile for the x where that much ink lies to the
+  // right. That is robust to letterform quantisation, which a leftmost-ink
+  // scan is not.
+  //   front leaves its pinned start (817) between f119 (zero ink) and f120
+  //     (84 ink px, front 813), so f119.9
+  //   front reaches its pinned end (282) at f140, the first frame whose ink
+  //     total equals the fully revealed template's
+  //   535px in 20.1 frames = 0.8383s -> 638 px/s
+  // Both events are the same kind of event, the front sitting at a pinned
+  // extreme, measured on one estimator. A leftmost-ink scan on the same frames
+  // puts the arrival at f138 and gives 709 px/s; it reads the leading
+  // antialiased edge and its early frames are contaminated by specular
+  // highlights outside the caption (it puts f120's front at 763 where only 54px
+  // of string exists). The honest spread on this channel is 638 to 709.
+  //
+  // This is a SPEED, not a duration, and that distinction matters more here than
+  // anywhere else in the file. An earlier build took the 709ms the slow instance
+  // lasts and spent it on the jaw's full travel, which made the caption's own
+  // front run 1250 px/s, 2.2x the channel the number was measured on. A speed
+  // transfers between a 535px reference caption and an 843px rail. A duration
+  // does not.
+  const WIPE_SPEED = 638;   // px/s at 1080x1920, mean over the eased reveal
+
+  // WIPE EASE. The front decelerates, and round 2's ease:"none" was wrong.
+  // Measured three ways on f120-f140, all at full resolution:
+  //   half-travel landmark   the front passes the midpoint (549.5) at f126.5,
+  //                          which is 0.343 of a 19.8 frame reveal. For
+  //                          (1-p)^k = 0.5 at p = 0.343, k = 1.6.
+  //   least squares, end pinned to the frame the reveal demonstrably finishes:
+  //                          k=1   RMS 33.5 px
+  //                          k=1.5 RMS 21.2
+  //                          k=2   RMS 20.8
+  //                          k=2.5 RMS 36.9
+  //   leftmost-ink scan      half-travel at f123, k = 3.7
+  // Left unconstrained the least squares walks k up to 3 and beyond, but only by
+  // pushing the end time to f151, eleven frames after the front visibly stops.
+  // That is the estimator's own tail lag, not motion: a freshly uncovered stroke
+  // crosses the 238 threshold a frame or two after it geometrically exists.
+  // So the exponent is bracketed, not resolved: 1.6 by the cumulative estimator,
+  // 3.7 by the leftmost scan, and the two are confounded by the occluder being a
+  // hand-dragged phone at a diagonal, so no 1-D front estimator is measuring a
+  // straight edge. k=2 is the centre of the bracket. What all three agree on and
+  // what actually changes the look: linear is refuted, by 1.6x to 3x on RMS. The
+  // reference uncovers half the string in the first third of the reveal; round 2
+  // uncovered a third.
+  //
+  // k=2 IS power1.out, NOT power2.out. See the note on ROT: GSAP's powerN is
+  // degree N+1.
+  const WIPE_EASE = "power1.out";
+
+  // ref f176-f195, rotation. The caption's principal-axis angle runs 180 -> 90.
+  // Remaining angle fitted as 90 * (1 - p)^k by least squares over f178-f195:
+  //   k free  -> k = 2.962, start f176.18, end f194.44, RMS 0.148 deg
+  //   k = 3   -> start f176.19, end f194.60, RMS 0.150 deg
+  //   k = 2   -> start f175.70, end f190.60, RMS 0.895 deg, 6.0x worse
+  // The direct tell is flatter than the fit: the per-frame decrement of
+  // cbrt(remaining/90) sits at -0.0537 +/- 0.0008 from f179 to f186 and never
+  // leaves -0.054 to -0.059 through f190, while sqrt(remaining/90) decays
+  // monotonically from -0.0798 to -0.0462, a 73% spread. An earlier read of this
+  // window quoted only f179-f184, which is the middle, where every ease is
+  // straight. So the exponent is 3, cubic, and the window is 18.40 frames,
+  // 18.40 * 41.708ms = 767ms.
+  //
+  // THE EXPONENT IS 3 AND THE GSAP NAME FOR IT IS power2.out, NOT power3.out.
+  // GSAP's powerN is degree N+1: parseEase("power1.out")(p) recovers k = 2 at
+  // every sample point, power2.out recovers 3, power3.out recovers 4, checked
+  // against gsap 3.14.2 rather than from memory. Shipping the ease whose NAME
+  // matches the measured exponent puts a quartic on a cubic channel: seeking this
+  // rig at t = 2.0s with power3.out reads -68.7 deg where power2.out reads -59.5.
+  // Fit an exponent to the reference, then translate the exponent to a name; do
+  // not read the name off the fit.
+  const ROT = 0.767;
+
+  // ---- the caption ---------------------------------------------------------
+  // font-size is a reference measurement, not a fitting knob. 110px in this stack
+  // renders 79px of cap-plus-ascender ink against the reference's 78.8 to 80.5,
+  // and 832px of axial ink, both read back out of this file's own frame 31.
+  const FS  = 110;
+  const cap = document.getElementById("cap");
+  cap.style.fontSize   = FS + "px";
+  cap.style.lineHeight = FS + "px";
+
+  // Measure the label once, at build time, so nothing here can drift under a seek.
+  // The caption is a SWAP POINT, so the ink box is measured rather than guessed: a
+  // label with a descender sits lower in its line box than one without, and a
+  // hardcoded constant would put it off the beam by however much the guess was
+  // wrong. letterSpacing has to be set on the context too, or the canvas reports
+  // 25px more advance than the DOM renders at -0.015em over 16 characters.
+  //
+  // AND THE INK BOX IS READ OUT OF PIXELS, NOT OUT OF measureText.
+  // actualBoundingBoxDescent reports the font's OUTLINE extent; the rasteriser
+  // puts the last 2.5px of this label's J tail below the alpha that this file, the
+  // reference measurement and every critic all threshold at. Trusting the outline
+  // box shipped a 31px clearance from a file that says 28, on the one number the
+  // whole lockup hangs on. Rasterising the label and scanning it makes CLEAR mean
+  // the same thing in the file and in the render, for any label.
+  const FONT  = `600 ${FS}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+  const TRACK = "-0.015em";
+  const probe = document.createElement("canvas").getContext("2d");
+  probe.font = FONT;
+  probe.letterSpacing = TRACK;
+  const tm = probe.measureText(cap.textContent);
+  // Where the DOM puts the baseline inside a line box of exactly FS: half-leading
+  // above the font's own ascent.
+  const baseline = (FS - (tm.fontBoundingBoxAscent + tm.fontBoundingBoxDescent)) / 2
+                 + tm.fontBoundingBoxAscent;
+
+  const PAD = 60;
+  const cv  = document.createElement("canvas");
+  cv.width  = Math.ceil(tm.width) + 2 * PAD;
+  cv.height = FS + 2 * PAD;
+  const c2 = cv.getContext("2d");
+  c2.font = FONT;
+  c2.letterSpacing = TRACK;
+  c2.textBaseline = "alphabetic";
+  c2.fillStyle = "#fff";
+  // Draw with the element's own left edge and line box top both at PAD.
+  c2.fillText(cap.textContent, PAD, PAD + baseline);
+  const bytes = c2.getImageData(0, 0, cv.width, cv.height).data;
+  let ix0 = cv.width, ix1 = -1, iy0 = cv.height, iy1 = -1;
+  for (let y = 0; y < cv.height; y++) {
+    for (let x = 0; x < cv.width; x++) {
+      // 240/255 alpha, the same cut the reference caption was masked at.
+      if (bytes[(y * cv.width + x) * 4 + 3] >= 240) {
+        if (x < ix0) ix0 = x;
+        if (x > ix1) ix1 = x;
+        if (y < iy0) iy0 = y;
+        if (y > iy1) iy1 = y;
+      }
+    }
+  }
+  // The offscreen context antialiases one step softer than the page's own
+  // rasteriser, so its ink box runs one row and one column wider than what the
+  // element actually paints at the same 240 cut. Read back out of this file's own
+  // frame 31: canvas 833 x 80, rendered caption 832 x 79. It is an edge effect, so
+  // it is at most one per axis, and the test that it is right is the rendered
+  // clearance. Correcting it HERE and not at each use is the point: an earlier
+  // build carried it as a +2 inside BEAM_X, which made the lateral edge land and
+  // left the near-end flush 2px out, because the same error also sits in INK_W.
+  const RASTER_SLOP = 1;
+  const INK_W     = ix1 - ix0 + 1 - RASTER_SLOP;   // axial ink length
+  const CAP_INK_H = iy1 - iy0 + 1 - RASTER_SLOP;   // cross-axis ink, cap plus descender
+  const INK_LEFT  = ix0 - PAD;          // ink inset from the element's left edge
+  const INK_TOP   = iy0 - PAD;          // ink inset from the line box top
+
+  // ---- derived geometry, along the rail ------------------------------------
+  // The rail brackets the CALLOUT. SPAN is the label's ink plus one pad at each
+  // end, and that is the whole reason the rig fits a 1080px frame at all.
+  const SPAN      = INK_W + 2 * JAW_PAD;
+  const RIG_W     = SPAN + 2 * RAIL_END;
+  const JAW_END   = RAIL_END;                 // local x, sliding jaw's face, full open
+  const JAW_START = RAIL_END + SPAN;          // local x, both jaw faces at rest
+  const INK_X0    = JAW_END + JAW_PAD;        // local x, caption's first ink
+  const CAP_LEFT  = INK_X0 - INK_LEFT;        // local x, caption element's box
+
+  // ---- derived geometry, across the rail -----------------------------------
+  // Under rotate(-90deg) a rig-local offset (dx, dy) from the rotation axis lands
+  // at screen offset (dy, -dx). So local +y is the workpiece side and local -y is
+  // the outside; local +x becomes screen -y, so the string reads bottom to top
+  // with its last character at the top.
+  //
+  // WHY -90 AND NOT +90. The reference's lock starts with the caption upside down
+  // and unrolls, because a CUT sits between its open beat and its lock beat and
+  // the two shots are separately framed. A single continuous primitive cannot
+  // have both a readable horizontal reveal and an upside-down start, so the phase
+  // is a choice. -90 is the one that keeps the reference's LAYOUT: the caption
+  // lands left of the product and the jaws reach right across it, which is the
+  // reference at f192 (ink 388-467, phone 497-544), and the string reads bottom
+  // to top, which is also the reference at f192. +90 would mirror the lockup, put
+  // the product on the left and flip the reading direction. The layout is what
+  // reads as the lockup; the 180-degree start phase is an artifact of the cut.
+  const OFF   = BEAM_GAP + CAP_INK_H / 2;   // beam axis to caption ink centre
+  const CY    = 24;                         // local y of the beam, room for the ticks
+
+  // ---- where the rig sits --------------------------------------------------
+  // THE ROOT FIX. The beam is placed backwards from the caption's clearance, not
+  // forwards from the jaw's reach. Round 2 had BEAM_X = PRODUCT_LEFT + 40 -
+  // JAW_REACH, which meant the arms' length decided how far the type sat from the
+  // product; at JAW_REACH = 150 that was 147px of empty channel.
+  // The +1 is the inclusive-column convention and nothing else. CLEAR is measured
+  // the way a critic measures it, from the last LIT caption column to the
+  // product's first product column, so the gap between them is one column shorter
+  // than the difference of the two coordinates. The rasteriser's own pixel is
+  // handled once, up at RASTER_SLOP, not here.
+  const BEAM_X = PRODUCT_LEFT - CLEAR - CAP_INK_H - BEAM_GAP + 1;
+  // Now JAW_REACH is the derived one: from the beam, across the whole product,
+  // JAW_OVER past its far edge.
+  const JAW_REACH = PRODUCT_LEFT + PRODUCT_W + JAW_OVER - BEAM_X;
+  const RIG_H     = CY + JAW_REACH;
+
+  // The rotation axis. It is NOT the rig's centre. Pre-lock the caption's ink
+  // centre sits at local x CX + CAP_DX; post-lock it sits at screen
+  // BEAM_X + CAP_DY where CAP_DY is its local y offset. Zero lateral excursion
+  // therefore means CAP_DX == CAP_DY == OFF, which fixes CX. Round 2 got the same
+  // guarantee by forcing the caption to the rig's centre instead, which cost
+  // 2 * OFF of extra rail and is what pinned the beam to frame centre.
+  // The reference's own lateral excursion across the lock is nothing: caption cx
+  // goes 447.7 (f179) to 418.8 (f183) to 432.0 (f192), a 28.9px arc on a channel
+  // whose cy travels 988px.
+  const CX = INK_X0 + INK_W / 2 - OFF;      // local x of the rotation axis
+  const RIG_L = BEAM_X - CX;
+  // Pre-lock top: the rail rests on the bottom of the frame, which is as far from
+  // the product as the frame allows and therefore the longest travel available.
+  const RIG_T = 1920 - RIG_H - 28;
+  // The lock's whole translation. The axis lands OFF above the caption's target
+  // ink centre, and that centre is the near-end flush: FLUSH inside the product's
+  // near end. There is no x: see CX.
+  const AXIS_Y = PRODUCT_TOP + FLUSH + INK_W / 2 + OFF;
+  const TRAVEL = AXIS_Y - (RIG_T + CY);
+
+  // ---- timing --------------------------------------------------------------
+  // One speed drives the whole OPEN beat, and one ease, because the jaw, the span
+  // readout and the wipe front are the same edge.
+  const OPEN = +(SPAN / WIPE_SPEED).toFixed(3);
+  const DUR  = +(OPEN + ROT).toFixed(3);
+
+  // ---- write the geometry --------------------------------------------------
+  const px = (n) => n + "px";
+  const set = (id, s) => Object.assign(document.getElementById(id).style, s);
+
+  set("product", { left: px(PRODUCT_LEFT), top: px(PRODUCT_TOP),
+                   width: px(PRODUCT_W), height: px(PRODUCT_H) });
+  // transform-origin is declared in CSS, not tweened, so GSAP reads it and never
+  // fights it. A CSS `transform` on this element would be discarded the first
+  // time the rotation runs; transform-origin is not a transform.
+  set("rig",     { left: px(RIG_L), top: px(RIG_T), width: px(RIG_W), height: px(RIG_H),
+                   transformOrigin: `${CX}px ${CY}px` });
+  // The caption is anchored by its ink's NEAR edge, at BEAM_GAP off the beam, so
+  // its far edge lands on PRODUCT_LEFT - CLEAR by construction whatever the label.
+  set("cap",     { left: px(CAP_LEFT), top: px(CY + BEAM_GAP - INK_TOP) });
+  set("cover",   { left: px(JAW_START - SPAN - 40), width: px(SPAN + 40),
+                   top: px(CY + BEAM_GAP - 14), height: px(CAP_INK_H + 28) });
+  set("beam",    { top: px(CY - 1), width: px(RIG_W), height: "3px" });
+  set("ticks",   { top: px(CY - 1 - TICK_LEN), width: px(RIG_W), height: px(TICK_LEN),
+                   background: "repeating-linear-gradient(to right,"
+                             + " var(--rail) 0 2px, transparent 2px 40px)" });
+  set("span",    { right: px(RIG_W - JAW_START), top: px(CY - 2), height: "7px" });
+  set("jawFixed",  { left: px(JAW_START),      top: px(CY), height: px(JAW_REACH) });
+  set("jawSlide",  { left: px(JAW_START - 6),  top: px(CY), height: px(JAW_REACH) });
+  set("thumb",     { left: px(JAW_START - 18), top: px(CY - 20), height: "40px" });
+
+  const tl = gsap.timeline({ paused: true });
+
+  // ---- beat 1: OPEN --------------------------------------------------------
+  // Three channels, one velocity, one ease. The cover travels with the jaw and
+  // its right edge is the jaw's face, so the reveal front cannot disagree with
+  // the slider by even a pixel.
+  tl.to("#jawSlide, #thumb, #cover", { x: -SPAN, duration: OPEN, ease: WIPE_EASE }, 0)
+    .to("#span", { width: SPAN, duration: OPEN, ease: WIPE_EASE }, 0);
+
+  // ---- beat 2: LOCK --------------------------------------------------------
+  // Rotation and travel are ONE tween because the source runs them as one event
+  // on two channels. Fitting the caption's cy the same way as its angle gives
+  // k = 3.115 with RMS 1.66px, against k = 2 at RMS 13.15px: same exponent as the
+  // rotation, and the free fits put both channels' start inside a fifth of a
+  // frame of each other. Splitting them into a travel-then-rotate pair would turn
+  // 767ms of concurrent motion into 1.5s of sequential motion and stop being the
+  // move.
+  //
+  // No x: see CX. The reference's own travel was 1347px of a 1920px frame
+  // (extrapolating the fitted cy channel back to the cut at f176.2) and this rig
+  // travels less, because the reference's caption enters from below the frame
+  // edge on a hard cut and this file has to start from a state the OPEN beat has
+  // already made visible. That is the price of joining the two states the cut
+  // separates instead of copying the cut.
+  // ease: power2.out is GSAP's name for the cubic the reference fits. See ROT.
+  tl.to("#rig", { rotation: -90, y: TRAVEL, duration: ROT, ease: "power2.out" }, OPEN);
+
+  tl.set({}, {}, DUR);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["caliper-caption-rail"] = tl;
+
+  // ---- swap checks ---------------------------------------------------------
+  // Both of these are silent failures otherwise, and both are the first thing a
+  // copy-and-retarget user hits.
+  const declared = parseFloat(
+    document.querySelector("[data-composition-id]").getAttribute("data-duration"));
+  if (Math.abs(declared - DUR) > 0.0005) {
+    console.warn(`[caliper] data-duration is ${declared}, the timeline is ${DUR}. `
+      + `SPAN = ${SPAN.toFixed(1)} at ${WIPE_SPEED}px/s gives OPEN = ${OPEN}, `
+      + `plus ROT = ${ROT}. Set data-duration="${DUR}".`);
+  }
+  // The rail is the caption's rail, so a longer label is a wider rig, and the rig
+  // has to fit a 1080px frame while it is still horizontal. This is the label
+  // budget and the framing check in one, because they are the same constraint.
+  // The left edge binds first: CX grows with half the label, so RIG_L shrinks.
+  if (RIG_L < 0 || RIG_L + RIG_W > 1080) {
+    const maxInk = 2 * (BEAM_X - RAIL_END - JAW_PAD + OFF);
+    console.warn(`[caliper] the rail runs ${RIG_L.toFixed(0)} to ${(RIG_L + RIG_W).toFixed(0)} `
+      + `in a 1080px frame and will crop during the open beat. This label's ink is `
+      + `${INK_W.toFixed(0)}px and the longest this framing can hold is ${maxInk.toFixed(0)}px. `
+      + `Shorten the label or move PRODUCT_LEFT. Do not cut FS: 110px is the reference's own `
+      + `cap height and dropping it is what made an earlier build read as an annotation `
+      + `instead of a headline.`);
+  }
+</script>
+</body>
+</html>

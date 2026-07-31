@@ -1,0 +1,9 @@
+{
+  "acceptable": [],
+  "bad": ["z-punch-through", "orbit-ring-camera"],
+  "best": ["depth-rack-focus", "focus-rack"],
+  "brief": "05",
+  "trap": "focus-rack racks exactly once over 0.7 seconds, which fits a 2.8 second beat. A run that rejects it for being too slow has not read the envelope.",
+  "why_bad": "z-punch-through is forward travel through an aperture and orbit-ring-camera is a loop resolving to a system view. Neither is a depth refocus, and the brief rules out travel-feel explicitly.",
+  "why_best": "Both transfer attention exactly once from a near plane to a far one using blur, scale, and parallax together, which is the brief's 'eye refocusing rather than a slide swapping out'."
+}

@@ -1,0 +1,9 @@
+{
+  "acceptable": [],
+  "bad": ["version-plate-type", "particle-text-dissolve", "glyph-ring-assemble"],
+  "best": ["kinetic-type-swap"],
+  "brief": "04",
+  "trap": "version-plate-type sits in the bad list on purpose. It is the selection a run makes when it matches on the words 'text' and 'changes' without reading what the move actually does to the sentence.",
+  "why_bad": "particle-text-dissolve and glyph-ring-assemble re-form an entire line rather than swapping one word inside a stable sentence, so the fixed prefix and suffix the brief demands do not survive. version-plate-type is the closest wrong answer: it is a text move with visible manipulation, but it steps a word sequence through axes one at a time instead of holding one sentence and rolling a single slot.",
+  "why_best": "The brief's hard constraint is that the surrounding words must not shift. This move pre-sizes one slot to the widest option precisely so the sentence cannot reflow."
+}

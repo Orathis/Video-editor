@@ -1,0 +1,663 @@
+<!doctype html>
+<!--
+  chevron-pill-card-morph
+  ref reference-clip f1340-f1420 @60fps  (single-surface buy flow: search
+  chip types a product name, then the chip becomes a checkout card)
+
+  FRAME NUMBERING. The source is reversals/_pool/uianim/reference-clip.mp4.
+  ffmpeg's own decode index runs ONE frame ahead of the numbering used here and in
+  ref/frames/: extracting with select='between(n,1330,1440)' and matching each
+  m3-<N>.jpg thumbnail by minimum mean absolute error lands on ffmpeg n = N+1 every
+  time (MAE 0.08 to 0.56 at N+1, against 0.3 to 3.4 at either neighbour). So to pull
+  frame f cited below, extract ffmpeg frame f+1. Every number in this file was measured
+  at 1920x1080 off that video, never off the 340px thumbnails.
+
+  The move: ONE surface goes circle -> pill -> card, and ONE accent button rides it the
+  whole way. The chevron disc at the pill's right end stretches, darkens, and lands as
+  the card's Pay bar. It is never crossfaded and never replaced: #accent is a single DOM
+  node whose width, height, x, y and background are tweened. That continuity is the
+  primitive. If you swap it for three elements that dissolve into each other you have
+  copied the poses and thrown away the move.
+
+  MEASURE THE BOX WITH A MIN-AREA RECT, NOT AN AXIS-ALIGNED BBOX. This file used to
+  claim the shell's width overshoots to 858 at f1396 and recovers to 838. It does not.
+  That 858 was the axis-aligned bounding box of a card tilted 3.2 degrees; rotating the
+  point cloud through -8..+8 in 0.1 degree steps and taking the smallest enclosing
+  rectangle gives w = 839, 840, 841, 840, 840 at f1395, f1396, f1400, f1410, f1416. The
+  width is monotonic and asymptotes at 840. There is no width overshoot in this clip,
+  and a whole tween leg existed to reproduce a rotation artifact.
+
+  THE TWO MORPHS OVERLAP, and this is the whole reason the file is laid out the way it
+  is. One criterion, applied to both: the height LEAVES REST at the first frame it exceeds
+  its own 147-152 rest band, and the width is read as a percentage of its 840 asymptote at
+  that same frame. Reference, centre-column height at the card's own centre x: 151 f1367,
+  152 f1369, 153 f1370, 156 f1373, 160 f1375, 167 f1377, 174 f1380, 184 f1384, 228 f1388.
+  So the break is f1370, and the min-area-rect width there is 745 = 88.7% of 840. The
+  overlap runs from that break to the frame the width is within 2px of its asymptote
+  (f1390, 838.6): twenty frames.
+
+  TWO EARLIER VERSIONS OF THIS PARAGRAPH WERE WRONG AND THE SECOND ONE WAS EXPENSIVE. The
+  first claimed the break was f1368 and the width was still climbing at f1396, giving 28
+  frames; f1368 is inside the rest band and 1396 was the rotation artifact above. The
+  second claimed f1373 and 90.6%, which is a true statement about the reference (760/840)
+  but was measured one criterion looser than the one applied to the build, and the build
+  did not meet it at all: its height was flat until f1380, by which point its width was at
+  98.3% of the asymptote. The card bloomed after the pill had finished widening. That is
+  three poses cutting to each other, which is the exact failure this layout exists to
+  avoid, and it survived a round because the header asserted an overlap the render did not
+  have. Whatever this file claims here, measure it back off the render before shipping.
+
+  SO HERE IS THIS BUILD MEASURED BACK, same estimator, same criterion. The height crosses
+  152 at f1370.93 and the min-area-rect width there is 752.9, 89.6% of 840, against the
+  reference's own 88.7% at f1370 (and against the 98.3% the last build managed). The width
+  comes within 2px of the asymptote at f1387.2, so the overlap window is 16.3 frames
+  against the reference's 20. It is the two ends that matter, not the length: this build
+  starts blooming one frame after the reference does at a width one point off, and it
+  finishes tightening three frames early. The remaining gap is one channel, the last four
+  frames of the lead-in, where the build sits 4 to 5px under the reference at f1377-f1380
+  and then overshoots by 10px at f1388.
+
+  What actually happens in f1370-f1380, ten source frames, and what a serialised build
+  misses: FOUR channels resolve at once. The shell height leaves rest and climbs 153 -> 174
+  at a near-constant 2px per frame. The accent disc swells 129 -> 141 and drops back to 133,
+  because until f1378 it is a capsule fitted inside the pill (its inset from the card's top
+  and bottom edge measures 10-14px on every frame from f1364 to f1378, so its diameter is
+  just the pill's height minus about 26) and at f1379 it detaches and holds 133 while the
+  card keeps growing. The pill label scales up 1.178x about the card's centre. And each of
+  its three words is still ringing on its own clock. The width, the one channel a serialised
+  build gets right, is doing the least interesting thing of the five.
+
+  Why width/height and not scale ON THE SHELL: a scale on the box would drag every child
+  with it, and the reference's card content does not scale with the card (compare the Pay
+  label at f1400 and f1416: identical, while the shell grows 695 -> 694 through a 735
+  peak). The pill's own label does scale, but on its own tween and about the card's centre,
+  which is a different thing and is fitted separately below. The usual objection to
+  animating width/height is that it reflows the content, so look at what the reference
+  does with content during a size change: nothing is in there. The pill's text is fully
+  faded by f1388, the card's content does not start arriving until f1390, and the shell
+  is empty in between. Every child here is absolutely positioned at a fixed px size, so
+  a shell resize only ever translates them, never reflows them, and every value is a
+  pure function of t. width/height are also the one pair of layout properties the
+  framework's StaticGuard deliberately exempts, because progress bars and reveals need
+  them; left/right/top/bottom are not exempt and are not used by any tween here.
+
+  The typing is a clip, not a type-on. #pilltext sits at a FIXED offset from the shell's
+  centre and the shell's left edge sweeps leftward across it under overflow:hidden. That
+  reproduces the reference exactly: at f1356 the shell's left edge is 96px right of the
+  word's start and you read "one", at f1357 "hone", f1358 "Phone", f1359 "iPhone". No
+  per-character tween anywhere. The word's HORIZONTAL position holds still while this
+  happens: its glyph bands sit at x = 717-744, 748-774, 778-803 on every frame from f1359
+  to f1369, within 2px. It does not hold after that, and an earlier version of this
+  comment extended the claim to f1372 without measuring it: by f1372 the same three bands
+  read 713-740, 744-769, 773-800. See the scale below.
+
+  THE SHELL'S CENTRE SNAPS LEFT AND HOLDS. It does not ramp to a peak and come back, which
+  is what this file used to say, and the difference is the estimator: the old track was
+  fitted off axis-aligned bbox mid-x while the file's own headline says to use a min-area
+  rect. Under the min-area rect, cx - 959.5 reads 0.0 f1350, -0.5 f1352, -12.0 f1353,
+  -16.5 f1354, -16.0 f1355, -16.5 f1356, -17.0 f1357, -16.0 f1358, -15.5 f1359, -15.0
+  f1360, -16.5 f1361, -16.0 f1362, -16.0 f1363, -15.5 f1364, -7.5 f1365, -6.0 f1366, -1.0
+  f1367, +1.0 f1368. That is a two-frame snap to -16, an eleven-frame plateau, and a
+  three-frame return. The old comment also discarded f1353 and f1359 as motion blur on the
+  grounds that the right edge "measures backwards" there; it does not. R = cx + w/2 reads
+  1187, 1207, 1223 at f1358, f1359, f1360, monotonic, and the two discarded frames read
+  -12.0 and -15.5, which is the plateau. A triangular ramp peaking at -20 was fitted to a
+  square pulse of -16.
+
+  The plateau is reproduced by translating the shell left and translating #pilltext right
+  by the same amount, which leaves the word where the reference leaves it and leaves the
+  accent's rightward travel monotonic, both of which a naive shell translation breaks.
+
+  THE PRICE GLYPHS ARE 5 TO 7% WIDER THAN THE REFERENCE'S, AND AN EARLIER VERSION OF THIS
+  PARAGRAPH SAID 24%. That number was wrong and it was wrong in the way this contract
+  cares about: it compared the build's settled row against the reference at a different
+  frame. The reference's price is still converging through f1417, its last glyph arriving
+  from the right (left edge 751, 741, 730, 720 at f1414, f1415, f1416, f1417), so any
+  comparison that is not frame-matched reads the convergence as a size difference. Matched
+  frame by frame with one estimator, the row spans 166 against 160 at f1415, 156 against
+  148 at f1416, 147 against 138 at f1417, and the digit heights agree at 37 and the dollar
+  sign at 45 against 43. So this is tracking and sidebearings, a few px, not a face that is
+  a quarter too wide. It is still not chased, and the reason it cannot be chased far is
+  worth keeping: the repo's bundled families pass the linter but the snapshot path does
+  not inject them, so naming one would render a fallback and quietly invalidate every
+  typographic constant in this file, and a fonts.googleapis.com link is a render-time
+  network fetch, which the determinism rule bans. A system stack that is genuinely present
+  is worth more than a face that is only present on the machine that authored the file.
+  The one place a real size error DID hide behind that excuse was the pill's own label,
+  which was drawn 22% too large for eight rounds because it shared #title's 66px and the
+  reference does not; that one is fixed in the CSS below and measured there.
+
+  Slot pattern: PILL_WORDS, CARD_WORDS and PRICE below drive the DOM. Change the copy or
+  the price and the motion is unchanged.
+-->
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body { width: 1080px; height: 1920px; overflow: hidden; margin: 0; }
+  #root {
+    position: absolute; inset: 0;
+    /* Tokens on #root, never :root, or they leak into every other clip on the page. */
+    --bg:#e0e0e0;        /* ref bg sampled at f1416, rgb(224,224,224) */
+    --card:#fafafa;      /* ref shell fill, rgb(250,250,250) */
+    --accent:#0b6bff;    /* ref chevron disc centre f1372, rgb(0,106,255) */
+    --accent-end:#232323;/* ref Pay bar centre f1416, rgb(35,35,35) */
+    /* The reference sets its type in a light grey, not black: the darkest pixel in the
+       title, the price and the pill label is 135-137 on a 250 ground, about 2.9:1. That
+       is the look, so it is what ships. If this primitive has to meet WCAG, darken --ink
+       and --ink-dim here and nothing else changes. */
+    --ink:#8a8a8a;
+    --ink-dim:#8a8a8a;
+    --on-accent:#a3a3a3; /* ref Pay label, brightest pixel 164 on the 35 bar */
+    --media:#f0762e;     /* stand-in product colour */
+    background: var(--bg);
+    font-family: "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+  }
+
+  /* Every px below is a reference measurement times S = 1.12. The ref is 1920x1080 with
+     the card 840px wide; this is 1080x1920, so the card is scaled to 941px to fill the
+     portrait width with a 70px margin and still clear the frame at the 6deg tilt
+     (widest rotated bbox is f1392, 844*cos6 + 478*sin6 = 890 ref = 997 comp px). */
+  #shell {
+    position: absolute; left: 50%; top: 50%;
+    width: 168px; height: 167px;     /* rest, f1340-f1346: 150 x 149 */
+    border-radius: 84px;             /* = height/2, a true capsule end */
+    background: var(--card);
+    box-shadow: 0 20px 46px rgba(0,0,0,0.10);
+    overflow: hidden;                /* this is what "types" the pill label */
+  }
+
+  /* Anchored to the shell's CENTRE, so it holds a fixed screen position while the shell's
+     edges move. ref: word left edge x=706 with shell centre x=959.5, so -253 * 1.12.
+     No CSS transform here: GSAP tweens x on this node and writes the whole transform
+     property, so a CSS translateY(-50%) would be silently discarded on the first tween.
+     The vertical centring is handed to GSAP as yPercent below instead. */
+  /* 54px, not the 66px this carried and #title still carries, and the difference is
+     measured rather than eyeballed. In the reference the pill's label and the card's title
+     are NOT the same size: at f1368 the label's ink spans 706-1010, 305 ref px, while the
+     title at f1412 spans 372. At 66px this file drew the label 383 wide, so it filled the
+     pill where the reference's label has air on both sides, and the ratio is the same on
+     each word taken separately (iPhone 156/189, 17 48/59, Pro 74/90, all 0.82). 66 * 0.82
+     rounds to 54. Cap-and-ascender then lands at 36 against the reference's 37. The word
+     gap has to come down with it: the gap is this margin plus two sidebearings, the
+     sidebearings scale with the font and the margin does not, so 18px would have left the
+     label 22px too wide on its own. At 9px the rendered gaps are 14 and 14 against the
+     reference's 12 and 19, which differ from each other only because e|1 and 7|P have
+     different sidebearings and one margin cannot be two numbers. */
+  #pilltext {
+    position: absolute; left: 50%; margin-left: -284px; top: 50%;
+    white-space: nowrap; font-size: 54px; color: var(--ink);
+  }
+  /* CSS owns every rest state. With immediateRender:false a fromTo does NOT stamp its FROM
+     value at build time, so anything that is meant to be dark at t=0 has to be dark here.
+     Getting this wrong put the card's title on screen from the opening frame, on top of
+     the pill's label, before either had been scheduled. */
+  .w { display: inline-block; opacity: 0; }
+  #pilltext .w:first-child { opacity: 1; }   /* word 0 is revealed by the clip, never faded in */
+  #pilltext .w + .w { margin-left: 9px; }
+
+  #accent {
+    position: absolute; right: 13px; bottom: 11px;    /* ref 12, 10 */
+    width: 149px; height: 149px;                      /* ref 133 disc at f1340 */
+    border-radius: 999px;                             /* capsule at every size it takes */
+    background: var(--accent);
+  }
+  #chev { position: absolute; left: 50%; top: 50%; width: 37px; height: 56px; margin: -28px 0 0 -16px; }
+  #paylabel {
+    position: absolute; inset: 0; opacity: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; color: var(--on-accent);
+  }
+
+  /* Card content. Fixed sizes, absolutely positioned: a shell resize translates these,
+     it never reflows them. Anchored to the edge the reference anchors them to, so they
+     ride the last 46px of the card's settle instead of sitting still while it moves. */
+  #media {
+    position: absolute; left: 146px; top: 123px; width: 166px; height: 343px;
+    border-radius: 26px; opacity: 0;
+    background: linear-gradient(150deg, #f5904f 0%, var(--media) 42%, #d85f1e 100%);
+  }
+  /* Swap #media for <img> (or <video>) and declare the look with data-color-grading on
+     that element; grading only mirrors media pixels, so it would do nothing on this div. */
+  #bump { position: absolute; left: 12px; top: 10px; width: 92px; height: 74px; border-radius: 20px;
+          background: linear-gradient(150deg, #f7a066, #e06a24); }
+  #bump i { position: absolute; width: 26px; height: 26px; border-radius: 999px; background: #24160e; }
+  #title { position: absolute; right: 85px; top: 66px; white-space: nowrap; font-size: 66px; color: var(--ink); }
+  #title .w + .w { margin-left: 16px; }
+  /* The price is ONE inline row on ONE baseline. It used to be four odometer columns,
+     each a 70px window over a 30-row digit strip, and that was wrong twice over: it
+     published legible false prices on its way to the target ($172, $1078, $1096) and it
+     pushed digits above and below the line as the strips travelled. The reference does
+     neither. See the PRICE block in the script for the frame-by-frame evidence. Nothing
+     here clips, so nothing can be half a row out of place. */
+  #price { position: absolute; right: 103px; top: 250px; white-space: nowrap;
+           font-size: 58px; line-height: 70px; color: var(--ink-dim); }
+  .g { display: inline-block; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" class="clip" data-composition-id="chevron-pill-card-morph" data-start="0"
+     data-width="1080" data-height="1920" data-duration="3.2">
+  <div id="shell">
+    <div id="pilltext"></div>
+    <div id="media"><div id="bump"></div></div>
+    <div id="title"></div>
+    <div id="price"></div>
+    <div id="accent">
+      <svg id="chev" viewBox="0 0 37 56" fill="none">
+        <path d="M6 6 L31 28 L6 50" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span id="paylabel">Pay</span>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+// ---- the slot ------------------------------------------------------------------------
+const PILL_WORDS = ["Lumen", "17", "Pro"];   // word 0 is revealed by the clip, 1..n drop in
+const CARD_WORDS = ["Lumen", "17", "Pro"];
+const PRICE      = "1099";                    // any digit count; the stagger follows
+
+// ---- time ----------------------------------------------------------------------------
+// Every constant in this file is a SOURCE FRAME NUMBER, so a comment can never drift out
+// of step with the timing it describes. T() is the only place a second appears.
+//
+// SPF: the source is 60fps, so one frame is 16.67ms. The whole move is f1340-f1420 = 80
+// frames = 1333ms, which is a UI demo's speed, not a video's: the card bloom alone would
+// be 400ms. Scaled x2.4 (SPF = 16.67ms * 2.4 = 40ms) so it reads at reading distance. The
+// scale is UNIFORM, so every ratio and every overlap above survives it untouched. Nothing
+// here was scaled on its own.
+//
+// Why the clip now starts at f1340 rather than f1350: there was no opening pose at all,
+// the width left rest between the first and second sampled frame. f1340-f1348 is not a
+// hold either, and it is worth having for exactly that reason. Over those 9 frames the
+// blue disc rings DOWN from 133 to 122 (it overshot to 138 at f1335 on its way in) while
+// the whole assembly is still descending, mid-y 509.5 -> 523.5. So the clip opens on a
+// disc settling rather than on a still frame or on a widening already underway.
+//
+// WHAT THE CLIP COPIES ENDS AT f1417, AND DUR = T(1420) IS A HARNESS CONSTANT. An earlier
+// version of this comment said the reference "holds a settled $1099 from f1416 to f1419".
+// It does not hold and it does not stay: the card is cross-dissolving out. Card fill,
+// sampled in the empty area right of the product at rows 560-600, reads 250 250 250 250
+// 249 248 247 245 241 238 231 across f1412-f1422 on a background of 224, and the price
+// ink's darkest pixel goes 137 f1415, 146 f1416, 162 f1417, 167 f1418, 172 f1419, 184
+// f1420, with the row gone by f1420 and the card gone by f1422. The price is not even
+// still by then: the last 9's right edge is 1296, 1287, 1281 at f1416, f1417, f1418. So
+// the settled card exists for about two frames, f1415-f1416, and everything after that is
+// the exit. This primitive does not copy the exit. A file someone copies has to end on the
+// finished card, not on it fading.
+//
+// DUR is then chosen so that the last frame the harness actually PHOTOGRAPHS is f1417.5,
+// and that is arithmetic, not taste. The runtime floors every seek to 1/30s, and the final
+// sample asks for D - max(0.05, 0.03*D) rather than D. At DUR = T(1419) = 3.16 the last
+// two samples ask for 3.0581 and 3.0652 and BOTH floor to 91/30 = 3.0333 = f1415.83, so
+// the settle is in the timeline and in no frame, and the first shoot came back with the
+// last digit 15px out. At DUR = T(1418) = 3.12 they both floor to 90/30 = f1415, which is
+// worse. At 3.2 they floor to 92/30 and 93/30 = f1416.67 and f1417.5, and the finished
+// price is on screen twice. The 2.5 source frames of timeline past f1417.5 are never
+// rendered; no tween is authored to reach anything there. Check where your sample times
+// land before you conclude the motion is wrong.
+const F0  = 1340;
+const SPF = 0.04;
+const T   = (f) => (f - F0) * SPF;
+const D   = (a, b) => (b - a) * SPF;
+const DUR = T(1420);
+
+// S = 1.12, ref px -> composition px. Written out rather than computed so a reader can
+// check any number in this file against the frame it was measured in.
+const px = (ref) => Math.round(ref * 1.12);
+
+// A decelerate whose exponent is measured rather than chosen from the named set. GSAP's
+// out family only offers whole exponents (power1 = 2, power2 = 3, power3 = 4) and two of
+// the legs below have a measured exponent that sits between two of them, in both cases
+// close to the midpoint, so every named candidate is wrong at one end or the other. This
+// is still a pure function of the tween's own progress, so it costs nothing against the
+// seek filter. Only the two legs that need it use it; everywhere else a named ease fits
+// and is easier to read.
+const powOut = (k) => (u) => 1 - Math.pow(1 - u, k);
+
+// ---- build the slots -----------------------------------------------------------------
+const el = (tag, cls, txt) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (txt !== undefined) n.textContent = txt;
+  return n;
+};
+const pillWords = PILL_WORDS.map((w) => { const n = el("span", "w", w); pilltext.appendChild(n); return n; });
+const cardWords = CARD_WORDS.map((w) => { const n = el("span", "w", w); title.appendChild(n); return n; });
+// One span per glyph, "$" included, laid out inline. They are all in the DOM from the
+// start at their final positions, so the row's layout never changes and the browser gives
+// every glyph the same baseline for free. Only opacity and x are ever touched.
+const glyphs = ["$", ...PRICE].map((c) => { const n = el("span", "g", c); price.appendChild(n); return n; });
+for (const [i, dx] of [22, 52, 22].entries()) {
+  const dot = el("i"); dot.style.left = dx + "px"; dot.style.top = (i === 2 ? 40 : 12) + "px";
+  if (i === 2) dot.style.left = "22px";
+  bump.appendChild(dot);
+}
+
+// ---- timeline ------------------------------------------------------------------------
+// immediateRender:false, or every fromTo below stamps its FROM value at construction and
+// the opening frame shows the card's end state stacked on the pill's.
+gsap.defaults({ immediateRender: false });
+const tl = gsap.timeline({ paused: true });
+
+gsap.set(shell, { xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" });
+// 284px is the element's own margin-left, so this pins the transform origin exactly on the
+// shell's centre no matter how long the copy in PILL_WORDS is. The label's scale below is
+// measured about the card's centre, not about the label's own box, and using the default
+// "50% 50%" origin would drag the word sideways by half the difference.
+gsap.set(pilltext, { yPercent: -50, transformOrigin: "284px 50%" });
+
+// THE OPENING. The assembly is still arriving when the clip starts. Measured bbox mid-y,
+// ref px: f1340 509.5 | f1344 517.0 | f1348 523.5 | f1352 529.0 | f1356 532.5 | f1360
+// 535.5 | f1364 537.5 | f1368 538.5 | f1372 539.5, flat from there. Distance still to run
+// halves about every 5 frames, and (1-t)^2 over f1340-f1372 tracks it inside 1.5px at
+// every sample: 30 -> 23.0 (measured 22.5) -> 16.9 (16) -> 11.7 (10.5) -> 7.5 (7) ->
+// 4.2 (4) -> 1.9 (2). This is what makes the first quarter of the clip move at all.
+tl.fromTo(shell, { y: -px(30) }, { y: 0, duration: D(1340, 1372), ease: "power2.out" }, T(1340));
+// The disc's own ring-down inside that. Measured diameters: f1335 138 (its overshoot
+// peak, before this clip starts) | f1340 133 | f1342 129 | f1344 126 | f1346 122 |
+// f1348 122, then flat to f1352. Same (1-t)^2 shape: 11 -> 8.4 (measured 8) -> 6.2 (7)
+// -> 4.3 (4) -> 2.8 (4) -> 1.5 (2) -> 0.
+tl.fromTo(accent, { width: px(133) },  { width: px(122),  duration: D(1340, 1348), ease: "power2.out" }, T(1340));
+tl.fromTo(accent, { height: px(133) }, { height: px(122), duration: D(1340, 1348), ease: "power2.out" }, T(1340));
+// #accent is anchored bottom-right, so shrinking it alone would walk its centre 6px down
+// and right. In the reference the disc stays concentric with the pill through the whole
+// ring-down (disc centre x 960.0 at f1340 and 960.5 at f1346, shell centre x 959.5 on
+// both), so the shrink is compensated by half of itself. x/y, not right/bottom: those
+// two snap to integer device pixels under the seek engine and StaticGuard rejects them.
+tl.fromTo(accent, { x: px(5.5) }, { x: 0, duration: D(1340, 1348), ease: "power2.out" }, T(1340));
+tl.fromTo(accent, { y: px(5.5) }, { y: 0, duration: D(1340, 1348), ease: "power2.out" }, T(1340));
+// And it grows back a little as the pill inflates under it: 122 at f1352, 124 at f1355,
+// 126 at f1357, 128 at f1360, flat to f1369.
+tl.fromTo(accent, { width: px(122) },  { width: px(128),  duration: D(1354, 1360), ease: "none" }, T(1354));
+tl.fromTo(accent, { height: px(122) }, { height: px(128), duration: D(1354, 1360), ease: "none" }, T(1354));
+
+// THE DISC BULGE, and it is not an independent pulse. Diameters run 129 f1370, 130 f1372,
+// 132 f1373, 135 f1375, 138 f1376, 141 f1377, 140 f1378, then break to 135 f1379 and 133
+// f1380 and hold. What is constant through the rising half is the disc's INSET from the
+// card's own top and bottom edge: 10, 11, 11, 12, 13, 13, 13, 13, 14, 13, 14 px on the
+// frames f1364 to f1378, so the disc is simply the pill's height minus about 26, a capsule
+// fitted inside a capsule. At f1379 that inset jumps to 20 top and 18 bottom in one frame
+// and never comes back: the disc has detached and now holds its own size while the card
+// keeps growing. So this is two tweens with a hard break between them, and the break frame
+// is the measurement. Do not smooth it: a disc that eases back instead of snapping reads
+// as a squash, not as a component letting go of its container.
+tl.fromTo(accent, { width: px(128) },  { width: px(141),  duration: D(1370, 1377), ease: "power1.in" }, T(1370));
+tl.fromTo(accent, { height: px(128) }, { height: px(141), duration: D(1370, 1377), ease: "power1.in" }, T(1370));
+tl.fromTo(accent, { width: px(141) },  { width: px(133),  duration: D(1377, 1380), ease: "power1.in" }, T(1377));
+tl.fromTo(accent, { height: px(141) }, { height: px(133), duration: D(1377, 1380), ease: "power1.in" }, T(1377));
+// #accent is anchored to the shell's bottom, which is exactly right while the disc grows
+// with the pill (both edges move and the disc stays concentric, which is what the equal
+// insets above say). Once it detaches at f1379 the shell keeps growing under a disc that
+// does not, so the anchor starts walking it downward: half the remaining growth, 12px by
+// f1382. The reference keeps it centred (disc cy 540.0 against card cy 539.5 at f1380,
+// f1381, f1382), so that walk is cancelled here. Measured, the correction is 3px at f1377,
+// 9 at f1379, 10.5 at f1380, 11.5 at f1382, which is quadratic-out.
+tl.fromTo(accent, { y: 0 }, { y: -px(11.5), duration: D(1377, 1382), ease: "power1.out" }, T(1377));
+
+// SHELL WIDTH. Min-area-rect widths, ref px, re-measured with the same estimator the
+// header mandates rather than the axis-aligned numbers an earlier version of this block
+// used (it said 314/444/591 at f1355/f1357/f1360; the min-area rect says 293/437/557, and
+// the two agree within 2px at every other sampled frame, so the old f1360 keypoint was 6%
+// high and the whole leg ran ahead of the reference):
+//   f1346 149 | f1347 151 | f1350 165 | f1352 188 | f1354 220 | f1355 293 | f1357 437
+//   f1360 557 | f1363 629 | f1365 686 | f1367 721 | f1369 740 | f1372 755 | f1376 784
+//   f1380 810 | f1385 831 | f1390 839 | f1395 840 | f1400 839 | f1410 840 | f1416 840
+// Four legs, because the pill sizes to its label rather than growing once smoothly. The
+// f1347-f1360 span is NOT one ease: sweeping the exponent frame by frame walks it from
+// 2.9 at f1354 down to 1.1 at f1358, which is an S, and a single power1.in over the whole
+// span is 48px (12%) out in the middle. Split at the knee it is 7% worst case.
+// The f1354-f1360 leg is the exponent fit, not a family pick. Remaining distance over the
+// 337px span reads .783 .537 .356 .208 .092 at f1355-f1359, and solving (1-u)^k at each of
+// those five frames gives 1.34, 1.54, 1.49, 1.43, 1.33: one exponent, k = 1.4, sitting
+// almost exactly between linear (k = 1) and power1.out (k = 2). Both neighbours are wrong
+// by more than the whole rest of this channel: linear is 44px low at the midpoint,
+// power1.out 31px high, sine.out (the closest named ease, effective k about 1.55 near the
+// midpoint) 25px high. The measured exponent is 10px worst case on the same span.
+tl.fromTo(shell, { width: px(150) }, { width: px(220), duration: D(1347, 1354), ease: "power1.in" }, T(1347));
+tl.fromTo(shell, { width: px(220) }, { width: px(557), duration: D(1354, 1360), ease: powOut(1.4) }, T(1354));
+tl.fromTo(shell, { width: px(557) }, { width: px(721), duration: D(1360, 1367), ease: "none" }, T(1360));
+tl.fromTo(shell, { width: px(721) }, { width: px(755), duration: D(1367, 1372), ease: "power1.out" }, T(1367));
+// f1372-f1391 the pill keeps inflating while the card blooms underneath it. This is the
+// overlap: the height tween below is already running when this leg starts. It asymptotes
+// rather than overshooting, so the ease is out and there is no recovery leg. The exponent
+// on the remaining distance measures 1.76, 1.91, 1.95, 1.41 at f1376, f1380, f1385, f1390,
+// so it is power1.out (k = 2), not the power2.out this leg used to carry: cubic-out runs
+// 14px ahead at f1376 and f1380, quadratic-out is within 3px at every sample.
+tl.fromTo(shell, { width: px(755) }, { width: px(840), duration: D(1372, 1391), ease: "power1.out" }, T(1372));
+
+// SHELL X, and the equal-and-opposite on #pilltext. A SQUARE PULSE, not a ramp: min-area
+// rect cx - 959.5 snaps 0 -> -12 -> -16.5 over f1352-f1354, then holds between -15.0 and
+// -17.0 for eleven frames to f1364 (mean -16.05), then returns to 0 over f1364-f1367. The
+// gap between f1354 and f1364 carries no tween, so GSAP holds -16 there, which is the
+// whole point: this channel is genuinely still while four others are moving.
+// The return leg is "none" because the measured return is 8, 1.5, 5, 2 px per frame, and
+// linear is 3.2px worst against sine.inOut's 4.5px over a 16px span.
+tl.fromTo(shell,    { x: 0 },       { x: -px(16), duration: D(1352, 1354), ease: "power1.out" }, T(1352));
+tl.fromTo(shell,    { x: -px(16) }, { x: 0,       duration: D(1364, 1367), ease: "none" },       T(1364));
+tl.fromTo(pilltext, { x: 0 },       { x: px(16),  duration: D(1352, 1354), ease: "power1.out" }, T(1352));
+tl.fromTo(pilltext, { x: px(16) },  { x: 0,       duration: D(1364, 1367), ease: "none" },       T(1364));
+
+// SHELL HEIGHT, and this is the channel the whole file gets judged on. Heights, ref px,
+// read as the centre column at the card's own centre x (deliberately not the min-area
+// rect: at 0 to 6 degrees of tilt a hull can be argued about, a column of pixels cannot):
+//   f1340-f1363 147-149 | f1364 149 | f1367 151 | f1369 152 | f1370 153 | f1373 156
+//   f1375 160 | f1377 167 | f1380 174 | f1382 177 | f1384 184 | f1386 198 | f1388 228
+//   f1390 320 | f1393 502 | f1395 571 | f1400 695 | f1404 730 | f1407 735 (peak)
+//   f1410 723 | f1413 706 | f1414 696 | f1416 694 | f1417 693 | f1418 689
+// FOUR LEGS, AND THE FIRST ONE IS THE POINT. This used to be a single power4.in from
+// f1372, which is flat for its own first half: it put 0% of the lead-in on screen by
+// f1377 where the reference has 14%, so the card only started blooming at f1380, by which
+// time the width was at 98% of final and there was no overlap left. The lead-in is not
+// anticipation to be swallowed by the ramp behind it, it is 12 frames of visible growth at
+// about 2px per frame, and it is what makes the two morphs read as one event.
+// f1364-f1382 fits t^2 to within 3.6px of a 28px span. On the render, where the rounding
+// to integer device px lands, it crosses the 152 rest band at f1370.93, one frame after
+// the reference's own break at f1370. The residual inside the leg is not flat: the build
+// tracks the reference to within 1.3px through f1375 and then runs 3.5 to 4.5px under it
+// from f1376 to f1380, because the reference's lead-in is not a pure t^2, it has a knee
+// around f1375 that a single quadratic cannot carry without giving up the break frame.
+// The break frame is worth more, so it keeps the quadratic and wears the 4.5px.
+tl.fromTo(shell, { height: px(149) }, { height: px(177), duration: D(1364, 1382), ease: "power1.in" }, T(1364));
+// Then the bloom. Cubic-in over f1382-f1390 is the best of the in family on a 143px span
+// (quartic is 52px out at f1390, quadratic 46px out at f1388), so power2.in, remembering
+// that GSAP's power2 is cubic and its power1 is the quadratic. Measured back off the
+// render it is worst at f1389, 12.8px high on the 143px span, 9%; the reference's last
+// two frames before the velocity peak are steeper than any exponent that also holds
+// f1384-f1386, and this leg is 8 frames long, so the residual stays.
+tl.fromTo(shell, { height: px(177) }, { height: px(320), duration: D(1382, 1390), ease: "power2.in" }, T(1382));
+// The rise to the peak is ONE leg from the velocity peak at f1390, not two, and again the
+// exponent is measured: on the remaining distance it reads 3.08, 2.66, 2.64, 2.55 at
+// f1392, f1395, f1400, f1404, so k = 2.7, between GSAP's power1.out (3) and power2.out
+// (4) by their real exponents. power2.out was what this leg used to carry and it runs
+// 27px ahead of the reference around f1396, 6.5% of the 415px span; k = 2.7 halves that
+// to 14px. It does not remove it, and the reason is worth writing down: the reference's
+// remaining distance decays by a near-constant 0.82 per frame from f1390 to f1400, which
+// is an exponential with a 3.5-frame half life, about 5 half lives across this leg. No
+// power ease is an exponential and GSAP's expo.out is 10 half lives over the same window,
+// which puts it 66px ahead by f1391. So this is the closest a single tween gets, and the
+// middle third of the bloom is the one place this file is visibly ahead of its reference.
+tl.fromTo(shell, { height: px(320) }, { height: px(735), duration: D(1390, 1407), ease: powOut(2.7) }, T(1390));
+// 735 -> 696 is a real 5.9% overshoot recovery in the reference, not a settle invented to
+// keep pixels moving, and 5.9% is the number a min-area rect gives. This file used to say
+// 7.8%, off an axis-aligned bbox that a 1.1 degree tilt inflates; a reviewer guessed 4.2%
+// off a hand de-rotation and was off the other way. The ease was also wrong and it cost
+// the tail: the recovery is nearly CONSTANT VELOCITY at 5.3px per frame and finishes at
+// f1414, not a sine.inOut easing to a stop at f1416. sine.inOut is 8.4px (20%) out at
+// f1411; sine.in over f1407-f1414 is 3.4px (8.6%) worst.
+tl.fromTo(shell, { height: px(735) }, { height: px(696), duration: D(1407, 1414), ease: "sine.in" }, T(1407));
+// The tail, and it is the reason the previous ease mattered. A recovery that lands with
+// zero velocity at f1416 followed by a power2.in that leaves with zero velocity meant the
+// three rendered frames either side of f1416 moved less than one device pixel, and the
+// hero rendered three identical heights while the header called it "still resolving".
+// The reference does not stop there: 696 f1414, 695, 694.4, 692.6, 688.7 f1418, and a
+// power1.in across that span is 1.8px worst on 7px. At 32 frames the last four samples
+// seek to f1411.67, f1414.17, f1416.67 and f1417.5, and measured back off those four PNGs
+// the shell is 800, 780, 776 and 774 composition px against the reference's 799, 780, 774
+// and 772: four different heights, none repeated, none invented to move a pixel. f1418 is where the reference's card starts dissolving
+// out, so nothing is authored past it.
+tl.fromTo(shell, { height: px(696) }, { height: px(689), duration: D(1414, 1418), ease: "power1.in" }, T(1414));
+
+// Corner radius. While the pill is still a pill the ends stay true semicircles, so the
+// radius is height/2 and has to track the lead-in above: 149/2 at f1364 to 177/2 at
+// f1382. Leave it at the rest value and a 177-tall pill carries 27px of straight edge on
+// each end, which is a visibly different silhouette from the reference's at f1380.
+tl.fromTo(shell, { borderRadius: px(75) }, { borderRadius: px(88), duration: D(1364, 1382), ease: "none" }, T(1364));
+// Then it stops being a capsule and becomes the card's 125. Endpoints measured (f1384 and
+// f1416, the latter by walking the top edge inward row by row); the curve between them is
+// inferred.
+tl.fromTo(shell, { borderRadius: px(88) }, { borderRadius: px(125), duration: D(1384, 1404), ease: "power1.out" }, T(1384));
+
+// TILT. Fitted from the min-area rect's own angle, degrees, sign flipped to this file's
+// convention: f1381 0.0 | f1383 0.5 | f1385 3.0 | f1387 5.5 | f1389 6.0 | f1393 6.4
+//   f1396 3.2 | f1400 0.0 | f1405 -1.1 | f1407 -1.1 | f1410 -0.8 | f1414 0.0
+// Note the plateau at 6deg (f1389-f1393) while the height is at its fastest: the tilt
+// locks and the box explodes underneath it. Both eases fit sine.inOut inside 0.3deg.
+tl.fromTo(shell, { rotation: 0 },    { rotation: 6.0,  duration: D(1383, 1390), ease: "sine.inOut" }, T(1383));
+tl.fromTo(shell, { rotation: 6.0 },  { rotation: -1.3, duration: D(1394, 1405), ease: "sine.inOut" }, T(1394));
+tl.fromTo(shell, { rotation: -1.3 }, { rotation: 0,    duration: D(1405, 1414), ease: "sine.inOut" }, T(1405));
+
+// PILL WORDS: THREE COPIES OF ONE DAMPED BOUNCE, four to five frames apart, and it runs
+// far longer than this file used to think. Tracking each word's own ink centre against the
+// label's line (positive = below it), ref px:
+//   iPhone  +17 f1363  +8 f1364   -10 f1368  -7.5 f1370  -2 f1372  +2.5 f1376  -5 f1384
+//   17      +29 f1364  +30.5 f1365  -9.5 f1372  -8.5 f1373  +3 f1380  -1 f1384
+//   Pro     -20 f1365  +31.5 f1369  -9.5 f1377  +4 f1384
+// Every one of them crosses the line, comes back past it, and crosses again: two sign
+// changes in the first difference, which no back.out can produce, so this is four legs
+// rather than one ease. The shape is identical for all three, and the numbers say so
+// plainly: down-peak +30 at a+5, up-peak -10 at a+13, down-peak +3 at a+21, with a =
+// 1355, 1360, 1364. Half period 8 frames, damping 0.33 per half period, on all three.
+// The old model was one back.out(2.2) settling in 6 frames, so from f1370 the label was
+// dead level while the reference still had "17" high and "Pro" low, then swapped.
+// Word 0 is the exception on entry only: it is revealed by the shell's left edge sweeping
+// over it rather than dropped in, so it starts at rest and sinks into the first trough
+// instead of arriving from above. Everything after the trough is shared.
+const WORD_A = [1355, 1360, 1364];
+tl.fromTo(pillWords[0], { y: 0 }, { y: px(30), duration: D(1353, 1360), ease: "power1.in" }, T(1353));
+pillWords.forEach((w, i) => {
+  const a = WORD_A[Math.min(i, WORD_A.length - 1)];
+  if (i > 0) {
+    // Entry: the drop is 4 blurred frames in the reference, so the amplitude above the
+    // line and the sideways lead-in are inferred; the frame it lands in is measured.
+    tl.fromTo(w, { opacity: 0 }, { opacity: 1, duration: D(a, a + 3), ease: "none" }, T(a));
+    tl.fromTo(w, { y: -px(38) }, { y: px(30), duration: D(a, a + 5), ease: "power2.out" }, T(a));
+    tl.fromTo(w, { x: px(26) }, { x: 0, duration: D(a, a + 5), ease: "power2.out" }, T(a));
+  }
+  tl.fromTo(w, { y: px(30) },  { y: -px(10), duration: D(a + 5, a + 13),  ease: "sine.inOut" }, T(a + 5));
+  tl.fromTo(w, { y: -px(10) }, { y: px(3),   duration: D(a + 13, a + 21), ease: "sine.inOut" }, T(a + 13));
+  tl.fromTo(w, { y: px(3) },   { y: 0,       duration: D(a + 21, a + 29), ease: "sine.inOut" }, T(a + 21));
+});
+// AND THE WHOLE LABEL SCALES. Least squares on all 22 glyph-band edges of "iPhone 17 Pro"
+// against their f1369 positions gives a pure similarity with scale 1.0072 f1370, 1.0256
+// f1372, 1.0397 f1373, 1.0709 f1375, 1.1132 f1377, 1.1459 f1379, 1.1560 f1380, 1.1684
+// f1382, 1.1779 f1384, worst residual 2.9px on any edge on any frame. The fixed point
+// converges on x = 950 against the card's centre of 959.5, and the cap height of the P
+// grows 37 -> 42 over the same window, so it is a real 2D scale about the card's centre
+// and not letter-spacing. This is the channel that makes the pill look like it is
+// inflating rather than just getting wider, and it is why #pilltext's transform origin is
+// pinned to the shell's centre rather than to its own box.
+// Residual: sine.inOut runs 0.08 of the 0.178 span low through the middle of the window
+// (4px of block width at f1377, 8% of the spread). The measured exponent walks 1.14 to
+// 0.38 across the window, so no single power ease closes it either.
+tl.fromTo(pilltext, { scale: 1 }, { scale: 1.178, duration: D(1369, 1384), ease: "sine.inOut" }, T(1369));
+// The label also sags about 11px and comes back over f1369-f1384 on top of that scale, on
+// all three words at once. It is measured and it is NOT reproduced here: the scale about a
+// fixed point accounts for 3.5px of it and the rest has no model that survived a fit.
+// The shell is empty from here until the card content arrives at f1390. That gap is what
+// makes animating the box safe.
+tl.fromTo(pilltext, { opacity: 1 }, { opacity: 0, duration: D(1384, 1388), ease: "none" }, T(1384));
+
+// THE ACCENT. One node, four box properties and a colour, one window: f1384 to f1400.
+// Measured, ref px: at f1384 it is a 128 disc inset 12 from the shell's right and 10 from
+// its bottom; at f1416 it is a 709 x 145 bar inset 64 and 55. The left edge is what the
+// eye follows and it sweeps 1208 -> 618 with the fastest frame in the middle (f1392),
+// which power1.inOut reproduces inside 42px at every sample.
+//
+// The insets are travelled with x/y, never with right/bottom. Those two are layout
+// properties: the browser snaps them to whole device pixels during layout, so the
+// ease-out tail stutters instead of decelerating under a seek-by-frame capture, and
+// StaticGuard rejects the composition outright. Right inset 12 -> 64 is 52px of leftward
+// travel, bottom 10 -> 55 is 45px of upward travel, and the static CSS inset stays at the
+// f1384 value so the box still grows leftward out of the pill's right end.
+// The FROM values pick up where the bulge left off (133, not the 128 this block used to
+// start from, which would have snapped the disc 5px wider at f1384).
+const A = { duration: D(1384, 1400), ease: "power1.inOut" };
+tl.fromTo(accent, { width: px(133) },  { width: px(709),  ...A }, T(1384));
+tl.fromTo(accent, { height: px(133) }, { height: px(145), ...A }, T(1384));
+tl.fromTo(accent, { x: 0 }, { x: -px(52), ...A }, T(1384));
+tl.fromTo(accent, { y: -px(11.5) }, { y: -px(45), ...A }, T(1384));
+// Colour is the OTHER half of the continuity: blue disc to near-black bar, sampled as a
+// mean over the accent's own pixels. f1384 (11,107,245) | f1390 (15,77,165) |
+// f1393 (24,63,118) | f1396 (32,49,71) | f1400 (37,37,37). That is a straight line in RGB
+// to within 6 levels, so ease "none" is the measurement, not a shortcut.
+tl.fromTo(accent, { backgroundColor: "#0b6bff" }, { backgroundColor: "#232323", duration: D(1384, 1400), ease: "none" }, T(1384));
+// The chevron leaves as the disc starts to stretch, the label arrives as it stops.
+tl.fromTo(chev, { opacity: 1 }, { opacity: 0, duration: D(1384, 1388), ease: "none" }, T(1384));
+tl.fromTo(paylabel, { opacity: 0 }, { opacity: 1, duration: D(1399, 1404), ease: "none" }, T(1399));
+
+// CARD CONTENT. First ghost of the product at f1391, solid by f1396. It is clipped by the
+// shell on its way in, so the growing card reveals it.
+tl.fromTo(media, { opacity: 0 }, { opacity: 1, duration: D(1390, 1396), ease: "none" }, T(1390));
+tl.fromTo(media, { scale: 0.86 }, { scale: 1, duration: D(1390, 1398), ease: "power2.out" }, T(1390));
+
+// The card's title lands word by word AFTER the box has stopped growing: "iPhone" f1400,
+// "17" f1404, "Pro" f1409, settled f1413. Same drop-and-overshoot as the pill's words, so
+// the two rows read as the same typography moving, not two different animations.
+const CARD_IN = [[1399, 1404], [1403, 1409], [1408, 1413]];
+cardWords.forEach((w, i) => {
+  const [a, b] = CARD_IN[Math.min(i, CARD_IN.length - 1)];
+  tl.fromTo(w, { opacity: 0 }, { opacity: 1, duration: D(a, a + 3), ease: "none" }, T(a));
+  tl.fromTo(w, { y: -38, x: 26 }, { y: 0, x: 0, duration: D(a, b), ease: "back.out(2.2)" }, T(a));
+});
+
+// THE PRICE IS THE AFTERMATH, and it is a reveal, NOT an odometer.
+//
+// This file used to roll four clipped digit columns through two full 0-9 cycles each. It
+// looked like the reference at a glance and was the opposite of it at full resolution.
+// Cropping x1080-1330 y385-485 out of the source and listing the ink bands per frame:
+//
+//   f1401  $ alone at x1204-1231, darkest pixel 189, still a ghost
+//   f1402  $ at 1177-1203 and a 1 at 1253-1264            reads "$1"
+//   f1406  $ 1114-1141, 1 1157-1173, 0 1224-1250          reads "$10"
+//   f1409  $1 1129-1160, 0 1186-1214, 9 1264-1288         reads "$109"
+//   f1413  $ 1145-1172, 10 1175-1209, 9 1225-1252, 9 1300-1327   reads "$1099"
+//   f1416  1148-1175, 1185-1199, 1203-1246, 1270-1297, settled
+//   f1419  1151-1177, 1184-1199, 1212-1280, unchanged glyphs, still settled
+//
+// Every glyph arrives already showing its final value. The reference never displays a
+// wrong number, never clips a glyph at the top or bottom, and never puts one off the
+// shared baseline. The odometer did all four: it published $172, $1078, $1096 and $1098
+// as legible frames, and its digits sat as superscripts and subscripts because a 70px
+// window over a travelling strip is exactly that. So the mechanic here is two things and
+// no more: a fade, and a slide into place from the right.
+//
+// Entry frames, from the first row of that table: $ f1401, then f1402, f1406, f1409,
+// f1413. The three digit gaps are 4, 3, 4, so the stagger is 3.67 frames and the formula
+// below reproduces 1402/1406/1409/1413 exactly while extending to any digit count.
+const PRICE_IN = (i) => (i === 0 ? 1401 : 1402 + Math.round((i - 1) * 3.67));
+// The whole row slides too, and it overshoots. Tracking the "$" against its own settled
+// left edge of 1149: +55 at f1401, +28 f1402, +1 f1403, -20 f1404, -32 f1405, -35 f1406
+// (the far end of the overshoot), then back -27 f1408, -14 f1410, -6 f1412, -2 f1414,
+// 0 f1417. Two legs, both power2.out: on the return, (1-t)^2 gives .67 .41 .21 .07 .008
+// against measured .77 .40 .17 .06 .03.
+tl.fromTo(price, { x: px(55) },  { x: -px(35), duration: D(1401, 1406), ease: "power2.out" }, T(1401));
+tl.fromTo(price, { x: -px(35) }, { x: 0,       duration: D(1406, 1417), ease: "power2.out" }, T(1406));
+glyphs.forEach((g, i) => {
+  const a = PRICE_IN(i);
+  tl.fromTo(g, { opacity: 0 }, { opacity: 1, duration: D(a, a + 3), ease: "none" }, T(a));
+  // Each digit closes a gap to the glyph before it. Measured against the row's own slide,
+  // the local offsets are +44 +32 +21 +11 0 for the last 9 over f1413-f1417 and +48 +31
+  // +16 +4 0 for the one before it over f1409-f1413: linear to within 4px, so ease "none"
+  // is the measurement. The "$" has no local offset, the row's slide is its entrance.
+  if (i > 0) tl.fromTo(g, { x: px(46) }, { x: 0, duration: D(a, a + 4), ease: "none" }, T(a));
+});
+
+tl.set({}, {}, DUR);
+window.__timelines = window.__timelines || {};
+window.__timelines["chevron-pill-card-morph"] = tl;
+</script>
+</body>
+</html>

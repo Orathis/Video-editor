@@ -1,0 +1,492 @@
+<!doctype html>
+<!--
+  persona-card-fan: HyperFrames video primitive (options appear beside a speaker).
+
+  Portrait cards deal in one after another on the right of the frame. Each new
+  card grows in place at the front, and the cards it displaces swing back into a
+  narrow wedge whose OUTER edge is pinned: the deepest card never moves again,
+  the new arrivals subdivide the same wedge, so the fan tightens as it fills.
+  Presenter stays in the left third.
+
+  Envelope (D = 3.00s, 30fps):
+    0.00-0.30  card 1 lands. It opens already 63% through its own deal, so
+               frame zero is a card in flight, not an empty frame (Law 8).
+    0.30-0.60  hold. One card, the drift is the only motion.
+    0.60-1.10  DEAL 2. Card 2 grows in at the front, card 1 swings back to the
+               wedge's outer edge (u = 1, 12.25 degrees).
+    1.10-1.46  hold.
+    1.46-1.96  DEAL 3. Card 3 grows in, card 2 takes the wedge's midpoint
+               (u = 0.5), card 1 does not move.
+    1.96-2.32  hold.
+    2.32-2.82  DEAL 4. Card 4 grows in, cards 2 and 3 slide to u = 2/3 and 1/3,
+               card 1 still does not move.
+    2.82-3.00  landing. Drift only.
+    0.00-3.00  the drift, running under all of it.
+
+  Reference: refs/b6/src/x-syn-roleplay.mp4, 00:59.5 to 01:06.5, sampled at
+  10fps into refs/b6/frames/persona-card-fan (f001-f070), measured at 960x540
+  and quoted as percentages of frame width (W) and height (H), or as multiples
+  of the front card's own width (w = 214px = 22.3% of W).
+
+    front card, upright to within 1 degree (right-edge slope -0.8 deg on f047,
+      +1.2 deg on f068). Edges on f068: left 605, right 818, top 31, bottom 337,
+      i.e. 22.3% of W by 56.9% of H, aspect 0.70. Centre 74.1% of W, 34.1% of H.
+    THE FAN COMPRESSES AS THE STACK FILLS, and this is the whole move. Per-slot
+      exposure past the front card's right edge, averaged over three heights
+      (y 90, y 180, y 300), measured on the settled frame at each count:
+        2 cards (f046)      one slot   0.25w
+        3 cards (f058)      per slot   0.13w
+        4 cards (f062-f070) per slot   0.10w
+      The wedge itself barely changes: the deepest card sits 0.40w out at the
+      top corner whether the stack holds two cards or four. What changes is how
+      many cards share that wedge. Following ONE card proves it: card 2 is 0.21w
+      out when it is one of three (f058) and 0.28w out when it is one of four
+      (f068), while card 1 sits at the outer edge from f042 to f070 and never
+      moves again. So the slot is u = k / (n - 1), not a fixed step per card.
+    slot transform, solved rather than guessed. Reading a right EDGE at fixed
+      heights is underdetermined: scale, pivot depth and translate trade against
+      each other and any of them fits. Two CORNERS per sliver fixes all four
+      numbers exactly. Read at 8x on f068, as deltas from the front card's own
+      corners in px at 960 wide:
+        u = 1/3   top-right (+28, +24)   bottom-right (+14, -13)
+        u = 2/3   top-right (+50, +47)   bottom-right (+26, -25)
+        u = 1     top-right (+66, +67)   bottom-right (+36, -36)
+      The bottom-right corner rises while the top-right corner falls, so the
+      back cards are visibly SHORTER, which no rotation alone can do. Solving
+      each depth independently for scale, rotation and translate about the
+      card's own centre gives three points on one straight line in u:
+        u = 1/3   scale 0.881   rot 2.97 deg   dx 0.158w   dy 0.002H
+        u = 2/3   scale 0.769   rot 5.83 deg   dx 0.295w   dy 0.009H
+        u = 1     scale 0.672   rot 8.37 deg   dx 0.406w   dy 0.016H
+      so the build carries scale 1 - 0.34u, rotation 8.6u degrees, dx 0.43wu,
+      dy 0.013Hu, about transform-origin 50% 50%. Worst residual against the
+      three measured depths is 3px on a 214px card.
+    the deal is a centred scale-up, not a slide. On f036 the arriving card
+      spans x 634 to 742, 108px against the settled 214 (scale 0.50), and its
+      centre sits 12px left (0.056w) and 9px below the front slot's centre. It
+      grows in place.
+    deal curve, from the fan's outer edge across deal 2 (f035 to f040, drift
+      subtracted): 0, 0.482, 0.726, 0.881, 0.929, 1. Fitted
+      cb(0.321, 0.996, 0.727, 0.877), max error 0.98% of travel. The nearest
+      palette curve, enterSoft, is 6.1% off, so the local fit ships.
+    NO back-card veil. Sampling one card's own art as it recedes (card 2 at
+      f046 front, f058 at u = 0.5, f068 at u = 0.67) shows no darkening at all;
+      earlier rounds read a drop that was the difference between two different
+      portraits. The depth cue in the reference is a CAST SHADOW: across f068 at
+      y 100-150 each sliver opens with a notch to 0.82 of its own plateau and
+      recovers over 6px (0.03w), then holds flat. So the cards carry a
+      right-and-down box-shadow and no veil layer.
+    drift, from the front card's own edges f030 to f068: right edge 794 to 818,
+      left edge 579 to 605, i.e. 0.65% of W per second to the right, and top
+      edge 29 to 31, bottom 340 to 337, i.e. vertically still. Carried as
+      1.95cqw across D and zero vertical. Steady rate, so E.linear by
+      measurement, not by convenience.
+    cadence f027, f036, f048, f059 (0.9s, 1.2s, 1.1s), deal itself 0.5s.
+
+  Deviations, both declared:
+    1. Cadence compressed from a 1.05s mean to 0.86s. Four arrivals at the
+       reference's own spacing needs 4.2s and the tail would be dead runtime.
+       The deal itself is untouched at 0.50s, and so is the curve.
+    2. Copy, palette and card art are inventions. The reference's own cards
+       carry photographic portraits and its own product's labels; nothing of
+       either is reproduced here.
+
+  Presenter safe zone, 16:9: measured on the 1920x1080 shot frames, not on a
+  contact sheet tile. The group's leftmost pixel is the front card's left edge
+  at frame zero, 60.4% of W, and it only moves right from there. The
+  presenter's left 32% is clear for the whole clip by 28 points.
+
+  Copy and colour are placeholders. Overridable on #root: --pcf-card,
+  --pcf-ink, --pcf-sub, --pcf-chip, --pcf-a1..a4, --pcf-b1..b4, --pcf-c1..c4.
+
+  Media slot: .pcf-plate is a procedural gradient standing in for a portrait.
+  Replace its background with a real image (background-image: url(...)) on each
+  .pcf-k1..k4, keeping the .pcf-scrim above it so the title stays legible.
+
+  Mount contract: the runtime clones only this template; #root fills the host,
+  carries no data-width or data-height, and registers one paused timeline under
+  the hardcoded persona-card-fan id. Composed for 16:9; the container band
+  below keeps 9:16 and 1:1 inside the frame rather than making them sing.
+-->
+<html lang="en" data-composition-id="persona-card-fan" data-composition-duration="3">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Persona Card Fan</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="persona-card-fan" data-duration="3" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            color: var(--pcf-ink, #f4f3f1);
+            font-family: Inter, "Helvetica Neue", system-ui, -apple-system, sans-serif;
+            pointer-events: none;
+          }
+
+          /* The drift layer. It translates only: the reference's card keeps its
+             measured size to within 3% while its position moves, and its top and
+             bottom edges hold to 3px over 3.8s, so this is a graphic sliding
+             sideways, not a camera pushing. */
+          .pcf-drift {
+            position: absolute;
+            inset: 0;
+          }
+
+          /* A zero size anchor at the front card's measured centre, 74.1% of W
+             and 34.1% of H at the end of the reference segment, so 71.5% of W at
+             the start of it. Lateral, so cqw and cqh, never cqmin. The card hangs
+             off it by half its own size in static CSS: no transform here, because
+             GSAP owns the card's transform and would overwrite one. */
+          .pcf-stage {
+            position: absolute;
+            top: 34cqh;
+            left: 71.5cqw;
+            width: 0;
+            height: 0;
+          }
+
+          /* The reference card at its measured size: 22.3% of frame width by
+             56.9% of frame height in a 16:9 frame, which is 39.6cqmin by
+             56.9cqmin. Sized in cqmin so it keeps its shape in every aspect.
+             The box-shadow is the fan's depth cue, offset right and down because
+             in the reference each card shadows the sliver of the card BEHIND it,
+             which lies to its right. */
+          .pcf-card {
+            position: absolute;
+            top: -28.45cqmin;
+            left: -19.8cqmin;
+            overflow: hidden;
+            width: 39.6cqmin;
+            height: 56.9cqmin;
+            border-radius: 2cqmin;
+            background: var(--pcf-card, #101114);
+            box-shadow: 1cqmin 0.7cqmin 1.5cqmin rgba(4, 5, 8, 0.55);
+            will-change: transform;
+          }
+
+          .pcf-plate,
+          .pcf-scrim {
+            position: absolute;
+            inset: 0;
+          }
+
+          /* Procedural stand-in for a portrait: a raking two stop gradient plus
+             one soft off centre key, so each card reads as its own subject at a
+             glance when only a sliver of it is showing. It runs the FULL card,
+             not the top 60%: ending it early left a hard horizontal seam where
+             the plate stopped, and the scrim is what should be hiding that. */
+          .pcf-plate {
+            background: linear-gradient(158deg, var(--pcf-a) 0%, var(--pcf-b) 100%);
+          }
+
+          .pcf-plate::after {
+            position: absolute;
+            content: "";
+            inset: 0;
+            background: radial-gradient(50% 34% at 50% 27%, var(--pcf-c) 0%, transparent 76%);
+          }
+
+          .pcf-scrim {
+            top: 28%;
+            background: linear-gradient(180deg, transparent 0%, var(--pcf-card, #101114) 64%);
+          }
+
+          .pcf-body {
+            position: absolute;
+            right: 0;
+            bottom: 2.99cqmin;
+            left: 0;
+            padding: 0 2.67cqmin;
+            text-align: center;
+          }
+
+          .pcf-title {
+            margin: 0;
+            font-size: 3.49cqmin;
+            font-weight: 600;
+            letter-spacing: -0.014em;
+            line-height: 1.22;
+            white-space: nowrap;
+          }
+
+          .pcf-sub {
+            margin: 0.67cqmin 0 0;
+            color: var(--pcf-sub, #a8a6a2);
+            font-size: 2.57cqmin;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.01em;
+          }
+
+          .pcf-rule {
+            display: block;
+            width: 62%;
+            height: 0.42cqmin;
+            margin: 2.03cqmin auto 0;
+            border-radius: 999px;
+            background: rgba(244, 243, 241, 0.22);
+          }
+
+          .pcf-chip {
+            display: inline-block;
+            margin-top: 2.03cqmin;
+            padding: 1.01cqmin 3.29cqmin;
+            border-radius: 999px;
+            background: var(--pcf-chip, #24262c);
+            font-size: 1.99cqmin;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+          }
+
+          .pcf-k1 {
+            z-index: 1;
+            --pcf-a: var(--pcf-a1, #47707c);
+            --pcf-b: var(--pcf-b1, #23414f);
+            --pcf-c: var(--pcf-c1, #9ecfc7);
+          }
+          .pcf-k2 {
+            z-index: 2;
+            --pcf-a: var(--pcf-a2, #9a6c33);
+            --pcf-b: var(--pcf-b2, #46301a);
+            --pcf-c: var(--pcf-c2, #e6bb79);
+          }
+          .pcf-k3 {
+            z-index: 3;
+            --pcf-a: var(--pcf-a3, #64497f);
+            --pcf-b: var(--pcf-b3, #33254a);
+            --pcf-c: var(--pcf-c3, #c3a6de);
+          }
+          .pcf-k4 {
+            z-index: 4;
+            --pcf-a: var(--pcf-a4, #857a65);
+            --pcf-b: var(--pcf-b4, #45403a);
+            --pcf-c: var(--pcf-c4, #efe3c9);
+          }
+
+          /* Not the native shape. The move is composed for 16:9 and only has to
+             stay inside the frame here. The card is 39.6% of the short side, and
+             the wedge adds 0.40 of a card width, so the group is 71cqmin across;
+             in 16:9 that is 40% of the frame and it sits where the reference puts
+             it, in 9:16 and 1:1 the same group is 71% of the width and the stage
+             recentres so it stays inside with a margin either side. Nothing is
+             resized, so every proportion above is still the reference's. */
+          @container (aspect-ratio < 1.4) {
+            .pcf-stage {
+              left: 52cqw;
+            }
+          }
+        </style>
+
+        <div class="pcf-drift">
+          <div class="pcf-stage">
+            <article class="pcf-card pcf-k1">
+              <span class="pcf-plate"></span>
+              <span class="pcf-scrim"></span>
+              <div class="pcf-body">
+                <h3 class="pcf-title">Harbour Yard</h3>
+                <p class="pcf-sub">Sector 04</p>
+                <span class="pcf-rule"></span>
+                <span class="pcf-chip">Open</span>
+              </div>
+            </article>
+            <article class="pcf-card pcf-k2">
+              <span class="pcf-plate"></span>
+              <span class="pcf-scrim"></span>
+              <div class="pcf-body">
+                <h3 class="pcf-title">Meridian Works</h3>
+                <p class="pcf-sub">Sector 11</p>
+                <span class="pcf-rule"></span>
+                <span class="pcf-chip">Open</span>
+              </div>
+            </article>
+            <article class="pcf-card pcf-k3">
+              <span class="pcf-plate"></span>
+              <span class="pcf-scrim"></span>
+              <div class="pcf-body">
+                <h3 class="pcf-title">Fernwood Depot</h3>
+                <p class="pcf-sub">Sector 26</p>
+                <span class="pcf-rule"></span>
+                <span class="pcf-chip">Open</span>
+              </div>
+            </article>
+            <article class="pcf-card pcf-k4">
+              <span class="pcf-plate"></span>
+              <span class="pcf-scrim"></span>
+              <div class="pcf-body">
+                <h3 class="pcf-title">Beacon Terrace</h3>
+                <p class="pcf-sub">Sector 33</p>
+                <span class="pcf-rule"></span>
+                <span class="pcf-chip">Open</span>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek-safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            // Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            var E = {
+              enterSoft: cb(0.33, 0.7, 0.35, 1.0),
+              // Fitted to the fan's outer edge across deal 2 of the reference,
+              // f035 to f040 with the drift subtracted (0, 0.482, 0.726, 0.881,
+              // 0.929, 1). Max error 0.98% of travel; enterSoft, the nearest
+              // palette curve, is 6.1% off.
+              deal: cb(0.321, 0.996, 0.727, 0.877),
+              // The drift is a steady rate in the reference, so it is linear by
+              // measurement rather than by convenience. See the header.
+              linear: function (p) { return p; },
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var drift = root.querySelector(".pcf-drift");
+            var cards = [].slice.call(root.querySelectorAll(".pcf-card"));
+
+            // GSAP writes transforms as px, so cq units do not survive on a tween.
+            // Read them at build time. Lateral travel is cqw; the card's own box
+            // is cqmin, mirroring the CSS, so the entry offsets below stay in
+            // proportion to the card in all three aspects.
+            var UW = (root.clientWidth || 1920) / 100;
+            var UMIN = Math.min(root.clientWidth || 1920, root.clientHeight || 1080) / 100;
+            var CW = 39.6 * UMIN;
+            var CH = 56.9 * UMIN;
+
+            // The wedge, solved from the reference's own corners: the top-right
+            // and bottom-right corner of every sliver on f068, read at 8x, against
+            // the front card's corners. Two corners fix all four numbers, and all
+            // three depths land on the same straight line in u (see the header).
+            // Everything is about the card's own centre.
+            var ROT = 8.6, DS = 0.34, DXC = 0.43, DYC = 0.013;
+
+            // Depth inside the wedge. Card i of n on screen sits at slot n-1-i,
+            // and the slots SUBDIVIDE the wedge instead of stepping through it:
+            // the oldest card is pinned at u = 1 from the moment it is displaced,
+            // and every arrival pushes the cards between it and the front closer
+            // together. That is the compression the reference has and a fixed
+            // per-slot step does not: one slot back is 0.25w when two cards are
+            // up and 0.10w when four are.
+            function u(i, n) {
+              return n < 2 ? 0 : (n - 1 - i) / (n - 1);
+            }
+
+            function slot(uu) {
+              return {
+                x: DXC * CW * uu,
+                y: DYC * CH * uu,
+                rotation: ROT * uu,
+                scale: 1 - DS * uu,
+              };
+            }
+
+            // Where a card is dealt from. The reference grows it in place: on f036
+            // the arriving card is 108px against the settled 214 (scale 0.50) with
+            // its centre 0.056w left and 0.029 card heights below the front slot's.
+            // The origin is the card's own centre, so that is the whole entry: no
+            // lateral slide, no compensating lift.
+            var SE = 0.5;
+            function entry() {
+              return { x: -0.056 * CW, y: 0.029 * CH, rotation: 0, scale: SE };
+            }
+
+            // Card 1 opens 63% of the way through its own deal, so frame zero is a
+            // card in flight rather than an empty frame or a full stop.
+            var OPEN = 0.63;
+            function partial() {
+              var a = entry(), b = slot(0), o = {};
+              ["x", "y", "rotation", "scale"].forEach(function (k) {
+                o[k] = a[k] + (b[k] - a[k]) * OPEN;
+              });
+              return o;
+            }
+
+            var D = 3.0, DEAL = 0.5, FADE = 0.09;
+            var AT = [0, 0.6, 1.46, 2.32];
+
+            // Rest state pinned outside the timeline, both ends written on every
+            // tween, so a seek never inherits a start value from the screen.
+            gsap.set(cards, { transformOrigin: "50% 50%" });
+            gsap.set(drift, { x: 0, y: 0 });
+            gsap.set(cards[0], Object.assign(partial(), { opacity: 1 }));
+            cards.slice(1).forEach(function (c) {
+              gsap.set(c, Object.assign(entry(), { opacity: 0 }));
+            });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // The drift, under everything. It is the layer that is still moving
+            // through every hold and through every deal's tail, which is how the
+            // strong-out deal curve stays legal (Law 3, the overlap clause).
+            tl.fromTo(drift, { x: 0 }, { x: 1.95 * UW, duration: D, ease: E.linear }, 0);
+
+            tl.fromTo(cards[0], partial(), Object.assign(slot(0), { duration: 0.3, ease: E.enterSoft }), 0);
+
+            // One deal, one window. The arriving card and every card it displaces
+            // ride the same 0.50s and the same curve, so the whole wedge reads as
+            // one gesture instead of four events.
+            for (var d = 1; d < cards.length; d++) {
+              var t0 = AT[d];
+              tl.fromTo(cards[d], entry(), Object.assign(slot(0), { duration: DEAL, ease: E.deal }), t0);
+              tl.fromTo(cards[d], { opacity: 0 }, { opacity: 1, duration: FADE, ease: E.enterSoft }, t0);
+              for (var i = 0; i < d; i++) {
+                tl.fromTo(cards[i], slot(u(i, d)), Object.assign(slot(u(i, d + 1)), { duration: DEAL, ease: E.deal }), t0);
+              }
+            }
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["persona-card-fan"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

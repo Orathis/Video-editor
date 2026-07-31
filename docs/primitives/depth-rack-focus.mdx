@@ -1,0 +1,31 @@
+---
+title: "Depth Rack Focus"
+description: "A sharp foreground dissolves into bokeh as a blurred message behind it resolves while the whole stack creeps forward."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">Camera moves</span>
+
+<PrimitivePlayer name="depth-rack-focus" width={1920} height={1080} />
+
+## Variables
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `kicker` | `string` | `Q3 RESULTS` | Small line above the message. |
+| `headline` | `string` | `Revenue doubled` | The message the focus resolves onto. |
+| `accent` | `enum` | `amber` | Foreground bokeh colour. |
+
+## When to use it
+
+Attention must transfer once from a near plane to a message on a far plane.
+
+## When to avoid it
+
+Avoid it when animated blur is unacceptable, because blur on the foreground and message planes is the stated focus mechanic.
+
+## Pairs with
+
+- [focus-rack](/primitives/focus-rack)
+- [z-punch-through](/primitives/z-punch-through)

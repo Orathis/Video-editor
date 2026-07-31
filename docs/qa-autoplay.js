@@ -3,6 +3,11 @@
 // scrubbing 78 players, while keeping only the visible ones running so the page
 // stays smooth. Not shipped; QA surface only.
 (function () {
+  // Mintlify auto-loads every root-level .js in docs/ on every page. Autoplaying
+  // every player on the real documentation is not wanted, and the QA harnesses
+  // are standalone .html files while doc routes never end in .html.
+  if (!location.pathname.endsWith(".html")) return;
+
   function wire(p) {
     if (p.__hfLoopWired) return;
     p.__hfLoopWired = true;

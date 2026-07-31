@@ -2,6 +2,12 @@
 // a one-click export of all decisions (top 20 computed from the scores).
 // Not shipped; QA surface only.
 (function () {
+  // Mintlify auto-loads every root-level .js in docs/ on every page, which put
+  // this rating bar on top of the real documentation. The QA harnesses are
+  // standalone .html files and doc routes never end in .html, so bail anywhere
+  // else rather than relying on the comment above to keep it out.
+  if (!location.pathname.endsWith(".html")) return;
+
   var KEY = "hfqa-ratings-v1";
 
   function load() {

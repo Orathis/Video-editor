@@ -1,0 +1,9 @@
+{
+  "acceptable": [],
+  "bad": ["persona-card-fan", "rank-list-settle"],
+  "best": ["thread-message-stack"],
+  "brief": "03",
+  "trap": "Its avoid_when is that frame zero cannot be empty, since it opens on three settled bubbles. The brief never requires an empty first frame, so this is not a blocker here.",
+  "why_bad": "Both assemble comparison or option cards toward an emphasized winner. Neither models a two-sided exchange, and neither keeps a live background.",
+  "why_best": "It is the only move built for alternating incoming and outgoing bubbles accumulating over a background that keeps moving, which is both halves of the brief."
+}

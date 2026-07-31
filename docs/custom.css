@@ -1,4 +1,4 @@
-/* HyperFrames Design System — Mintlify Theme Overrides */
+/* HyperFrames Design System - Mintlify Theme Overrides */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -117,7 +117,7 @@ h3 {
   letter-spacing: -0.01em;
 }
 
-/* Code font — IBM Plex Mono (loaded via Google Fonts above) */
+/* Code font - IBM Plex Mono (loaded via Google Fonts above) */
 code, pre, pre code, kbd,
 [class*="code"],
 [class*="Code"] {
@@ -408,5 +408,251 @@ a:not([class]):hover {
 @media (prefers-reduced-motion: reduce) {
   .hf-texture-animate-word {
     animation: none;
+  }
+}
+
+/* Primitive gallery */
+
+:root {
+  --hf-primitive-surface: #ffffff;
+  --hf-primitive-text: #172033;
+  --hf-primitive-muted: #526079;
+  --hf-primitive-border: rgba(23, 32, 51, 0.12);
+  --hf-primitive-focus: #315efb;
+}
+
+.dark,
+[data-theme="dark"] {
+  --hf-primitive-surface: #11141b;
+  --hf-primitive-text: #f4f7fb;
+  --hf-primitive-muted: #b8c3d4;
+  --hf-primitive-border: rgba(244, 247, 251, 0.14);
+  --hf-primitive-focus: #8fa8ff;
+}
+
+.hf-primitive-hero {
+  max-width: 680px;
+  margin: 8px 0 48px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hf-primitive-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--hf-primitive-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hf-primitive-hero h1 {
+  margin: 0;
+  color: var(--hf-primitive-text);
+  font-size: clamp(36px, 7vw, 56px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.hf-primitive-hero p {
+  max-width: 62ch;
+  margin: 20px 0 0;
+  color: var(--hf-primitive-muted);
+  font-size: 17px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.hf-primitive-sections {
+  display: grid;
+  gap: 48px;
+  padding-bottom: 48px;
+}
+
+.hf-primitive-section {
+  min-width: 0;
+}
+
+.hf-primitive-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.hf-primitive-section-index {
+  padding-top: 3px;
+  color: var(--hf-primitive-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.hf-primitive-section-header h2 {
+  margin: 0;
+  color: var(--hf-primitive-text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.hf-primitive-section-header p {
+  margin: 3px 0 0;
+  color: var(--hf-primitive-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.hf-primitive-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.hf-primitive-card {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--hf-primitive-surface);
+  color: var(--hf-primitive-text);
+  text-decoration: none !important;
+  box-shadow:
+    0 0 0 1px var(--hf-primitive-border),
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 8px 24px rgba(15, 23, 42, 0.06);
+  transform: translateY(0) scale(1);
+  transition-property: transform, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.hf-primitive-card:hover {
+  color: var(--hf-primitive-text);
+  box-shadow:
+    0 0 0 1px var(--hf-primitive-border),
+    0 3px 8px rgba(15, 23, 42, 0.08),
+    0 18px 42px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px) scale(1);
+}
+
+.hf-primitive-card:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.hf-primitive-card:focus-visible {
+  outline: 3px solid var(--hf-primitive-focus);
+  outline-offset: 3px;
+}
+
+.hf-primitive-card .hf-player-frame {
+  overflow: hidden;
+  border-radius: 13px 13px 0 0;
+  background: #0b0c0e;
+}
+
+.hf-primitive-card .hf-embed-preview {
+  transform: scale(1);
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.hf-primitive-card:hover .hf-embed-preview {
+  transform: scale(1.015);
+}
+
+.hf-primitive-card-body {
+  position: relative;
+  z-index: 2;
+  padding: 16px;
+  background: var(--hf-primitive-surface);
+}
+
+.hf-primitive-card-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Deliberately not a heading element: a real heading inside the card's anchor
+   made Mintlify nest an anchor inside an anchor, which broke hydration. */
+.hf-primitive-card-title {
+  min-width: 0;
+  margin: 0;
+  color: var(--hf-primitive-text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.hf-primitive-card-aspect {
+  flex: 0 0 auto;
+  color: var(--hf-primitive-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.hf-primitive-card-body > p {
+  display: -webkit-box;
+  margin: 8px 0 0;
+  overflow: hidden;
+  color: var(--hf-primitive-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.hf-player-frame,
+.hf-player-host {
+  min-width: 0;
+}
+
+.hf-player-frame:not(.hf-player-frame-preview) {
+  margin: 24px 0 32px;
+}
+
+@media (min-width: 640px) {
+  .hf-primitive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    gap: 20px;
+  }
+
+  .hf-primitive-card[data-orientation="portrait"] {
+    grid-row: span 2;
+  }
+}
+
+@media (max-width: 639px) {
+  .hf-primitive-hero {
+    margin-bottom: 32px;
+  }
+
+  .hf-primitive-sections {
+    gap: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hf-primitive-card,
+  .hf-primitive-card .hf-embed-preview {
+    transition: none;
+  }
+
+  .hf-primitive-card:hover,
+  .hf-primitive-card:active,
+  .hf-primitive-card:hover .hf-embed-preview {
+    transform: none;
   }
 }

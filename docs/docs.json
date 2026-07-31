@@ -518,6 +518,92 @@
         ]
       },
       {
+        "tab": "Primitives",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "primitives/index"
+            ]
+          },
+          {
+            "group": "Annotation",
+            "pages": [
+              "primitives/caliper-caption-rail",
+              "primitives/marker-highlight",
+              "primitives/plan-room-audit",
+              "primitives/whiteboard-ink"
+            ]
+          },
+          {
+            "group": "Camera moves",
+            "pages": [
+              "primitives/caption-camera-follow",
+              "primitives/depth-rack-focus",
+              "primitives/focus-rack",
+              "primitives/orbit-ring-camera"
+            ]
+          },
+          {
+            "group": "Interface morphs",
+            "pages": [
+              "primitives/chevron-pill-card-morph"
+            ]
+          },
+          {
+            "group": "Motion trails",
+            "pages": [
+              "primitives/echo-trail"
+            ]
+          },
+          {
+            "group": "Text effects",
+            "pages": [
+              "primitives/glyph-ring-assemble",
+              "primitives/kinetic-type-swap",
+              "primitives/particle-text-dissolve",
+              "primitives/version-plate-type"
+            ]
+          },
+          {
+            "group": "Transitions",
+            "pages": [
+              "primitives/grade-split-reveal",
+              "primitives/halftone-dissolve",
+              "primitives/match-cut",
+              "primitives/z-punch-through"
+            ]
+          },
+          {
+            "group": "Card assembly",
+            "pages": [
+              "primitives/persona-card-fan",
+              "primitives/receipt-card"
+            ]
+          },
+          {
+            "group": "Process sequences",
+            "pages": [
+              "primitives/pill-row-collapse",
+              "primitives/state-chip-rail"
+            ]
+          },
+          {
+            "group": "Interaction",
+            "pages": [
+              "primitives/press-ripple"
+            ]
+          },
+          {
+            "group": "List assembly",
+            "pages": [
+              "primitives/rank-list-settle",
+              "primitives/thread-message-stack"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Packages",
         "groups": [
           {

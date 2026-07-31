@@ -1,0 +1,9 @@
+{
+  "acceptable": [],
+  "bad": ["caption-camera-follow", "glyph-ring-assemble"],
+  "best": ["pill-row-collapse", "state-chip-rail"],
+  "brief": "01",
+  "trap": "pill-row-collapse collapses to the FIRST stage, while the brief narrows to the stage that failed. A selection that names it should say how it reassigns which stage survives. Naming it without that note is defensible, not disqualifying.",
+  "why_bad": "Both are text-delivery moves. They animate a sentence, not a set of stages, so neither can express 'hold all five, then narrow to one'.",
+  "why_best": "Both build a full multi-stage row and then resolve to one emphasized stage, which is the brief's whole shape. pill-row-collapse literally builds five and clears four; state-chip-rail carries ordered states with a distinct active state."
+}

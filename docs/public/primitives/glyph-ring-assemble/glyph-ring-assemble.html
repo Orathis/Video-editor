@@ -1,0 +1,381 @@
+<!doctype html>
+<!--
+  glyph-ring-assemble: HyperFrames video primitive (wordmark break and reassemble).
+
+  A wordmark sits at rest, arc-set. Its letters break out of the word, run all the
+  way around a shared ring, and close back into the word in reading order.
+
+  Measured from the batch5 reference clip, 7.0s to 8.9s, frames
+  reference frames f-001..f-046 at 24fps. Full working in
+  batch5/spec-glyph-ring-assemble.md.
+
+  THE MECHANIC, and it is not the obvious one. Not seven letters on seven paths,
+  and not an out-and-back either: ONE shared pivot, every letter making a single
+  full 360 degree orbit about it, staggered in time. The scatter is entirely the
+  stagger acting on one heavily eased rotation, and the letters never leave the
+  ring. Proof, on the letter i (its dot and stem are separable in every frame, so
+  they give position and rotation independently): a circle fitted to the dot's
+  centroid over f008 to f033 lands at centre (627.0, 680.3) radius 516.3px with
+  residual RMS 3.8px, 0.7% of the radius; and over the same window the stem-to-dot
+  vector turns 359.0 degrees while the polar angle about that centre turns 357.0,
+  monotonically, in one direction. Radius is constant, spin is locked to orbit, and
+  the letters go around rather than out and back. So there is ONE track per letter,
+  not three. The unit brief asked for three independent tracks (angle, spin,
+  radius). The reference does not have three, and building three would be building
+  a different move. Numbers above, this is the one deliberate divergence.
+
+  Fitted across all seven letters, 22 hand-matched (letter, frame, centroid)
+  observations, five free parameters, residual mean 15.5px on a 1280px frame:
+  pivot (49.7%, 53.0%) of frame, orbit radius 36.3% of frame, per-letter duration
+  0.808s, stagger 39.7ms in REVERSE reading order (the last letter leaves and
+  returns first, so the word unzips and zips up backwards).
+  Rest geometry: word 53.6% of frame wide on a 78 degree arc, tilted -7.8 degrees,
+  ink #535353 on #F2F2F2 at 6.87:1.
+
+  Curve, fitted to the i's per-frame orbit angle (17 samples): cb(0.545, 0.061,
+  0.500, 0.995), max error 3.3% of travel, RMS 1.5%. Nearest palette curve is morph
+  at 9.0%, camPush 33.3%, camWhip 25.9%. It is a single hard S: the letter barely
+  moves, tears away, whips round, and arrives without overshoot (the angle reads
+  236.7, 238.3, 238.3, 238.3 over f027 to f029). Because the whole move is now one
+  tween per letter, that curve is applied end to end exactly as it was fitted.
+
+  Envelope (D = 2.10s, 30fps), matched to the reference read at 24fps:
+    REST   0.000-0.250  ref f-001..f-006. The wordmark assembled and arc-set. This
+                        is frame zero and it is the frame a viewer reads first.
+    audit-hold 0.00 0.21  ref clip f-001..f-006 (0.000s to 0.208s) the
+                        wordmark is assembled and still. Same viewport-zoom caveat
+                        as the tail hold below.
+    BREAK  0.250-0.659  ref f-006..f-016. Letters tear out of the word and spread
+                        around the ring. This is the first half of each orbit, not
+                        a separate tween: 0.659s is where the first letter passes
+                        50% of its rotation (the curve crosses 0.5 at p=0.506).
+    CLOSE  0.659-1.297  ref f-016..f-031. The second half of the same orbit. Per
+                        letter 0.808s of travel, landings 34ms apart, last letter
+                        home first. Peak angular spread is 193.5 degrees at 0.783s.
+    HOLD   1.297-2.100  the landed wordmark and its mark.
+    audit-hold 1.29 2.10  ref clip f-031..f-046 (1.250s to 1.875s) the
+                        wordmark is at rest for 0.63s: the only thing changing in
+                        those sixteen frames is the recording's own viewport zoom,
+                        which grows the logo blob 149,025 to 207,027px at a steady
+                        9% linear per second across the WHOLE segment, f001
+                        included. That zoom is a screen-recording artifact, not the
+                        design, and is excluded from every number here.
+
+  Deliberate deviations from the reference:
+  - stagger is normalised to a fixed 0.2385s total spread (the reference's 5.724
+    frames at 24fps) divided over n-1 gaps, so any word length keeps the reference
+    envelope. At seven letters that is exactly the measured 39.7ms.
+  - the orbit is a circle, so its radius is short-side bound in every aspect. The
+    per-aspect lever is the coefficient (36cqh landscape and square, 40cqw
+    portrait), not the unit. An ellipse would need a counter-rotate plus
+    counter-scale wrapper per glyph to keep the letterforms from shearing.
+  - the mark's outline is procedural. Its bounding box (48.7% of frame width by
+    52.2% of frame height), its 39.6% fill of that box and its rgb(83,83,83) are
+    all the reference subject's measured values; the shape is not, because a
+    primitive cannot ship a photographed subject.
+
+  The mark slot: set --gra-mark to swap it. It is a background shorthand value, so
+  a flat colour, a gradient, or url(...) all work, and --gra-mark-shape is its
+  clip-path (set it to none for a rectangular image). Default fill is #535353, the
+  same value as the ink, because that is what the reference does: its subject reads
+  rgb(83,83,83) and its wordmark ink rgb(84,84,84). A glyph crossing the subject in
+  the reference vanishes, and it vanishes here too, for the 0.3s it lasts. The
+  silhouette's 60% negative space is what keeps most of them readable anyway.
+
+  Copy: --gra-word on #root, read once before the timeline is built and split into
+  one arm per glyph. Colour: --gra-bg, --gra-ink. Tilt: --gra-tilt.
+-->
+<html lang="en" data-composition-id="glyph-ring-assemble" data-composition-duration="2.1">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Glyph Ring Assemble</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="glyph-ring-assemble" data-duration="2.1" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--gra-bg, #f2f2f2);
+            color: var(--gra-ink, #535353);
+            font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+            pointer-events: none;
+
+            --gra-word: "MOMENTUM";
+            /* Measured -7.8 degrees. The reference wordmark is not level: its
+               centre glyph sits at polar angle -97.8, not -90. */
+            --gra-tilt: -7.8deg;
+          }
+
+          /* The subject slot. First child, so it paints under the glyphs without
+             a z-index. Static: nothing in the timeline touches it, so it is present
+             in frame zero and in the last frame alike. Box is the reference
+             subject's measured bbox, 48.7% of frame width by 52.2% of frame height,
+             written against cqh so the proportion survives every aspect.
+
+             The default silhouette is a 30-point polygon generated from
+             r(t) = 1 + 0.583 sin(3t+0.7) + 0.320 sin(5t+2.1) + 0.188 sin(7t+0.3),
+             sampled at 30 equal angles and normalised to the box. Three harmonics
+             is what makes it articulated rather than a blob: it encloses 39.6% of
+             its own bounding box, which is the reference subject's measured 39.6%.
+             The amplitude scale was solved for that number, it was not eyeballed. */
+          .gra-mark {
+            position: absolute;
+            left: 50cqw;
+            top: 38cqh;
+            width: 49cqh;
+            height: 52cqh;
+            transform: translateX(-50%);
+            background: var(--gra-mark, #535353) center / contain no-repeat;
+            clip-path: var(
+              --gra-mark-shape,
+              polygon(
+                99.9% 56.6%, 100% 68.7%, 81.3% 73.5%, 66.4% 73.1%, 64.6% 79.8%,
+                61.8% 87.9%, 51.8% 81%, 45% 66.2%, 42.9% 67.2%, 34.7% 85.6%,
+                19.4% 100%, 6.4% 99.2%, 0% 89.1%, 2.2% 75.6%, 16.7% 62.5%,
+                34.4% 56.6%, 36% 54.9%, 21.4% 46.4%, 13.4% 34%, 20.8% 30.4%,
+                29.1% 30.3%, 31.6% 17.8%, 38.2% 0%, 49.8% 1%, 55% 22.4%,
+                52.1% 42.4%, 50.2% 49.7%, 53% 50%, 62% 48.5%, 80.7% 48.7%
+              )
+            );
+          }
+
+          /* The pivot. A zero-size point, so a rotation on any child of it turns
+             about the pivot and nothing else. Radius and type scale live HERE and
+             not on #root, because a container query cannot restyle its own
+             container (Law 0b) and both of them change per aspect. */
+          .gra-ring {
+            position: absolute;
+            top: 53cqh;
+            left: 50cqw;
+            width: 0;
+            height: 0;
+
+            --gra-r: 36cqh;
+            --gra-fs: 8.8cqh;
+          }
+
+          /* One arm per glyph. GSAP owns exactly one property on it, rotation, and
+             the arm's own box is 0x0 so transform-origin: center IS the pivot.
+             That is the whole mechanic: orbit angle and self-spin are the same
+             number in the reference, so they are the same number here. */
+          .gra-arm {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            will-change: transform;
+          }
+
+          /* Static. Pushes the glyph out to the orbit radius and centres it on the
+             orbit point. GSAP never touches this element, so the rotation above
+             cannot fight it. */
+          .gra-ch {
+            position: absolute;
+            top: calc(-1 * var(--gra-r));
+            left: 0;
+            font-size: var(--gra-fs);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            white-space: pre;
+            transform: translate(-50%, -50%);
+          }
+
+          /* The measuring run. Laid out inline once, at the real type size, to get
+             each glyph's advance, then removed. Hidden rather than display:none so
+             it actually lays out. */
+          .gra-rule {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: var(--gra-fs);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            visibility: hidden;
+            white-space: pre;
+          }
+
+          /* Portrait. The orbit is a circle, so the radius is bound by the short
+             side whatever unit it is written in; what changes per aspect is how
+             much of that side to spend. Portrait has height to spare and no width
+             to spare, so it takes a bigger share of the width and a bigger type
+             size with it, which keeps the arc span (word width over radius) at the
+             reference's 78 to 85 degrees in all three shapes. The mark drops below
+             the ring instead of sitting inside it, for the same reason. */
+          @container (aspect-ratio < 0.95) {
+            .gra-ring {
+              --gra-r: 40cqw;
+              --gra-fs: 9.7cqw;
+            }
+
+            .gra-mark {
+              top: 46cqh;
+              width: 62cqw;
+              height: 66cqw;
+            }
+          }
+        </style>
+
+        <div class="gra-mark"></div>
+        <div class="gra-ring"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek-safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            // Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // The only curve in this file, and it is not from the palette. Fitted by
+            // least squares to seventeen per-frame samples of the reference letter i's
+            // orbit angle: max error 3.3% of travel, RMS 1.5%. The nearest palette
+            // curve, morph, is 9.0% off, camPush 33.3%, camWhip 25.9%. When you have
+            // the table, the fit wins.
+            var REF = cb(0.545, 0.061, 0.5, 0.995);
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var ring = root.querySelector(".gra-ring");
+
+            // Copy in, once, before anything is built. Deterministic: no timers, no
+            // fetch, and the value is a literal in the stylesheet above.
+            var word = getComputedStyle(root).getPropertyValue("--gra-word").trim().replace(/^["']|["']$/g, "");
+            if (!word) word = "MOMENTUM";
+
+            // Measure the advance of every glyph at the real type size, so the arc
+            // spacing is the font's own spacing and not a guessed constant. A Range
+            // over the text node, as in pill-row-collapse, holds for whatever font
+            // actually resolves and for the letter-spacing.
+            var rule = document.createElement("div");
+            rule.className = "gra-rule";
+            rule.appendChild(document.createTextNode(word));
+            ring.appendChild(rule);
+            var node = rule.firstChild;
+            var range = document.createRange();
+            var edge = [];
+            for (var c = 0; c <= word.length; c++) {
+              range.setStart(node, 0);
+              range.setEnd(node, c);
+              edge.push(range.getBoundingClientRect().width || 0);
+            }
+            ring.removeChild(rule);
+
+            // Baseline centre, so the word is centred on the arc apex.
+            var mid = edge[word.length] / 2;
+
+            // Glyphs only. A space still advances the baseline, it just gets no arm.
+            var glyphs = [];
+            for (var i = 0; i < word.length; i++) {
+              if (word.charAt(i) === " ") continue;
+              glyphs.push({ ch: word.charAt(i), at: (edge[i] + edge[i + 1]) / 2 - mid });
+            }
+            var N = glyphs.length;
+
+            var arms = glyphs.map(function (g) {
+              var arm = document.createElement("div");
+              arm.className = "gra-arm";
+              var span = document.createElement("span");
+              span.className = "gra-ch";
+              span.appendChild(document.createTextNode(g.ch));
+              arm.appendChild(span);
+              ring.appendChild(arm);
+              return arm;
+            });
+
+            // Read the orbit radius off the box the container query actually built,
+            // rather than re-deriving the aspect thresholds in JS. One source of
+            // truth, and GSAP needs a number in px anyway because it writes
+            // transforms as px (Law 0b).
+            var g0 = arms[0].firstChild.getBoundingClientRect();
+            var R = arms[0].getBoundingClientRect().top - (g0.top + g0.height / 2);
+            if (!(R > 1)) R = Math.min(root.clientWidth, root.clientHeight) * 0.36 || 389;
+
+            // Rest angle of each glyph: its baseline offset walked around the circle,
+            // plus the wordmark's own tilt. Arc length over radius, so a long word
+            // wraps further and a short one sits nearly flat, which is what the
+            // reference does (645px of chord on a 469px radius, 78 degrees).
+            var tilt = parseFloat(getComputedStyle(root).getPropertyValue("--gra-tilt")) || 0;
+            var rest = glyphs.map(function (g) { return tilt + (g.at / R) * 180 / Math.PI; });
+
+            // Reference envelope in seconds at the reference's own speed. REST is
+            // f-001..f-006, SPAN is the 5.724-frame stagger spread, RUN is the fitted
+            // per-letter orbit. Scaled together if data-duration is changed, so the
+            // beats compress but never reorder.
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "2.1"));
+            var SC = D / 2.1;
+            var REST = 0.25 * SC, SPAN = 0.2385 * SC, RUN = 0.808 * SC;
+            var STEP = N > 1 ? SPAN / (N - 1) : 0;
+
+            // Rest state pinned outside the timeline. The tween below writes both
+            // ends, so a seek never inherits a start value from the screen.
+            arms.forEach(function (arm, k) { gsap.set(arm, { rotation: rest[k] }); });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // One tween per letter and that is the whole move. Rotation runs a full
+            // -360 relative to rest, so the letter leaves the word, travels the ring,
+            // and returns to exactly the CSS rest angle. Break and reassemble are the
+            // two halves of it, not two tweens: the fitted curve is what splits them,
+            // and the stagger is what turns eight synchronised orbits into a scatter.
+            // Reverse reading order: k = N-1 leaves first and lands first.
+            arms.forEach(function (arm, k) {
+              tl.fromTo(arm, { rotation: rest[k] - 360 },
+                { rotation: rest[k], duration: RUN, ease: REF }, REST + STEP * (N - 1 - k));
+            });
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["glyph-ring-assemble"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

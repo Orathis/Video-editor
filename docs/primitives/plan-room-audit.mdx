@@ -1,0 +1,23 @@
+---
+title: "Plan Room Audit"
+description: "A floor plan sheet rotates clockwise into square while its walls draw, then five rooms fill and receive leader tags in reading order."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">Annotation</span>
+
+<PrimitivePlayer name="plan-room-audit" width={1920} height={1080} />
+
+## When to use it
+
+A portrait floor-plan scene needs a room-by-room audit whose count stays synchronized with the filled rooms.
+
+## When to avoid it
+
+Avoid it when the shot must be natively composed for landscape, because the header states that it is native to 9x16 and composed only for that orientation.
+
+## Pairs with
+
+- [caliper-caption-rail](/primitives/caliper-caption-rail)
+- [whiteboard-ink](/primitives/whiteboard-ink)

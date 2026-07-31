@@ -1,0 +1,543 @@
+<!doctype html>
+<!--
+  orbit-ring-camera: a camera move, not a graphic with a camera on it.
+
+  Opens hard against one arc of a large tilted ring, so close the ring reads as a shallow
+  curve crossing frame with one big station label on it and a second arriving 0.42s later.
+  A lit head runs the ring leaving a trail that fades behind it; the camera tracks the
+  head, so the head holds near frame centre while the ring slides under it and new
+  stations arrive at their own fixed angles. Then the camera dollies out and the arc
+  resolves into the whole ellipse with all eight stations at once. Three concentric tick
+  rails are nested inside the main ring at non-syncing rates (1.00, -0.42, 0.27), so they
+  never line up. Station labels are BILLBOARDED: horizontal and screen readable through
+  the entire tilt. The only type in the ring's plane is the curved band on the ring path.
+
+  Built as a real pinhole camera in JS, not a CSS 3D transform, because the whole move IS
+  the camera: position, focal length, roll and look-at are the animated values and every
+  mark is projected from them. That is also what makes depth honest (near arc bright and
+  thick, far arc dim and thin), because the shade comes from each segment's projected z
+  rather than from a gradient aimed by hand. Projection is a pure function of the tweened
+  values, so it is seek safe.
+
+  Reference: refs/b6/cam/lin-loops.mp4 0.0-10.6s, frames refs/b6/frames/orbit-ring-camera.
+  EVERY number, method and deviation is in batch6/spec-orbit-ring-camera.md. The load
+  bearing few: background #000000 exact (frames 050 and 130 modal (0,0,0), corner (0,0,0),
+  every frame min 0; the (10,10,10) mode on 001 and 100 is bloom off the bright arc, not a
+  tint). Resolved ellipse centre (47.9% W, 49.7% H), semi-major 35.7% W, minor/major 0.523
+  (58.5 deg tilt), major axis -23.9 deg, conic fit over frames 094-106, stable to +/-0.4% W
+  and +/-0.9 deg, cross-checked against an independent fit of the same source. Opening arc
+  curvature radius 44.2% W, centre 129% H, apex 50.4% H, circle fit on frame 001. That the
+  OPENING radius exceeds the RESOLVED semi-major is what forces a real perspective camera:
+  no affine scale can grow a curvature radius. Measured label baselines run -4.7 to -8.0
+  deg while the plane's axis is -23.5, which is the proof the labels are not in the plane.
+  The head holds inside 3.95% W and 0.74% H over the reference's first 1.2s (blurred
+  luminance argmax, 13 samples): that is "tracked", not "parented". This build holds inside
+  5.5% W and 2.5% H over its own first 1.7s, measured the same way off its own frames.
+
+  Envelope (D = 3.60s):
+    TRACK    0.00-1.75  camera locked to the head at 1.55 ring radii out, 0.50 up, falling
+                        behind as it runs (the lag, fitted). Stations 2-4 at 0.42/1.00/1.50.
+    PULLBACK 1.60-2.95  dolly to 9.40 radii, focal length opening to match, look-at blending
+                        head to ring centre, roll settling +14 to -23.5 deg. Stations 5-8 at
+                        2.18/2.36/2.55/2.72, held to that burst because before it their dots
+                        are still inside the presenter's zone.
+    SETTLE   2.95-3.60  full ellipse, all eight stations. Camera creeps 3.4% closer and rolls
+                        2.5 deg further, the head lands on station 6 and takes the light, the
+                        three rails keep turning so no frame is a repeat of the one before.
+
+  Curves. Two fitted, rest palette (named GSAP eases banned):
+    E.head cb(0.417,0.109,0.578,0.736) drives the head's ring angle. Interpolates four
+      measured (t, angle) anchors exactly, so state it honestly: four anchors against four
+      parameters is an interpolation with no residual, and the anchors carry about +/-5 deg.
+      Its tail still moves 3.4% of travel in the last 5% of D, so landing at D is not a
+      dead tail (Law 3).
+    E.lag cb(0.154,0.008,0.012,0.894) drives the camera's lag and catch. Fitted to the
+      measured head-drift table (13 samples, 0.8-2.0s, travel 2.8% H), max error 2.73% of
+      travel. Nearest palette curve on the same table is camPush at 13.5%.
+    Measured and REJECTED: cb(0.980,-0.135,0.895,0.412) fits the reference's own head
+      screen-x over its tracked shot (17 samples, 0.0-1.6s, travel 48.1% W) to 4.69% of
+      travel. It is a hold then a launch, and the launch only works because the reference
+      cuts while the head is off frame. A seek renderer has no cut to hide behind, so that
+      beat is spent on the pullback instead. Recorded because it was measured.
+    camPush dolly, camSettle roll and look-at, springSm dots, morph fades, linear rails.
+
+  Deliberate deviations, each measured before being changed (rationale in the spec):
+  - Ellipse built at 27% W semi-major centred 66% W, not 35.7% at 47.9%. Its proportions
+    (0.523, -23.5 deg) are the measured ones, untouched. The reference's size and centre
+    would eat a third of the presenter's zone.
+  - Label anchor side is AUTHORED per station (six right, the 130 and 175 deg ones left),
+    never derived from live screen position, so no label can flip mid shot. The reference
+    flips everything outward, which here would put left labels at 24-38% W.
+  - Left edge mask in landscape, transparent to 32% W and opaque from 42%. Verified rather
+    than assumed: across all 32 rendered 16:9 frames, zero pixels at or above luminance 12
+    fall left of 32% W. On black it reads as the arc fading out, not as a hard matte.
+  - Opening camera roll +14 deg: with no roll this ring puts the arc apex off frame left,
+    and 14 deg lands it on the head where frame 001 has it.
+  - 8 stations at a flat 45 deg against the reference's 6 at uneven spacing. A primitive
+    whose subject is "the whole loop resolves" has to resolve into something regular.
+
+  Native orientation 16:9. Portrait and square re-aim the camera through the custom
+  properties on .orc-stage and stay legible, but the move is composed for 16:9. No media
+  slot, every mark is procedural. Brand enters through --orc-bg, --orc-ink and --orc-rail.
+-->
+<html lang="en" data-composition-id="orbit-ring-camera" data-composition-duration="3.6">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Orbit Ring Camera</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="orbit-ring-camera" data-duration="3.6" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--orc-bg, #000000);
+            color: var(--orc-ink, #f2f2f2);
+            font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+            pointer-events: none;
+          }
+
+          /* Everything lives on a CHILD of #root, because a container query cannot
+             restyle its own container and the per-aspect camera aim is a custom
+             property the script reads back off this element. */
+          .orc-stage {
+            position: absolute;
+            inset: 0;
+            --orc-cx0: 0.6;
+            --orc-cx1: 0.66;
+            --orc-cy0: 0.5;
+            --orc-cy1: 0.5;
+            --orc-a: 0.27;
+          }
+
+          /* Presenter safe zone, landscape. The close phase legitimately sweeps the arc
+             across the whole frame, so the zone is held empty by a fade rather than by
+             keeping the geometry out of it, which would have cost the move its scale. */
+          @container (aspect-ratio >= 1.35) {
+            .orc-stage {
+              -webkit-mask-image: linear-gradient(to right, transparent 0 32%, #000 42%, #000 100%);
+              mask-image: linear-gradient(to right, transparent 0 32%, #000 42%, #000 100%);
+            }
+          }
+
+          @container (aspect-ratio < 1.35) {
+            .orc-stage {
+              --orc-cx0: 0.5;
+              --orc-cx1: 0.55;
+              --orc-cy0: 0.44;
+              --orc-cy1: 0.42;
+              --orc-a: 0.34;
+            }
+          }
+
+          @container (aspect-ratio < 0.95) {
+            .orc-stage {
+              --orc-cy0: 0.32;
+              --orc-cy1: 0.3;
+              --orc-a: 0.38;
+              -webkit-mask-image: linear-gradient(to bottom, #000 0 54%, transparent 66%);
+              mask-image: linear-gradient(to bottom, #000 0 54%, transparent 66%);
+            }
+          }
+
+          .orc-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+          }
+
+          .orc-band {
+            fill: var(--orc-rail, #8f8f8f);
+            font-size: 1.55cqmin;
+            font-weight: 500;
+            letter-spacing: 0.62em;
+          }
+
+          .orc-lbl {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 50%;
+            white-space: nowrap;
+            font-size: 2.2cqmin;
+            font-weight: 500;
+            letter-spacing: 0.16em;
+            line-height: 1;
+            text-transform: uppercase;
+            opacity: 0;
+            will-change: transform, opacity;
+          }
+        </style>
+
+        <div class="orc-stage">
+          <svg class="orc-svg" aria-hidden="true">
+            <defs>
+              <radialGradient id="orc-glow">
+                <stop offset="0" stop-color="#fff" stop-opacity="0.55" />
+                <stop offset="0.45" stop-color="#fff" stop-opacity="0.12" />
+                <stop offset="1" stop-color="#fff" stop-opacity="0" />
+              </radialGradient>
+              <path id="orc-tp" fill="none" />
+            </defs>
+            <g id="orc-rail2"></g>
+            <g id="orc-dot" stroke-linecap="round"></g>
+            <g id="orc-rail"></g>
+            <g id="orc-ring"></g>
+            <text class="orc-band" id="orc-band" text-anchor="middle">
+              <textPath href="#orc-tp" startOffset="50%">RUNNING SEQUENCE</textPath>
+            </text>
+            <g id="orc-tr"></g>
+            <g id="orc-st"></g>
+            <circle id="orc-glow-c" r="0" fill="url(#orc-glow)" />
+            <circle id="orc-head" r="0" fill="#ffffff" />
+          </svg>
+          <div id="orc-labels"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            var E = {
+              camPush: cb(0.4, 0.0, 0.2, 1.0),
+              camSettle: cb(0.16, 0.84, 0.28, 1.0),
+              morph: cb(0.65, 0.05, 0.35, 1.0),
+              springSm: cb(0.34, 1.3, 0.5, 1.0),
+              linear: function (p) { return p; },
+              // Interpolates the reference's four measured head-angle anchors exactly.
+              head: cb(0.417, 0.109, 0.578, 0.736),
+              // Fitted to the measured head-drift table, max error 2.73% of travel.
+              lag: cb(0.154, 0.008, 0.012, 0.894),
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var NS = "http://www.w3.org/2000/svg";
+            var root = document.getElementById("root");
+            var stage = root.querySelector(".orc-stage");
+            var svg = root.querySelector(".orc-svg");
+            var W = root.clientWidth || 1920, H = root.clientHeight || 1080;
+            // GSAP writes transforms as px, so a cqmin tween would not survive one.
+            var U = Math.min(W, H) / 100 || 10.8;
+            svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+
+            function num(name, dflt) {
+              var v = parseFloat(getComputedStyle(stage).getPropertyValue(name));
+              return isFinite(v) ? v : dflt;
+            }
+            var CX0 = num("--orc-cx0", 0.6), CX1 = num("--orc-cx1", 0.68);
+            var CY0 = num("--orc-cy0", 0.5), CY1 = num("--orc-cy1", 0.5);
+            // Resolved semi-major, in px. The dolly's end focal length is derived from
+            // it so the wide shot lands on the measured proportion whatever the frame.
+            var AP = num("--orc-a", 0.27) * W;
+
+            var RC1 = 9.4, HC1 = 5.76;                       // end camera, 31.5 deg above the plane
+            var FOC1 = AP * Math.hypot(RC1, HC1);            // ends on the measured ellipse
+            var FOC0 = W * 1.302;                            // opening, fitted to the reference's arc
+            var STA = [-50, -5, 40, 85, 130, 175, 220, 265]; // eight stations, fixed ring angles
+            var TXT = ["signal received", "scope matched", "context gathered", "draft assembled",
+              "checks cleared", "ready to ship", "rollout opened", "loop closed"];
+            // Which side of its dot each label sits on. Authored per station, never
+            // derived from live screen position, so no label can flip mid shot.
+            // The 220 deg station is left-anchored (it was right) because at the resolved
+            // tilt it and the 175 deg one project a few degrees apart with their type
+            // running head on into each other; no offset survives that, only pointing
+            // them apart does.
+            var SIDE = [1, 1, 1, 1, -1, -1, -1, 1];
+            // Radial standoff, in ring radii, for the label only: its dot stays on the
+            // ring, the type sits further out along that station's own radius. This is
+            // what keeps adjacent stations apart where the tilt foreshortens them into
+            // each other, because two stations 45 deg apart push their labels in two
+            // different directions however the camera is aimed. Authored per station.
+            var LR = [1.06, 1.06, 1.12, 1, 1, 1.25, 1, 1];
+            // Vertical nudge, in U, for the stations that still resolve close enough on
+            // screen for their labels to touch. Authored, so none of them can pop.
+            var DY = [-2, 1, 1, 0, 2, 0, -2, -1];
+            var RAD = Math.PI / 180, SEG = 48, TICKS = 180, TG = 12, TRS = 12;
+
+            function mk(tag, parent, attrs) {
+              var n = document.createElementNS(NS, tag), k;
+              for (k in attrs) n.setAttribute(k, attrs[k]);
+              parent.appendChild(n);
+              return n;
+            }
+
+            var gRing = root.querySelector("#orc-ring"), gRail = root.querySelector("#orc-rail");
+            var gRail2 = root.querySelector("#orc-rail2"), gDot = root.querySelector("#orc-dot");
+            var gTrail = root.querySelector("#orc-tr"), gSt = root.querySelector("#orc-st");
+            var tp = root.querySelector("#orc-tp"), band = root.querySelector("#orc-band");
+            var head = root.querySelector("#orc-head"), glow = root.querySelector("#orc-glow-c");
+            var ringSeg = [], railSeg = [], rail2Seg = [], dotSeg = [], trailSeg = [], dots = [], labels = [];
+            var i;
+            for (i = 0; i < SEG; i++) ringSeg.push(mk("path", gRing, { fill: "none", stroke: "#fff" }));
+            for (i = 0; i < TG; i++) railSeg.push(mk("path", gRail, { fill: "none", stroke: "#fff" }));
+            for (i = 0; i < TG; i++) rail2Seg.push(mk("path", gRail2, { fill: "none", stroke: "#fff" }));
+            for (i = 0; i < TG; i++) dotSeg.push(mk("path", gDot, { fill: "none", stroke: "#fff" }));
+            for (i = 0; i < TRS; i++) trailSeg.push(mk("path", gTrail, { fill: "none", stroke: "#fff", "stroke-linecap": "round" }));
+            var labelBox = root.querySelector("#orc-labels");
+            for (i = 0; i < STA.length; i++) {
+              dots.push(mk("circle", gSt, { r: 0, fill: "#000", stroke: "#fff" }));
+              var d = document.createElement("div");
+              d.className = "orc-lbl";
+              d.textContent = TXT[i];
+              labelBox.appendChild(d);
+              labels.push(d);
+            }
+
+            // Camera and scene state. Every field is tweened; render() is a pure
+            // function of this object, which is what makes a seek reproducible.
+            var C = {
+              th: -42, beta: 168, rc: 1.55, hc: 0.5, foc: FOC0, look: 0, roll: 14,
+              cx: CX0, cy: CY0, tick: 0, lag: 0, trail: 34, ui: 1.5, glow: 1,
+            };
+            var SS = STA.map(function () { return { o: 0, pop: 0.62 }; });
+
+            // Pinhole projection. World is the ring plane z = 0, ring radius 1.
+            var CP = [0, 0, 0], FW = [0, 0, 1], RT = [1, 0, 0], UP = [0, 1, 0], CR = 1, SR = 0;
+            function aim() {
+              var az = (C.th - C.beta) * RAD;
+              CP = [C.rc * Math.cos(az), C.rc * Math.sin(az), C.hc];
+              var la = (C.th - C.lag) * RAD, k = 1 - C.look;
+              var tx = Math.cos(la) * k, ty = Math.sin(la) * k;
+              var fx = tx - CP[0], fy = ty - CP[1], fz = -CP[2];
+              var fl = Math.hypot(fx, fy, fz) || 1;
+              FW = [fx / fl, fy / fl, fz / fl];
+              var rl = Math.hypot(FW[1], FW[0]) || 1;
+              RT = [FW[1] / rl, -FW[0] / rl, 0];
+              UP = [RT[1] * FW[2], -RT[0] * FW[2], RT[0] * FW[1] - RT[1] * FW[0]];
+              CR = Math.cos(C.roll * RAD);
+              SR = Math.sin(C.roll * RAD);
+            }
+            function pj(x, y, z) {
+              var vx = x - CP[0], vy = y - CP[1], vz = z - CP[2];
+              var zc = vx * FW[0] + vy * FW[1] + vz * FW[2];
+              if (zc < 0.02) return null;
+              var sx = C.foc * (vx * RT[0] + vy * RT[1]) / zc;
+              var sy = -C.foc * (vx * UP[0] + vy * UP[1] + vz * UP[2]) / zc;
+              return [C.cx * W + sx * CR - sy * SR, C.cy * H + sx * SR + sy * CR, zc];
+            }
+            function ring(deg, r) {
+              var a = deg * RAD;
+              return pj(Math.cos(a) * r, Math.sin(a) * r, 0);
+            }
+            function poly(from, step, n, r) {
+              var out = [], p, j;
+              for (j = 0; j <= n; j++) {
+                p = ring(from + step * j, r);
+                if (p) out.push(p);
+              }
+              return out;
+            }
+            function dpath(pts) {
+              var s = "", j;
+              for (j = 0; j < pts.length; j++) s += (j ? "L" : "M") + pts[j][0].toFixed(1) + " " + pts[j][1].toFixed(1);
+              return s;
+            }
+
+            // Depth shade. The near / far range is recomputed per frame off the actual
+            // projected z, so the contrast between near arc and far arc holds at every
+            // camera position instead of only at the one it was tuned on.
+            var ZN = 1, ZF = 2;
+            function shade(z) { return Math.min(1, Math.max(0, (z - ZN) / (ZF - ZN))); }
+
+            // One tick rail: n marks between radii r0 and r1, spun to `spin`, batched into
+            // the group's paths so a rail costs a handful of DOM writes, not n of them.
+            function rail(segs, n, r0, r1, spin, ab, aw, wb, ww) {
+              var per = Math.ceil(n / segs.length), j, k, dd, q, a0, p1, p2;
+              for (j = 0; j < segs.length; j++) {
+                dd = ""; q = 1;
+                for (k = 0; k < per; k++) {
+                  a0 = spin + (j * per + k) * (360 / n);
+                  p1 = ring(a0, r0); p2 = ring(a0, r1);
+                  if (p1 && p2) {
+                    dd += "M" + p1[0].toFixed(1) + " " + p1[1].toFixed(1) + "L" + p2[0].toFixed(1) + " " + p2[1].toFixed(1);
+                    if (k === (per >> 1)) q = shade(p1[2]);
+                  }
+                }
+                segs[j].setAttribute("d", dd);
+                segs[j].setAttribute("stroke-opacity", (C.glow * (ab - aw * q)).toFixed(3));
+                segs[j].setAttribute("stroke-width", (W * (wb - ww * q)).toFixed(2));
+              }
+            }
+
+            function render() {
+              aim();
+              var j, k, p, q, pts, zlo = 1e9, zhi = -1e9;
+              for (j = 0; j < 360; j += 4) {
+                p = ring(j, 1);
+                if (p) { if (p[2] < zlo) zlo = p[2]; if (p[2] > zhi) zhi = p[2]; }
+              }
+              ZN = zlo; ZF = Math.max(zhi, zlo + 1e-3);
+
+              var span = 360 / SEG;
+              for (j = 0; j < SEG; j++) {
+                pts = poly(j * span, span / 5, 5, 1);
+                p = ring(j * span + span / 2, 1);
+                q = p ? shade(p[2]) : 1;
+                ringSeg[j].setAttribute("d", pts.length > 1 ? dpath(pts) : "");
+                ringSeg[j].setAttribute("stroke-opacity", (C.glow * (0.94 - 0.78 * q)).toFixed(3));
+                ringSeg[j].setAttribute("stroke-width", (W * (0.0031 - 0.0018 * q)).toFixed(2));
+              }
+
+              // Three concentric tick rails, each at its own radius, count and rate, so
+              // the opening arc has depth stacked under it instead of one lonely curve.
+              rail(railSeg, TICKS, 0.788, 0.888, C.tick, 0.5, 0.44, 0.0017, 0.0009);
+              rail(rail2Seg, 44, 1.055, 1.145, -C.tick * 0.42, 0.44, 0.38, 0.0023, 0.0013);
+              rail(dotSeg, 84, 0.696, 0.704, C.tick * 0.27, 0.5, 0.42, 0.0026, 0.0014);
+
+              // Type set ON the ring path, so it curves and foreshortens with the plane.
+              // The billboarded station labels are the deliberate contrast to it. Held to
+              // the far arc, the one facing camera, and flipped to screen reading order so
+              // the glyphs can never come out mirrored on the away side.
+              pts = poly(C.th - C.beta + 180 - 66, 3.3, 40, 0.615);
+              if (pts.length > 4 && pts[0][0] > pts[pts.length - 1][0]) pts.reverse();
+              tp.setAttribute("d", pts.length > 4 ? dpath(pts) : "M0 0");
+              band.setAttribute("opacity", (0.85 * C.glow).toFixed(3));
+
+              // Trail. Tapered in both width and alpha, brightest at the head, laid as
+              // segments because a stroke gradient cannot follow an arbitrary curve.
+              var step = C.trail / TRS;
+              for (j = 0; j < TRS; j++) {
+                pts = poly(C.th - C.trail + step * j, step / 2, 2, 1);
+                var f = (j + 1) / TRS;
+                trailSeg[j].setAttribute("d", pts.length > 1 ? dpath(pts) : "");
+                trailSeg[j].setAttribute("stroke-opacity", (f * f * C.glow).toFixed(3));
+                trailSeg[j].setAttribute("stroke-width", (W * 0.0014 * (0.6 + 4.4 * f * f)).toFixed(2));
+              }
+
+              // Clamped at BOTH ends. Without the floor the head is a 4px dot once the
+              // camera reaches 9.4 radii out, and the subject of the shot disappears.
+              p = ring(C.th, 1);
+              var hr = p ? Math.max(W * 0.0052, Math.min(W * 0.012, C.foc * 0.0088 / p[2])) : 0;
+              head.setAttribute("r", p ? hr.toFixed(2) : 0);
+              head.setAttribute("opacity", p ? C.glow : 0);
+              glow.setAttribute("r", p ? (hr * 4.2).toFixed(2) : 0);
+              glow.setAttribute("opacity", p ? C.glow : 0);
+              if (p) {
+                head.setAttribute("cx", p[0].toFixed(1)); head.setAttribute("cy", p[1].toFixed(1));
+                glow.setAttribute("cx", p[0].toFixed(1)); glow.setAttribute("cy", p[1].toFixed(1));
+              }
+
+              for (j = 0; j < STA.length; j++) {
+                p = ring(STA[j], 1);
+                var dr = p ? Math.max(W * 0.0037, Math.min(W * 0.0095, C.foc * 0.0062 / p[2])) * SS[j].pop : 0;
+                dots[j].setAttribute("cx", p ? p[0].toFixed(1) : 0);
+                dots[j].setAttribute("cy", p ? p[1].toFixed(1) : 0);
+                dots[j].setAttribute("r", dr.toFixed(2));
+                dots[j].setAttribute("stroke-width", (W * 0.0018).toFixed(2));
+                dots[j].setAttribute("opacity", p ? SS[j].o.toFixed(3) : 0);
+                // Billboarded: position comes from the projection, orientation never does.
+                // The label rides its own radius (LR), the dot stays on the ring.
+                var lp = p && ring(STA[j], LR[j]);
+                labels[j].style.opacity = p && lp ? SS[j].o : 0;
+                if (p && lp) {
+                  var off = (dr / C.ui + U * 0.9).toFixed(1);
+                  labels[j].style.transform = "translate3d(" + lp[0].toFixed(1) + "px," + (lp[1] + DY[j] * U).toFixed(1) +
+                    "px,0) scale(" + C.ui.toFixed(3) + ") translate(" +
+                    (SIDE[j] > 0 ? off + "px" : "calc(-100% - " + off + "px)") + ",-50%)";
+                }
+              }
+            }
+
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "3.6"));
+
+            // Rest state pinned outside the timeline, both ends written on every tween.
+            gsap.set(C, { th: -42, beta: 168, rc: 1.55, hc: 0.5, foc: FOC0, look: 0, roll: 14, cx: CX0, cy: CY0, tick: 0, lag: 0, trail: 34, ui: 1.5, glow: 1 });
+            SS.forEach(function (s, j) { s.o = j === 0 ? 1 : 0; s.pop = j === 0 ? 1 : 0.62; });
+
+            var tl = gsap.timeline({ paused: true, onUpdate: render });
+
+            // TRACK plus PULLBACK on one continuous angle tween: the head never changes
+            // gear at the cut, only the camera does, which is what keeps the two acts
+            // reading as one shot. Ends exactly on station 6.
+            tl.fromTo(C, { th: -42 }, { th: 175, duration: D, ease: E.head }, 0);
+            tl.fromTo(C, { beta: 168 }, { beta: 74, duration: D, ease: E.head }, 0);
+            // The lag and the catch. This is the camera operator, not the rig.
+            tl.fromTo(C, { lag: 0 }, { lag: 7, duration: 1.25, ease: E.lag }, 0.3);
+            tl.fromTo(C, { lag: 7 }, { lag: 1.5, duration: 0.55, ease: E.morph }, 1.55);
+
+            // PULLBACK, then SETTLE. Dolly, focal and aim share one window so the resolve
+            // is a single gesture; the roll runs longer so its dead tail is covered by the
+            // settle rather than landing on the same frame as the dolly (Law 3). The
+            // settle is the reference's own tail, it creeps 3.4% closer and keeps rolling,
+            // which is why no frame past 85% of D repeats the one before it.
+            tl.fromTo(C, { rc: 1.55 }, { rc: RC1, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { hc: 0.5 }, { hc: HC1, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { foc: FOC0 }, { foc: FOC1, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { cx: CX0 }, { cx: CX1, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { cy: CY0 }, { cy: CY1, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { ui: 1.5 }, { ui: 1, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { trail: 34 }, { trail: 62, duration: 1.35, ease: E.camPush }, 1.6);
+            tl.fromTo(C, { look: 0 }, { look: 1, duration: 1.25, ease: E.camSettle }, 1.75);
+            tl.fromTo(C, { roll: 14 }, { roll: -23.5, duration: 3.05, ease: E.camSettle }, 0);
+            tl.fromTo(C, { tick: 0 }, { tick: -118, duration: D, ease: E.linear }, 0);
+            tl.fromTo(C, { rc: RC1 }, { rc: RC1 * 0.967, duration: 0.65, ease: E.linear }, 2.95);
+            tl.fromTo(C, { hc: HC1 }, { hc: HC1 * 0.967, duration: 0.65, ease: E.linear }, 2.95);
+            tl.fromTo(C, { roll: -23.5 }, { roll: -26, duration: 0.55, ease: E.linear }, 3.05);
+
+            // Stations arrive at their own fixed angles as the camera reaches them.
+            [0.0, 0.42, 1.0, 1.5, 2.18, 2.36, 2.55, 2.72].forEach(function (at, j) {
+              if (j === 0) return;
+              tl.fromTo(SS[j], { o: 0 }, { o: 1, duration: 0.26, ease: E.morph }, at);
+              tl.fromTo(SS[j], { pop: 0.62 }, { pop: 1, duration: 0.34, ease: E.springSm }, at);
+            });
+            // The head lands on station 6 and it takes the light, which is the close.
+            tl.fromTo(SS[5], { pop: 1 }, { pop: 1.5, duration: 0.3, ease: E.springSm }, 3.3);
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+            render(); // frame zero is a deliverable, and seek(0) from 0 fires nothing
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["orbit-ring-camera"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

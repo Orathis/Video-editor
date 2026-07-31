@@ -1,0 +1,481 @@
+<!doctype html>
+<!--
+  rank-list-settle: HyperFrames video primitive (comparison / proof)
+
+  Concept: a ranked comparison list rolls upward past the frame, decelerates
+  hard, and parks with the winning row landed exactly on the section label's
+  line. A focus lamp is fixed on that line. Whatever row is crossing it is full
+  black with a saturated chip; everything else washes out. So the roll reads as
+  competitors passing under a lamp, and the landing delivers the winner at full
+  strength the instant the list stops.
+
+  ROW CONTENT LIVES IN THE MARKUP. Edit the eight .rls-row blocks below to your
+  own names and numbers. Keep the winner last and keep class="rls-win" on it:
+  the list geometry parks the last row on the lamp, and the lamp does the rest.
+
+  Variables:
+    - title (string, default "Cost per commit"): the section label the winning
+      row lands on.
+  Theme hooks (set on the host, all optional):
+    --rls-bg, --rls-title, --rls-ink,
+    --rls-chip-lose, --rls-lose-ink, --rls-chip-win, --rls-win-ink
+  Chip colours are the LIT values, the ones a row shows at the lamp. The lamp
+  fades them toward the background, so do not pre-pale them.
+
+  Envelope (D = 2.10s):
+    LEAD  0.00 to 0.10   the list is already rolling at speed when the clip opens
+    ROLL  0.10 to 1.10   45.4% of frame height, 80% of it in the first 0.4s
+    LAND  1.00 to 1.85   the winner chip settles onto its own right edge
+    hold  to 2.10       clears the 32-sample resolution floor without a dead tail
+
+  There is no arrival tween on the winner. Its ink is a function of where it is,
+  so it is fully black and fully green at 1.60s because that is when it reaches
+  the lamp, not because a fade happens to finish there. That is the whole point:
+  an opacity tween on one row delivers the punch late and at a rate no eye can
+  see, which is exactly how the first cut of this file failed.
+
+  Every lamp value is sampled from the same eased position the list is tweened
+  on, at build time, and laid down as explicit fromTo segments. No rAF, no
+  onUpdate, no DOM reads: a seek to any time lands on the same number. The
+  segments carry a linear ease because they are a reconstruction of an already
+  eased curve, not an easing choice.
+
+  Mount contract: the runtime clones only this template. #root fills the host
+  box, establishes the container query basis, has no data-width or data-height,
+  and registers one paused timeline under the hardcoded rank-list-settle id.
+-->
+<html
+  lang="en"
+  data-composition-id="rank-list-settle"
+  data-composition-duration="2.1"
+  data-composition-variables='[
+    { "id": "title", "type": "string", "role": "content", "label": "Section label", "description": "The line the winning row lands on.", "default": "Cost per commit" }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rank List Settle</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="rank-list-settle" data-duration="2.1" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            container-name: rls;
+            isolation: isolate;
+            background: var(--rls-bg, #ffffff);
+            color: var(--rls-ink, #0a0a0a);
+            font-family: var(--font-display, system-ui, "Helvetica Neue", Arial, sans-serif);
+            font-weight: 450;
+            pointer-events: none;
+
+            /* Chip height and type scale in cqmin so they read the same in all
+               three aspects. Row pitch is the same idea but it lives on
+               .rls-list, not here: a container query cannot restyle its own
+               container, so a pitch declared on #root would survive the
+               portrait branch and leave two-line rows overlapping. */
+            --rls-chip-h: 5.28cqmin;
+          }
+
+          /* The label is vertically centred and stays put. Its centreline is
+             both the landing mark for the winning row and the lamp. */
+          .rls-title {
+            position: absolute;
+            top: 50cqh;
+            left: 14.11cqw;
+            width: 34cqw;
+            transform: translateY(-50%);
+            color: var(--rls-title, #050505);
+            font-size: 7.4cqmin;
+            font-weight: 500;
+            letter-spacing: -0.021em;
+            line-height: 1.04;
+          }
+
+          /* The clip window. Fixed, never animated: an overflow box that moves
+             drags its own clip off the target. FLAT across the whole live band,
+             and that is the point. An earlier cut shaped this gradient into a
+             second lamp, which stacked a distance falloff on top of the real one
+             and washed the far rows to within 7/255 of the background: the list
+             read as a five item fragment mid roll. The reference has no falloff
+             at all, its unlit rows hold one constant grey six pitches out, so the
+             only job left here is to stop rows hard-cutting at the frame edge. */
+          .rls-viewport {
+            position: absolute;
+            inset: 0;
+            -webkit-mask-image: linear-gradient(
+              to bottom,
+              rgba(0, 0, 0, 0) 0%,
+              rgba(0, 0, 0, 1) 6%,
+              rgba(0, 0, 0, 1) 94%,
+              rgba(0, 0, 0, 0) 100%
+            );
+            mask-image: linear-gradient(
+              to bottom,
+              rgba(0, 0, 0, 0) 0%,
+              rgba(0, 0, 0, 1) 6%,
+              rgba(0, 0, 0, 1) 94%,
+              rgba(0, 0, 0, 0) 100%
+            );
+          }
+
+          /* Parked so the last row's centreline sits on 50cqh. The offset is a
+             static margin, not a transform, because GSAP owns the transform. */
+          .rls-list {
+            position: absolute;
+            top: 50cqh;
+            right: 0;
+            left: 0;
+            margin-top: calc(-7.5 * var(--rls-pitch));
+            --rls-pitch: 7.78cqmin;
+            will-change: transform;
+          }
+
+          /* Right edge at 86cqw, chip left edge at 80cqw, names at 56.25cqw:
+             the reference geometry, in cqw because it is lateral. */
+          .rls-row {
+            display: flex;
+            height: var(--rls-pitch);
+            align-items: center;
+            justify-content: space-between;
+            margin-right: 14cqw;
+            margin-left: 56.25cqw;
+            gap: 2cqmin;
+            --lit: 0;
+          }
+
+          /* The lamp. One number per row drives both readouts through two steep
+             ramps, and the shape is measured, not invented. Sampling f-005 and
+             f-018 across every row: an unlit label is rgb(198,198,198) and an
+             unlit chip fill is rgb(253,242,234) NO MATTER how far the row is
+             from the line, so there is no falloff to model, only a window.
+             Over white those are 0.23 and 0.20 of their lit colour, so 0.22 is
+             the one shared floor, and it is a floor on a FLAT field: nothing
+             downstream may dim it further. The window is about twice as wide
+             for the label as for the chip: at 0.8 of a pitch away f-005 shows a
+             black label on a row whose chip is still pale. Everything else is
+             flat. */
+          .rls-name {
+            color: var(--rls-ink, #0a0a0a);
+            font-size: 3.7cqmin;
+            letter-spacing: -0.012em;
+            line-height: 1;
+            opacity: clamp(0.22, calc((var(--lit, 0) - 0.3) * 5.5), 1);
+            white-space: nowrap;
+            will-change: opacity;
+          }
+
+          .rls-chip {
+            display: flex;
+            height: var(--rls-chip-h);
+            min-width: 6cqw;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.3cqmin;
+            border-radius: 0.85cqmin;
+            opacity: clamp(0.22, calc((var(--lit, 0) - 0.46) * 3.2), 1);
+            background: var(--rls-chip-lose, #f7b199);
+            color: var(--rls-lose-ink, #bf4521);
+            font-size: 3.55cqmin;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.01em;
+            line-height: 1;
+            will-change: opacity, transform;
+          }
+
+          /* Only the winner is green. Every other chip is the loser colour. */
+          .rls-win .rls-chip {
+            background: var(--rls-chip-win, #c4ead1);
+            color: var(--rls-win-ink, #28b463);
+            transform-origin: 100% 50%;
+          }
+
+          /* Square and narrower: the label and the chips crowd, so widen the
+             row band. Keyed on aspect rather than a pixel width so the same
+             16:9 shot rendered at 1280 across does not flip branch. */
+          @container rls (max-aspect-ratio: 5 / 4) {
+            .rls-title {
+              left: 6cqw;
+              width: 30cqw;
+              font-size: 6.2cqmin;
+            }
+
+            .rls-row {
+              margin-right: 5cqw;
+              margin-left: 40cqw;
+            }
+          }
+
+          /* Portrait. ONE flex line, like every other aspect. An earlier cut
+             folded the row to two lines here on the theory that the name and
+             chip could not fit; they can, with 293px of clear air left over at
+             1080 across, and folding split the payoff in half: the winning name
+             and the winning number ended up 58px apart, 46% of a row pitch, so
+             neither one sat on the label line. Portrait only needs a taller
+             pitch, so eight rows spread over a 16:9 frame's worth of extra
+             height, and a wider band, which is what the square branch above
+             already does. */
+          @container rls (max-aspect-ratio: 4 / 5) {
+            .rls-list {
+              --rls-pitch: 11.6cqmin;
+            }
+
+            /* The label wraps to two lines here, so it needs its own column and
+               a real gutter, or its second line butts against the winning name
+               on the one frame the whole clip is built to deliver. */
+            .rls-title {
+              width: 22cqw;
+              font-size: 5.4cqmin;
+            }
+
+            .rls-row {
+              margin-left: 34cqw;
+            }
+
+            .rls-chip {
+              min-width: 14cqw;
+            }
+          }
+        </style>
+
+        <div class="rls-title">Cost per commit</div>
+
+        <div class="rls-viewport">
+          <div class="rls-list">
+            <div class="rls-row">
+              <span class="rls-name">Legacy Suite</span><span class="rls-chip">$12.69</span>
+            </div>
+            <div class="rls-row">
+              <span class="rls-name">Team Plan</span><span class="rls-chip">$6.77</span>
+            </div>
+            <div class="rls-row">
+              <span class="rls-name">Starter</span><span class="rls-chip">$4.63</span>
+            </div>
+            <div class="rls-row">
+              <span class="rls-name">Enterprise</span><span class="rls-chip">$6.76</span>
+            </div>
+            <div class="rls-row">
+              <span class="rls-name">Pro Bundle</span><span class="rls-chip">$7.34</span>
+            </div>
+            <div class="rls-row">
+              <span class="rls-name">Basic</span><span class="rls-chip">$1.49</span>
+            </div>
+            <div class="rls-row">
+              <span class="rls-name">Standard</span><span class="rls-chip">$2.91</span>
+            </div>
+            <div class="rls-row rls-win">
+              <span class="rls-name">Our Platform</span><span class="rls-chip">$1.38</span>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier evaluated as a GSAP ease. Pure function of progress, so
+            // it is seek-safe: seek(t) always yields the same value, no internal
+            // state to drift. Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var C = function (a) { return 3 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Named for what they do in a shot. No GSAP preset appears in this file
+            // on purpose: a named ease is a category, not a curve.
+            var E = {
+              enter: cb(0.22, 0.9, 0.3, 1.0),
+              enterSoft: cb(0.33, 0.7, 0.35, 1.0),
+              exitAway: cb(0.5, 0.0, 0.75, 0.2),
+              exitSettle: cb(0.3, 0.8, 0.4, 1.0),
+              camSettle: cb(0.16, 0.84, 0.28, 1.0),
+              camPush: cb(0.4, 0.0, 0.2, 1.0),
+              camWhip: cb(0.7, 0.0, 0.1, 1.0),
+              morph: cb(0.65, 0.05, 0.35, 1.0),
+              spring0: cb(0.34, 1.0, 0.36, 1.0),
+              springSm: cb(0.34, 1.3, 0.5, 1.0),
+              springMd: cb(0.28, 1.55, 0.45, 1.0),
+              linear: function (p) { return p; },
+
+              // Fitted to the reference roll, max error 1.9% of travel: 80% of
+              // the distance inside the first 40% of the time. Closer than any
+              // palette curve (enter is 3.4% off, camSettle 3.5%), so the
+              // measurement wins over the shelf.
+              rollSettle: cb(0.18, 0.78, 0.18, 0.98),
+
+              // The clip opens at speed, not fading up. Start slope 0.85 over a
+              // 0.1s lead is 11.9 pitches per second at frame 0, which is what
+              // the reference does between f-001 and f-002 (11.7); end slope 1.7
+              // hands off at 23.8 into the roll's own 25.3, so there is no step.
+              preRoll: cb(0.4, 0.34, 0.75, 0.575),
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var titleEl = root.querySelector(".rls-title");
+            var list = root.querySelector(".rls-list");
+            var rows = Array.prototype.slice.call(root.querySelectorAll(".rls-row"));
+            var winChip = root.querySelector(".rls-win .rls-chip");
+            var vars =
+              window.__hyperframes && window.__hyperframes.getVariables
+                ? window.__hyperframes.getVariables()
+                : {};
+
+            if (vars.title != null) titleEl.textContent = String(vars.title);
+
+            // GSAP writes transforms in px, so a tweened distance in cqmin does
+            // not survive. Read the unit at build time. Measuring the pitch off
+            // a real row rather than recomputing it keeps portrait's taller
+            // pitch on the same 5.83-pitch roll without a second constant.
+            var U = Math.min(root.clientWidth, root.clientHeight) / 100 || 10.8;
+            var pitch = (rows[0] && rows[0].offsetHeight) || 7.78 * U;
+
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "2.0"));
+            var s = D < 2.0 ? D / 2.0 : 1; // compress the beats, never the order
+            var FPS = parseFloat(root.dataset.fps || "30") || 30;
+            var LEAD_D = 0.1 * s;
+            var ROLL_AT = 0.1 * s;
+            var ROLL_D = 1.0 * s;
+
+            // Distances in ROW PITCHES, which is the unit the lamp thinks in.
+            var LEAD = 1.4;
+            var ROLL = 5.834; // 45.4% of frame height in 16:9
+            var LAMP = 1.6; // how many pitches deep the lamp still reaches
+
+            // The list position, in pitches above rest, as a function of time.
+            // Same two curves and the same clock as the tweens below, so the
+            // lamp can never drift out of step with what is on screen.
+            function posY(t) {
+              if (t <= 0) return ROLL + LEAD;
+              if (t < LEAD_D) return ROLL + LEAD * (1 - E.preRoll(t / LEAD_D));
+              if (t < ROLL_AT + ROLL_D) return ROLL * (1 - E.rollSettle((t - ROLL_AT) / ROLL_D));
+              return 0;
+            }
+
+            var last = rows.length - 1;
+            function litAt(i, t) {
+              var d = Math.abs(i - last + posY(t));
+              return Math.max(0, Math.min(1, 1 - d / LAMP));
+            }
+
+            // Rest state pinned outside the timeline, and both ends written on
+            // every tween, so a seek can never inherit a start value from the
+            // screen. The list opens part-way through its own roll with the top
+            // row already under the lamp, which is the frame the reference
+            // opens on too.
+            gsap.set(list, { y: (ROLL + LEAD) * pitch });
+            gsap.set(winChip, { scale: 0.9 });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // LEAD. 0.1s, and it is a run-in at speed, not an anticipation. The
+            // 0.6s version this replaces moved 6% of the travel in 17% of the
+            // clip while the rows merely faded up, so the shot opened inert.
+            tl.fromTo(
+              list,
+              { y: (ROLL + LEAD) * pitch },
+              { y: ROLL * pitch, duration: LEAD_D, ease: E.preRoll },
+              0,
+            );
+
+            // ROLL. The measured move. Its final frame travels about 0.4px, under
+            // the dead-frame gate, which is why the chip settle is laid across
+            // that tail instead of starting after it.
+            tl.fromTo(
+              list,
+              { y: ROLL * pitch },
+              { y: 0, duration: ROLL_D, ease: E.rollSettle },
+              ROLL_AT,
+            );
+
+            // LAND. The chip settles into its own right edge, the edge the whole
+            // column aligns on. Small element, so a small overshoot is the
+            // correct end of the size-to-bounce rule, and it is also the layer
+            // still moving through the roll's dead tail and the hold.
+            tl.fromTo(
+              winChip,
+              { scale: 0.9 },
+              { scale: 1, duration: 0.85 * s, ease: E.springSm },
+              ROLL_AT + 0.9 * s,
+            );
+
+            // THE LAMP. Sampled at render frame rate off posY, then emitted as
+            // explicit fromTo segments whenever the value has drifted enough to
+            // matter. The gate is 0.004 rather than 0.01 because the CSS ramps
+            // multiply this number by up to 5.5, so a hundredth here would band
+            // into a visible five-percent opacity step. Rows nowhere near the
+            // lamp hold at exactly zero and emit nothing.
+            var END = ROLL_AT + ROLL_D;
+            var STEP = 1 / FPS;
+            for (var i = 0; i < rows.length; i++) {
+              var prevV = litAt(i, 0);
+              var prevT = 0;
+              gsap.set(rows[i], { "--lit": prevV });
+              for (var t = STEP; t <= END + STEP; t += STEP) {
+                var at = Math.min(t, END);
+                var v = litAt(i, at);
+                if (Math.abs(v - prevV) >= 0.004 || at >= END) {
+                  if (v !== prevV) {
+                    tl.fromTo(
+                      rows[i],
+                      { "--lit": prevV },
+                      { "--lit": v, duration: at - prevT, ease: E.linear },
+                      prevT,
+                    );
+                  }
+                  prevV = v;
+                  prevT = at;
+                }
+                if (at >= END) break;
+              }
+            }
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["rank-list-settle"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

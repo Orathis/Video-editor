@@ -16,18 +16,34 @@
   function ensureStyles() {
     if (document.getElementById(STYLE_ID)) return;
     var css = [
-      ".hf-embed-row{display:flex;flex-direction:column;}",
+      ".hf-embed-row{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;",
+      "background:#0b0c0e;box-shadow:0 0 0 1px rgba(15,23,42,.12),0 12px 32px rgba(15,23,42,.08);}",
+      ".hf-embed-row.hf-embed-preview{border-radius:0;box-shadow:none;}",
       ".hf-embed-row>[data-hf-player]{width:100%;}",
-      ".hf-knob-panel{box-sizing:border-box;padding:12px 16px 14px;",
-      "display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 20px;align-items:end;",
-      "border-top:1px solid var(--hfk-border);background:var(--hfk-panel);",
-      "--hfk-border:rgba(15,23,42,.12);--hfk-panel:rgba(15,23,42,.03);",
-      "--hfk-fg:#0f172a;--hfk-muted:#64748b;--hfk-muted-bg:rgba(15,23,42,.06);",
-      "--hfk-card:#ffffff;--hfk-ring:#0f172a;}",
-      "html.dark .hf-knob-panel,[data-theme=dark] .hf-knob-panel{",
-      "--hfk-border:rgba(226,232,240,.14);--hfk-panel:rgba(226,232,240,.04);",
-      "--hfk-fg:#e2e8f0;--hfk-muted:#94a3b8;--hfk-muted-bg:rgba(226,232,240,.09);",
-      "--hfk-card:#1e232b;--hfk-ring:#e2e8f0;}",
+      "[data-hf-player]{position:relative;overflow:hidden;background:",
+      "radial-gradient(circle at 50% 42%,#29303a 0,#15191f 42%,#0b0c0e 100%);}",
+      "[data-hf-player]>hyperframes-player{position:absolute;inset:0;z-index:1;}",
+      ".hf-player-poster{position:absolute;inset:0;z-index:2;display:block;width:100%;height:100%;",
+      "object-fit:cover;opacity:1;transition:opacity .18s ease-out;}",
+      ".hf-player-loading{position:absolute;right:12px;bottom:12px;z-index:3;padding:6px 9px;",
+      "border-radius:999px;background:rgba(8,10,14,.78);color:#f8fafc;",
+      "font:600 11px/1 system-ui,sans-serif;letter-spacing:.02em;",
+      "box-shadow:0 0 0 1px rgba(255,255,255,.14);transition:opacity .18s ease-out;}",
+      "[data-hf-ready] .hf-player-poster,[data-hf-ready] .hf-player-loading{opacity:0;pointer-events:none;}",
+      "[data-hf-ready] [data-rmiz],[data-hf-ready] [data-rmiz-content]{pointer-events:none;}",
+      ".hf-embed-preview [data-hf-player]{pointer-events:none;}",
+      ".hf-player-error{position:absolute;inset:0;display:grid;place-items:center;padding:24px;",
+      "z-index:4;background:#0b0c0e;color:#e2e8f0;",
+      "font:500 14px/1.5 system-ui,sans-serif;text-align:center;}",
+      ".hf-knob-panel{box-sizing:border-box;padding:14px 16px 16px;",
+      "display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));",
+      "gap:12px 20px;align-items:end;border-top:1px solid var(--hfk-border);",
+      "background:var(--hfk-panel);--hfk-border:#d9dee8;--hfk-panel:#f8fafc;",
+      "--hfk-fg:#172033;--hfk-muted:#526079;--hfk-muted-bg:#e9edf3;",
+      "--hfk-card:#ffffff;--hfk-ring:#315efb;}",
+      ".dark .hf-knob-panel,[data-theme=dark] .hf-knob-panel{",
+      "--hfk-border:#344054;--hfk-panel:#111827;--hfk-fg:#f1f5f9;",
+      "--hfk-muted:#b8c3d4;--hfk-muted-bg:#263244;--hfk-card:#202938;--hfk-ring:#8fa8ff;}",
       ".hf-knob-panel .hfk-title{font-size:11px;font-weight:600;letter-spacing:.08em;",
       "text-transform:uppercase;color:var(--hfk-muted);margin:0;grid-column:1/-1;}",
       ".hfk-field-wide{grid-column:1/-1;}",
@@ -35,16 +51,20 @@
       ".hfk-label{font-size:13px;font-weight:500;color:var(--hfk-fg);display:flex;justify-content:space-between;align-items:baseline;}",
       ".hfk-label .hfk-value{font-size:12px;font-weight:400;color:var(--hfk-muted);font-variant-numeric:tabular-nums;}",
       ".hfk-seg{display:inline-flex;width:100%;box-sizing:border-box;padding:3px;border-radius:8px;background:var(--hfk-muted-bg);gap:2px;}",
-      ".hfk-seg button{flex:1 1 0;border:0;border-radius:6px;padding:6px 8px;font-size:13px;font-weight:500;",
-      "background:transparent;color:var(--hfk-muted);cursor:pointer;transition:background .12s,color .12s;}",
+      ".hfk-seg button{flex:1 1 0;min-height:40px;border:0;border-radius:6px;padding:6px 8px;",
+      "font-size:13px;font-weight:500;background:transparent;color:var(--hfk-muted);cursor:pointer;",
+      "transition-property:background,color,box-shadow;transition-duration:.12s;}",
       ".hfk-seg button[aria-pressed=true]{background:var(--hfk-card);color:var(--hfk-fg);box-shadow:0 1px 2px rgba(0,0,0,.18);}",
-      ".hfk-input{box-sizing:border-box;width:100%;height:34px;border-radius:8px;border:1px solid var(--hfk-border);",
+      ".hfk-input{box-sizing:border-box;width:100%;height:40px;border-radius:8px;border:1px solid var(--hfk-border);",
       "background:transparent;color:var(--hfk-fg);padding:0 10px;font-size:13px;outline:none;}",
-      ".hfk-input:focus{border-color:var(--hfk-ring);box-shadow:0 0 0 1px var(--hfk-ring);}",
-      ".hfk-range{width:100%;accent-color:var(--hfk-fg);height:20px;cursor:pointer;}",
-      ".hfk-select{box-sizing:border-box;width:100%;height:34px;border-radius:8px;border:1px solid var(--hfk-border);",
+      ".hfk-range{width:100%;accent-color:var(--hfk-fg);height:40px;cursor:pointer;}",
+      ".hfk-select{box-sizing:border-box;width:100%;height:40px;border-radius:8px;border:1px solid var(--hfk-border);",
       "background:var(--hfk-card);color:var(--hfk-fg);padding:0 10px;font-size:13px;outline:none;cursor:pointer;}",
-      ".hfk-select:focus{border-color:var(--hfk-ring);box-shadow:0 0 0 1px var(--hfk-ring);}",
+      ".hfk-seg button:focus-visible,.hfk-input:focus-visible,.hfk-range:focus-visible,.hfk-select:focus-visible{",
+      "outline:3px solid var(--hfk-ring);outline-offset:2px;}",
+      "@media(max-width:520px){.hf-knob-panel{grid-template-columns:1fr;padding:14px;}",
+      ".hfk-seg button,.hfk-input,.hfk-range,.hfk-select{min-height:44px;}}",
+      "@media(prefers-reduced-motion:reduce){.hf-player-poster,.hf-player-loading{transition:none;}}",
     ].join("");
     var tag = document.createElement("style");
     tag.id = STYLE_ID;
@@ -69,7 +89,9 @@
         var options = null;
         if (Array.isArray(v.options)) {
           options = v.options.map(function (o) {
-            return typeof o === "object" ? { value: o.value, label: o.label || o.value } : { value: o, label: o };
+            return typeof o === "object"
+              ? { value: o.value, label: o.label || o.value }
+              : { value: o, label: o };
           });
         }
         out.push({
@@ -87,7 +109,9 @@
         var v = parsed[name] || {};
         var options = Array.isArray(v.options)
           ? v.options.map(function (o) {
-              return typeof o === "object" ? { value: o.value, label: o.label || o.value } : { value: o, label: o };
+              return typeof o === "object"
+                ? { value: o.value, label: o.label || o.value }
+                : { value: o, label: o };
             })
           : null;
         out.push({
@@ -146,6 +170,7 @@
       if (applyTimer) clearTimeout(applyTimer);
       applyTimer = setTimeout(
         function () {
+          el.seek(0);
           el.setAttribute("variables", JSON.stringify(values));
         },
         immediate ? 0 : 220,
@@ -164,6 +189,7 @@
       if (k.options && k.options.length > 3) {
         var sel = document.createElement("select");
         sel.className = "hfk-select";
+        sel.setAttribute("aria-label", k.label);
         k.options.forEach(function (o) {
           var opt = document.createElement("option");
           opt.value = o.value;
@@ -180,6 +206,7 @@
         var seg = document.createElement("div");
         seg.className = "hfk-seg";
         seg.setAttribute("role", "group");
+        seg.setAttribute("aria-label", k.label);
         k.options.forEach(function (o) {
           var b = document.createElement("button");
           b.type = "button";
@@ -204,6 +231,7 @@
         var range = document.createElement("input");
         range.type = "range";
         range.className = "hfk-range";
+        range.setAttribute("aria-label", k.label);
         range.min = String(k.min);
         range.max = String(k.max);
         range.value = String(k.value);
@@ -218,6 +246,7 @@
         var input = document.createElement("input");
         input.type = "text";
         input.className = "hfk-input";
+        input.setAttribute("aria-label", k.label);
         input.value = k.value === undefined || k.value === null ? "" : String(k.value);
         input.addEventListener("change", function () {
           values[k.name] = input.value;
@@ -237,6 +266,16 @@
     return panel;
   }
 
+  function showError(host) {
+    if (host.querySelector(".hf-player-error")) return;
+    var error = document.createElement("div");
+    error.className = "hf-player-error";
+    error.setAttribute("role", "alert");
+    error.textContent = "Preview unavailable.";
+    host.setAttribute("aria-busy", "false");
+    host.replaceChildren(error);
+  }
+
   function mountKnobs(host, el, row) {
     // Author override first; else auto-parse the composition's schema.
     var knobSpec = host.getAttribute("data-knobs");
@@ -250,12 +289,34 @@
       }
       ready = Promise.resolve(knobs);
     } else {
-      ready = fetch(host.getAttribute("data-src") || "", { credentials: "same-origin" })
+      var src = host.getAttribute("data-src") || "";
+      ready = fetch(src, { credentials: "same-origin" })
         .then(function (r) {
-          return r.ok ? r.text() : "";
+          if (!r.ok) throw new Error("Unable to load composition");
+          return r.text();
         })
-        .then(extractSchema)
+        .then(function (html) {
+          var re = /data-composition-src=(?:'([^']*)'|"([^"]*)")/g;
+          var sources = [];
+          var m;
+          while ((m = re.exec(html))) {
+            var raw = decodeEntities(m[1] !== undefined ? m[1] : m[2]);
+            var resolved = new URL(raw, new URL(src, document.baseURI)).href;
+            if (!sources.includes(resolved)) sources.push(resolved);
+          }
+          return Promise.all(
+            sources.map(function (source) {
+              return fetch(source, { credentials: "same-origin" }).then(function (r) {
+                if (!r.ok) throw new Error("Unable to load sub-composition");
+                return r.text();
+              });
+            }),
+          ).then(function (children) {
+            return extractSchema([html].concat(children).join("\n"));
+          });
+        })
         .catch(function () {
+          showError(host);
           return null;
         });
     }
@@ -265,28 +326,113 @@
     });
   }
 
-  function mountAll() {
-    document.querySelectorAll("[data-hf-player]:not([data-hf-mounted])").forEach(function (host) {
-      host.setAttribute("data-hf-mounted", "true");
-      var el = document.createElement("hyperframes-player");
-      el.setAttribute("src", host.getAttribute("data-src") || "");
+  function mountPlayer(host) {
+    if (!host.isConnected) {
+      host.removeAttribute("data-hf-mounting");
+      return;
+    }
+    if (host.hasAttribute("data-hf-mounted")) return;
+    host.setAttribute("data-hf-mounted", "true");
+    host.removeAttribute("data-hf-mounting");
+    host.removeAttribute("data-hf-observed");
+    var el = document.createElement("hyperframes-player");
+    el.setAttribute("src", host.getAttribute("data-src") || "");
+    el.setAttribute("muted", "");
+    el.setAttribute("width", host.getAttribute("data-width") || "1920");
+    el.setAttribute("height", host.getAttribute("data-height") || "1080");
+    var poster = host.getAttribute("data-poster");
+    if (poster) el.setAttribute("poster", poster);
+    var preview = host.getAttribute("data-hf-preview") === "true";
+    if (preview) {
+      el.setAttribute("autoplay", "");
+      el.setAttribute("loop", "");
+      el.setAttribute("aria-hidden", "true");
+    } else {
       el.setAttribute("controls", "");
-      el.setAttribute("muted", "");
-      el.setAttribute("width", host.getAttribute("data-width") || "1920");
-      el.setAttribute("height", host.getAttribute("data-height") || "1080");
-      el.style.display = "block";
-      el.style.width = "100%";
-      // Without an explicit height the player's shadow wrappers collapse to
-      // 0px under Mintlify's global CSS; the host div owns the aspect ratio.
-      el.style.height = "100%";
-      ensureStyles();
-      var row = document.createElement("div");
-      row.className = "hf-embed-row";
-      host.parentNode.insertBefore(row, host);
-      row.appendChild(host);
-      host.replaceChildren(el);
-      mountKnobs(host, el, row);
+    }
+    el.addEventListener(
+      "ready",
+      function () {
+        host.setAttribute("data-hf-ready", "true");
+        host.setAttribute("aria-busy", "false");
+      },
+      { once: true },
+    );
+    el.addEventListener("error", function () {
+      showError(host);
     });
+    el.style.display = "block";
+    el.style.width = "100%";
+    // Without an explicit height the player's shadow wrappers collapse to
+    // 0px under Mintlify's global CSS; the host div owns the aspect ratio.
+    el.style.height = "100%";
+    ensureStyles();
+    var row = document.createElement("div");
+    row.className = preview ? "hf-embed-row hf-embed-preview" : "hf-embed-row";
+    host.parentNode.insertBefore(row, host);
+    row.appendChild(host);
+    host.appendChild(el);
+    if (!preview) mountKnobs(host, el, row);
+  }
+
+  function mountAfterPoster(host) {
+    if (host.hasAttribute("data-hf-mounting") || host.hasAttribute("data-hf-mounted")) return;
+    host.setAttribute("data-hf-mounting", "true");
+    var poster = host.querySelector(".hf-player-poster");
+    if (!poster || typeof poster.decode !== "function") {
+      mountPlayer(host);
+      return;
+    }
+    poster
+      .decode()
+      .catch(function () {})
+      .then(function () {
+        mountPlayer(host);
+      });
+  }
+
+  var observer =
+    "IntersectionObserver" in window
+      ? new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            observer.unobserve(entry.target);
+            mountAfterPoster(entry.target);
+          });
+        })
+      : null;
+
+  function mountAll() {
+    document
+      .querySelectorAll(
+        "[data-hf-player]:not([data-hf-mounted]):not([data-hf-mounting]):not([data-hf-observed])",
+      )
+      .forEach(function (host) {
+        ensureStyles();
+        var poster = host.getAttribute("data-poster");
+        if (poster && !host.querySelector(".hf-player-poster")) {
+          var img = document.createElement("img");
+          img.className = "hf-player-poster";
+          img.src = poster;
+          img.alt = "";
+          img.loading = host.getAttribute("data-hf-preview") === "true" ? "lazy" : "eager";
+          img.decoding = "async";
+          img.setAttribute("aria-hidden", "true");
+          host.appendChild(img);
+        }
+        if (!host.querySelector(".hf-player-loading")) {
+          var loading = document.createElement("span");
+          loading.className = "hf-player-loading";
+          loading.textContent = "Loading preview";
+          host.appendChild(loading);
+        }
+        if (!observer) {
+          mountAfterPoster(host);
+          return;
+        }
+        host.setAttribute("data-hf-observed", "true");
+        observer.observe(host);
+      });
   }
 
   function start() {

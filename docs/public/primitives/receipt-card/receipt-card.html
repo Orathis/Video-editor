@@ -1,0 +1,407 @@
+<!doctype html>
+<!--
+  receipt-card: HyperFrames video primitive (source citation, 9:16 native).
+
+  A quote card flies in from the right at a 18deg tilt, unrotates onto the flat,
+  and then one phrase inside it takes a selection mark: the mark boxes fill blue
+  at full width, in place, while the marked words cross to white.
+
+  ENVELOPE (D = 2.20s, 30fps)
+    0.00-0.72  ARRIVE. The plate translates 0.645 of its own width leftward to
+               rest. Frame zero is not empty: the card opens 497px right of rest
+               at 9:16, so its left 56% (the head of every line) is already in
+               frame and already tilted.
+    0.00-0.92  SETTLE. Tilt 18.0deg to 0, on a baked spring with 3% overshoot,
+               so the card crosses flat by +0.54deg and comes back. Its window
+               outruns the translation's, which is what keeps the translation's
+               dead tail off the render (Law 3, overlap).
+    0.30-1.05  CONTACT. The drop shadow deepens from 0.18 to 1 as the card lands.
+    0.62-1.90  PUSH. The plate scales 1.000 to 1.030, linear. This is the one
+               authored beat in the file and it exists because the reference's
+               own pacing cannot be copied here, see deviation 3.
+    1.863-2.130  MARK. The reference's event, at the reference's measured length
+               of 0.267s and on the curve fitted to it. Every mark box on every
+               line of the phrase ramps together, at full width, from paper to
+               #4347F6, and the phrase's ink crosses from #16181C to white on the
+               same ramp. Nothing sweeps and nothing grows.
+
+  REFERENCE: refs/b6/tt/brew-7667238634860449038.mp4, the card at 17.0-22.5s
+  (the 55 supplied frames) for geometry and the mark, plus the tilted card at
+  74.6-80.5s for the resting angle. Everything below is measured, at 1080x1920,
+  as a fraction of the frame.
+    card         x 14.26 to 85.56 (71.30% wide), y 52.24 to 72.19 (19.95% tall),
+                 constant for all 55 frames: the card never grows, the copy
+                 fills it. Corner radius 40px (3.70% of frame width). Fill
+                 #FCFCFC on a live plate, so white.
+    publisher    serif, all caps, tracked, centred, cap height 20px, sitting
+                 34px below the card's top edge, above the quote.
+    quote        bold sans, 47px, line advance 56px (line-height 1.19), centred,
+                 near black, inset 40px from the card's sides.
+    mark         one rectangle per line the phrase occupies, 45px tall against
+                 the 56px line advance (0.80), starting about 8px before the
+                 phrase and ending about 8px after it. Square corners, verified
+                 at 4x on the 48.93s mark: no visible radius on any of the four.
+    mark colour  #4347F6. The 24919 paper pixels inside the mark box read
+                 (251, 251, 251) before the ramp and (63, 67, 243) after it.
+    ink on mark  white. The same box's 6910 glyph core pixels read (7, 7, 7)
+                 before and (237, 245, 250) after. The words invert.
+    tilt         the 76.0s card's bottom edge, fitted over the middle half of
+                 its span, is -17.6deg. Rounded to 18.0deg here.
+
+  THE MARK IS A FILL, NOT A SWEEP. Re-measured at the source's native 30fps, not
+  on the 10fps frames. Method: subtract the pre-onset frame's blueness, isolate
+  the mark's own connected component, then read that component in 8 equal column
+  bins left to right and 6 row bins top to bottom, every frame.
+    20.400-20.667  all 8 column bins leave zero on the SAME frame (20.433) and
+                   sit at the same normalised progress at every sample: leftmost
+                   bin 0.080, rightmost 0.081 at 20.433; 0.837 and 0.857 at
+                   20.600. A sweep cannot do that.
+    48.933-49.467  the second clean onset, 16 frames of ramp, same result: bins
+                   0.085 and 0.093 at the first lit frame, 0.585 and 0.596 at
+                   the midpoint. The 6 ROW bins ramp together too, so it is not
+                   a vertical wipe either.
+    60.300, 63.667 both go from zero to plateau between two adjacent frames.
+                   Those are shot cuts, not ramps, and are not evidence.
+  At 20.4 the phrase runs over TWO line boxes and both boxes ramp in lockstep,
+  so the mark does not travel across the line break either.
+
+  FITTED CURVE. Sampled at 30fps as the mark box's paper colour distance from
+  its unmarked value (0, 6.83, 22.41, 38.87, 56.22, 71.85, 87.85, 95.92, 99.50
+  percent of final), cb(0.181, 0.002, 0.709, 1.000) fits that table to a max
+  error of 3.09% of travel, and 0.50% against the mean-blueness table it was
+  fitted to. The nearest palette curve, morph, is 16.4% off; camWhip 19.6%,
+  camPush 21.8%, enterSoft 36.2%, enter 52.4%. That curve drives the mark here.
+
+  DELIBERATE DEVIATIONS, each with its reason:
+  1. An authored 1.28s push in the middle. The reference's real pacing for this
+     shot is: hard cut to a finished card, 3.30s dead, one 0.267s cross dissolve,
+     then 1.73s dead (the card box and the mark pixel count are both flat to
+     within 0.3 of a level from 20.667 to 21.567, measured at 1080x1920). A
+     primitive cannot be 88% hold: the batch's floor is 2.07s and the audit
+     gates dead runtime. So the reference's EVENT is reproduced exactly, at its
+     measured length and on its own curve, and the runtime the reference spends
+     holding is spent here on a slow linear scale push instead. Linear because
+     both of the source's two real card motions are linear (the push at
+     47.1-48.6s, 0.74% of frame width per frame, and the rise at 87.2-89.0s,
+     1.5% of frame height per frame). The amplitude is authored, and it is the
+     one number in this file that no measurement backs.
+  2. The reference cuts its cards in on a shot change, so there is no entrance
+     table anywhere in the source. The arrival is therefore authored from the
+     palette, with the reference supplying only its angle.
+  3. Two more lines of copy fade in during the SAME 0.267s window as the mark,
+     on the same curve (measured over the unmarked words left of the mark:
+     235.6 to 7.4 mean luminance, 0, 7.1, 22.4, 40.2, 58.3, 75.0, 91.9, 96.7,
+     99.1 percent). Not adopted: it needs the quote split into per line blocks,
+     and the move this file packages is the mark, not the shot's edit.
+  4. One card, not the several the source uses. Two cards arriving from two
+     edges is two subjects in one beat (Law 6), and the second one would have to
+     land in the presenter's zone.
+  5. Copy, publisher and the opaque stage are invented. Nothing of the source's
+     subject matter, publisher or quote text is reused, and the source has no
+     page background at all: it marks over live footage. Set --rc-bg to
+     transparent to composite the same way.
+
+  Frame zero (Law 8): the tilted card already 44% of the way in from the right,
+  publisher and all five quote lines set, shadow at 0.18, no mark. Nothing
+  starts from an empty frame.
+
+  Presenter safe zone: authored for 9:16, where the whole move lives above 62%
+  of frame height. The plate rests at y 21.5 to 41.5, and its deepest point at
+  any moment is the tilted lower left corner at t=0, at 47.2%. Checked against
+  the local a-roll, which is a QA asset and is referenced nowhere in this file.
+
+  Media slot: there is none, this draws everything it shows. To composite over
+  footage, set --rc-bg to transparent on #root and mount it above the video.
+  Overridable on #root: --rc-bg, --rc-card, --rc-ink, --rc-pub, --rc-mark,
+  --rc-marked-ink, --rc-shadow. The publisher name, the quote and which words
+  carry the mark all live in the markup: move the .rc-phrase span and the mark
+  boxes follow it.
+
+  Contrast: white on #4347F6 is 6.05:1, over the 4.5:1 floor. Mid ramp the
+  phrase passes through grey on lavender for about 0.13s, which is what the
+  reference does and what any cross dissolve does.
+
+  Mount contract: the runtime clones only this template, #root fills the host,
+  carries no data-width or data-height, and registers one paused timeline under
+  the hardcoded receipt-card id.
+-->
+<html lang="en" data-composition-id="receipt-card" data-composition-duration="2.2">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Receipt Card</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="receipt-card" data-duration="2.2" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--rc-bg, #0e1013);
+            font-family: Inter, "Helvetica Neue", system-ui, sans-serif;
+            pointer-events: none;
+          }
+
+          /* The plate carries both the card and its shadow, so the arrival is
+             one transform on one element and the shadow can never shear off it.
+             Width is the reference's 71.30% of frame width, capped in cqmin so
+             a landscape host does not stretch a 5 line quote to 1369px. */
+          .rc-plate {
+            position: absolute;
+            top: 21.5cqh;
+            left: 50%;
+            width: min(71.3cqw, 78cqmin);
+            transform: translateX(-50%);
+          }
+
+          .rc-shade {
+            position: absolute;
+            inset: 1.4cqmin -0.6cqmin -2.2cqmin;
+            border-radius: 4.4cqmin;
+            background: var(--rc-shadow, rgba(0, 0, 0, 0.62));
+            filter: blur(2.6cqmin);
+          }
+
+          .rc-card {
+            position: relative;
+            padding: 3.15cqmin 3.7cqmin 2.8cqmin;
+            border-radius: 3.7cqmin;
+            background: var(--rc-card, #fcfcfc);
+          }
+
+          /* Publisher line. Serif, all caps and tracked rather than true small
+             caps: synthesised small caps differ per host font, and the reference
+             sets it in caps anyway. */
+          .rc-pub {
+            position: relative;
+            z-index: 1;
+            margin: 0 0 2.4cqmin;
+            color: var(--rc-pub, #16181c);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 2.32cqmin;
+            letter-spacing: 0.14em;
+            line-height: 1;
+            text-align: center;
+            text-transform: uppercase;
+          }
+
+          .rc-quote {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: var(--rc-ink, #16181c);
+            font-size: 4.35cqmin;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            line-height: 1.19;
+            text-align: center;
+          }
+
+          /* The marked state of the card, as one layer: the mark boxes plus a
+             copy of the quote whose only visible text is the phrase, in white.
+             Fading this whole layer in is what the reference does. Compositing
+             white-on-blue over black-on-white gives the reference's own mid ramp
+             greys for free, so no per element colour tween is needed. */
+          .rc-marks {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            overflow: hidden;
+            border-radius: 3.7cqmin;
+          }
+
+          .rc-mark {
+            position: absolute;
+            background: var(--rc-mark, #4347f6);
+          }
+
+          /* The overlay copy. Everything except the phrase is transparent, so
+             the base quote below shows through unchanged at any opacity. */
+          .rc-marks .rc-quote {
+            position: absolute;
+            color: transparent;
+          }
+
+          .rc-marks .rc-phrase {
+            color: var(--rc-marked-ink, #ffffff);
+          }
+
+          /* Landscape is a fallback, not the native shape: the presenter owns
+             the left 32% there, so the plate moves into the right two thirds
+             instead of sitting on top of the person. */
+          @container (aspect-ratio > 1.35) {
+            .rc-plate {
+              left: 66%;
+            }
+          }
+        </style>
+
+        <div class="rc-plate">
+          <div class="rc-shade"></div>
+          <div class="rc-card">
+            <div class="rc-marks"></div>
+            <p class="rc-pub">The Daily Ledger</p>
+            <p class="rc-quote">
+              &ldquo;Most of the work happens long before anyone is watching, and the part that looks effortless is
+              usually <span class="rc-phrase">the part that took the longest to get right</span>.&rdquo;
+            </p>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek-safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            // Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Named for what they do in a shot. No GSAP preset appears here on
+            // purpose: a named ease is a category, not a curve.
+            var E = {
+              enter: cb(0.22, 0.9, 0.3, 1.0),
+              exitSettle: cb(0.3, 0.8, 0.4, 1.0),
+              springSm: cb(0.34, 1.3, 0.5, 1.0),
+              // Fitted, not chosen. See the header: this is the reference's own
+              // mark ramp at 20.400 to 20.667s, 9 samples at 30fps, max error
+              // 0.50% of travel. It drives the fill here, as it does there.
+              marker: cb(0.181, 0.002, 0.709, 1.0),
+              // The source's two real card motions are both constant rate.
+              linear: cb(0.0, 0.0, 1.0, 1.0),
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var plate = root.querySelector(".rc-plate");
+            var card = root.querySelector(".rc-card");
+            var shade = root.querySelector(".rc-shade");
+            var quote = root.querySelector(".rc-quote");
+            var phrase = root.querySelector(".rc-phrase");
+            var marks = root.querySelector(".rc-marks");
+
+            // GSAP writes transforms as px, so a cqmin tween distance would not
+            // survive. Read the unit once, at build time, and multiply.
+            var U = Math.min(root.clientWidth, root.clientHeight) / 100 || 10.8;
+
+            var cardBox = card.getBoundingClientRect();
+            var plateW = plate.getBoundingClientRect().width || 71 * U;
+            // Travel is a fraction of the PLATE, not of the frame. As a frame
+            // fraction the same number leaves the card entirely off screen in
+            // landscape, where the plate is parked at 66%, and frame zero comes
+            // out empty. 0.645 of the plate is the reference's 497px at 9:16.
+            var IN_X = 0.645 * plateW;
+            var TILT = -18; // the 76.0s card's fitted bottom edge, -17.6deg
+
+            // One box per line the phrase occupies, measured rather than
+            // authored: a Range reports the real line fragments, so moving the
+            // span or changing the host font re-cuts the boxes for free.
+            var fs = parseFloat(getComputedStyle(quote).fontSize) || 4.35 * U;
+            var rng = document.createRange();
+            rng.selectNodeContents(phrase);
+            var PAD = 0.62 * U;
+            var MH = 0.98 * fs; // 45px against a 56px line advance in the reference
+            [].slice
+              .call(rng.getClientRects())
+              .filter(function (r) { return r.width > 4; })
+              .forEach(function (r) {
+                var el = document.createElement("span");
+                el.className = "rc-mark";
+                el.style.left = r.left - cardBox.left - PAD + "px";
+                el.style.top = r.top - cardBox.top + (r.height - MH) / 2 + 0.04 * fs + "px";
+                el.style.width = r.width + PAD * 2 + "px";
+                el.style.height = MH + "px";
+                marks.appendChild(el);
+              });
+
+            // The white ink sits on the same layer, above the boxes, as a copy
+            // of the quote pinned over the original. Cloning rather than
+            // re-authoring keeps the two line breakings identical by
+            // construction, at any host width and any host font.
+            var qb = quote.getBoundingClientRect();
+            var over = quote.cloneNode(true);
+            over.style.left = qb.left - cardBox.left + "px";
+            over.style.top = qb.top - cardBox.top + "px";
+            over.style.width = qb.width + "px";
+            marks.appendChild(over);
+
+            var D = 2.2;
+
+            // Rest state pinned outside the timeline, both ends written on every
+            // tween, so a seek never inherits a start value from the screen.
+            gsap.set(plate, { x: IN_X, rotation: TILT, scale: 1, transformOrigin: "50% 50%" });
+            gsap.set(shade, { opacity: 0.18 });
+            gsap.set(marks, { opacity: 0 });
+
+            var tl = gsap.timeline({ paused: true });
+
+            // ARRIVE and SETTLE. The tilt's window is longer than the slide's on
+            // purpose: the slide's tail is the flattest part of enter, and the
+            // spring is still crossing flat through all of it.
+            tl.fromTo(plate, { x: IN_X }, { x: 0, duration: 0.72, ease: E.enter }, 0);
+            tl.fromTo(plate, { rotation: TILT }, { rotation: 0, duration: 0.92, ease: E.springSm }, 0);
+            tl.fromTo(shade, { opacity: 0.18 }, { opacity: 1, duration: 0.75, ease: E.exitSettle }, 0.3);
+
+            // PUSH. Opens at 0.62, inside the spring's tail, which is the handoff
+            // Law 3 asks for: the spring is mathematically alive until 0.92 but
+            // its last 30% is under a pixel at the card's corner. Runs to 1.90,
+            // where the mark takes over. See header deviation 1: this is standing
+            // in for runtime the reference spends holding perfectly still.
+            tl.fromTo(plate, { scale: 1 }, { scale: 1.03, duration: 1.28, ease: E.linear }, 0.62);
+
+            // MARK. The reference's event, whole: 0.267s, its own fitted curve,
+            // every box on every line at once and at full width. Ends at 2.130
+            // rather than at D so the last sample the harness takes, at 0.9697*D,
+            // lands on the finished state instead of inside the ramp.
+            tl.fromTo(marks, { opacity: 0 }, { opacity: 1, duration: 0.267, ease: E.marker }, 1.863);
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["receipt-card"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

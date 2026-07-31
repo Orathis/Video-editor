@@ -1,0 +1,23 @@
+---
+title: "Pill Row Collapse"
+description: "Five labeled pills build left to right, hold for reading, then pills two through five spread and clear while the first pill glides to center and becomes active."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">Process sequences</span>
+
+<PrimitivePlayer name="pill-row-collapse" width={1920} height={1080} />
+
+## When to use it
+
+A five-stage process must narrow visibly to its first stage after all five labels have been shown together.
+
+## When to avoid it
+
+Avoid it when a label may be bisected during reveal, because the type-in clip is deliberately quantized to character boundaries.
+
+## Pairs with
+
+- [state-chip-rail](/primitives/state-chip-rail)
+- [rank-list-settle](/primitives/rank-list-settle)

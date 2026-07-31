@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalog browsing eval</title><style>
+:root { color-scheme: light dark; --fg:#111; --dim:#666; --line:#e3e3e6; --bg:#fff;
+        --ok:#0a7c3f; --no:#b3261e; --card:#fafafa; }
+@media (prefers-color-scheme: dark) { :root { --fg:#e8e8ea; --dim:#9a9aa2; --line:#2a2a2e;
+        --bg:#0d0d0f; --ok:#4ade80; --no:#f87171; --card:#151518; } }
+* { box-sizing: border-box; }
+body { margin:0 auto; padding:2.5rem 1.5rem 6rem; max-width:60rem; background:var(--bg); color:var(--fg);
+       font:15px/1.6 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+h1 { font-size:1.6rem; margin:0 0 .3rem; letter-spacing:-.01em; }
+h2 { font-size:1.1rem; margin:3rem 0 .8rem; padding-bottom:.4rem; border-bottom:1px solid var(--line); }
+h3 { font-size:.95rem; margin:0 0 .5rem; }
+.lede { color:var(--dim); margin:0 0 1rem; }
+table { border-collapse:collapse; width:100%; margin:.5rem 0 1rem; font-variant-numeric:tabular-nums; }
+th, td { text-align:left; padding:.45rem .7rem; border-bottom:1px solid var(--line); }
+th { font-weight:600; color:var(--dim); font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; }
+tr.top td { font-weight:650; }
+tr.top td:first-child::after { content:" \2605"; color:var(--ok); }
+.callout { border-left:3px solid var(--ok); background:var(--card); padding:.9rem 1.1rem; margin:1rem 0; border-radius:0 6px 6px 0; }
+.callout.warn { border-left-color:#d97706; }
+.callout p { margin:.3rem 0; }
+.grid { display:grid; gap:.7rem; }
+.run, .brief { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:.8rem 1rem; }
+.run header { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:.82rem; }
+.run .id { font-weight:600; }
+.run .score { color:var(--dim); font-variant-numeric:tabular-nums; }
+.run.pass { border-left:3px solid var(--ok); }
+.run.fail { border-left:3px solid var(--no); }
+.picks { list-style:none; margin:.5rem 0 .3rem; padding:0; display:flex; flex-wrap:wrap; gap:.4rem; }
+.picks li { border:1px solid var(--line); border-radius:5px; padding:.15rem .5rem; font-size:.82rem; background:var(--bg); }
+.picks li.right { border-color:var(--ok); }
+.picks li.wrong { border-color:var(--no); }
+.picks li.unmatched { color:var(--dim); font-style:italic; }
+.how { color:var(--dim); font-size:.72rem; margin-left:.4rem; }
+.right { color:var(--ok); }
+.wrong { color:var(--no); }
+.why, .cost, .shown, .trap { color:var(--dim); font-size:.8rem; margin:.3rem 0 0; }
+.shown span { margin-right:.35rem; }
+details summary { cursor:pointer; color:var(--dim); font-size:.8rem; }
+pre.meta { font-size:.75rem; color:var(--dim); margin:0 0 .5rem; white-space:pre-wrap; }
+code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+footer { margin-top:3rem; color:var(--dim); font-size:.8rem; border-top:1px solid var(--line); padding-top:1rem; }
+</style></head>
+<body>
+<h1>Catalog browsing eval</h1>
+<p class="lede">30 runs over 5 briefs, gpt-4o-mini at temperature 0,
+34,604 tokens total. Every run below shows what its condition put in front of the
+model and what came back, so the verdict is checkable rather than asserted.</p>
+
+<h2>Result</h2>
+<table class='sum'><tr><th>condition</th><th>mean fit</th><th>mountable</th><th>passed</th><th>tokens/run</th></tr>
+<tr><td>A k=5</td><td>0.367</td><td>0.00</td><td>3/5</td><td>332</td></tr>
+<tr class='top'><td>B k=5</td><td>0.867</td><td>1.00</td><td>5/5</td><td>2639</td></tr>
+<tr><td>C k=5</td><td>0.467</td><td>0.80</td><td>3/5</td><td>748</td></tr>
+<tr class='top'><td>D k=5</td><td>0.867</td><td>1.00</td><td>5/5</td><td>751</td></tr>
+<tr class='top'><td>C k=10</td><td>0.867</td><td>1.00</td><td>5/5</td><td>1221</td></tr>
+<tr class='top'><td>D k=10</td><td>0.867</td><td>1.00</td><td>5/5</td><td>1227</td></tr></table>
+
+<div class="callout">
+<p><b>Grep the shelf, take 10, skip the embeddings.</b> Semantic retrieval beat lexical
+decisively at k=5 (0.867 against 0.467), and that gap vanished completely at k=10 where both
+score 0.867 within 6 tokens of each other. The entire measured advantage of embeddings came
+from too narrow a window, and widening the grep window costs nothing to build or operate.</p>
+<p><b>Keep the catalog.</b> The control scores 0.00 mountable on every brief: all 10 moves it
+named were invented and none can be installed.</p>
+<p><b>Retrieve rather than paste the file.</b> Lexical k=10 matches a full read exactly on
+quality at 46% of the tokens, and top-k does not scale with shelf size while a full read does.</p>
+</div>
+
+<div class="callout warn">
+<p><b>The honest limitation.</b> 0.867 is the ceiling this brief set can measure, not a score
+with headroom above it. Briefs 01 and 05 each have two gold answers and every condition that
+found one found only one. Four of the six configurations sit on that exact ceiling, so the tie
+between them is a measurement limit, not a demonstrated equivalence. What the data does support
+is the two conditions that lost, and both losses are large and mechanically explained.</p>
+</div>
+
+<h2>The briefs and their gold answers</h2>
+<p class="lede">Written in a director's voice, never the shelf's, so neither retriever wins on
+vocabulary. Authored before any run and never shown to one.</p>
+<div class="grid">
+<article class="brief">
+  <h3>brief 01</h3>
+  <pre class="meta">id: 01
+duration: 4.0
+register: developer tool
+aspect: 16x9</pre>
+  <p>The release goes out in five steps, and we want the viewer to hold all five in
+their head at once before we drop them into the one that broke. So: lay the whole
+run out across the frame, let it read as a complete route from first step to last,
+then take everything away except the step where it stopped. The narrowing is the
+point. By the end there should be no doubt which step we are now talking about,
+and no leftover clutter from the other four.
+
+Nothing here is being typed, spoken, or photographed. It is a status picture.</p>
+  <p class="gold"><b>gold best:</b> <span class="right">pill-row-collapse, state-chip-rail</span><br>
+     <b>known wrong:</b> <span class="wrong">caption-camera-follow, glyph-ring-assemble</span></p>
+  <p class="trap">pill-row-collapse collapses to the FIRST stage, while the brief narrows to the stage that failed. A selection that names it should say how it reassigns which stage survives. Naming it without that note is defensible, not disqualifying.</p>
+</article>
+
+<article class="brief">
+  <h3>brief 02</h3>
+  <pre class="meta">id: 02
+duration: 3.2
+register: quiet editorial
+aspect: 16x9</pre>
+  <p>This is the proof moment. We have been talking about what the treatment does to a
+photograph, and now the viewer has to actually see the difference rather than take
+our word for it. Keep it calm and keep it honest: one picture, the untouched
+version and the treated version visible together, so the eye can compare them
+without cutting away or remembering a previous shot.
+
+No narration over this beat. No text. The comparison is the whole argument, and if
+the viewer has to hold two separate shots in memory to make it, we have failed.</p>
+  <p class="gold"><b>gold best:</b> <span class="right">grade-split-reveal</span><br>
+     <b>known wrong:</b> <span class="wrong">halftone-dissolve, match-cut</span></p>
+  <p class="trap">grade-split-reveal&#x27;s avoid_when restricts it to image and video media. The brief says photograph, so the constraint is satisfied. A run that rejects it on those grounds has misread its own catalog.</p>
+</article>
+
+<article class="brief">
+  <h3>brief 03</h3>
+  <pre class="meta">id: 03
+duration: 6.0
+register: consumer app
+aspect: 9x16</pre>
+  <p>Show someone actually using the thing. A short back-and-forth: they ask something,
+they get an answer, they follow up. It should feel like watching over a shoulder,
+so the exchange arrives piece by piece rather than appearing all at once, and the
+two sides of the conversation need to be immediately distinguishable.
+
+Behind it, the app should not look frozen. Something should keep drifting or
+breathing under the exchange so the scene stays alive while the talk accumulates.
+
+Phone shape. Warm, casual, not corporate.</p>
+  <p class="gold"><b>gold best:</b> <span class="right">thread-message-stack</span><br>
+     <b>known wrong:</b> <span class="wrong">persona-card-fan, rank-list-settle</span></p>
+  <p class="trap">Its avoid_when is that frame zero cannot be empty, since it opens on three settled bubbles. The brief never requires an empty first frame, so this is not a blocker here.</p>
+</article>
+
+<article class="brief">
+  <h3>brief 04</h3>
+  <pre class="meta">id: 04
+duration: 3.5
+register: brand headline
+aspect: 16x9</pre>
+  <p>One line on screen, and the promise inside it keeps upgrading. The sentence frame
+stays put, the reader keeps reading the same sentence, but the claim in the middle
+of it turns over a few times and then stops on the one we actually mean. Think of
+it as the same sentence being said three ways, with the last way being the real
+one.
+
+Critical: the line must not jump around while this happens. If the words on either
+side of the changing part shift position, the effect reads as broken layout rather
+than as a deliberate device. It should land settled, not mid-motion.</p>
+  <p class="gold"><b>gold best:</b> <span class="right">kinetic-type-swap</span><br>
+     <b>known wrong:</b> <span class="wrong">version-plate-type, particle-text-dissolve, glyph-ring-assemble</span></p>
+  <p class="trap">version-plate-type sits in the bad list on purpose. It is the selection a run makes when it matches on the words &#x27;text&#x27; and &#x27;changes&#x27; without reading what the move actually does to the sentence.</p>
+</article>
+
+<article class="brief">
+  <h3>brief 05</h3>
+  <pre class="meta">id: 05
+duration: 2.8
+register: product spatial
+aspect: 16x9</pre>
+  <p>Two things are stacked in space: the thing the viewer is looking at now, up close,
+and the thing we want them looking at instead, sitting further back. The beat is
+the handoff. Attention starts on the near one and ends on the far one, and it
+should feel like the eye refocusing rather than like a slide swapping out.
+
+It happens once and it does not come back. Sharpness, weight, and a little
+positional drift should all agree about where the viewer is supposed to be looking
+by the end. Short beat, so the handoff cannot dawdle.</p>
+  <p class="gold"><b>gold best:</b> <span class="right">depth-rack-focus, focus-rack</span><br>
+     <b>known wrong:</b> <span class="wrong">z-punch-through, orbit-ring-camera</span></p>
+  <p class="trap">focus-rack racks exactly once over 0.7 seconds, which fits a 2.8 second beat. A run that rejects it for being too slow has not read the envelope.</p>
+</article></div>
+
+<h2>Every run</h2>
+<p class="lede">Green outline is a gold answer, red is a move the gold set marks known-wrong.
+Condition A picks are free text resolved to their nearest shelf move by embedding.</p>
+<div class="grid">
+<article class="run pass">
+  <header>
+    <span class="id">brief 01 &middot; condition C &middot; k=10</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class='right'>state-chip-rail</span>, <span class='right'>pill-row-collapse</span>, <span class=''>version-plate-type</span>, <span class=''>orbit-ring-camera</span>, <span class=''>depth-rack-focus</span>, <span class=''>particle-text-dissolve</span>, <span class=''>thread-message-stack</span>, <span class=''>rank-list-settle</span>, <span class=''>press-ripple</span>, <span class=''>grade-split-reveal</span></p></details>
+  <ul class="picks"><li class='right'><code>pill-row-collapse</code><span class='how'>exact</span></li></ul>
+  <p class="why">found pill-row-collapse</p>
+  <p class="cost">1233 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 01 &middot; condition D &middot; k=10</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class='wrong'>caption-camera-follow</span>, <span class='right'>pill-row-collapse</span>, <span class=''>orbit-ring-camera</span>, <span class=''>z-punch-through</span>, <span class=''>grade-split-reveal</span>, <span class=''>depth-rack-focus</span>, <span class=''>plan-room-audit</span>, <span class=''>focus-rack</span>, <span class=''>echo-trail</span>, <span class=''>persona-card-fan</span></p></details>
+  <ul class="picks"><li class='right'><code>pill-row-collapse</code><span class='how'>exact</span></li></ul>
+  <p class="why">found pill-row-collapse</p>
+  <p class="cost">1239 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 01 &middot; condition A &middot; k=5</span>
+    <span class="score">fit 0.5 &middot; mountable 0.00 &middot; PASS</span>
+  </header>
+  <p class='shown none'>saw no catalog at all</p>
+  <ul class="picks"><li class='right'><code>LayerReveal</code> &rarr; pill-row-collapse<span class='how'>nearest:0.48</span></li><li class='neutral'><code>FocusShift</code> &rarr; focus-rack<span class='how'>nearest:0.52</span></li></ul>
+  <p class="why">found pill-row-collapse</p>
+  <p class="cost">330 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 01 &middot; condition B &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 25 moves</summary><p class='shown'><span class=''>caliper-caption-rail</span>, <span class='wrong'>caption-camera-follow</span>, <span class=''>chevron-pill-card-morph</span>, <span class=''>depth-rack-focus</span>, <span class=''>echo-trail</span>, <span class=''>focus-rack</span>, <span class='wrong'>glyph-ring-assemble</span>, <span class=''>grade-split-reveal</span>, <span class=''>halftone-dissolve</span>, <span class=''>kinetic-type-swap</span>, <span class=''>marker-highlight</span>, <span class=''>match-cut</span>, <span class=''>orbit-ring-camera</span>, <span class=''>particle-text-dissolve</span>, <span class=''>persona-card-fan</span>, <span class='right'>pill-row-collapse</span>, <span class=''>plan-room-audit</span>, <span class=''>press-ripple</span>, <span class=''>rank-list-settle</span>, <span class=''>receipt-card</span>, <span class='right'>state-chip-rail</span>, <span class=''>thread-message-stack</span>, <span class=''>version-plate-type</span>, <span class=''>whiteboard-ink</span>, <span class=''>z-punch-through</span></p></details>
+  <ul class="picks"><li class='right'><code>pill-row-collapse</code><span class='how'>exact</span></li></ul>
+  <p class="why">found pill-row-collapse</p>
+  <p class="cost">2634 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 01 &middot; condition C &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class='right'>state-chip-rail</span>, <span class='right'>pill-row-collapse</span>, <span class=''>version-plate-type</span>, <span class=''>orbit-ring-camera</span>, <span class=''>depth-rack-focus</span></p></details>
+  <ul class="picks"><li class='right'><code>pill-row-collapse</code><span class='how'>exact</span></li></ul>
+  <p class="why">found pill-row-collapse</p>
+  <p class="cost">773 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 01 &middot; condition D &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class='wrong'>caption-camera-follow</span>, <span class='right'>pill-row-collapse</span>, <span class=''>orbit-ring-camera</span>, <span class=''>z-punch-through</span>, <span class=''>grade-split-reveal</span></p></details>
+  <ul class="picks"><li class='right'><code>pill-row-collapse</code><span class='how'>exact</span></li></ul>
+  <p class="why">found pill-row-collapse</p>
+  <p class="cost">765 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 02 &middot; condition C &middot; k=10</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class=''>glyph-ring-assemble</span>, <span class=''>kinetic-type-swap</span>, <span class=''>pill-row-collapse</span>, <span class=''>particle-text-dissolve</span>, <span class=''>z-punch-through</span>, <span class=''>version-plate-type</span>, <span class=''>press-ripple</span>, <span class='right'>grade-split-reveal</span>, <span class=''>caliper-caption-rail</span>, <span class=''>caption-camera-follow</span></p></details>
+  <ul class="picks"><li class='right'><code>grade-split-reveal</code><span class='how'>exact</span></li></ul>
+  <p class="why">found grade-split-reveal</p>
+  <p class="cost">1243 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 02 &middot; condition D &middot; k=10</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class='right'>grade-split-reveal</span>, <span class=''>z-punch-through</span>, <span class=''>depth-rack-focus</span>, <span class=''>orbit-ring-camera</span>, <span class=''>focus-rack</span>, <span class='wrong'>match-cut</span>, <span class=''>caption-camera-follow</span>, <span class=''>caliper-caption-rail</span>, <span class=''>echo-trail</span>, <span class=''>plan-room-audit</span></p></details>
+  <ul class="picks"><li class='right'><code>grade-split-reveal</code><span class='how'>exact</span></li></ul>
+  <p class="why">found grade-split-reveal</p>
+  <p class="cost">1226 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 02 &middot; condition A &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 0.00 &middot; PASS</span>
+  </header>
+  <p class='shown none'>saw no catalog at all</p>
+  <ul class="picks"><li class='right'><code>split screen</code> &rarr; grade-split-reveal<span class='how'>nearest:0.51</span></li><li class='neutral'><code>slow zoom</code> &rarr; focus-rack<span class='how'>nearest:0.49</span></li></ul>
+  <p class="why">found grade-split-reveal</p>
+  <p class="cost">322 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 02 &middot; condition B &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 25 moves</summary><p class='shown'><span class=''>caliper-caption-rail</span>, <span class=''>caption-camera-follow</span>, <span class=''>chevron-pill-card-morph</span>, <span class=''>depth-rack-focus</span>, <span class=''>echo-trail</span>, <span class=''>focus-rack</span>, <span class=''>glyph-ring-assemble</span>, <span class='right'>grade-split-reveal</span>, <span class='wrong'>halftone-dissolve</span>, <span class=''>kinetic-type-swap</span>, <span class=''>marker-highlight</span>, <span class='wrong'>match-cut</span>, <span class=''>orbit-ring-camera</span>, <span class=''>particle-text-dissolve</span>, <span class=''>persona-card-fan</span>, <span class=''>pill-row-collapse</span>, <span class=''>plan-room-audit</span>, <span class=''>press-ripple</span>, <span class=''>rank-list-settle</span>, <span class=''>receipt-card</span>, <span class=''>state-chip-rail</span>, <span class=''>thread-message-stack</span>, <span class=''>version-plate-type</span>, <span class=''>whiteboard-ink</span>, <span class=''>z-punch-through</span></p></details>
+  <ul class="picks"><li class='right'><code>grade-split-reveal</code><span class='how'>exact</span></li></ul>
+  <p class="why">found grade-split-reveal</p>
+  <p class="cost">2639 tokens</p>
+</article>
+
+<article class="run fail">
+  <header>
+    <span class="id">brief 02 &middot; condition C &middot; k=5</span>
+    <span class="score">fit 0.0 &middot; mountable 0.00 &middot; FAIL</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class=''>glyph-ring-assemble</span>, <span class=''>kinetic-type-swap</span>, <span class=''>pill-row-collapse</span>, <span class=''>particle-text-dissolve</span>, <span class=''>z-punch-through</span></p></details>
+  <ul class="picks"><li class='unmatched'>no picks returned</li></ul>
+  <p class="why">no pick resolved to a shelf move</p>
+  <p class="cost">721 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 02 &middot; condition D &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class='right'>grade-split-reveal</span>, <span class=''>z-punch-through</span>, <span class=''>depth-rack-focus</span>, <span class=''>orbit-ring-camera</span>, <span class=''>focus-rack</span></p></details>
+  <ul class="picks"><li class='right'><code>grade-split-reveal</code><span class='how'>exact</span></li></ul>
+  <p class="why">found grade-split-reveal</p>
+  <p class="cost">757 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 03 &middot; condition C &middot; k=10</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class=''>z-punch-through</span>, <span class=''>halftone-dissolve</span>, <span class=''>depth-rack-focus</span>, <span class=''>match-cut</span>, <span class=''>focus-rack</span>, <span class='right'>thread-message-stack</span>, <span class=''>plan-room-audit</span>, <span class=''>marker-highlight</span>, <span class=''>receipt-card</span>, <span class=''>kinetic-type-swap</span></p></details>
+  <ul class="picks"><li class='right'><code>thread-message-stack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found thread-message-stack</p>
+  <p class="cost">1180 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 03 &middot; condition D &middot; k=10</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class=''>chevron-pill-card-morph</span>, <span class='right'>thread-message-stack</span>, <span class=''>z-punch-through</span>, <span class=''>press-ripple</span>, <span class=''>depth-rack-focus</span>, <span class=''>caption-camera-follow</span>, <span class=''>focus-rack</span>, <span class=''>halftone-dissolve</span>, <span class='wrong'>persona-card-fan</span>, <span class=''>orbit-ring-camera</span></p></details>
+  <ul class="picks"><li class='right'><code>thread-message-stack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found thread-message-stack</p>
+  <p class="cost">1215 tokens</p>
+</article>
+
+<article class="run fail">
+  <header>
+    <span class="id">brief 03 &middot; condition A &middot; k=5</span>
+    <span class="score">fit 0.0 &middot; mountable 0.00 &middot; FAIL</span>
+  </header>
+  <p class='shown none'>saw no catalog at all</p>
+  <ul class="picks"><li class='unmatched'><code>Over-the-shoulder shot</code><span class='how'>unmatched</span></li><li class='neutral'><code>Cutaway to app interface</code> &rarr; chevron-pill-card-morph<span class='how'>nearest:0.49</span></li></ul>
+  <p class="why">picked shelf moves, none of them the gold answer</p>
+  <p class="cost">330 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 03 &middot; condition B &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 25 moves</summary><p class='shown'><span class=''>caliper-caption-rail</span>, <span class=''>caption-camera-follow</span>, <span class=''>chevron-pill-card-morph</span>, <span class=''>depth-rack-focus</span>, <span class=''>echo-trail</span>, <span class=''>focus-rack</span>, <span class=''>glyph-ring-assemble</span>, <span class=''>grade-split-reveal</span>, <span class=''>halftone-dissolve</span>, <span class=''>kinetic-type-swap</span>, <span class=''>marker-highlight</span>, <span class=''>match-cut</span>, <span class=''>orbit-ring-camera</span>, <span class=''>particle-text-dissolve</span>, <span class='wrong'>persona-card-fan</span>, <span class=''>pill-row-collapse</span>, <span class=''>plan-room-audit</span>, <span class=''>press-ripple</span>, <span class='wrong'>rank-list-settle</span>, <span class=''>receipt-card</span>, <span class=''>state-chip-rail</span>, <span class='right'>thread-message-stack</span>, <span class=''>version-plate-type</span>, <span class=''>whiteboard-ink</span>, <span class=''>z-punch-through</span></p></details>
+  <ul class="picks"><li class='right'><code>thread-message-stack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found thread-message-stack</p>
+  <p class="cost">2624 tokens</p>
+</article>
+
+<article class="run fail">
+  <header>
+    <span class="id">brief 03 &middot; condition C &middot; k=5</span>
+    <span class="score">fit 0.0 &middot; mountable 1.00 &middot; FAIL</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class=''>z-punch-through</span>, <span class=''>halftone-dissolve</span>, <span class=''>depth-rack-focus</span>, <span class=''>match-cut</span>, <span class=''>focus-rack</span></p></details>
+  <ul class="picks"><li class='neutral'><code>depth-rack-focus</code><span class='how'>exact</span></li></ul>
+  <p class="why">picked shelf moves, none of them the gold answer</p>
+  <p class="cost">741 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 03 &middot; condition D &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class=''>chevron-pill-card-morph</span>, <span class='right'>thread-message-stack</span>, <span class=''>z-punch-through</span>, <span class=''>press-ripple</span>, <span class=''>depth-rack-focus</span></p></details>
+  <ul class="picks"><li class='right'><code>thread-message-stack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found thread-message-stack</p>
+  <p class="cost">733 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 04 &middot; condition C &middot; k=10</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class=''>thread-message-stack</span>, <span class=''>rank-list-settle</span>, <span class='right'>kinetic-type-swap</span>, <span class=''>caption-camera-follow</span>, <span class='wrong'>version-plate-type</span>, <span class=''>persona-card-fan</span>, <span class='wrong'>particle-text-dissolve</span>, <span class=''>match-cut</span>, <span class=''>z-punch-through</span>, <span class=''>press-ripple</span></p></details>
+  <ul class="picks"><li class='right'><code>kinetic-type-swap</code><span class='how'>exact</span></li></ul>
+  <p class="why">found kinetic-type-swap</p>
+  <p class="cost">1237 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 04 &middot; condition D &middot; k=10</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class=''>caption-camera-follow</span>, <span class='right'>kinetic-type-swap</span>, <span class=''>pill-row-collapse</span>, <span class=''>depth-rack-focus</span>, <span class='wrong'>version-plate-type</span>, <span class=''>marker-highlight</span>, <span class='wrong'>particle-text-dissolve</span>, <span class=''>z-punch-through</span>, <span class=''>receipt-card</span>, <span class=''>grade-split-reveal</span></p></details>
+  <ul class="picks"><li class='right'><code>kinetic-type-swap</code><span class='how'>exact</span></li></ul>
+  <p class="why">found kinetic-type-swap</p>
+  <p class="cost">1209 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 04 &middot; condition A &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 0.00 &middot; PASS</span>
+  </header>
+  <p class='shown none'>saw no catalog at all</p>
+  <ul class="picks"><li class='right'><code>Text Morph</code> &rarr; kinetic-type-swap<span class='how'>nearest:0.53</span></li><li class='right'><code>Static Frame</code> &rarr; kinetic-type-swap<span class='how'>nearest:0.48</span></li></ul>
+  <p class="why">found kinetic-type-swap</p>
+  <p class="cost">332 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 04 &middot; condition B &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 25 moves</summary><p class='shown'><span class=''>caliper-caption-rail</span>, <span class=''>caption-camera-follow</span>, <span class=''>chevron-pill-card-morph</span>, <span class=''>depth-rack-focus</span>, <span class=''>echo-trail</span>, <span class=''>focus-rack</span>, <span class='wrong'>glyph-ring-assemble</span>, <span class=''>grade-split-reveal</span>, <span class=''>halftone-dissolve</span>, <span class='right'>kinetic-type-swap</span>, <span class=''>marker-highlight</span>, <span class=''>match-cut</span>, <span class=''>orbit-ring-camera</span>, <span class='wrong'>particle-text-dissolve</span>, <span class=''>persona-card-fan</span>, <span class=''>pill-row-collapse</span>, <span class=''>plan-room-audit</span>, <span class=''>press-ripple</span>, <span class=''>rank-list-settle</span>, <span class=''>receipt-card</span>, <span class=''>state-chip-rail</span>, <span class=''>thread-message-stack</span>, <span class='wrong'>version-plate-type</span>, <span class=''>whiteboard-ink</span>, <span class=''>z-punch-through</span></p></details>
+  <ul class="picks"><li class='right'><code>kinetic-type-swap</code><span class='how'>exact</span></li></ul>
+  <p class="why">found kinetic-type-swap</p>
+  <p class="cost">2653 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 04 &middot; condition C &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class=''>thread-message-stack</span>, <span class=''>rank-list-settle</span>, <span class='right'>kinetic-type-swap</span>, <span class=''>caption-camera-follow</span>, <span class='wrong'>version-plate-type</span></p></details>
+  <ul class="picks"><li class='right'><code>kinetic-type-swap</code><span class='how'>exact</span></li></ul>
+  <p class="why">found kinetic-type-swap</p>
+  <p class="cost">767 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 04 &middot; condition D &middot; k=5</span>
+    <span class="score">fit 1.0 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class=''>caption-camera-follow</span>, <span class='right'>kinetic-type-swap</span>, <span class=''>pill-row-collapse</span>, <span class=''>depth-rack-focus</span>, <span class='wrong'>version-plate-type</span></p></details>
+  <ul class="picks"><li class='right'><code>kinetic-type-swap</code><span class='how'>exact</span></li></ul>
+  <p class="why">found kinetic-type-swap</p>
+  <p class="cost">758 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 05 &middot; condition C &middot; k=10</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class='right'>depth-rack-focus</span>, <span class='right'>focus-rack</span>, <span class='wrong'>z-punch-through</span>, <span class=''>glyph-ring-assemble</span>, <span class=''>particle-text-dissolve</span>, <span class=''>rank-list-settle</span>, <span class='wrong'>orbit-ring-camera</span>, <span class=''>marker-highlight</span>, <span class=''>chevron-pill-card-morph</span>, <span class=''>press-ripple</span></p></details>
+  <ul class="picks"><li class='right'><code>focus-rack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found focus-rack</p>
+  <p class="cost">1215 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 05 &middot; condition D &middot; k=10</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 10 moves</summary><p class='shown'><span class='right'>depth-rack-focus</span>, <span class='right'>focus-rack</span>, <span class='wrong'>orbit-ring-camera</span>, <span class='wrong'>z-punch-through</span>, <span class=''>caption-camera-follow</span>, <span class=''>grade-split-reveal</span>, <span class=''>match-cut</span>, <span class=''>persona-card-fan</span>, <span class=''>halftone-dissolve</span>, <span class=''>echo-trail</span></p></details>
+  <ul class="picks"><li class='right'><code>focus-rack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found focus-rack</p>
+  <p class="cost">1250 tokens</p>
+</article>
+
+<article class="run fail">
+  <header>
+    <span class="id">brief 05 &middot; condition A &middot; k=5</span>
+    <span class="score">fit 0.0 &middot; mountable 0.00 &middot; FAIL</span>
+  </header>
+  <p class='shown none'>saw no catalog at all</p>
+  <ul class="picks"><li class='right'><code>Focus Shift</code> &rarr; focus-rack<span class='how'>nearest:0.65</span></li><li class='wrong'><code>Depth Pull</code> &rarr; z-punch-through<span class='how'>nearest:0.46</span></li></ul>
+  <p class="why">found focus-rack; picked known-wrong z-punch-through</p>
+  <p class="cost">346 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 05 &middot; condition B &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 25 moves</summary><p class='shown'><span class=''>caliper-caption-rail</span>, <span class=''>caption-camera-follow</span>, <span class=''>chevron-pill-card-morph</span>, <span class='right'>depth-rack-focus</span>, <span class=''>echo-trail</span>, <span class='right'>focus-rack</span>, <span class=''>glyph-ring-assemble</span>, <span class=''>grade-split-reveal</span>, <span class=''>halftone-dissolve</span>, <span class=''>kinetic-type-swap</span>, <span class=''>marker-highlight</span>, <span class=''>match-cut</span>, <span class='wrong'>orbit-ring-camera</span>, <span class=''>particle-text-dissolve</span>, <span class=''>persona-card-fan</span>, <span class=''>pill-row-collapse</span>, <span class=''>plan-room-audit</span>, <span class=''>press-ripple</span>, <span class=''>rank-list-settle</span>, <span class=''>receipt-card</span>, <span class=''>state-chip-rail</span>, <span class=''>thread-message-stack</span>, <span class=''>version-plate-type</span>, <span class=''>whiteboard-ink</span>, <span class='wrong'>z-punch-through</span></p></details>
+  <ul class="picks"><li class='right'><code>depth-rack-focus</code><span class='how'>exact</span></li></ul>
+  <p class="why">found depth-rack-focus</p>
+  <p class="cost">2648 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 05 &middot; condition C &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class='right'>depth-rack-focus</span>, <span class='right'>focus-rack</span>, <span class='wrong'>z-punch-through</span>, <span class=''>glyph-ring-assemble</span>, <span class=''>particle-text-dissolve</span></p></details>
+  <ul class="picks"><li class='right'><code>focus-rack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found focus-rack</p>
+  <p class="cost">741 tokens</p>
+</article>
+
+<article class="run pass">
+  <header>
+    <span class="id">brief 05 &middot; condition D &middot; k=5</span>
+    <span class="score">fit 0.6667 &middot; mountable 1.00 &middot; PASS</span>
+  </header>
+  <details><summary>saw 5 moves</summary><p class='shown'><span class='right'>depth-rack-focus</span>, <span class='right'>focus-rack</span>, <span class='wrong'>orbit-ring-camera</span>, <span class='wrong'>z-punch-through</span>, <span class=''>caption-camera-follow</span></p></details>
+  <ul class="picks"><li class='right'><code>focus-rack</code><span class='how'>exact</span></li></ul>
+  <p class="why">found focus-rack</p>
+  <p class="cost">743 tokens</p>
+</article></div>
+
+<footer>Scored by gate.py against hand-authored gold sets, 11 checks passing in test_gate.py.
+Shelf of 25 moves at ../video-primitives/SHELF.md. Full write-up in VERDICT.md.</footer>
+</body></html>

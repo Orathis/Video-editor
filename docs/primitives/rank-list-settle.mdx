@@ -1,0 +1,29 @@
+---
+title: "Rank List Settle"
+description: "A ranked list rolls upward under a fixed focus line, washes out passing rows, and stops with the final winning row fully lit on that line."
+---
+
+import { PrimitivePlayer } from "/snippets/PrimitivePlayer.jsx";
+
+<span className="hf-primitive-eyebrow">List assembly</span>
+
+<PrimitivePlayer name="rank-list-settle" width={1920} height={1080} />
+
+## Variables
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | `Cost per commit` | The line the winning row lands on. |
+
+## When to use it
+
+A comparison must build to one winner whose emphasis is determined by its physical position at the stop.
+
+## When to avoid it
+
+Avoid it when the winner cannot be the last row, because the geometry parks only the last row on the focus line and requires that row to carry the winner class.
+
+## Pairs with
+
+- [pill-row-collapse](/primitives/pill-row-collapse)
+- [state-chip-rail](/primitives/state-chip-rail)

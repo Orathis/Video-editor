@@ -1,0 +1,9 @@
+{
+  "acceptable": [],
+  "bad": ["halftone-dissolve", "match-cut"],
+  "best": ["grade-split-reveal"],
+  "brief": "02",
+  "trap": "grade-split-reveal's avoid_when restricts it to image and video media. The brief says photograph, so the constraint is satisfied. A run that rejects it on those grounds has misread its own catalog.",
+  "why_bad": "Both are scene-to-scene transitions. They replace A with B over time, so the viewer must remember the earlier state, which the brief explicitly rules out.",
+  "why_best": "It is the only move that puts an untreated and a treated copy of one plate in the same frame with a comparison pause, which is exactly the brief's 'without cutting away'."
+}

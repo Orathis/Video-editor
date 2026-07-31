@@ -1,0 +1,487 @@
+<!doctype html>
+<!--
+  pill-row-collapse: HyperFrames video primitive (process / narrowing).
+
+  A five stage pipeline builds itself as a row of labelled pills, holds a beat,
+  then the row spreads and clears while the first pill glides to dead centre.
+
+  Measured from reference-shipos.mp4, 5.0s to 7.0s. Reference geometry as fractions
+  of the 1920x1080 source, and the anti-slop gate: row band y 44.63 to 55.40
+  (pill height 10.5%), row span x 7.34 to 92.08 (84.7% of width), gap 3.0% of
+  width, caption band y 83.9 to 95.6, label ink 5.46% of frame height. Pill
+  height, type scale, dot and paddings are cqmin against those; the gap is the
+  one lateral measurement, so cqw.
+  Labels and caption text live in the markup. Overridable on #root: --prc-bg,
+  --prc-ink, --prc-caption, --prc-active, --prc-fill-1..5, --prc-dot-1..5.
+  Envelope (D = 3.00s): BUILD 0.00-1.40, pills seed and type in left to right,
+  pill 1 already mid-type-in on frame zero, the caption settling under them and
+  landing with the last one. HOLD 1.40-1.90, row and caption both dead still, the
+  only window in which five labels can be read. COLLAPSE 1.90-2.70, every pill
+  translates along the row axis, further the higher its index; 2 to 5 clear frame
+  and fade, 1 re-centres and darkens active. The caption cuts out on the first
+  collapse frame, the slot holds empty, and the new line cuts in from 2.20.
+
+  The type-in is a clip, not a width. --prc-r is the pixels cut off the label's
+  right edge, quantised to character boundaries so a glyph is never bisected;
+  the capsule cuts by the same value minus --prc-lead, so it always leads the
+  caret by one pill radius of empty fill, and clamps at 0, which is both the
+  rest state and the seed floor. Letters never scale, Layout is never touched.
+  Mount contract: the runtime clones only this template; #root fills the host,
+  carries no data-width or data-height, and registers one paused timeline under
+  the hardcoded pill-row-collapse id.
+-->
+<html lang="en" data-composition-id="pill-row-collapse" data-composition-duration="3">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pill Row Collapse</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="pill-row-collapse" data-duration="3" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--prc-bg, #f6f6f3);
+            color: var(--prc-ink, #2b2a28);
+            font-family: Inter, "Helvetica Neue", system-ui, sans-serif;
+            pointer-events: none;
+
+            /* One scale knob. Every pill measurement hangs off it so an aspect
+               change is a single number, never a second set of rules. */
+            --prc-s: 1;
+            --prc-h: calc(var(--prc-s) * 10.5cqmin);
+            --prc-fs: calc(var(--prc-s) * 6.05cqmin);
+            --prc-dot-size: calc(var(--prc-s) * 3.2cqmin);
+            --prc-pad-l: calc(var(--prc-s) * 2.7cqmin);
+            --prc-pad-r: calc(var(--prc-s) * 3.1cqmin);
+            --prc-dot-gap: calc(var(--prc-s) * 2.7cqmin);
+            /* How far the capsule's right edge leads the last visible glyph. One
+               pill radius, minus the right padding the capsule leads by for free
+               because the pill is sized to its content. */
+            --prc-lead: calc(var(--prc-h) / 2 - var(--prc-pad-r));
+          }
+
+          /* Row band centre sits at 50% of frame height, which is where the
+             measured band 44.63 to 55.40 puts it. */
+          .prc-row {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            display: flex;
+            align-items: center;
+            gap: 2.45cqw;
+            transform: translate(-50%, -50%);
+          }
+
+          .prc-pill {
+            position: relative;
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            height: var(--prc-h);
+            padding: 0 var(--prc-pad-r) 0 var(--prc-pad-l);
+            /* Rest state. The rounded inset is always on, so the capsule needs no
+               border-radius of its own: this one declaration is both the shape
+               and the type-in mechanism. Cut by the label's cut minus the lead,
+               clamped at zero, so mid-type the capsule stands one radius past the
+               caret and at rest it is the full pill. The clamp is also why the
+               seed is a capsule and not a sliver: it never narrows past
+               (content offset + radius), which is wider than the pill is tall. */
+            clip-path: inset(0px max(0px, calc(var(--prc-r, 0) * 1px - var(--prc-lead))) 0px 0px round 999px);
+            will-change: transform;
+          }
+
+          .prc-fill,
+          .prc-veil {
+            position: absolute;
+            inset: 0;
+          }
+
+          .prc-fill {
+            background: var(--prc-tint);
+          }
+
+          /* The active state. One opacity tween darkens fill, dot and label
+             together, which is what the reference does when the survivor lands. */
+          .prc-veil {
+            background: var(--prc-active, #201f1d);
+            opacity: 0;
+          }
+
+          .prc-dot {
+            position: relative;
+            flex: 0 0 auto;
+            width: var(--prc-dot-size);
+            height: var(--prc-dot-size);
+            margin-right: var(--prc-dot-gap);
+            border-radius: 50%;
+            background: var(--prc-mark);
+            transform-origin: 50% 50%;
+          }
+
+          .prc-lbl {
+            position: relative;
+            /* Bleed vertically. The label box is one em tall at line-height 1, so a
+               flat inset(0 ...) shears the descender off every g, p and y; the
+               landing frame of this shot is the word Triage, which made it obvious.
+               Only the right edge is doing work here, so give the other three room. */
+            clip-path: inset(-50% calc(var(--prc-r, 0) * 1px) -50% 0px);
+            font-size: var(--prc-fs);
+            font-weight: 500;
+            letter-spacing: -0.012em;
+            line-height: 1;
+            white-space: nowrap;
+          }
+
+          .prc-p1 {
+            --prc-tint: var(--prc-fill-1, #e1dfdb);
+            --prc-mark: var(--prc-dot-1, #979591);
+          }
+          .prc-p2 {
+            --prc-tint: var(--prc-fill-2, #ecdfb3);
+            --prc-mark: var(--prc-dot-2, #bd9131);
+          }
+          .prc-p3 {
+            --prc-tint: var(--prc-fill-3, #cbdeef);
+            --prc-mark: var(--prc-dot-3, #3c82c8);
+          }
+          .prc-p4 {
+            --prc-tint: var(--prc-fill-4, #e6daef);
+            --prc-mark: var(--prc-dot-4, #9a74b7);
+          }
+          .prc-p5 {
+            --prc-tint: var(--prc-fill-5, #d5e5d5);
+            --prc-mark: var(--prc-dot-5, #639e74);
+          }
+
+          /* Caption band. Bottom anchored at the measured 95.6, not top anchored,
+             so a one line caption and a two line caption share a baseline and the
+             cut lands the new copy where the old copy sat. The reference grey (#b4b4b4)
+             is 1.9:1 here and unreadable: the reference is a bold burned in
+             subtitle with an outline, ours is thin text on paper, so copying the
+             hex reproduced the value and lost the legibility. 5.5:1 instead. */
+          .prc-cap {
+            position: absolute;
+            right: 0;
+            bottom: 4.4cqh;
+            left: 0;
+            color: var(--prc-caption, #6b6b66);
+            padding: 0 5cqw;
+            filter: blur(calc(var(--prc-blur, 0) * 1px));
+            /* Not scaled by --prc-s. The pills grow in portrait so a column does
+               not read as an island; the caption does not, because cqmin already
+               tracks the short side and a scaled caption overruns the frame. */
+            font-size: 4.9cqmin;
+            font-weight: 500;
+            line-height: 1.3;
+            text-align: center;
+          }
+
+          .prc-cap-b {
+            opacity: 0;
+          }
+
+          /* Portrait and square. A five wide row of capsules cannot hold 84.7% of
+             the width legibly below about 4:3, so the row becomes a column and the
+             same three phases run with the axis swapped. No scale bump at square:
+             stacking five pills already spends 66% of the height, so the 1.15 this
+             once carried only bought a 12% pill and a 5% bottom margin, which read
+             as a denser variant rather than the same move at a different crop.
+             Only the tall crop needs the bump, and it gets it below. */
+          @container (aspect-ratio < 1.35) {
+            /* Centred, not left aligned: the survivor only moves on the column axis,
+               so whatever cross-axis position the layout gives it is where it lands.
+               Left aligned, Triage is narrower than Review and the shot ends with
+               the subject sitting off centre. */
+            .prc-row {
+              top: 57%;
+              flex-direction: column;
+              align-items: center;
+              gap: calc(var(--prc-s) * 3.4cqmin);
+            }
+
+            /* The caption moves above the column, and the column drops to 57%, for
+               one reason: the losers exit downward here, and with the caption in
+               its landscape slot every pill in the lower half wiped across the copy
+               on its way out. Reading order stays caption-then-subject either way. */
+            .prc-cap {
+              top: 3cqh;
+              bottom: auto;
+            }
+          }
+
+          @container (aspect-ratio < 0.95) {
+            #root {
+              --prc-s: 1.5;
+            }
+          }
+        </style>
+
+        <div class="prc-row">
+          <div class="prc-pill prc-p1">
+            <span class="prc-fill"></span>
+            <span class="prc-dot"></span>
+            <span class="prc-lbl">Triage</span>
+            <span class="prc-veil"></span>
+          </div>
+          <div class="prc-pill prc-p2">
+            <span class="prc-fill"></span>
+            <span class="prc-dot"></span>
+            <span class="prc-lbl">Plan</span>
+            <span class="prc-veil"></span>
+          </div>
+          <div class="prc-pill prc-p3">
+            <span class="prc-fill"></span>
+            <span class="prc-dot"></span>
+            <span class="prc-lbl">Build</span>
+            <span class="prc-veil"></span>
+          </div>
+          <div class="prc-pill prc-p4">
+            <span class="prc-fill"></span>
+            <span class="prc-dot"></span>
+            <span class="prc-lbl">Review</span>
+            <span class="prc-veil"></span>
+          </div>
+          <div class="prc-pill prc-p5">
+            <span class="prc-fill"></span>
+            <span class="prc-dot"></span>
+            <span class="prc-lbl">Ship</span>
+            <span class="prc-veil"></span>
+          </div>
+        </div>
+
+        <div class="prc-cap prc-cap-a">Every stage of the work, from raw<br />feedback to a shipped product.</div>
+        <div class="prc-cap prc-cap-b">First up is triage.</div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+
+            // Cubic-bezier as a GSAP ease. Pure function of progress, so seek-safe:
+            // seek(t) always yields the same value, no internal state to drift.
+            // Newton-Raphson on x, bisection where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; }, C = function (a) { return 3 * a; };
+              var B = function (a, b) { return 3 * b - 6 * a; };
+              var f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + C(a)) * t; };
+              var d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a); };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  var lo = 0, hi = 1, j, v;
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+
+            // Named for what they do in a shot. No GSAP preset appears here on
+            // purpose: a named ease is a category, not a curve.
+            var E = {
+              enterSoft: cb(0.33, 0.7, 0.35, 1.0),
+              camSettle: cb(0.16, 0.84, 0.28, 1.0),
+              morph: cb(0.65, 0.05, 0.35, 1.0),
+              springSm: cb(0.34, 1.3, 0.5, 1.0),
+              // Fitted to the losers, not from the palette: exitAway's lazy start
+              // lets the survivor outrun the pill on its right and the capsules
+              // overlap a third of the way through. The measured losers move on the
+              // collapse's first frame, because this is a row spreading apart, not
+              // four objects deciding to leave. Fitted to pill 2's deltas (4.8, 12.0,
+              // 27.4, 35.5 as % of width), RMS 1.3%; minimum gap to the survivor
+              // across the collapse is the 3.0% rest gap, so the losers always lead.
+              spread: cb(0.2, 0.0, 0.5, 0.7),
+              // Fitted to the survivor's left-edge travel (7.6, 8.5, 10.7, 19.1,
+              // 28.5, 36.7, 39.3, 40.9, 42.1, 42.4 as % of width), max error 2.9% of
+              // travel; camPush, the nearest palette curve, is 12.7% off. The lazy
+              // start is the point: the pill barely moves while the others leave.
+              recentre: cb(0.54, 0.06, 0.18, 0.94),
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var pills = [].slice.call(root.querySelectorAll(".prc-pill"));
+            var capA = root.querySelector(".prc-cap-a");
+            var capB = root.querySelector(".prc-cap-b");
+
+            var rootW = root.clientWidth || 1920, rootH = root.clientHeight || 1080;
+            // GSAP writes transforms as px, so a cqmin tween distance would not
+            // survive. Read the unit once, at build time, and multiply.
+            var U = Math.min(rootW, rootH) / 100 || 10.8;
+
+            // Which layout the container query built, read off the real boxes
+            // rather than re-deriving the threshold. One source of truth.
+            var r0 = pills[0].getBoundingClientRect();
+            var stacked = pills[1].getBoundingClientRect().top > r0.bottom - 1;
+            var axisLen = stacked ? rootH : rootW;
+
+            // Per pill and per k: the px right-edge cut leaving exactly the first k
+            // characters showing. Measured with a Range over the text node, so it
+            // holds for whatever font resolves and for the negative letter spacing.
+            // stops[0] hides the label, which is also the seed cut.
+            var stops = pills.map(function (pill) {
+              var lbl = pill.querySelector(".prc-lbl");
+              var node = lbl.firstChild;
+              var right = lbl.getBoundingClientRect().right;
+              var range = document.createRange();
+              var out = [];
+              for (var k = 0; k <= node.nodeValue.length; k++) {
+                range.setStart(node, 0); range.setEnd(node, k);
+                out.push(Math.max(0, right - range.getBoundingClientRect().right));
+              }
+              return out;
+            });
+            var cut = stops.map(function (s) { return s[0]; });
+
+            // Quantise a curve so the reveal only rests on a character boundary. A
+            // continuous clip cuts whatever glyph it lands in, which is a wipe;
+            // stepping glyph by glyph is typing. Still a pure function of progress,
+            // so seek-safe: no caret state, no callback.
+            function typed(base, list, from) {
+              var q = list
+                .filter(function (w) { return w <= from; })
+                .map(function (w) { return 1 - w / from; });
+              return function (p) {
+                var v = base(p), best = 0;
+                for (var i = 0; i < q.length; i++) if (q[i] <= v && q[i] > best) best = q[i];
+                return best;
+              };
+            }
+
+            // The survivor lands dead centre of the frame on the row axis.
+            var recentreBy = stacked
+              ? rootH / 2 - (r0.top + r0.height / 2)
+              : rootW / 2 - (r0.left + r0.width / 2);
+
+            // Displacement grows with index, spreading the row rather than sliding
+            // it: the reference's 1 : 1.17 : 1.35 : 1.55 ratio. Object permanence
+            // (Law 4): each carries its pill past the far edge, so the fade only
+            // catches the slowest after most of the travel is already done.
+            var away = [0, 0.8, 0.94, 1.08, 1.24].map(function (f) { return f * axisLen; });
+
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "3"));
+            var s = D < 3 ? D / 3 : 1; // compress the beats, never the order
+
+            function setR(pill, v) { pill.style.setProperty("--prc-r", String(v)); }
+            function dots(list) { return list.map(function (p) { return p.querySelector(".prc-dot"); }); }
+
+            // Every pill gets a visible typing beat. Pill 1 opens part typed, snapped
+            // to a character boundary, so frame zero is a whole word fragment and a
+            // delivered frame (Law 8) with no beat lost.
+            var STEP = 0.25 * s, TYPE = 0.46 * s, P1_LEFT = 0.55;
+            var p1From = stops[0].reduce(function (a, w) {
+              return Math.abs(w - cut[0] * P1_LEFT) < Math.abs(a - cut[0] * P1_LEFT) ? w : a;
+            }, cut[0]);
+
+            // Rest state pinned outside the timeline, both ends written on every
+            // tween, so a seek never inherits a start value from the screen.
+            pills.forEach(function (pill, i) { setR(pill, i ? cut[i] : p1From); });
+            gsap.set(pills, { x: 0, y: 0 });
+            gsap.set(pills[0], { opacity: 1 });
+            gsap.set(pills.slice(1), { opacity: 0 });
+            gsap.set(root.querySelectorAll(".prc-dot"), { scale: 1 });
+            gsap.set(dots(pills.slice(1)), { scale: 0.92 });
+            gsap.set(root.querySelectorAll(".prc-veil"), { opacity: 0 });
+            capA.style.setProperty("--prc-blur", "1.2");
+            gsap.set(capA, { opacity: 1, y: 2.2 * U });
+            gsap.set(capB, { opacity: 0, y: 1.4 * U });
+            var tl = gsap.timeline({ paused: true });
+
+            // BUILD. A pill arrives as a whole seeded capsule with its dot already
+            // in it, never a dotless sliver: the clip-path clamp holds the seed at
+            // (content offset + one radius), wider than the pill is tall, so the
+            // smallest state is a real pill. Then the label types out of it.
+            function build(i, at) {
+              var pill = pills[i];
+              tl.fromTo(pill, { opacity: 0 }, { opacity: 1, duration: 0.08 * s, ease: E.enterSoft }, at);
+              tl.fromTo(pill.querySelector(".prc-dot"), { scale: 0.92 }, { scale: 1, duration: 0.3 * s, ease: E.springSm }, at);
+              tl.fromTo(pill, { "--prc-r": cut[i] }, { "--prc-r": 0, duration: TYPE, ease: typed(E.morph, stops[i], cut[i]) }, at);
+            }
+
+            // Pill 1 gets the tail of its own type-in and none of the entrance, so
+            // it rides an ease-out; restarting an ease-in-out from rest would read
+            // as a stutter on the opening frame.
+            tl.fromTo(pills[0], { "--prc-r": p1From }, { "--prc-r": 0, duration: TYPE * P1_LEFT, ease: typed(E.camSettle, stops[0], p1From) }, 0);
+            build(1, 0.06 * s);
+            build(2, 0.06 * s + STEP);
+            build(3, 0.06 * s + STEP * 2);
+            build(4, 0.06 * s + STEP * 3);
+
+            // HOLD, 1.40 to 1.90. The caption lands with the last pill so the hold is
+            // frame wide. Letting it settle into the hold instead made it the one
+            // moving thing in the beat whose entire job is stillness: 21px of upward
+            // creep under a frozen row reads as drift, not as a held frame. The render
+            // goes bit-identical from 1.35, where the settle's last 50ms is sub-pixel.
+            // audit-hold 1.30 1.90 ref reference-shipos f-006..f-010 (5.5-5.9s) dead still
+            // at 1920x1080: row band y440-640 moves 0.000 to 0.006% of pixels over a
+            // 16-level threshold, caption band y860-1060 moves 0.000%. The reference
+            // holds the whole frame for 0.4s before its collapse; this holds 0.5s.
+            tl.fromTo(capA, { y: 2.2 * U }, { y: 0, duration: 1.1 * s, ease: E.morph }, 0.3 * s);
+            tl.fromTo(capA, { "--prc-blur": 1.2 }, { "--prc-blur": 0, duration: 1.1 * s, ease: E.morph }, 0.3 * s);
+
+            var CO = 1.9 * s, CD = 0.8 * s;
+
+            // COLLAPSE. The four losers accelerate away on one shared window; the
+            // survivor rides the fitted curve to centre on the same window, so the
+            // two reads are one gesture rather than two events. axis() picks the
+            // translate channel from the layout the container query actually built.
+            function axis(v) { return stacked ? { y: v } : { x: v }; }
+            [1, 2, 3, 4].forEach(function (i) {
+              tl.fromTo(pills[i], axis(0), Object.assign(axis(away[i]), { duration: CD, ease: E.spread }), CO);
+              // One shared fade window, no stagger: the index-scaled distance already
+              // makes them leave in order, so a staggered fade reads as four decisions.
+              tl.fromTo(pills[i], { opacity: 1 }, { opacity: 0, duration: 0.24 * s, ease: E.morph }, CO + 0.16 * s);
+            });
+            tl.fromTo(pills[0], axis(0), Object.assign(axis(recentreBy), { duration: CD, ease: E.recentre }), CO);
+
+            // The survivor becomes the active item as it lands, timed to run past the
+            // position tween's dead tail (Law 3). 0.06, not 0.15: the reference barely
+            // darkens the fill, and one veil over the capsule buys fill and dot at once.
+            tl.fromTo(pills[0].querySelector(".prc-veil"), { opacity: 0 }, { opacity: 0.06, duration: 0.7 * s, ease: E.morph }, CO + 0.4 * s);
+
+            // CAPTION CUT. A cut with a gap, not a cross fade. The old line leaves on
+            // the collapse's first frame, the slot sits empty, and the new line
+            // arrives at full strength: the two strings never share the band, so it
+            // never doubles in height and the contrast never dips. Cross fading them
+            // under a blur put both on screen for 0.3s at 1.9:1. The reference cuts.
+            tl.fromTo(capA, { opacity: 1 }, { opacity: 0, duration: 0.15 * s, ease: E.morph }, CO);
+            tl.fromTo(capB, { opacity: 0 }, { opacity: 1, duration: 0.24 * s, ease: E.enterSoft }, CO + 0.3 * s);
+            tl.fromTo(capB, { y: 1.4 * U }, { y: 0, duration: 0.5 * s, ease: E.camSettle }, CO + 0.3 * s);
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+
+            window.__timelines = window.__timelines || {};
+            window.__timelines["pill-row-collapse"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

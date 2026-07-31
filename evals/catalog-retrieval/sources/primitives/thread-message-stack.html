@@ -1,0 +1,502 @@
+<!doctype html>
+<!--
+  thread-message-stack: HyperFrames video primitive (conversation / social)
+
+  A message thread builds itself OVER A MOVING BACKGROUND. Each new bubble lands on the bottom line and
+  shoves the whole stack up with one fast spring; older messages ride off the top under a gradient mask.
+  A grey typing pill leads every INCOMING message by about half a second, and only the incoming side gets
+  one, because no messaging UI shows you your own typing indicator. There is no header, avatar, wordmark
+  or rule: refs/frames/orchid f-005, f-020 and f-040 have nothing above the bubbles but footage, and the
+  only branding is the small sender tag that rides up with one message.
+
+  == SWAPPING IN REAL FOOTAGE ========================================================================
+  The roll behind the thread is PROCEDURAL: drifting defocused colour blobs driven by the same paused
+  timeline as the bubbles, so this file ships no media and stays deterministic and licence clean. To put
+  a real clip or a still behind the thread instead, replace the whole <div id="roll"> element with ONE
+  line, either
+      <video id="roll" class="clip" src="footage.mp4" muted playsinline></video>
+      <img id="roll" src="plate.jpg" alt="" />
+  #roll already carries position:absolute, inset:0 and object-fit:cover, and the roll tweens no-op when
+  no .tms-blob children are present. Nothing else changes: the scrim, the top mask and both bubble fills
+  are authored to survive arbitrary footage.
+  ====================================================================================================
+
+  Measured off refs/orchid.mp4 13.0 to 18.0s (f-001..040 at 8fps, 1920x1080): outgoing right edge 51.4%,
+  max width 19.3%; incoming left edge 5.9%, up to 35.4% wide; pushes 4.7 to 13.9% of frame height, each
+  under 0.25s, settling BACK 0.2 to 0.4%, which is a 3.5% overshoot, which is springSm. Overlay grade is
+  the reusable part of this primitive: the blue carries a vertical gradient plus a soft drop shadow, and
+  the grey is translucent enough that the plate reads faintly through it while the ink stays fully
+  legible (f-020, f-030). Measured on the render, at the brightest point the roll reaches, the incoming
+  ink sits at 9.1:1 against its own fill in 16:9 and 10.5:1 in 9:16.
+
+  Two deliberate departures. (1) BUBBLES DO NOT FADE IN, which overrules Law 4: the reference has nothing
+  at 15.750s and a full extent, fully opaque bubble one 8fps frame later, so opacity is a 0.04s cut (one
+  frame at 30fps) and all the physicality lives in the scale from 0.94. The corner radius is constant for
+  the same reason. (2) The thread opens on three settled bubbles rather than the reference's one, because
+  the reference fills the other 97% of its frame with a woman on a staircase and one bubble over a
+  procedural plate is thin. Law 8: frame zero is a deliverable.
+
+  Message text lives in the markup, one line per .tms-bubble; the two line message uses an explicit <br>
+  so its slot height stays exact in every aspect. Variables: --tms-roll-bg (base under the blobs, and the
+  letterbox colour once real footage is in), --tms-out-fill (measured #2D89E1), --tms-out-ink,
+  --tms-in-fill, --tms-in-ink, --tms-tag-ink, --tms-radius. Envelope, D = 5.00s, given as pill / bubble:
+    0.40 / 0.86  wait that is actually wild (in, tag)      1.88  can you fix it (out)
+    2.10 / 2.58  way ahead of you (in)                     3.66  you are unreal (out)
+    4.24 / 4.70  he owes you dinner for this one (in)
+  Cadence between messages is 0.86, 1.02, 0.70, 1.08, 1.04s and the pill leads are 0.46, 0.48, 0.46s:
+  irregular on purpose, a uniform stagger reads mechanical (Law 5). No interval of this clip is still,
+  because the roll drifts continuously under every beat. Mount contract: the runtime clones only this
+  template. #root fills the host box, establishes the container query basis, has no data-width or
+  data-height, and registers one paused timeline under the hardcoded thread-message-stack id.
+-->
+<html lang="en" data-composition-id="thread-message-stack" data-composition-duration="5">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thread Message Stack</title>
+  </head>
+  <body>
+    <template>
+      <div id="root" data-composition-id="thread-message-stack" data-duration="5" data-fps="30">
+        <style>
+          *,
+          *::before,
+          *::after {
+            box-sizing: border-box;
+          }
+
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            container-type: size;
+            isolation: isolate;
+            background: var(--tms-roll-bg, #2e241a);
+            font-family: -apple-system, "Helvetica Neue", "Segoe UI", Inter, system-ui, sans-serif;
+            pointer-events: none;
+
+            --tms-out-fill: #2d89e1;
+            --tms-out-ink: #ffffff;
+            --tms-in-fill: rgba(240, 240, 245, 0.72);
+            --tms-in-ink: #101216;
+            --tms-tag-ink: #ffffff;
+            --tms-radius: 5.7cqmin;
+          }
+
+          /* The roll. Swap this whole element for a <video class="clip"> or an
+             <img>; see the block at the top of the file. Overscaled so the
+             handheld drift never exposes an edge. */
+          #roll {
+            position: absolute;
+            inset: 0;
+            object-fit: cover;
+            background: var(--tms-roll-bg, #2e241a);
+            will-change: transform;
+          }
+
+          /* Large soft lights, screened over the base so overlaps brighten the
+             way out of focus highlights do. Blur is static CSS, never tweened. */
+          .tms-blob {
+            position: absolute;
+            left: calc(var(--x) * 1cqw);
+            top: calc(var(--y) * 1cqh);
+            width: calc(var(--d) * 1cqmax);
+            height: calc(var(--d) * 1cqmax);
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, var(--c) 0%, transparent 62%);
+            filter: blur(2.1cqmin);
+            mix-blend-mode: screen;
+            will-change: transform, opacity;
+          }
+
+          /* The scrim. Darkens the thread column across its whole height, not
+             just the bottom, because the sender tag rides up into the top half
+             and white type over a bright blob is the one place this breaks. */
+          .tms-scrim {
+            position: absolute;
+            inset: 0;
+            background:
+              linear-gradient(to bottom, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.18) 45%, rgba(0, 0, 0, 0.34) 100%),
+              linear-gradient(to right, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0.16) 52cqw, rgba(0, 0, 0, 0) 78cqw);
+          }
+
+          /* The thread viewport. The mask is why an old bubble dissolves at the
+             top instead of being guillotined by an overflow edge. Mixed units so
+             the fade band stays about one bubble tall in every aspect instead of
+             half the frame in portrait. */
+          .tms-view {
+            position: absolute;
+            inset: 0;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 calc(3cqh + 12cqmin), #000 100%);
+            mask-image: linear-gradient(to bottom, transparent 0, #000 calc(3cqh + 12cqmin), #000 100%);
+          }
+
+          /* Anything that is not portrait. Only 9:16 has the height to carry a
+             tall stack: measured at 4.5s it shows 8 bands topping out at 26.5%
+             of frame height, which is what a real phone thread looks like. Both
+             16:9 and 1:1 run out of room and let the stack climb off the top
+             edge (1:1 measured a band top at 2.3% before this rule), at which
+             point the roll behind stops reading as footage and starts reading
+             as wallpaper. The reference never lets the thread above y=24%
+             (f-038 tops out at 24.4%) because that is where the subject is. So
+             outside portrait the clear stop moves down: a bubble is fully gone
+             before its top edge reaches a third of frame height, which caps the
+             solid band count at four. Keyed on aspect via a container query
+             against #root, which is already a size container. */
+          @container (min-aspect-ratio: 0.95) {
+            .tms-view {
+              -webkit-mask-image: linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 30cqh,
+                #000 42cqh,
+                #000 100%
+              );
+              mask-image: linear-gradient(to bottom, transparent 0, transparent 30cqh, #000 42cqh, #000 100%);
+            }
+          }
+
+          /* 82cqmin is 46.1cqw in 16:9, which reproduces the measured thread
+             width of 45.5% of frame; in 9:16 and 1:1 the same number is 82cqw,
+             so the thread widens to fill the frame the way a real phone thread
+             does. The landing line is in cqh so the newest bubble's bottom sits
+             at 88% of frame height in all three aspects. */
+          .tms-col {
+            position: absolute;
+            bottom: 12cqh;
+            left: 6cqw;
+            width: min(88cqw, 82cqmin);
+            will-change: transform;
+          }
+
+          /* Fixed pitch per slot, in cqmin, declared as --h and mirrored by the
+             P array in the script. Nothing measures the DOM for push geometry:
+             the distances are authored, so a zero sized or detached host cannot
+             produce a frozen render. */
+          .tms-slot {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: calc(var(--h) * 1cqmin);
+          }
+
+          .tms-out {
+            align-items: flex-end;
+          }
+
+          .tms-in {
+            align-items: flex-start;
+          }
+
+          /* The bubble and the typing pill share this box, so the pill sits at
+             exactly the corner the bubble will occupy. That is the "replaced by"
+             read: the pill rides up with the push and is cut on the frame the
+             bubble's own corner arrives. */
+          .tms-body {
+            position: relative;
+          }
+
+          /* An absolute max-width, not a percentage: .tms-body is a shrink to fit
+             flex item, so a percentage resolves against a width derived from this
+             box and every bubble collapses to two lines. 68cqmin is 37.6% of
+             frame width in 16:9, just clear of the measured 35.4% widest bubble. */
+          .tms-bubble {
+            max-width: 68cqmin;
+            padding: 2.6cqmin 4.2cqmin;
+            border-radius: var(--tms-radius);
+            font-size: 4.6cqmin;
+            font-weight: 500;
+            letter-spacing: -0.005em;
+            line-height: 1.35;
+          }
+
+          /* Overlay grade. The gradient rides on top of the fill variable so the
+             palette stays a single token per side. */
+          .tms-out .tms-bubble {
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(0, 0, 0, 0.17) 100%),
+              var(--tms-out-fill);
+            box-shadow: 0 0.7cqmin 2.4cqmin rgba(0, 0, 0, 0.38);
+            color: var(--tms-out-ink);
+            transform-origin: 100% 100%;
+          }
+
+          .tms-in .tms-bubble {
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%),
+              var(--tms-in-fill);
+            box-shadow: 0 0.6cqmin 2cqmin rgba(0, 0, 0, 0.3);
+            color: var(--tms-in-ink);
+            transform-origin: 0% 100%;
+          }
+
+          .tms-tag {
+            color: var(--tms-tag-ink);
+            font-size: 2.4cqmin;
+            font-weight: 700;
+            letter-spacing: 0.005em;
+            line-height: 1.25;
+            padding-left: 1.2cqmin;
+            text-shadow: 0 0.2cqmin 0.8cqmin rgba(0, 0, 0, 0.72);
+          }
+
+          .tms-pill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            gap: 1.2cqmin;
+            height: 5.6cqmin;
+            padding: 0 2.8cqmin;
+            border-radius: 2.8cqmin;
+            background: var(--tms-in-fill);
+            box-shadow: 0 0.5cqmin 1.6cqmin rgba(0, 0, 0, 0.28);
+            transform-origin: 0% 100%;
+          }
+
+          .tms-dot {
+            width: 1.5cqmin;
+            height: 1.5cqmin;
+            border-radius: 50%;
+            background: var(--tms-in-ink);
+          }
+        </style>
+
+        <div id="roll">
+          <i class="tms-blob" style="--c: #f0d3a6; --x: 2; --y: -12; --d: 52"></i>
+          <i class="tms-blob" style="--c: #e8a86a; --x: 44; --y: -18; --d: 62"></i>
+          <i class="tms-blob" style="--c: #c2705a; --x: 22; --y: 22; --d: 54"></i>
+          <i class="tms-blob" style="--c: #6b4a7a; --x: -22; --y: 34; --d: 58"></i>
+          <i class="tms-blob" style="--c: #2e6a8c; --x: 60; --y: 40; --d: 50"></i>
+          <i class="tms-blob" style="--c: #ffe6c0; --x: 70; --y: -6; --d: 38"></i>
+          <i class="tms-blob" style="--c: #8c3f52; --x: 6; --y: 62; --d: 46"></i>
+          <i class="tms-blob" style="--c: #d9a24e; --x: 34; --y: 58; --d: 42"></i>
+        </div>
+        <div class="tms-scrim"></div>
+
+        <div class="tms-view">
+          <div class="tms-col">
+            <!-- Three settled bubbles: the conversation is already in progress at frame zero. These
+                 never animate, they just ride off the top. -->
+            <div class="tms-slot tms-out" style="--h: 14.4"><div class="tms-body"><div class="tms-bubble">he had one job</div></div></div>
+            <div class="tms-slot tms-in" style="--h: 14.4"><div class="tms-body"><div class="tms-bubble">which was</div></div></div>
+            <div class="tms-slot tms-out" style="--h: 14.4"><div class="tms-body"><div class="tms-bubble">so he forgot</div></div></div>
+
+            <!-- Everything below arrives during the clip. Incoming slots carry a typing pill. -->
+            <div class="tms-slot tms-in" style="--h: 17.4">
+              <div class="tms-tag">Northbeam support</div>
+              <div class="tms-body">
+                <div class="tms-bubble">wait that is actually wild</div>
+                <div class="tms-pill"><i class="tms-dot"></i><i class="tms-dot"></i><i class="tms-dot"></i></div>
+              </div>
+            </div>
+            <div class="tms-slot tms-out" style="--h: 14.4"><div class="tms-body"><div class="tms-bubble">can you fix it</div></div></div>
+            <div class="tms-slot tms-in" style="--h: 14.4">
+              <div class="tms-body">
+                <div class="tms-bubble">way ahead of you</div>
+                <div class="tms-pill"><i class="tms-dot"></i><i class="tms-dot"></i><i class="tms-dot"></i></div>
+              </div>
+            </div>
+            <div class="tms-slot tms-out" style="--h: 14.4"><div class="tms-body"><div class="tms-bubble">you are unreal</div></div></div>
+            <div class="tms-slot tms-in" style="--h: 20.6">
+              <div class="tms-body">
+                <div class="tms-bubble">he owes you dinner<br />for this one</div>
+                <div class="tms-pill"><i class="tms-dot"></i><i class="tms-dot"></i><i class="tms-dot"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+        <script>
+          (function () {
+            "use strict";
+            // Cubic-bezier evaluated as a GSAP ease. A pure function of progress, so it is seek-safe:
+            // seek(t) always yields the same value, no internal state to drift. Newton-Raphson on x,
+            // with a bisection fallback where the slope flattens.
+            function cb(x1, y1, x2, y2) {
+              var A = function (a, b) { return 1 - 3 * b + 3 * a; },
+                B = function (a, b) { return 3 * b - 6 * a; },
+                f = function (t, a, b) { return ((A(a, b) * t + B(a, b)) * t + 3 * a) * t; },
+                d = function (t, a, b) { return 3 * A(a, b) * t * t + 2 * B(a, b) * t + 3 * a; };
+              return function (p) {
+                if (p <= 0) return 0;
+                if (p >= 1) return 1;
+                var t = p, i, s, e, lo = 0, hi = 1, j, v;
+                for (i = 0; i < 8; i++) {
+                  s = d(t, x1, x2);
+                  if (s === 0) break;
+                  e = f(t, x1, x2) - p;
+                  if (Math.abs(e) < 1e-7) break;
+                  t -= e / s;
+                }
+                if (t < 0 || t > 1) {
+                  t = p;
+                  for (j = 0; j < 30; j++) {
+                    v = f(t, x1, x2);
+                    if (Math.abs(v - p) < 1e-7) break;
+                    if (v > p) hi = t; else lo = t;
+                    t = (lo + hi) / 2;
+                  }
+                }
+                return f(t, y1, y2);
+              };
+            }
+            // Named for what they do in a shot. No GSAP preset appears in this file on purpose: a named
+            // ease is a category, not a curve. springSm is 3.0% overshoot, which is the measured settle
+            // back (0.3% against an 8.4% push); do not raise it, a bigger overshoot is feel and feel
+            // loses to a ruler.
+            var E = {
+              enter: cb(0.22, 0.9, 0.3, 1.0),
+              morph: cb(0.65, 0.05, 0.35, 1.0),
+              springSm: cb(0.34, 1.3, 0.5, 1.0),
+              linear: function (p) { return p; },
+            };
+
+            gsap.defaults({ immediateRender: false });
+
+            var root = document.getElementById("root");
+            var col = root.querySelector(".tms-col");
+            var roll = root.querySelector("#roll");
+            var blobs = root.querySelectorAll(".tms-blob");
+            var slots = root.querySelectorAll(".tms-slot");
+            var D = Math.max(0.001, parseFloat(root.dataset.duration || "5"));
+            // GSAP writes transforms as px, so every tweened distance is resolved at build time. U is
+            // cqmin, for the thread, so pushes agree with the slot pitches in the stylesheet. W and Hc
+            // are cqw and cqh, for the roll, whose drift is lateral and cover-the-frame geometry.
+            var U = Math.min(root.clientWidth, root.clientHeight) / 100 || 10.8;
+            var W = root.clientWidth / 100 || 19.2;
+            var Hc = root.clientHeight / 100 || 10.8;
+            var tl = gsap.timeline({ paused: true });
+
+            // ---- the roll ------------------------------------------------------------------------
+            // Per blob: x0 y0 (cqw, cqh) -> x1 y1, scale0 -> scale1, opacity a -> b, opacity half period.
+            // Every roll tween runs for exactly D and no longer. That is not a style choice: a tween that
+            // ends past D lengthens the timeline, and the runtime hides every clip past the composition's
+            // own data-duration, so the render goes black for the whole overhang. The drift is linear,
+            // which Law 2 allows for constant motion and which also means it cannot have a dead tail: the
+            // field is still travelling on the last rendered frame. The opacity periods are mutually
+            // non-syncing and each divides into D a whole number of times, so the field breathes without
+            // lining up and without a tween overhanging the end (Law 5).
+            var ROLL = [
+              [-6, -4, 8, 6, 1.0, 1.16, 0.96, 0.64, 1.62],
+              [8, 0, -6, 11, 1.08, 0.94, 1.0, 0.72, 2.35],
+              [-9, 5, 5, -7, 0.94, 1.12, 0.94, 0.6, 1.66],
+              [4, -6, -8, 7, 1.12, 0.98, 0.86, 0.54, 1.24],
+              [-5, 7, 9, -5, 0.96, 1.14, 0.9, 0.56, 2.48],
+              [2, -3, -8, 6, 1.0, 1.1, 0.9, 0.6, 1.85],
+              [-4, 4, 7, -7, 1.05, 0.95, 0.82, 0.5, 1.42],
+              [7, -5, -5, 7, 0.98, 1.12, 0.86, 0.56, 2.2],
+            ];
+            // Handheld: the whole field slides and swells under the blobs, so the drift reads as one
+            // camera rather than as five moving shapes. morph is the zero dead frame curve of the
+            // palette, which is what this needs when it has to stay alive all the way to D.
+            gsap.set(roll, { x: 0, y: 0, scale: 1.12 });
+            if (blobs.length) {
+              tl.fromTo(roll, { x: 0, y: 0, scale: 1.12 },
+                { x: -3.2 * W, y: -2.0 * Hc, scale: 1.19, duration: D, ease: E.morph }, 0);
+            }
+            blobs.forEach(function (b, k) {
+              var r = ROLL[k % ROLL.length];
+              gsap.set(b, { x: r[0] * W, y: r[1] * Hc, scale: r[4], opacity: r[6] });
+              tl.fromTo(b, { x: r[0] * W, y: r[1] * Hc, scale: r[4] },
+                { x: r[2] * W, y: r[3] * Hc, scale: r[5], duration: D, ease: E.linear }, 0);
+              tl.fromTo(b, { opacity: r[6] },
+                { opacity: r[7], duration: r[8], ease: E.morph, yoyo: true,
+                  repeat: Math.max(1, Math.floor(D / r[8])) - 1 }, 0);
+            });
+
+            // ---- the thread ----------------------------------------------------------------------
+            // Slot pitches in cqmin, mirroring the --h attributes in the markup. Slots 0 to 2 are the
+            // seeded history (2 is the newest settled message), 3 to 7 arrive during the clip.
+            var P = [14.4, 14.4, 14.4, 17.4, 14.4, 14.4, 14.4, 20.6];
+            var SETTLED = 2;
+            var PILL = 8.6; // pill height 5.6 plus the 3.0 gap above it
+            // Y[i] is the column offset that puts slot i's bottom on the landing line, so pushing from
+            // Y[i - 1] to Y[i] is exactly one slot.
+            var Y = [];
+            var acc = 0;
+            for (var i = P.length - 1; i >= 0; i--) {
+              Y[i] = acc;
+              acc += P[i];
+            }
+            // Rest state pinned outside the timeline. Frame zero is a thread already in progress, three
+            // settled bubbles with the newest on the landing line, over a roll that is already drifting.
+            gsap.set(col, { y: Y[SETTLED] * U });
+            slots.forEach(function (slot, idx) {
+              var settled = idx <= SETTLED;
+              gsap.set(slot.querySelector(".tms-bubble"), { opacity: settled ? 1 : 0, scale: settled ? 1 : 0.94 });
+              var pill = slot.querySelector(".tms-pill");
+              var tag = slot.querySelector(".tms-tag");
+              if (pill) gsap.set(pill, { opacity: 0, scale: 0.94 });
+              if (tag) gsap.set(tag, { opacity: 0 });
+            });
+
+            // One y tween per arrival, on the whole column. Under 0.25s: the push is the entire feel of
+            // this primitive and a slow one reads as a scroll. A full slot is 14.4cqmin, 155px in 16:9,
+            // which is the measured move, and springSm settles it back about 4px.
+            function push(from, to, at) {
+              tl.fromTo(col, { y: from * U }, { y: to * U, duration: 0.22, ease: E.springSm }, at);
+            }
+            // Opacity is a cut, not a fade: 0.04s is one frame at 30fps. Written as a fromTo so both ends
+            // live on the timeline and a backwards seek can never inherit what was last on screen.
+            function cut(el, to, at) {
+              tl.fromTo(el, { opacity: to ? 0 : 1 }, { opacity: to, duration: 0.04, ease: E.linear }, at);
+            }
+            // Ambient life on the three dots. Non-syncing half periods so they never line up. No loop, no
+            // rAF: finite yoyo tweens on the same seekable timeline as everything else.
+            function bob(pill, t0, t1) {
+              var per = [0.31, 0.37, 0.43];
+              pill.querySelectorAll(".tms-dot").forEach(function (dot, k) {
+                var p = per[k];
+                tl.fromTo(dot, { y: 0, opacity: 0.4 },
+                  { y: -0.85 * U, opacity: 0.85, duration: p, ease: E.morph, yoyo: true,
+                    repeat: Math.max(1, Math.round((Math.min(t1, D) - t0) / p)) - 1 }, t0);
+              });
+            }
+            // An incoming message arrives twice: the pill takes its slot (pushing by its own pitch), then
+            // the bubble takes the pill's place and grows the slot to full height. An outgoing message
+            // arrives once, in a single full slot push.
+            function arrive(idx, tMsg, tPill) {
+              var slot = slots[idx];
+              var pill = slot.querySelector(".tms-pill");
+              var bubble = slot.querySelector(".tms-bubble");
+              var tag = slot.querySelector(".tms-tag");
+              if (pill) {
+                push(Y[idx - 1], Y[idx - 1] - PILL, tPill);
+                push(Y[idx - 1] - PILL, Y[idx], tMsg);
+                cut(pill, 1, tPill);
+                tl.fromTo(pill, { scale: 0.94 }, { scale: 1, duration: 0.2, ease: E.enter }, tPill);
+                // The tag arrives with the pill: in the reference the sender is named the moment they
+                // start typing, and the tag then rides up with its own message for the rest of the clip.
+                // It is per-message branding, not a header.
+                if (tag) tl.fromTo(tag, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: E.enter }, tPill);
+                bob(pill, tPill, tMsg);
+                // The pill sits on the bubble's own corner, so any overlap reads as two objects in one
+                // place instead of one replacing the other. Cut it on the frame the bubble lands.
+                cut(pill, 0, tMsg);
+              } else {
+                push(Y[idx - 1], Y[idx], tMsg);
+              }
+              cut(bubble, 1, tMsg);
+              tl.fromTo(bubble, { scale: 0.94 }, { scale: 1, duration: 0.26, ease: E.enter }, tMsg);
+            }
+
+            // The last message lands at 4.70 and is still settling at 4.96, so the clip resolves on a
+            // delivered thread rather than on a reply that never arrives.
+            arrive(3, 0.86, 0.4);
+            arrive(4, 1.88);
+            arrive(5, 2.58, 2.1);
+            arrive(6, 3.66);
+            arrive(7, 4.7, 4.24);
+
+            tl.set({}, {}, D); // pin the full duration
+            tl.seek(0);
+            window.__timelines = window.__timelines || {};
+            window.__timelines["thread-message-stack"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>
