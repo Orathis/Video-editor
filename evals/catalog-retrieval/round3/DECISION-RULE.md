@@ -60,14 +60,15 @@ favour of the arm that cannot go stale.**
 
 **4. Then run the paid confirmation** on the top two arms only, for the two quantities recall
 cannot see: the refusal rate, and the known-wrong-pick rate that drives the flat 0.5 fit penalty.
-Round 2 measured refusal at 0.040 for hybrid k=10 and 0.110 at k=5, so this is not a formality.
+Round 2 measured refusal at 0.040 for hybrid k=10 and 0.110 for semantic k=5, so this is not a
+formality.
 
 **If the confirmation contradicts the recall ranking, that is reported as a contradiction.** It is
 not quietly resolved in either direction, and it is not used to reopen step 2.
 
 ## Two outcomes that are results, not failures
 
-**The arms may converge at larger k.** Semantic recall runs 0.282 at k=10 and 0.485 at k=20, and
+**The arms may converge at larger k.** Semantic recall runs 0.383 at k=10 and 0.485 at k=20, and
 round 2 never looked past k=20. All arms draw from the same 424 entries, so at sufficient k they
 must converge. If that is what the sweep shows, the finding is that the real question was **what
 k**, not which arm, and the report says so plainly and reports the point where token cost starts
