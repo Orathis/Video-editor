@@ -511,5 +511,38 @@ class ProviderTests(unittest.TestCase):
         self.assertNotIn("stub-token", str(caught.exception))
 
 
+class CellSelectionTests(unittest.TestCase):
+    def test_an_empty_selection_is_the_whole_grid(self):
+        # The default has to stay the full grid: every earlier round was run
+        # that way, and a selection that silently narrowed it would make two
+        # rounds' numbers incomparable without anything saying so.
+        self.assertEqual(run2.CELLS, run2.parse_cells(""))
+        self.assertEqual(run2.CELLS, run2.parse_cells(None))
+
+    def test_the_confirmation_can_ask_for_two_arms_and_gets_only_those(self):
+        self.assertEqual((("h", 10), ("d", 20)), run2.parse_cells("h@10,d@20"))
+        self.assertEqual((("a", None), ("b", None)), run2.parse_cells("a, b"))
+
+    def test_a_cell_outside_the_grid_stops_the_run_rather_than_being_dropped(self):
+        # Silently dropping it would run fewer cells than asked for and report
+        # the result as if it were the selection.
+        for spec in ("z@99", "c@7", "h@10,nope"):
+            with self.subTest(spec=spec), self.assertRaises(SystemExit) as caught:
+                run2.parse_cells(spec)
+            self.assertIn("unknown cell", str(caught.exception))
+
+    def test_a_malformed_k_is_named_rather_than_coerced(self):
+        with self.assertRaises(SystemExit) as caught:
+            run2.parse_cells("c@many")
+        self.assertIn("k must be a positive integer", str(caught.exception))
+
+    def test_a_selection_of_only_separators_is_an_error_not_the_whole_grid(self):
+        # ",," is a typo, and answering it with all nine cells would spend the
+        # full grid's budget on what was meant to be a two arm confirmation.
+        with self.assertRaises(SystemExit) as caught:
+            run2.parse_cells(",,")
+        self.assertIn("selected no cells", str(caught.exception))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

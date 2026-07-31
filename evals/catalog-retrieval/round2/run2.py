@@ -371,11 +371,45 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
     return rows, total
 
 
+def parse_cells(spec):
+    """Read a cell selection like "h@10,d@20" or "b". Empty spec means every cell.
+
+    Step 4 of the pre-registered rule runs the paid confirmation on the top two
+    arms only. run_grid has always taken a cells argument, but nothing exposed it,
+    so the only reachable run was all nine cells. That is not a confirmation, it
+    is a second full grid, and at wave 1 size it costs about five times what the
+    rule asks for.
+    """
+    if not spec:
+        return CELLS
+    chosen = []
+    for token in spec.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        condition, _, k = token.partition("@")
+        if not k:
+            chosen.append((condition, None))
+            continue
+        if not k.isdigit():
+            raise SystemExit(f"cell {token!r}: k must be a positive integer")
+        chosen.append((condition, int(k)))
+    unknown = [cell for cell in chosen if cell not in CELLS]
+    if unknown:
+        raise SystemExit(
+            f"unknown cell(s) {unknown}: pick from {[c for c in CELLS]}"
+        )
+    if not chosen:
+        raise SystemExit(f"EVAL_CELLS={spec!r} selected no cells")
+    return tuple(chosen)
+
+
 def main():
     entries = harness2.load_shelf()
     briefs = harness2.load_briefs()
+    cells = parse_cells(os.environ.get("EVAL_CELLS", ""))
     if os.environ.get("EVAL_DRY_RUN") == "1":
-        dry_run(entries, briefs, model=MODEL)
+        dry_run(entries, briefs, cells=cells, model=MODEL)
         return 0
 
     _prices(MODEL)
@@ -384,7 +418,7 @@ def main():
         max_usd = float(os.environ.get("EVAL_MAX_USD", DEFAULT_MAX_USD))
     except ValueError:
         raise SystemExit("EVAL_MAX_USD must be a number") from None
-    result = run_grid(entries, briefs, model=MODEL, max_usd=max_usd)
+    result = run_grid(entries, briefs, cells=cells, model=MODEL, max_usd=max_usd)
     reason = result["stop_reason"] or "complete"
     print(
         f"{reason}: {result['completed']} completed, "
