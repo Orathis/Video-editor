@@ -85,23 +85,53 @@ def lexical_topk(brief, entries, k):
     return [name for _, name in scored[:k]]
 
 
+# vectors.json is tens of megabytes and the grid asks for a semantic ranking
+# 227 briefs x 4 cells, so both the parse and the ranking are memoized. Without
+# this the dry run alone re-reads and re-scores the same file 900 times.
+_VECTOR_CACHE = {}
+_RANK_CACHE = {}
+
+
+def _load_vectors():
+    # Keyed by path, not a bare flag: the tests point VECTORS at round one's
+    # file and at fixtures, and a path-blind cache would answer from the wrong
+    # one.
+    if VECTORS not in _VECTOR_CACHE:
+        if not os.path.exists(VECTORS):
+            raise SystemExit(f"missing {VECTORS}: run embed2.py first")
+        with open(VECTORS, encoding="utf-8") as fh:
+            vectors = json.load(fh)
+        # Norms fold into the vectors once, so cosine is a bare dot product.
+        moves = {}
+        for name, vector in vectors["moves"].items():
+            norm = sum(x * x for x in vector) ** 0.5 or 1.0
+            moves[name] = [x / norm for x in vector]
+        _VECTOR_CACHE[VECTORS] = {"moves": moves, "briefs": vectors["briefs"]}
+    return _VECTOR_CACHE[VECTORS]
+
+
+def semantic_ranking(brief_id):
+    """Return every move name, best cosine first."""
+    key = (VECTORS, brief_id)
+    if key not in _RANK_CACHE:
+        vectors = _load_vectors()
+        query = vectors["briefs"][brief_id]
+        norm = sum(x * x for x in query) ** 0.5 or 1.0
+        query = [x / norm for x in query]
+        ranked = sorted(
+            (
+                (sum(x * y for x, y in zip(query, vector)), name)
+                for name, vector in vectors["moves"].items()
+            ),
+            reverse=True,
+        )
+        _RANK_CACHE[key] = [name for _, name in ranked]
+    return _RANK_CACHE[key]
+
+
 def semantic_topk(brief_id, entries, k):
     """Return cosine-ranked names from the precomputed vectors."""
-    if not os.path.exists(VECTORS):
-        raise SystemExit(f"missing {VECTORS}: run embed2.py first")
-    with open(VECTORS, encoding="utf-8") as fh:
-        vectors = json.load(fh)
-    query = vectors["briefs"][brief_id]
-    moves = vectors["moves"]
-
-    def cos(a, b):
-        dot = sum(x * y for x, y in zip(a, b))
-        na = sum(x * x for x in a) ** 0.5
-        nb = sum(x * x for x in b) ** 0.5
-        return dot / (na * nb)
-
-    ranked = sorted(((cos(query, vector), name) for name, vector in moves.items()), reverse=True)
-    return [name for _, name in ranked[:k]]
+    return semantic_ranking(brief_id)[:k]
 
 
 def hybrid_topk(brief_id, brief, entries, k):
