@@ -1,61 +1,57 @@
 ---
-title: "Reuse Catalog visuals"
-description: "Add a ready-made scene or effect, then adapt its content, design, and timing to the project."
+title: "Use images and video"
+sidebarTitle: "Images and video"
+description: "Import, place, replace, trim, and review images and footage in a HyperFrames project."
 ---
 
-The [Catalog](/catalog) contains reusable scenes, captions, transitions, overlays, maps, effects, and code visuals.
+Images and footage should enter the project once, remain easy to identify, and
+behave the same in preview and the final render.
 
-Use an item as a starting point when it already solves the visual job. Do not add one only because it looks impressive in isolation.
+## Import a file
 
-## Blocks and components
+In Studio:
 
-| | Block | Component |
-| --- | --- | --- |
-| Purpose | A larger, self-contained scene | A smaller effect or behavior |
-| Own size and duration | Usually | No; it adapts to its host |
-| Example | Data chart or social post | Caption style or grain overlay |
+1. Open **Assets**.
+2. Choose **Import media**, or drop the file into the panel.
+3. Preview it.
+4. Drag it to the timeline.
 
-If you do not know which type you need, choose by outcome and let the agent handle the source structure.
+Studio accepts common image formats, SVG, MP4, WebM, and MOV. Keep the source
+inside the project before the final render.
 
-## Add an item
+## Place it deliberately
 
-Open its Catalog page and copy the suggested agent request:
+- Set the start and duration by watching the surrounding edit.
+- Choose a crop that preserves the important content.
+- Keep source audio only when it belongs in the mix.
+- Avoid stretching low-resolution media beyond what it can support.
+- Use a wrapper when animating the size or position of video; this keeps frame capture reliable.
+
+For a source-level change, ask the agent in terms of the visible result:
 
 ```text
-Add the Data Chart block from the HyperFrames Catalog to this project.
-Replace the demo content with mine and match the existing design and timing.
+Use assets/product-tour.mp4 from 00:04 to 00:10.
+Crop around the editor canvas, keep the source muted, and place it beneath
+the existing caption layer.
 ```
 
-Or install it from the project folder:
+## Replace a source
 
-```bash
-npx hyperframes add data-chart
-```
+Select the image or video in Studio and replace its source from the Inspector or
+Assets. Then recheck the crop, clip length, transition, and any motion tied to
+the old dimensions.
 
-The command writes the item into the project. Blocks are included as compositions; components provide a snippet or effect that is applied inside another composition.
+Replacing a file should not require rebuilding the whole scene. If the new
+content also changes the story or several scenes, ask the agent to make the
+broader revision.
 
-## Make it belong
+## Avoid fragile sources
 
-After adding an item:
+Temporary signed URLs, private browser sessions, and render-time network
+requests can disappear or fail in another environment. Copy required media into
+the project, keep filenames stable, and run `npx hyperframes check` before
+rendering.
 
-1. Replace all demo text, numbers, images, and branding.
-2. Match the project’s type, color, spacing, and visual weight.
-3. Adjust its duration to the surrounding narration and scenes.
-4. Remove decorative motion that competes with the message.
-5. Review the complete sequence, not only the item by itself.
-
-The Catalog preview proves what the item can do. It does not prove that the default treatment fits your video.
-
-## Add one in Studio
-
-Open **Catalog** in the left sidebar.
-
-Some items can be inserted directly with **Add**. Others provide a prepared message for your agent because they need source-level integration or adaptation.
-
-See [Use Assets and Catalog](/studio/assets-and-blocks).
-
-## Contribute an item
-
-Reusable visuals should be deterministic, self-contained, documented, and useful beyond one project.
-
-Use [Contributing to the Catalog](/contributing/catalog) for the registry structure, validation, previews, and pull-request requirements.
+Continue to [Use Assets and Catalog](/studio/assets-and-blocks) for the Studio
+controls, or [Media effects](/guides/media-effects) when the source needs a
+non-destructive visual treatment.

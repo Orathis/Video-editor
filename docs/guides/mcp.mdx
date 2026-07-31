@@ -31,37 +31,51 @@ Use the [local Quickstart](/quickstart) when you need:
 The production MCP address is:
 
 ```text
-https://mcp.heygen.com/mcp/hyperframes
+https://mcp.heygen.com/mcp/hyperframes/
 ```
 
 You need a HeyGen account and access to the HyperFrames connector.
 
 <Tabs>
   <Tab title="Claude">
-    1. Open Claude’s connector settings.
-    2. Search for **HyperFrames** and connect it when available.
-    3. If your plan supports custom connectors and HyperFrames is not listed, add the MCP address above.
-    4. Complete the HeyGen sign-in and authorization flow.
-    5. Start a new chat and select or invoke the connector.
+    1. Open **Settings → Connectors**.
+    2. Choose **Add custom connector** and enter the MCP address above.
+    3. Complete the HeyGen sign-in.
+    4. In a new chat, open **Search and tools** and enable HyperFrames.
+
+    Claude supports remote custom connectors on Pro, Max, Team, and Enterprise
+    plans. Team and Enterprise owners configure organization connectors before
+    members connect. See [Anthropic’s current connector
+    instructions](https://support.anthropic.com/en/articles/11175166-about-custom-integrations-using-remote-mcp).
   </Tab>
   <Tab title="ChatGPT">
-    1. Open **Settings → Apps** or the ChatGPT app directory.
-    2. Search for **HyperFrames** and choose **Connect** when it is listed.
-    3. Complete the HeyGen authorization flow.
-    4. Invoke the connected app from the chat’s app picker or with an `@` mention when supported.
+    If HyperFrames appears in **Settings → Apps**, choose **Connect** and
+    complete HeyGen authorization.
 
-    Custom MCP apps and developer mode depend on your ChatGPT plan, region, role, and workspace settings. If HyperFrames is not in the app directory, follow the current [OpenAI app instructions](https://help.openai.com/en/articles/11487775-connectors-in-chatgpt) rather than relying on copied menu paths here.
+    To add the MCP address as a custom app with create and render actions, a
+    supported Business or Enterprise/Edu workspace must enable developer mode.
+    An authorized user then opens **Settings → Apps → Create**, enters the
+    endpoint, scans the tools, completes OAuth, and creates the app. Workspace
+    admins control publishing and action access.
+
+    See [OpenAI’s current MCP app
+    instructions](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt-beta).
   </Tab>
   <Tab title="Grok">
-    1. Open Grok’s connector settings.
-    2. Search for **HyperFrames** and connect it when available.
-    3. If custom connectors are supported for your account, add the MCP address above.
-    4. Sign in to HeyGen and authorize access.
-    5. Start a new conversation with the connector enabled.
+    1. Open [grok.com/connectors](https://grok.com/connectors).
+    2. Choose **New Connector → Custom**.
+    3. Enter the MCP address above.
+    4. Complete HeyGen authorization.
+
+    Business and Enterprise workspaces require an administrator to provision
+    the connector first. See [xAI’s current connector
+    instructions](https://docs.x.ai/grok/connectors).
   </Tab>
 </Tabs>
 
-Host products change their connector interfaces independently. If a menu or button is missing, check that host’s current plan and workspace documentation.
+Host products change their connector interfaces independently. If a menu or
+button is missing, check that host’s current plan and workspace permissions
+before treating it as a HyperFrames failure.
 
 ## Create a first composition
 

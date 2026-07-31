@@ -26,6 +26,13 @@ Run the check again after the change.
 
 Use **Copy to Agent** when the issue requires source work or the explanation is unfamiliar. Studio copies the findings and project context; paste that prompt into your agent chat.
 
+<Frame caption="The agent prompt stays tied to the selected element and includes project context.">
+  <img
+    src="/images/studio/ask-agent.jpg"
+    alt="HyperFrames Studio prompt dialog for sending the selected element and project context to an AI agent"
+  />
+</Frame>
+
 Add what you were doing and what you expected:
 
 ```text
@@ -46,3 +53,9 @@ npx hyperframes check
 ```
 
 Passing checks reduce avoidable failures, but you should still watch the final output.
+
+<Note>
+  Treat the project-level CLI checks as the final verdict for projects with
+  nested composition files. They understand which files are roots and which
+  are mounted inside another composition.
+</Note>

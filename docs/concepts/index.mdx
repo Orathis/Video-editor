@@ -4,32 +4,9 @@ sidebarTitle: "Overview"
 description: "Understand the project, composition, timing, variables, and rendering model behind every HyperFrames video."
 ---
 
-A HyperFrames project is a folder of HTML compositions, media, fonts, and project settings. The agent writes it, Studio or the SDK can edit it, and HyperFrames can play or render it frame by frame.
-
-<div className="not-prose my-8 grid gap-3 sm:grid-cols-4">
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">1</div>
-    <div className="mt-2 font-medium">Request</div>
-    <div className="mt-1 text-sm text-zinc-500">What the video should accomplish.</div>
-  </div>
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">2</div>
-    <div className="mt-2 font-medium">Agent</div>
-    <div className="mt-1 text-sm text-zinc-500">
-      Writes the story, HTML, motion, and media plan.
-    </div>
-  </div>
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">3</div>
-    <div className="mt-2 font-medium">Project</div>
-    <div className="mt-1 text-sm text-zinc-500">Editable compositions and source files.</div>
-  </div>
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">4</div>
-    <div className="mt-2 font-medium">Video</div>
-    <div className="mt-1 text-sm text-zinc-500">A deterministic render of the project.</div>
-  </div>
-</div>
+A HyperFrames project is a normal folder of HTML compositions, media, fonts,
+and settings. The agent writes it, Studio or the SDK can edit it, and
+HyperFrames can play or render it frame by frame.
 
 ## Project, composition, element
 
@@ -41,11 +18,22 @@ An **element** is something inside a composition: text, a shape, an image, video
 
 ```text
 project
-├── index.html              complete video
+├── BRIEF.md                agreed goal and direction, when useful
+├── STORYBOARD.md           planned sequence, when useful
+├── SCRIPT.md               narration or planned copy, when useful
+├── index.html              main composition
+├── hyperframes.json        project settings
 ├── compositions/           scenes and reusable compositions
 ├── assets/                 video, images, audio, and fonts
 └── renders/                finished files
 ```
+
+Small projects may contain only `index.html` and a few assets. The planning
+files are checkpoints for larger or collaborative work, not required ceremony.
+
+Studio edits supported changes back into these files. It does not create a
+separate proprietary project document, so an agent, Git, validation, and
+rendering all see the same source.
 
 ## Time is written into the project
 

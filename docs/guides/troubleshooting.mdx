@@ -33,40 +33,8 @@ Start with the symptom you can see. Keep the exact error and note whether the pr
   </Step>
 </Steps>
 
-## Studio problems
-
-### Studio does not open
-
-Run `npx hyperframes preview` from the project folder and keep that terminal running.
-
-If it still fails:
-
-1. read the terminal error;
-2. run `npx hyperframes doctor`;
-3. try another port with `npx hyperframes preview --port 4567`;
-4. restart the preview process.
-
-### The preview is not updating
-
-Confirm that you are editing a file inside the open project. Save the file, wait for refresh, and inspect the preview terminal for errors.
-
-If needed, reload Studio or restart `npx hyperframes preview`.
-
-### I cannot select or edit an element
-
-Pause on a frame where the element is visible, then select it from Layers.
-
-The element may belong to a group or nested composition, sit outside the frame, or use source that Studio cannot edit safely. Open the nested composition, use the inspector, or copy context to your agent.
-
-### A move became animation
-
-Auto-keyframing was probably enabled. Undo the edit, turn off the auto-keyframe control, and apply the layout change again.
-
-### A timeline edit landed at the wrong time
-
-Undo, zoom in, and place the playhead more precisely. Check whether snapping moved the boundary to a nearby clip or beat.
-
-Continue to [Studio troubleshooting](/studio/troubleshooting) for selection, editing, timeline, and save recovery.
+For selection, canvas, timeline, autosave, and Studio-only failures, use
+[Studio troubleshooting](/studio/troubleshooting).
 
 ## Project and environment problems
 
@@ -221,7 +189,7 @@ npx hyperframes render --docker --output output.mp4
 During iteration:
 
 - use draft quality;
-- render a shorter range or inspect snapshots;
+- inspect snapshots before starting another full render;
 - resize large source media;
 - simplify expensive filters;
 - avoid increasing resolution or frame rate before needed.

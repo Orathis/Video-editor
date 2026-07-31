@@ -4,7 +4,7 @@ sidebarTitle: "Get unstuck"
 description: "Start with what you can see, try the smallest useful fix, and get back to your HyperFrames task."
 ---
 
-Find the symptom that looks like yours below — the contents list on the right jumps straight to it. You should not need to understand the rendering architecture to solve a normal problem.
+Find the symptom that looks like yours below.
 
 ## Studio will not open
 
@@ -19,12 +19,14 @@ If the command cannot find a project, check that you are inside the project fold
 
 ## Preview is wrong or stale
 
-A saved change is missing, playback looks old, or the preview is blank. Try these in order:
+A change is missing, playback looks old, or the preview is blank. Preview's Code
+editor and visual controls save automatically. Storyboard drafts show a Save
+action when they still need one. If you edited the project in another
+application, save that file first.
 
-1. Save the changed file.
-2. Reload Studio once.
-3. Check the terminal for a build or runtime error.
-4. Run the project checks:
+1. Wait for the project refresh, then reload Studio once.
+2. Check the terminal for a build or runtime error.
+3. Run the project checks:
 
 ```bash
 npx hyperframes lint
@@ -113,9 +115,6 @@ Add a screenshot or short recording when the failure is visual. Never paste acce
 ## Still stuck
 
 <CardGroup cols={2}>
-  <Card title="Common questions" icon="circle-question" href="/guides/common-questions">
-    Short answers to what usually comes up during first use.
-  </Card>
   <Card title="Complete troubleshooting" icon="wrench" href="/guides/troubleshooting">
     Less common project, media, animation, rendering, and environment failures.
   </Card>

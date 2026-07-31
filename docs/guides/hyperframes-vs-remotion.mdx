@@ -16,7 +16,7 @@ Neither choice is universally better. Pick the one that fits the source material
 | --- | --- | --- |
 | Main authoring surface | HTML, CSS, and JavaScript | React and TypeScript |
 | Agent workflow | Built around agent skills and plain HTML projects | Provides agent skills and React video workflows |
-| Visual editing | HyperFrames Studio edits the rendered DOM and project source | Remotion Studio previews and controls React compositions; editor products can be built with its tooling |
+| Visual editing | HyperFrames Studio edits the rendered DOM and project source | Remotion Studio can edit and animate React compositions visually, then save changes back to code |
 | Existing web material | Can often be used directly or adapted as HTML | Usually translated into React components |
 | Animation model | Seeks registered browser timelines frame by frame | Commonly derives visuals from the current frame in React |
 | Reuse | HTML scenes, components, and Catalog items | React components and the React ecosystem |
@@ -65,7 +65,9 @@ HyperFrames Studio selects and edits elements in the live composition DOM. It in
 
 That does not mean every structural change should be made visually. Broader story and source changes are often better handled by the agent.
 
-Remotion Studio is a development and preview environment for React compositions. Remotion also publishes tooling for building editing applications. These products share a category but should not be treated as identical editors.
+Remotion Studio is a development and visual-editing environment for React compositions. It supports direct manipulation and animation controls, then saves the result back to React code. Remotion also publishes tooling for building custom editing applications.
+
+The two Studios are not interchangeable. HyperFrames Studio operates on the DOM and HTML project that HyperFrames renders; Remotion Studio operates on React compositions.
 
 ## Rendering and deployment
 
@@ -79,7 +81,7 @@ See [HyperFrames deployment](/developers) and [Remotion Lambda](https://www.remo
 
 HyperFrames is available under the [Apache 2.0 license](https://github.com/heygen-com/hyperframes/blob/main/LICENSE).
 
-Remotion uses its own license. Its current terms include free use for eligible individuals and small companies and paid options for other commercial use. Pricing and eligibility can change, so check the [official Remotion license page](https://www.remotion.pro/license) instead of relying on a copied price here.
+Remotion uses its own license. Its current terms allow free use for individuals and companies of up to three people, with a Company License required for larger organizations. Pricing and eligibility can change, so check the [official Remotion license page](https://www.remotion.pro/license) instead of relying on a copied price here.
 
 ## Moving an existing project
 

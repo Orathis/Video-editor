@@ -20,7 +20,20 @@ From the project folder:
 npx hyperframes publish
 ```
 
-Publishing returns a stable public URL. Publishing the project again updates that link rather than forcing reviewers to find a new one.
+Publishing returns a browser URL for the uploaded project.
+
+You can publish while signed out. That first URL includes a claim token; open
+it in the web app and sign in to claim the project. Sign in before publishing
+when you want the CLI to own the link immediately.
+
+After an authenticated project has an owner, later publishes from the same
+project can reuse its saved project ID. To target an existing link explicitly:
+
+```bash
+npx hyperframes publish --update <url-or-id>
+```
+
+`--update` requires authentication.
 
 Use a shared space when a team should publish to the same destination:
 

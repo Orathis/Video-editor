@@ -66,8 +66,7 @@
               "guides/prompting",
               "guides/mcp",
               "guides/pipeline",
-              "guides/design-tools",
-              "guides/figma"
+              "guides/design-tools"
             ]
           },
           {
@@ -87,14 +86,8 @@
             "group": "Learn",
             "pages": [
               "concepts/index",
-              "guides/project-tour",
               "concepts/compositions",
-              "concepts/variables",
-              "concepts/data-attributes",
-              "concepts/frame-adapters",
-              "concepts/determinism",
-              "guides/html-in-canvas",
-              "guides/hyperframes-vs-remotion"
+              "concepts/variables"
             ]
           },
           {
@@ -106,8 +99,7 @@
               "guides/transcribe-and-caption",
               "guides/remove-background",
               "guides/color-grading",
-              "guides/media-effects",
-              "guides/media-overlays"
+              "guides/media-effects"
             ]
           },
           {
@@ -116,10 +108,7 @@
               "guides/export-and-share",
               "guides/quality-checklist",
               "guides/publish-and-share",
-              "guides/rendering",
-              "guides/4k-rendering",
-              "guides/hdr",
-              "guides/performance"
+              "guides/rendering"
             ]
           },
           {
@@ -132,7 +121,6 @@
             "group": "Help",
             "pages": [
               "help",
-              "guides/common-questions",
               "guides/troubleshooting",
               "guides/feedback"
             ]
@@ -140,9 +128,7 @@
           {
             "group": "What's new",
             "pages": [
-              "product-updates",
-              "weekly-updates",
-              "changelog"
+              "product-updates"
             ]
           }
         ]
@@ -171,7 +157,8 @@
               "studio/layers",
               "studio/timeline",
               "studio/design",
-              "studio/animation"
+              "studio/animation",
+              "guides/keyframes"
             ]
           },
           {
@@ -413,15 +400,6 @@
             ]
           },
           {
-            "group": "Agent setup",
-            "pages": [
-              "guides/authentication",
-              "guides/skills",
-              "guides/antigravity",
-              "guides/copilot-cli"
-            ]
-          },
-          {
             "group": "SDK",
             "pages": [
               "sdk/overview",
@@ -442,6 +420,40 @@
             ]
           },
           {
+            "group": "Composition and animation",
+            "pages": [
+              "reference/html-schema",
+              "concepts/data-attributes",
+              "guides/gsap-animation",
+              "concepts/frame-adapters",
+              "concepts/determinism",
+              "guides/html-in-canvas",
+              "guides/hyperframes-vs-remotion"
+            ]
+          },
+          {
+            "group": "Rendering and deployment",
+            "pages": [
+              "deploy/overview",
+              "deploy/cloud",
+              "guides/deploy",
+              "deploy/aws-lambda",
+              "deploy/gcp-cloud-run",
+              "deploy/templates-on-lambda",
+              "deploy/migrating-to-hyperframes-lambda",
+              "packages/aws-lambda",
+              "packages/gcp-cloud-run"
+            ]
+          },
+          {
+            "group": "Advanced rendering",
+            "pages": [
+              "guides/4k-rendering",
+              "guides/hdr",
+              "guides/performance"
+            ]
+          },
+          {
             "group": "Packages",
             "pages": [
               "packages/core",
@@ -456,24 +468,13 @@
             ]
           },
           {
-            "group": "Schema and animation",
+            "group": "Integrations",
             "pages": [
-              "reference/html-schema",
-              "guides/gsap-animation",
-              "guides/keyframes"
-            ]
-          },
-          {
-            "group": "Deployment",
-            "pages": [
-              "deploy/cloud",
-              "guides/deploy",
-              "deploy/aws-lambda",
-              "deploy/gcp-cloud-run",
-              "deploy/templates-on-lambda",
-              "deploy/migrating-to-hyperframes-lambda",
-              "packages/aws-lambda",
-              "packages/gcp-cloud-run"
+              "guides/authentication",
+              "guides/skills",
+              "guides/figma",
+              "guides/antigravity",
+              "guides/copilot-cli"
             ]
           },
           {
@@ -547,6 +548,22 @@
       "destination": "/help"
     },
     {
+      "source": "/guides/project-tour",
+      "destination": "/concepts"
+    },
+    {
+      "source": "/guides/media-overlays",
+      "destination": "/catalog"
+    },
+    {
+      "source": "/guides/common-questions",
+      "destination": "/help"
+    },
+    {
+      "source": "/weekly-updates",
+      "destination": "/product-updates"
+    },
+    {
       "source": "/contributing/studio-manual-dom-editing",
       "destination": "/studio/canvas"
     },
@@ -561,10 +578,6 @@
     {
       "source": "/guides/website-to-video",
       "destination": "/guides/product-launch-video"
-    },
-    {
-      "source": "/weekly-updates",
-      "destination": "/changelog"
     }
   ]
 }

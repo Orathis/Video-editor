@@ -39,7 +39,8 @@ HyperFrames uses HTML data attributes to control timing, media playback, and [co
 
 ## Element Visibility
 
-Add `class="clip"` to all timed elements so the runtime can manage their visibility lifecycle:
+Add `class="clip"` to authored timed DOM and image elements so the runtime can
+manage their visibility lifecycle:
 
 ```html index.html
 <h1 id="title" class="clip"
@@ -47,6 +48,10 @@ Add `class="clip"` to all timed elements so the runtime can manage their visibil
   Hello World
 </h1>
 ```
+
+Video visibility is managed through the media runtime and does not require the
+class. Audio has no visual lifecycle. Nested-composition hosts are managed
+through their composition attributes.
 
 ## Relative Timing
 

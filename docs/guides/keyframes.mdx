@@ -1,153 +1,73 @@
 ---
-title: Keyframes & Arc Motion
-description: "Edit GSAP keyframes visually in Studio — timeline diamonds, arc motion paths, and gesture recording."
+title: "Shape motion with keyframes"
+description: "Add, retime, and refine keyframes, motion paths, and recorded gestures in Studio."
 ---
 
-Studio gives you visual tools to create and edit GSAP keyframes without writing code. You can adjust animation properties in the Design Panel, convert straight-line motion into curved arcs, and record gesture-based motion by dragging elements in the preview.
+Keyframes describe how an element changes between specific moments. Studio shows
+the keyframes it can read from GSAP animations as diamonds on the timeline.
 
-## Timeline Keyframe Diamonds
+## Change when motion happens
 
-When you open a composition in Studio, the timeline shows **diamond markers** on clips that have GSAP animations. Each diamond represents a keyframe — a point in time where a property value is set.
+1. Select the animated element.
+2. Move the playhead to the relevant moment.
+3. Select a keyframe diamond.
+4. Move it earlier or later.
+5. Play through the complete movement.
 
-- **Start diamond** — where the tween begins (e.g., `x: 0`)
-- **End diamond** — where the tween ends (e.g., `x: 1000`)
-- Elements with multiple tweens show multiple diamond pairs
+Retiming one keyframe changes the speed of the movement around it. Watch the
+entrance and exit, not only the selected frame.
 
-<Note>
-  Keyframe diamonds are synthesized from your GSAP tweens automatically. Every `.to()`, `.from()`, and `.fromTo()` call produces start and end markers on the timeline.
-</Note>
+## Add a keyframe
 
-## Editing Animation Properties
+Select an element and move the playhead to the new moment. Use the keyframe
+control in the timeline toolbar or press **K** when the selection supports
+keyframes.
 
-Select any animated element in the preview or timeline to open the Design Panel. The **Animation** section shows:
+Change the property that should animate, then play the result. The Design
+inspector can expose timing, easing, and supported animated properties for the
+selected tween.
 
-- **Method badge** — `Animate`, `Animate In`, or `From → To` (maps to `.to()`, `.from()`, `.fromTo()`)
-- **Timing** — Length (duration) and Starts at (position on timeline)
-- **Speed** — The GSAP ease (e.g., `power2.inOut`, `back.out(3)`)
-- **Speed curve** — Visual preview of the easing function
-- **Properties** — Each animated property (Move X, Move Y, Scale, Opacity, etc.) with its target value
+<Warning>
+  The auto-keyframe button is enabled when it is highlighted. Turn it off
+  before making a normal layout change that should remain constant.
+</Warning>
 
-<Steps>
-  <Step title="Select an element">
-    Click an animated element in the preview or its clip in the timeline. The Design Panel opens on the right.
-  </Step>
-  <Step title="Edit property values">
-    Change any property value directly — for example, set Move X to `500` to make the element travel 500px. Changes apply immediately via soft reload.
-  </Step>
-  <Step title="Change the ease">
-    Click the ease dropdown (e.g., "Smooth ease") to pick a different easing function. The speed curve preview updates live.
-  </Step>
-  <Step title="Verify in Code tab">
-    Switch to the Code tab to see the generated GSAP code. Every Design Panel edit writes valid GSAP that renders identically in preview and headless export.
-  </Step>
-</Steps>
+## Shape a motion path
 
-## Arc Motion
+When an animation has position keyframes, Studio can show its path over the
+canvas.
 
-Arc Motion converts a straight-line x/y animation into a curved path using GSAP's MotionPathPlugin. Instead of moving in a straight diagonal, the element follows a smooth arc — like tossing an object into a basket.
+- Drag a path point to change the route.
+- Adjust a segment when the movement should curve.
+- Use auto-rotate only when the element should face the direction of travel.
+- Add or remove points only when they improve the shape.
 
-### When to Use It
+Use a curve for motion that should feel thrown, guided, or organic. Keep a
+straight path when direct movement is clearer.
 
-Use Arc Motion when an element has both `x` and `y` properties in a single tween. Common examples:
-- Add-to-cart animations (item arcs from product to cart icon)
-- Throw/toss effects
-- Any motion that should feel physical rather than robotic
+## Record a gesture
 
-### Step-by-Step
+Gesture recording is useful when the movement is easier to perform than
+describe.
 
-<Steps>
-  <Step title="Select an element with x/y motion">
-    The element must have a `.to()` tween with both Move X and Move Y properties. Select it in the preview or timeline.
-  </Step>
-  <Step title="Toggle Arc Motion ON">
-    In the Animation section of the Design Panel, find the **Arc Motion** toggle below the property list. Switch it ON.
-  </Step>
-  <Step title="Adjust Curviness">
-    The **Curviness** slider controls how exaggerated the arc is:
-    - `0` — straight line (no curve)
-    - `1` — gentle natural arc
-    - `1.5–2.0` — smooth throw feel (recommended)
-    - `3.0` — extreme loop
+1. Select the element.
+2. Choose **Record gesture** or press **R**.
+3. Move the pointer to perform the motion.
+4. Stop recording.
+5. Play the result and refine the generated keyframes.
 
-    Scrub the timeline to preview the arc in real time.
-  </Step>
-  <Step title="Toggle Auto-Rotate (optional)">
-    Enable **Auto-Rotate** to make the element rotate to face the direction of travel along the arc. This adds a "thrown" feel vs. a "floating" feel.
-  </Step>
-  <Step title="Verify the generated code">
-    Switch to the Code tab. You'll see:
+Studio can record position and supported transform changes. The shortcut panel
+shows the available drag and scroll modifiers.
 
-    ```javascript
-    tl.to("#element", {
-      scale: 0.4,
-      opacity: 0,
-      duration: 1.0,
-      ease: "power2.inOut",
-      motionPath: {
-        path: [{x: 0, y: 0}, {x: 1400, y: -280}],
-        curviness: 1.5,
-        autoRotate: true
-      }
-    }, 1.0);
-    ```
+## When Studio cannot edit the animation
 
-    The MotionPathPlugin CDN script is added automatically.
-  </Step>
-  <Step title="Disable to restore straight motion">
-    Toggle Arc Motion OFF to restore the original `x` and `y` properties as flat tween values.
-  </Step>
-</Steps>
+An animation produced by a helper, loop, or computed value can be visible on the
+timeline without having one safe source expression for Studio to rewrite.
 
-<Note>
-  Arc Motion works for flat `.to()` tweens with x/y properties. It synthesizes waypoints from `{x: 0, y: 0}` (start) to `{x: targetX, y: targetY}` (end). For more complex paths with intermediate waypoints, edit the `motionPath.path` array directly in the Code tab.
-</Note>
+When Studio offers **Unroll to edit**, it can turn supported generated motion
+into explicit tweens. Otherwise, copy the element context to your agent or edit
+the source directly.
 
-## Gesture Recording
-
-Record motion by physically dragging an element in the preview while the timeline plays. The pointer path is simplified and converted into GSAP keyframes automatically.
-
-<Steps>
-  <Step title="Select an element">
-    Click the element you want to animate in the preview.
-  </Step>
-  <Step title="Click Record or press R">
-    In the Animation section of the Design Panel, click **Record gesture (R)** or press the R key. The timeline starts playing.
-  </Step>
-  <Step title="Drag the element">
-    Move the element in the preview by dragging it. Your pointer motion is sampled at ~60fps. A trail overlay shows the path you're drawing.
-  </Step>
-  <Step title="Stop recording">
-    Press R again or wait for the timeline to reach the end. Recording stops, the motion is simplified (reducing ~180 raw samples to 5–15 clean keyframes), and the keyframes are written to the GSAP script immediately.
-  </Step>
-  <Step title="Review or undo">
-    The timeline seeks back to the recording start so you can scrub through the result. If you don't like it, press **Cmd+Z** to undo and try again.
-  </Step>
-</Steps>
-
-## Computed Timelines (Helpers, Loops, Dynamic Data)
-
-Studio reads your timeline statically, so a composition that builds its tweens with a **helper function called several times**, a **bounded loop**, or **data-driven values** still shows every keyframe at its true time on the timeline — and the Arc Motion panel still activates for `motionPath` tweens, even when the path comes from a variable.
-
-How those keyframes are **edited** depends on how they were authored:
-
-- **Literal tweens** (`tl.to("#x", { x: 100 }, 1.3)`) — edit directly in the Design Panel. One source call, one tween.
-- **Helper / loop tweens** — a single source line (e.g. `addCycle(1.0, ...)`) expands into many runtime tweens, so editing one keyframe is ambiguous. The Animation card shows a **"Generated by `addCycle()` — not directly editable"** notice with an **Unroll to edit** action: it rewrites the helper or loop into explicit literal tweens (a visual no-op — the render is identical), after which each keyframe edits directly. Undo restores the helper.
-- **Computed-value tweens** (the rare case of a value derived at runtime that can't be resolved or unrolled) — stay display-only; edit them in the **Code tab**. HyperFrames compositions are deterministic, so this case is uncommon.
-
-The notice on each computed tween tells you which path applies.
-
-## Clipboard Context
-
-The **clipboard icon** next to the element name in the Design Panel copies structured element context to your clipboard:
-
-```
-Element: Title (#title)
-File: index.html:15
-Position: x=100, y=40
-Size: 264×43
-Tag: <div>
-Animation: from() 0.5s at 0s, ease: power2.out
-Properties: x: -40, opacity: 0
-```
-
-Paste this into any AI agent prompt to give it spatial context about the element — its position, size, animation, and source location.
+For easing and animation principles, continue to [Edit animation and
+keyframes](/studio/animation). For the source contract, use the [GSAP animation
+guide](/guides/gsap-animation).

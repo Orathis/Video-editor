@@ -2,8 +2,10 @@
 
 ## Current approval gate
 
-Approved by the product owner on 2026-07-29. Public implementation is complete
-and ready for review.
+Approved by the product owner on 2026-07-29. The four journey pages exist, but
+the complete documentation is still in an accuracy, consolidation,
+visual-proof, and verification pass. Do not describe the refactor as finished
+until every gate at the end of this plan passes.
 
 The product owner refined the information model on 2026-07-30. Four maturity
 journeys are now the canonical front doors:
@@ -27,7 +29,7 @@ The approved journeys become the source of truth for:
 
 The route-to-journey contract is maintained in `JOURNEY-IMPLEMENTATION-MAP.md`.
 
-Status: four-journey page rebuild and film production complete
+Status: full content rebuild in progress
 Started: 2026-07-28
 Primary audience: people who want to make, edit, and share videos with HyperFrames
 Secondary audience: developers integrating or extending HyperFrames
@@ -65,6 +67,65 @@ real HyperFrames source. Long films use controls and do not autoplay or loop.
 
 The approved Mintlify header, left sidebar, right table of contents, theme, and
 page-width behavior remain unchanged.
+
+## Current execution order — 2026-07-31
+
+1. Correct factual contradictions, fake or missing product surfaces, duplicate
+   routes, and Guides/Developers information architecture.
+2. Replace route-only hubs with pages that teach a useful mental model or first
+   result before linking deeper.
+3. Add current, truthful visual proof to the highest-use Studio pages.
+4. Replace the Studio front-door film with a current project, River narration,
+   the shared media typography, and the approved caption rail.
+5. Verify commands and claims against current source, tests, CLI help, skills,
+   and official host documentation.
+6. Run Mintlify validation, broken links, desktop/mobile review, media checks,
+   accessibility checks, and final source diff review before pushing.
+
+Completed in the current pass:
+
+- exhaustive action audit for all 115 Guides, Studio, and Developers routes;
+- corrected authentication, variable-binding, and Studio autosave
+  contradictions;
+- rebuilt Guides and Developers navigation around human tasks and the smallest
+  technical surface;
+- added a neutral rendering/deployment chooser;
+- rewrote the main Media, SDK, Go further, Skills, Design import, Variables,
+  and support routes so they perform a task rather than act as directories;
+- removed a nonexistent Media Overlays product surface and redirected its old
+  route;
+- merged duplicate Project Tour and Common Questions routes into their actual
+  destinations;
+- reduced three oversized media guides from implementation memos to task
+  guides.
+- corrected the Player page against the current package, including supported
+  attributes, controls, and event cadence;
+- corrected Studio auto-keyframe and save semantics against current source:
+  auto-keyframing starts enabled, Preview edits autosave, and Storyboard drafts
+  keep explicit Save actions;
+- verified the current `hyperframes media-treatment` command and aligned the
+  grading/effects guides with its capability-discovery, local-analysis, apply,
+  preview, clear, and `data-color-grading` behavior;
+- corrected the CLI skills lifecycle against the current implementation:
+  complete bare install, freshness check, and targeted update.
+- verified and rebuilt the deployment chooser, hosted templates, AWS Lambda,
+  and Google Cloud Run guides against current source, CLI help, and live
+  template repositories;
+- reduced the advanced 4K, HDR, and performance pages to task-focused
+  references and removed volatile benchmark claims;
+- rewrote the contributor and Catalog-contribution entry pages against current
+  scripts and schemas;
+- retired the duplicate Weekly Updates route in favor of Product Updates and
+  the release archive;
+- removed broken cross-origin TT Norms loading from the Mintlify shell while
+  keeping the approved Inter UI and the changelog fonts inside authored films.
+
+Still required:
+
+- current visual proof across the Studio manual;
+- final Studio film production and approval;
+- source-by-source verification of the remaining developer/reference examples;
+- final Mintlify, responsive, media, accessibility, and link gates.
 
 ## Navigation decision
 

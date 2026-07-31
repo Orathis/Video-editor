@@ -6,43 +6,19 @@ description: "Understand the composition contract, editing surfaces, Player, CLI
 
 Building on HyperFrames means using an editable HTML composition as the shared source for automation, playback, editing, and rendering.
 
-<div className="not-prose my-8 grid gap-3 sm:grid-cols-4">
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Source</div>
-    <div className="mt-2 font-medium">Composition</div>
-    <div className="mt-1 text-sm text-zinc-500">
-      HTML, timing attributes, media, and paused animation timelines.
-    </div>
-  </div>
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Change</div>
-    <div className="mt-2 font-medium">SDK or Studio</div>
-    <div className="mt-1 text-sm text-zinc-500">
-      Query and edit the same composition without converting it.
-    </div>
-  </div>
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Play</div>
-    <div className="mt-2 font-medium">Player</div>
-    <div className="mt-1 text-sm text-zinc-500">
-      Embed, play, pause, and seek the live composition.
-    </div>
-  </div>
-  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Finish</div>
-    <div className="mt-2 font-medium">CLI or renderer</div>
-    <div className="mt-1 text-sm text-zinc-500">
-      Capture deterministic frames and encode the final media.
-    </div>
-  </div>
-</div>
-
 ## Start with the composition contract
 
 A composition is a finite HTML document with an explicit viewport, timed clips, media, and one or more paused animation timelines.
 
 ```html
-<div id="main" data-composition-id="intro" data-start="0" data-width="1920" data-height="1080">
+<div
+  id="main"
+  data-composition-id="intro"
+  data-start="0"
+  data-duration="5"
+  data-width="1920"
+  data-height="1080"
+>
   <img
     id="product"
     class="clip"
@@ -52,6 +28,12 @@ A composition is a finite HTML document with an explicit viewport, timed clips, 
     src="./assets/product.png"
   />
 </div>
+
+<script>
+  window.__timelines = window.__timelines || {};
+  const timeline = gsap.timeline({ paused: true });
+  window.__timelines.intro = timeline;
+</script>
 ```
 
 The runtime reads the timing attributes, controls clip visibility and media playback, and seeks registered animation timelines. The HTML remains inspectable and editable by normal web tooling.
@@ -125,7 +107,7 @@ See the [Player reference](/packages/player).
 
 Most applications should begin with the CLI or Producer. Reach for Engine only when building a specialized capture or rendering system.
 
-Use [rendering infrastructure](/deploy/cloud) to compare hosted, local, and self-managed paths.
+Use [rendering infrastructure](/deploy/overview) to compare hosted, local, and self-managed paths.
 
 ## The complete mental model
 

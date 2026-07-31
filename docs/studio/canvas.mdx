@@ -5,6 +5,13 @@ description: "Select and directly adjust visible elements in the current frame."
 
 The canvas is the fastest place to make a change when you can see the target.
 
+<Frame caption="A selected headline exposes its handles on the canvas and its real text properties in Design.">
+  <img
+    src="/images/studio/canvas.jpg"
+    alt="HyperFrames Studio with a headline selected on the canvas and its Design controls open"
+  />
+</Frame>
+
 ## Select an element
 
 Pause on a frame where the element is visible, then click it.
@@ -32,15 +39,18 @@ Use marquee selection when you want to move several canvas elements together. Gr
 
 ## Auto-keyframe changes
 
-The timeline toolbar contains an auto-keyframe control.
+The timeline toolbar contains an auto-keyframe control. It is enabled when the
+button is highlighted.
 
-- Leave it off when you want a layout change to remain constant.
-- Turn it on when you intentionally want a manual adjustment recorded as animation at the current playhead time.
+- Turn it off when you want a layout change to remain constant.
+- Leave it on when you intentionally want a manual adjustment recorded as
+  animation at the current playhead time.
 
 Check the timeline for a new keyframe after the edit.
 
 <Warning>
-  Do not turn on auto-keyframing casually. A move that looks like a normal layout correction can become motion when the project plays.
+  Check the auto-keyframe button before moving an element. A change that looks
+  like a layout correction can become motion when the project plays.
 </Warning>
 
 ## If an edit is unavailable

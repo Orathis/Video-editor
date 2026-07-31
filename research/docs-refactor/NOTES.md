@@ -2,6 +2,61 @@
 
 This is the working notebook for facts, judgments, questions, and progress. Keep raw observations here; keep durable decisions in `PLAN.md`.
 
+## 2026-07-31 — content correction and consolidation pass
+
+- `guides/video-components.mdx` was labeled and linked as “Images and video”
+  but contained a Catalog-components guide. It now performs the actual image
+  and footage task.
+- `guides/media-overlays.mdx` duplicated treatment-overlay blocks already owned
+  by the Registry and implied a separate Studio insertion surface. The page and
+  nav entry were removed; the old URL redirects to the real Catalog.
+- `concepts/compositions.mdx` incorrectly said declarative `data-var-*`
+  bindings do not exist. Runtime code, tests, the HTML schema, and the Variables
+  page prove `data-var-text`, `data-var-src`, and scalar CSS bindings are
+  supported. The contradiction is corrected.
+- General authentication no longer claims that everything works without a key.
+  Local creation/media have fallbacks; managed cloud and hosted MCP require
+  authentication. First-time `publish` works anonymously and returns a claim
+  URL; sign-in is needed for immediate ownership, in-place updates, and shared
+  spaces.
+- Studio source and visual edits autosave. Troubleshooting now asks users to
+  save only files changed in an external editor or by an agent.
+- Project Tour duplicated Concepts and Pipeline; its useful file map moved into
+  `/concepts` and the old route redirects there.
+- Common Questions repeated the journey, Studio, media, export, and support
+  pages; it was removed from navigation and redirected to `/help`.
+- The 3,339-word background-removal page, 1,757-word color-grading page, and
+  1,509-word media-effects page were reduced to task guides. Exact flags and
+  persistence contracts already live in CLI and schema reference.
+- Current official host documentation was checked before updating the MCP
+  setup: Claude custom connectors, ChatGPT MCP apps/developer mode, and Grok
+  custom connectors have different plan and workspace requirements.
+- The Studio front-door film passed its planning gate and is now in production
+  under `scratchpad/studio-front-door-v2`. It uses a new real `Field Notes`
+  project, River narration, the TT Norms media identity from the changelog
+  workflow, the shared caption rail, music, sound, and real Studio capture. Do
+  not integrate or upload it until the render, contact sheet, lint/check logs,
+  media probe, and docs-width review pass.
+- Source verification corrected several inherited absolutes and stale details:
+  - seek-driven rendering does not promise identical pixels across machines;
+  - HTML-in-Canvas is experimental and falls back to normal capture;
+  - the current variable contract has seven types, including `font` and
+    `image`;
+  - the exported `FrameAdapter` utility is an experimental v0 API rather than
+    the complete internal renderer contract;
+  - current Remotion Studio supports direct visual editing and saves back to
+    React code;
+  - Figma storyboard reconstruction can use REST frame exports and does not
+    require an MCP connector.
+  - `hyperframes media-treatment` is a current, tested CLI command. It
+    discovers the capability surface, analyzes local media, and applies,
+    previews, or clears the same `data-color-grading` contract Studio uses.
+  - Studio's current Effects surface is broader than Blur and Pixelate:
+    Essentials, Retro & Glitch, Print, and Art groups are implemented in source.
+  - The source-of-truth pass now targets a clean snapshot of current
+    `origin/main`, not the older merge base of the docs branch. Final review
+    requires rebasing/merging current main before sign-off.
+
 ## Baseline audit
 
 - Public navigation contains 213 pages.
@@ -626,3 +681,151 @@ New navigation should be task-shaped:
   stereo, exactly 58 seconds, −16.8 LUFS, −1.3 dBFS peak, and zero blank frames.
 - All journey media uses versioned immutable CDN filenames. The media manifest
   records every published source and destination.
+
+### 2026-07-31 — Full Guides, Studio, and Developers audit reopened
+
+- The owner explicitly rejected treating the four journey pages as the end of
+  the refactor. Guides, Studio, and Developers must work as complete reading
+  systems, not collections of routers and reference fragments.
+- Current in-scope inventory:
+  - Guides: 49 routes
+  - Studio: 17 routes
+  - Developers: 49 routes
+  - Total: 115 routes
+- Studio is the clearest visual gap. Fourteen of its seventeen pages are mostly
+  text-only even when the subject is inherently visual: Canvas, Layers,
+  Timeline, Design, Animation, Assets, Variables, and related editing tasks.
+- The existing Studio front-door film is a separate older production:
+  `bm_george` from local Kokoro, Inter captions, a 68-second Airbnb project, and
+  a captured lint panel with 16 errors and 20 warnings. It does not share the
+  four journey films' River narrator or their current caption/visual system.
+- The Studio film must be re-authored around the current page job and current
+  product. Real captures may be reused only when the UI and behavior still
+  match. Do not reuse its old voice or error-heavy lint sequence.
+- The changelog-video kit was only partially adopted. Some journey revisions
+  use TT Norms Pro, but Studio still uses Inter. The useful shared assets are:
+  ABC Solar Display for rare editorial display moments, TT Norms Pro for
+  narration captions/body, TT Norms Mono for machine truth, the darkened house
+  pattern as connective tissue, and the restrained house sound family. Do not
+  inherit weekly labels, dates, scene counters, progress dots, or filenames.
+- The prior series bible instruction to move phrase captions around the frame
+  conflicts with direct owner feedback. New and revised docs films use a
+  consistent lower caption rail unless a real product control occupies that
+  space; captions do not jump to arbitrary positions.
+- Guides currently mix human and engineering material. Frame adapters,
+  deterministic-render internals, 4K/HDR implementation details, performance
+  engineering, and much of the background-removal implementation do not belong
+  in the primary general-user reading path.
+- Concrete content defects found:
+  - `concepts/compositions.mdx` denies automatic `data-var-*` binding while
+    `concepts/variables.mdx` documents the supported declarative bindings.
+  - Help and Studio troubleshooting say to save manually while the Studio Source
+    page says source edits autosave. The wording must distinguish Studio edits
+    from files edited in another application.
+  - `guides/performance.mdx` ends with duplicate Troubleshooting cards.
+  - Product Updates, Weekly Updates, and the roughly 24,000-word raw Changelog
+    overlap and compete for the same job.
+- Developers is technically stronger than Guides and Studio, but its front doors
+  still create avoidable hops:
+  - the CLI reference is roughly 7,900 words;
+  - the SDK overview is a fourteen-card directory before the quickstart;
+  - skill installation is repeated across setup pages;
+  - there is no neutral deployment chooser comparing local CLI, Producer,
+    Engine, managed cloud, AWS Lambda, Google Cloud Run, and hosted templates.
+- Desktop browser testing on the current local preview confirms the Developers
+  header tab currently resolves to `/developers/overview`, including from the
+  `/developers` journey page. Keep the journey in Guides and the technical
+  overview in the Developers tab, but continue testing the tab after navigation
+  edits because the two neighboring routes are easy to confuse.
+- Do not change the approved Mintlify chrome or its Inter site font as part of
+  film branding. Changelog typography reuse applies to authored docs media, not
+  to the Mintlify shell.
+
+### 2026-07-31 — Source verification continues
+
+- The current Studio store initializes auto-keyframing as enabled. The Canvas
+  and Animation pages now tell readers to check the highlighted toolbar state
+  and turn it off before a constant layout edit instead of assuming it starts
+  disabled.
+- Save behavior is surface-specific. Preview's Code editor and direct visual
+  controls autosave. Storyboard narration, source, and feedback drafts expose
+  their own explicit Save actions. Help and Studio troubleshooting now state
+  that distinction.
+- Studio's Lint endpoint scans every HTML file independently, while the
+  project-level CLI linter recognizes mounted sub-compositions. The Studio
+  troubleshooting path now makes `npx hyperframes lint` and
+  `npx hyperframes check` the final verdict for nested projects.
+- The Player documentation was stale: the unsupported “3KB gzipped” claim was
+  removed, `timeupdate` was corrected from roughly 30 fps to the package
+  README's roughly 10 fps, and current audio, volume, source-document, and
+  shader-preview attributes were documented from source.
+- The four existing Studio stills are not one coherent set. The Storyboard
+  still is neutral and current; Overview, Design, and Export use the older
+  Airbnb production. Replace those three from the clean project created for
+  the Studio front-door rebuild, then reuse the same capture set across the
+  highest-value Studio task pages.
+- Studio film v2 is in production after owner approval. Its job is narrow:
+  show how a person understands and makes precise edits to the exact project
+  an agent created while Studio, agent, and terminal remain equal
+  continuations. It uses River, the shared media fonts, one stable caption
+  rail, real current UI, and no weekly-show chrome.
+- The first pass inspected an older CLI surface and incorrectly treated
+  `hyperframes media-treatment` and several Studio effect groups as absent.
+  Current `origin/main` source and generated CLI help supersede that finding;
+  the corrected contract is recorded in the rendering and deployment audit
+  below.
+- The current `hyperframes skills` command no longer takes the old
+  `--claude`/`--cursor`/`--gemini` flags. The reference now documents the real
+  bare install plus `skills check` and `skills update [workflow]`.
+- The render reference now follows the current CLI help and worker resolver:
+  root `data-fps` precedes the 30 fps fallback; automatic worker sizing considers
+  CPU, memory, frame count, composition cost, and concurrency limits; local
+  browser GPU mode probes before falling back to software; and every shipped
+  render flag is represented.
+- `hyperframes skills update` installs into the global Claude/shared agent
+  stores and mirrors bundles to compatible installed agents; it does not write
+  a project-local `.agents/skills` tree. Corrected the host-specific setup pages
+  and the skills overview to state the real scope.
+- The hosted MCP endpoint was checked directly. The canonical trailing-slash
+  route is live and returns the expected authorization challenge; host
+  availability and setup wording were checked against the current official
+  Claude, ChatGPT, Grok, Copilot CLI, and Antigravity documentation.
+- Authentication now distinguishes account-free local work from managed cloud,
+  hosted MCP, and authenticated publishing. Local Kokoro and MusicGen fallbacks
+  can require a first-use model download before they operate offline.
+
+### 2026-07-31 — Rendering, deployment, and maintainer audit
+
+- The earlier note that `hyperframes media-treatment` did not exist is
+  superseded. The command is present in current source and CLI help. Its real
+  surface is capability discovery, bounded local-media analysis, validated
+  `data-color-grading` mutation, dry-run, and clear. The Media Effects, Color
+  Grading, and CLI pages now document that actual contract.
+- Verified the managed cloud, AWS Lambda, and Google Cloud Run commands against
+  current source and generated CLI help. Removed nonexistent Lambda
+  `--bitrate` / `--crf` flags from migration instructions and replaced the
+  old manual-first Cloud Run page with the shipped `cloudrun` CLI flow.
+- Verified the current Vercel, Cloudflare, and Modal template repositories.
+  Replaced stale template names and Cloudflare architecture, then removed
+  volatile timing, price, and cold-start promises.
+- Reduced the 4K, HDR, and performance pages from 507 to 186 lines. The pages
+  now lead with the actual task, constraints, and verification instead of
+  internal pipeline detail and one-machine benchmarks.
+- Rewrote the main contributing and Catalog-contribution pages against current
+  workspace scripts, registry schema, and generated Catalog workflow. Removed
+  the stale “52 blocks” count rather than replacing it with another volatile
+  number.
+- Synced the public adopters page with `ADOPTERS.md`, including Typeframe.
+- Deleted the retired Weekly Updates page and redirected its old route to the
+  concise Product Updates page.
+- Replaced fictional local-testing fixture archives with a reproducible
+  maintainer workflow against any real external project. The named archives in
+  the old page are not present in the repository.
+- Reduced the managed-cloud guide from 232 to 117 lines while preserving the
+  verified sign-in, render, archive, format, variable, webhook, retry, and
+  render-management behavior.
+- The Mintlify shell stays on Inter. TT Norms Pro, TT Norms Mono, ABC Solar,
+  and the changelog sound/visual kit are for authored docs films, not a shell
+  typography change. Removing the cross-origin TT Norms declarations also
+  removes four repeatable browser console errors while preserving the approved
+  effective site font.

@@ -3,7 +3,9 @@ title: "CLI guide"
 description: "Find the HyperFrames command for creating, checking, rendering, publishing, and automating projects."
 ---
 
-Use this page to choose a command. The [complete CLI reference](/packages/cli) contains every flag and environment variable.
+Use this page to choose a command. The [CLI reference](/packages/cli) contains
+detailed flags, examples, and environment settings. The installed version
+remains authoritative: run `npx hyperframes <command> --help`.
 
 ## Everyday project loop
 
@@ -15,14 +17,14 @@ Use this page to choose a command. The [complete CLI reference](/packages/cli) c
 | Run browser, layout, motion, and contrast checks | `npx hyperframes check` |
 | Capture review frames | `npx hyperframes snapshot --at 0,2,5` |
 | Render a video | `npx hyperframes render --output output.mp4` |
-| Publish a stable review link | `npx hyperframes publish` |
+| Publish a browser link | `npx hyperframes publish` |
 | Diagnose the machine | `npx hyperframes doctor` |
 
 ## Work with media
 
 | Task | Command |
 | --- | --- |
-| Inspect media and project information | `npx hyperframes info` |
+| Inspect project metadata | `npx hyperframes info` |
 | Transcribe speech | `npx hyperframes transcribe <file>` |
 | Generate narration | `npx hyperframes tts <script>` |
 | Capture a website | `npx hyperframes capture <url>` |
