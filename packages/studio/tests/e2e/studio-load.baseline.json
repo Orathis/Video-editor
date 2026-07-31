@@ -113,5 +113,18 @@
     "measured": 1111170,
     "budget": 614400,
     "verdict": "FAIL \u2014 intended, U5 has not landed."
+  },
+  "instrumentationOverhead": {
+    "question": "Does PR 1's instrumentation cost anything? It adds five marks, four measures, and one store subscription.",
+    "method": "Build-agnostic A/B: baseline c6925e471 and the PR branch served from separate worktrees on the same machine, identical 3,000-clip fixture. The baseline cannot emit hf.studio.* marks, so both arms were judged on a MutationObserver firing when the first [data-clip=\"true\"] node lands. 9 runs per arm, fresh browser each run, arms INTERLEAVED with alternating order per round.",
+    "baselineMedianMs": 4679,
+    "prMedianMs": 4733,
+    "deltaMs": 54,
+    "deltaPct": 1.15,
+    "baselineRangeMs": [4612, 5284],
+    "prRangeMs": [4600, 4918],
+    "rangesOverlap": true,
+    "verdict": "No measurable cost. The delta is 1.15% with fully overlapping ranges; the PR's range is narrower than the baseline's and its fastest run is faster. Instrumentation is free at this resolution.",
+    "methodNote": "A first attempt ran the arms in blocks rather than interleaved, with both dev servers alive, and reported +8.77%. That was an artifact of arm ordering and drift, not a real cost. Recorded here because the blocked result was wrong in a way that looked publishable."
   }
 }
