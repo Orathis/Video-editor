@@ -22,9 +22,13 @@ sys.path.insert(0, ROUND2)
 
 import harness2  # noqa: E402
 
-CORPUS = os.path.join(ROUND2, "briefs")
-GOLD = os.path.join(ROUND2, "gold")
-VECTORS = os.path.join(ROUND2, "vectors.json")
+# From harness2, so the sweep reads whatever corpus the generator and the
+# committee just wrote. Defined here from ROUND2 instead, these would keep
+# pointing at round 2's briefs while a round 3 corpus sat unswept next to them,
+# and the sweep would report the old numbers as the new ones.
+CORPUS = harness2.BRIEFS
+GOLD = harness2.GOLD
+VECTORS = harness2.VECTORS
 ARMS = ("lexical", "semantic", "hybrid")
 # Round two stopped at k=20 with semantic recall still climbing, 0.282 at k=10
 # to 0.485 at k=20. Nobody has looked past that, so the default sweep does.

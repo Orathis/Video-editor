@@ -18,9 +18,13 @@ import run2
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[2]
 CATALOG = HERE / "catalog-index.json"
-BRIEFS_DIR = HERE / "briefs"
-GOLD_DIR = HERE / "gold"
-ATTEMPTS_LOG = HERE / "attempts.jsonl"
+# The corpus root, not HERE: a later round writes its briefs somewhere else
+# and the attempt ledger has to travel with the corpus it allocated, or a
+# resume reads another round's attempts and skips moves it never generated.
+CORPUS_ROOT = Path(harness2.CORPUS_ROOT)
+BRIEFS_DIR = Path(harness2.BRIEFS)
+GOLD_DIR = Path(harness2.GOLD)
+ATTEMPTS_LOG = CORPUS_ROOT / "attempts.jsonl"
 
 MODEL = os.environ.get("BRIEF_MODEL", provider.CHAT_MODEL)
 BRIEF_TEMPERATURE = 0.7

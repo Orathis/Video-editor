@@ -10,7 +10,7 @@ import harness2
 
 MODEL = "text-embedding-3-small"
 BATCH_SIZE = 96
-OUT = os.path.join(harness2.HERE, "vectors.json")
+OUT = harness2.VECTORS
 
 
 def _api_key():

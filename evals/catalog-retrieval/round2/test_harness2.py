@@ -359,6 +359,52 @@ class Embed2Tests(unittest.TestCase):
             self.assertEqual({"move-a", "move-b"}, set(progress["moves"]))
             self.assertEqual({"brief-a", "brief-b"}, set(progress["briefs"]))
 
+    def test_the_corpus_root_redirects_every_module_that_writes_a_corpus(self):
+        # A corpus is only coherent if the generator, the committee, the pruner,
+        # the embedder and the harness all mean the same directory by it. Four
+        # of these used to hold their own copy of the path, so redirecting one
+        # would have left the others writing into round 2's fixtures, which are
+        # what round 3's statistics are checked against.
+        import importlib
+
+        import embed2
+        import gen_briefs
+        import prune_corpus
+        import validate_gold
+
+        modules = (harness2, gen_briefs, validate_gold, prune_corpus, embed2)
+        with tempfile.TemporaryDirectory() as root:
+            try:
+                with mock.patch.dict(
+                    os.environ, {"EVAL_CORPUS_ROOT": root}, clear=False
+                ):
+                    for module in modules:
+                        importlib.reload(module)
+                    self.assertEqual(os.path.join(root, "briefs"), harness2.BRIEFS)
+                    self.assertEqual(os.path.join(root, "gold"), harness2.GOLD)
+                    for module, attribute in (
+                        (gen_briefs, "BRIEFS_DIR"),
+                        (gen_briefs, "GOLD_DIR"),
+                        (gen_briefs, "ATTEMPTS_LOG"),
+                        (validate_gold, "BRIEFS_DIR"),
+                        (validate_gold, "GOLD_DIR"),
+                        (validate_gold, "AUDIT_PATH"),
+                        (prune_corpus, "BRIEFS_DIR"),
+                        (prune_corpus, "GOLD_DIR"),
+                        (prune_corpus, "EXCLUDED_DIR"),
+                        (prune_corpus, "AUDIT_PATH"),
+                        (embed2, "OUT"),
+                    ):
+                        value = str(getattr(module, attribute))
+                        self.assertTrue(
+                            value.startswith(root),
+                            f"{module.__name__}.{attribute} is {value}, outside the root",
+                        )
+            finally:
+                for module in modules:
+                    importlib.reload(module)
+        self.assertEqual(harness2.HERE, harness2.CORPUS_ROOT)
+
     def test_a_reused_name_holding_new_text_is_embedded_again(self):
         # Brief ids are positions in a corpus, not identities. A regenerated
         # corpus starts at 001 again, so every id already appears in the vector

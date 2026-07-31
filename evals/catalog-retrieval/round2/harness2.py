@@ -8,12 +8,21 @@ import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHELF = os.path.join(HERE, "shelf.md")
-# Round two's own briefs, the ones the generator writes here. Pointing one
-# directory up reaches round one's five briefs instead, which loads and runs
-# without complaint and would quietly measure the whole grid on the wrong
-# corpus.
-BRIEFS = os.path.join(HERE, "briefs")
-VECTORS = os.path.join(HERE, "vectors.json")
+
+# Where the corpus under test lives. Round 2's briefs and gold stay here as
+# fixtures, because round3/test_stats.py and round3/test_recall.py reproduce
+# round 2's published numbers from them, so a later round cannot generate over
+# the top of them. It gets its own root instead.
+#
+# One definition, because four modules used to carry their own copy of this
+# path and a corpus is only coherent if the generator, the committee, the
+# embedder and the harness all mean the same directory by it. The shelf is not
+# in here: every round retrieves from the same 424 entries, and that is the
+# comparison.
+CORPUS_ROOT = os.environ.get("EVAL_CORPUS_ROOT") or HERE
+BRIEFS = os.path.join(CORPUS_ROOT, "briefs")
+GOLD = os.path.join(CORPUS_ROOT, "gold")
+VECTORS = os.path.join(CORPUS_ROOT, "vectors.json")
 RRF_C = 60
 
 # Dropped from the brief and the entries before lexical scoring. Without this,

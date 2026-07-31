@@ -25,11 +25,13 @@ import re
 import shutil
 import sys
 
+import harness2
+
 HERE = os.path.dirname(os.path.abspath(__file__))
-AUDIT_PATH = os.path.join(HERE, "GOLD-AUDIT.md")
-BRIEFS_DIR = os.path.join(HERE, "briefs")
-GOLD_DIR = os.path.join(HERE, "gold")
-EXCLUDED_DIR = os.path.join(HERE, "excluded")
+AUDIT_PATH = os.path.join(harness2.CORPUS_ROOT, "GOLD-AUDIT.md")
+BRIEFS_DIR = harness2.BRIEFS
+GOLD_DIR = harness2.GOLD
+EXCLUDED_DIR = os.path.join(harness2.CORPUS_ROOT, "excluded")
 
 ACCURACY_RE = re.compile(r"^- Corpus accuracy: [\d.]+% \((\d+)/(\d+)\)$", re.M)
 # Anchored to the "## Disagreements" section. A later section lists the briefs

@@ -13,9 +13,12 @@ import provider
 import run2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BRIEFS_DIR = os.path.join(HERE, "briefs")
-GOLD_DIR = os.path.join(HERE, "gold")
-AUDIT_PATH = os.path.join(HERE, "GOLD-AUDIT.md")
+# The audit belongs to the corpus it judged, so it travels with it. Leaving
+# it at HERE would let a later round read round 2's verdict and prune the
+# wrong briefs out of a corpus that committee never saw.
+BRIEFS_DIR = harness2.BRIEFS
+GOLD_DIR = harness2.GOLD
+AUDIT_PATH = os.path.join(harness2.CORPUS_ROOT, "GOLD-AUDIT.md")
 
 # A 95 percent floor limits label uncertainty to at most 15 of 300 briefs. At 90
 # percent, as many as 30 briefs and 270 main-grid cells could inherit bad gold,
