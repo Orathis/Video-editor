@@ -19,8 +19,8 @@ use_when: A sentence must accumulate word by word while each arrival reads at ro
 avoid_when: Avoid placing scripts outside the composition root, because the host copies that markup without its behavior and produces a black card with no timeline.
 pairs_with: kinetic-type-swap, glyph-ring-assemble.
 variables: none documented.
-sources: primitive
-install_path: evals/catalog-retrieval/sources/primitives/caption-camera-follow.html
+sources: primitive+component
+install_path: registry/components/caption-camera-follow
 
 ### chevron-pill-card-morph
 
@@ -85,8 +85,8 @@ use_when: The same image or video must show a direct before-and-after color comp
 avoid_when: Avoid it for text, SVG, or ordinary DOM content, because the documented color grading applies only to image and video media.
 pairs_with: halftone-dissolve, match-cut.
 variables: none documented.
-sources: primitive
-install_path: evals/catalog-retrieval/sources/primitives/grade-split-reveal.html
+sources: primitive+component
+install_path: registry/components/grade-split-reveal
 
 ### halftone-dissolve
 

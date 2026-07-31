@@ -14,6 +14,8 @@ from build_shelf import (
     GitHeadRegistry,
     DirectoryRegistry,
     INDEX,
+    PRIMITIVE_RELATIVE,
+    PRIMITIVE_ROOT,
     REPO_ROOT,
     SHELF,
     build,
@@ -27,14 +29,20 @@ from check_shelf import BASELINE_SHELF_CHARS, PRESENCE_FIELDS, check
 HERE = Path(__file__).resolve().parent
 
 
+def fixture_previews(repo_root):
+    """The preview directory the builder reads inside a given repo root."""
+    return repo_root.joinpath(*PRIMITIVE_RELATIVE) / "previews"
+
+
 def _export_fixture(destination):
-    primitive_source = REPO_ROOT / ".scratch" / "video-primitives"
-    primitive_target = destination / ".scratch" / "video-primitives"
-    (primitive_target / "showcase" / "previews").mkdir(parents=True)
-    for filename in ("SHELF.md", "catalog-index.json"):
-        shutil.copy2(primitive_source / filename, primitive_target / filename)
-    for preview in sorted((primitive_source / "showcase" / "previews").glob("*.mp4")):
-        (primitive_target / "showcase" / "previews" / preview.name).touch()
+    primitive_target = destination.joinpath(*PRIMITIVE_RELATIVE)
+    fixture_previews(destination).mkdir(parents=True)
+    for filename in ("SHELF.md", "primitive-index.json"):
+        shutil.copy2(PRIMITIVE_ROOT / filename, primitive_target / filename)
+    # Previews are touched empty rather than copied: the check only asserts one
+    # file exists per move, and copying two megabytes per test run buys nothing.
+    for preview in sorted((PRIMITIVE_ROOT / "previews").glob("*.mp4")):
+        (fixture_previews(destination) / preview.name).touch()
 
     head = GitHeadRegistry(REPO_ROOT)
     selections = {
@@ -57,7 +65,7 @@ def _export_fixture(destination):
 
 
 def _load_with_round1_parser(shelf_path):
-    harness_path = REPO_ROOT / ".scratch" / "catalog-eval" / "harness.py"
+    harness_path = HERE.parent / "harness.py"
     spec = importlib.util.spec_from_file_location("round1_harness", harness_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -87,9 +95,7 @@ def assert_known_duplicates_merge_once(scan):
     primitive_entries = {
         entry.name: entry
         for entry in parse_shelf(
-            (
-                REPO_ROOT / ".scratch" / "video-primitives" / "SHELF.md"
-            ).read_text(encoding="utf-8")
+            (PRIMITIVE_ROOT / "SHELF.md").read_text(encoding="utf-8")
         )
     }
     assert scan.duplicates == EXPECTED_PRIMITIVE_COMPONENT_COLLISIONS
@@ -125,21 +131,13 @@ def assert_regeneration_is_identical(temp_root):
 
 def assert_negative_controls(temp_repo):
     registry = DirectoryRegistry(temp_repo)
-    output = temp_repo / ".scratch" / "catalog-eval" / "round2"
+    output = temp_repo / "build-output"
     output.mkdir(parents=True)
     shelf = output / "shelf.md"
     index = output / "catalog-index.json"
     build(temp_repo, shelf, index, registry)
 
-    preview = next(
-        iter(
-            sorted(
-                (
-                    temp_repo / ".scratch/video-primitives/showcase/previews"
-                ).glob("*.mp4")
-            )
-        )
-    )
+    preview = next(iter(sorted(fixture_previews(temp_repo).glob("*.mp4"))))
     preview_name = preview.stem
     preview.unlink()
     report = check(temp_repo, shelf, index, registry)

@@ -455,11 +455,14 @@
   "caption-camera-follow": {
     "avoid_when": "Avoid placing scripts outside the composition root, because the host copies that markup without its behavior and produces a black card with no timeline.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/caption-camera-follow.mp4"],
+    "existence_proof": [
+      "HEAD:registry/components/caption-camera-follow/registry-item.json",
+      "HEAD:registry/components/caption-camera-follow/caption-camera-follow.html"
+    ],
     "group": "Camera moves.",
-    "install_path": "evals/catalog-retrieval/sources/primitives/caption-camera-follow.html",
+    "install_path": "registry/components/caption-camera-follow",
     "pairs_with": "kinetic-type-swap, glyph-ring-assemble.",
-    "sources": "primitive",
+    "sources": "primitive+component",
     "use_when": "A sentence must accumulate word by word while each arrival reads at roughly the same screen size.",
     "variables": "none documented.",
     "what": "New words stay fixed on an expanding page while the camera pulls back exponentially until the complete sentence is readable."
@@ -1797,11 +1800,14 @@
   "grade-split-reveal": {
     "avoid_when": "Avoid it for text, SVG, or ordinary DOM content, because the documented color grading applies only to image and video media.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/grade-split-reveal.mp4"],
+    "existence_proof": [
+      "HEAD:registry/components/grade-split-reveal/registry-item.json",
+      "HEAD:registry/components/grade-split-reveal/grade-split-reveal.html"
+    ],
     "group": "Transitions.",
-    "install_path": "evals/catalog-retrieval/sources/primitives/grade-split-reveal.html",
+    "install_path": "registry/components/grade-split-reveal",
     "pairs_with": "halftone-dissolve, match-cut.",
-    "sources": "primitive",
+    "sources": "primitive+component",
     "use_when": "The same image or video must show a direct before-and-after color comparison in one frame.",
     "variables": "none documented.",
     "what": "A hard vertical edge sweeps left to right across two aligned copies of one plate, pauses at the midpoint for comparison, then reveals the graded copy across the full frame."

@@ -14,15 +14,26 @@ HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[2]
 SHELF = HERE / "shelf.md"
 INDEX = HERE / "catalog-index.json"
-PRIMITIVE_ROOT = REPO_ROOT / "evals" / "catalog-retrieval" / "sources"
+# Where the primitive source artifacts live, relative to a repo root. Named once
+# because the builder resolves it against the real checkout and the test suite
+# resolves it against a synthetic one; two spellings would let the fixture drift
+# away from what the builder actually reads.
+PRIMITIVE_RELATIVE = ("evals", "catalog-retrieval", "sources")
+PRIMITIVE_ROOT = REPO_ROOT.joinpath(*PRIMITIVE_RELATIVE)
 BASE_FIELDS = ("group", "what", "use_when", "avoid_when")
 PRIMITIVE_FIELDS = BASE_FIELDS + ("pairs_with", "variables")
 SHELF_FIELDS = PRIMITIVE_FIELDS + ("sources", "install_path")
 DESCRIPTIVE_FIELDS = ("what", "use_when", "avoid_when")
+# Moves that exist both as a primitive and as an installable component, so the
+# shelf lists them once. Pinned rather than derived: a move silently appearing
+# on or dropping off this list changes the entry count the whole eval is
+# measured against.
 EXPECTED_PRIMITIVE_COMPONENT_COLLISIONS = frozenset(
     (
+        "caption-camera-follow",
         "echo-trail",
         "focus-rack",
+        "grade-split-reveal",
         "halftone-dissolve",
         "kinetic-type-swap",
         "marker-highlight",
@@ -292,7 +303,7 @@ def _load_primitives(repo_root):
     # Read from the eval's own vendored copies rather than a sibling scratch
     # directory. The shelf has to be regenerable byte for byte from a clean
     # checkout, and a gitignored working directory is not part of one.
-    root = repo_root / "evals" / "catalog-retrieval" / "sources"
+    root = repo_root.joinpath(*PRIMITIVE_RELATIVE)
     failures = []
     previews = sorted((root / "previews").glob("*.mp4"))
     try:

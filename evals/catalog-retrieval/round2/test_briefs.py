@@ -344,7 +344,7 @@ class BriefGeneratorTests(unittest.TestCase):
         catalog = {
             "missing-move": {
                 "sources": "primitive",
-                "install_path": ".scratch/catalog-eval/round2/no-such-source.html",
+                "install_path": "evals/catalog-retrieval/round2/no-such-source.html",
             }
         }
         with tempfile.TemporaryDirectory() as temporary:
