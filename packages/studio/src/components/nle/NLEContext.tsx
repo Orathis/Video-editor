@@ -9,6 +9,9 @@ import {
 } from "react";
 import { useTimelinePlayer, usePlayerStore } from "../../player";
 import type { TimelineElement } from "../../player";
+import { useVstHost, type UseVstHostResult } from "../../hooks/useVstHost";
+import { useVstPreview } from "../../player/hooks/useVstPreview";
+import { useStudioShellContextOptional } from "../../contexts/StudioContext";
 import type { CompositionLevel } from "./CompositionBreadcrumb";
 import { useCompositionStack } from "./useCompositionStack";
 import { MIN_TIMELINE_H, MIN_PREVIEW_H } from "./TimelineResizeDivider";
@@ -33,6 +36,12 @@ export interface NLEContextValue {
   seek: (time: number, options?: { keepPlaying?: boolean }) => boolean;
   refreshPlayer: () => void;
   onIframeLoad: () => void;
+  // Single VST sidecar connection for the whole shell (mounted once, right
+  // here in NLEProvider) — shared by live playback (useVstPreview, mounted
+  // alongside it) and the FX property panel (StudioRightPanel reads
+  // `vstHost.api` for PropertyPanel) so there is exactly one WebSocket, never
+  // two independent connections racing the sidecar's per-track state.
+  vstHost: UseVstHostResult;
   // composition stack (from useCompositionStack)
   compositionStack: CompositionLevel[];
   updateCompositionStack: React.Dispatch<React.SetStateAction<CompositionLevel[]>>;
@@ -83,6 +92,10 @@ export function NLEProvider({
   onCompositionLoadingChange,
   children,
 }: NLEProviderProps) {
+  // Optional — NLEProvider is also mounted directly in tests without the
+  // shell providers; useVstPreview's crash-fallback toast is skipped below
+  // without a showToast callback, same as before.
+  const shellCtx = useStudioShellContextOptional();
   const {
     iframeRef,
     togglePlay,
@@ -90,6 +103,14 @@ export function NLEProvider({
     onIframeLoad: baseOnIframeLoad,
     refreshPlayer,
   } = useTimelinePlayer();
+
+  // Single sidecar connection for the whole shell, shared by live playback
+  // (useVstPreview, mounted right here) and the FX property panel
+  // (StudioRightPanel reads `vstHost.api` via this context) — see
+  // useVstPreview's doc-comment for why two independent connections to the
+  // sidecar aren't safe.
+  const vstHost = useVstHost();
+  useVstPreview(iframeRef, projectId, vstHost, shellCtx?.showToast); // no-op until a vst-chain track appears
 
   // Reset timeline state when the project changes. Done in an effect, not during
   // render: reset() updates the player store, and updating another store/component
@@ -129,6 +150,14 @@ export function NLEProvider({
     // reload (the comp may not ship the plugin until it actually uses one).
     ensureMotionPathPluginLoaded(iframeRef.current);
     onIframeRef?.(iframeRef.current);
+    // A preview reload replaces the composition DOM — including every
+    // `<audio data-vst-chain>` element. Any VST track useVstPreview loaded
+    // against the PREVIOUS document is now orphaned: it muted a dead element
+    // (so the fresh, unmuted one plays dry) and its stream starves. Bumping
+    // this after the reload settles makes useVstPreview reconcile against the
+    // new DOM — tear the stale track down and reload it against the live
+    // element. (Idempotent when nothing changed: the chain-key check no-ops.)
+    usePlayerStore.getState().bumpVstChainRevision();
   }, [baseOnIframeLoad, iframeRef, onIframeRef]);
 
   const {
@@ -307,6 +336,7 @@ export function NLEProvider({
     seek,
     refreshPlayer,
     onIframeLoad,
+    vstHost,
     compositionStack,
     updateCompositionStack,
     handleNavigateComposition,

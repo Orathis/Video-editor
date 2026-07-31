@@ -74,4 +74,14 @@ export const STUDIO_FLAT_INSPECTOR_ENABLED = resolveStudioBooleanEnvFlag(
   true,
 );
 
+// VST FX chain editing (the property panel's "Make room for voiceover" carve
+// control + per-plugin chain UI) and its live-preview PCM streaming through
+// the VST host sidecar — new, unreleased surface, off by default pending
+// broader rollout. Default false; enable via VITE_STUDIO_ENABLE_VST=true.
+export const STUDIO_VST_ENABLED = resolveStudioBooleanEnvFlag(
+  env,
+  ["VITE_STUDIO_ENABLE_VST", "VITE_STUDIO_VST_ENABLED"],
+  false,
+);
+
 import { resolveEnabledSdkFamilies } from "../../utils/sdkCutoverPolicy";

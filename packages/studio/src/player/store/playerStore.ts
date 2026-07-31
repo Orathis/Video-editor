@@ -104,6 +104,11 @@ interface PlayerState extends KeyframeSlice {
   /** True while a beat dot is being dragged — hides the playhead guideline. */
   beatDragging: boolean;
   elements: TimelineElement[];
+  /** Bumped by the FX panel whenever a track's VST chain file is added /
+   *  removed / swapped. `useVstPreview` watches this to reconcile+reload the
+   *  affected track — the panel and the preview hook are otherwise decoupled
+   *  (a chain-file rewrite is invisible to the timeline `elements` signal). */
+  vstChainRevision: number;
   selectedElementId: string | null;
   playbackRate: number;
   audioMuted: boolean;
@@ -184,6 +189,7 @@ interface PlayerState extends KeyframeSlice {
   setTimelineReady: (ready: boolean) => void;
   setBeatDragging: (dragging: boolean) => void;
   setElements: (elements: TimelineElement[]) => void;
+  bumpVstChainRevision: () => void;
   setSelectedElementId: (id: string | null, options?: SelectElementOptions) => void;
   /** Move the selection anchor within an active multi-selection without collapsing it. */
   setSelectionAnchor: (id: string | null) => void;
@@ -290,6 +296,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   timelineReady: false,
   beatDragging: false,
   elements: [],
+  vstChainRevision: 0,
   selectedElementId: null,
   playbackRate: readStudioUiPreferences().playbackRate ?? 1,
   audioMuted: readStudioUiPreferences().audioMuted ?? false,
@@ -472,6 +479,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setTimelineReady: (ready) => set({ timelineReady: ready }),
   setBeatDragging: (dragging) => set({ beatDragging: dragging }),
   setElements: (elements) => set({ elements }),
+  bumpVstChainRevision: () => set((s) => ({ vstChainRevision: s.vstChainRevision + 1 })),
   // A genuine single selection: always collapse the set to just this element. User
   // intent (timeline click, preview click via applyDomSelection) flows here; DOM sync
   // echoes that must preserve a group go through setSelectionAnchor instead.

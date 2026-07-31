@@ -241,6 +241,7 @@ export function useTimelinePlayer() {
     const { audioMuted } = usePlayerStore.getState();
     setPreviewMediaMuted(iframeRef.current, audioMuted);
   }, []);
+
   const play = useCallback(() => {
     stopRAFLoop();
     stopReverseLoop();
