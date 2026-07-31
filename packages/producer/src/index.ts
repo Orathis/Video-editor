@@ -114,7 +114,13 @@ export { normalizeErrorMessage } from "./utils/errorMessage.js";
 // timing. The render pipeline runs this in its compile stage; the CLI audit
 // paths (snapshot/check) reuse it so their captures match the render.
 export {
+  FONT_FETCH_FAILED,
+  FONT_FETCH_UNAVAILABLE,
+  FontFetchError,
+  FontFetchUnavailableError,
   injectDeterministicFontFaces,
+  type FontFetchErrorCode,
+  type FontFetchRetryPolicy,
   type InjectDeterministicFontFacesOptions,
 } from "./services/deterministicFonts.js";
 export { quantizeTimeToFrame } from "./utils/parityContract.js";
@@ -139,6 +145,7 @@ export {
   getDistributedRenderCapabilities,
   PLAN_ARTIFACT_LAYOUT,
   PLAN_HASH_SCHEMA,
+  PLAN_PROTOCOL_V1,
   PLAN_PROTOCOL_V2,
   PLAN_PROTOCOL_UNSUPPORTED,
   PLAN_SCHEMA_VERSION,
@@ -147,7 +154,9 @@ export {
   PLAN_V2_INTEGRITY_UNRECOVERABLE,
   PLAN_V2_MATERIALIZATION_MARKER,
   PLAN_V2_SCHEMA_VERSION,
+  createPlanV2FromExecutionPlan,
   createPlanV2FromV1,
+  getPlanV2ExecutionPlanHash,
   listPlanV2ArtifactsForTarget,
   materializePlanV2Target,
   plan,
@@ -158,6 +167,7 @@ export {
   readPlanProtocol,
   readPlanProtocolV1,
   readPlanV2Manifest,
+  publishPlanV2FromExecutionPlan,
   publishPlanV2FromV1,
   renderChunk,
   renderChunkV2,

@@ -6,31 +6,31 @@
       "files": 140
     },
     "faceless-explainer": {
-      "hash": "b772a9b6c8118c2c",
-      "files": 22
+      "hash": "261a9740ec1378b0",
+      "files": 24
     },
     "figma": {
       "hash": "517e4dc53c13ea05",
       "files": 2
     },
     "general-video": {
-      "hash": "87f292b572cad3f9",
+      "hash": "49f5216832cb8e91",
       "files": 4
     },
     "hyperframes": {
-      "hash": "02b48855a5321e48",
+      "hash": "3a3ea01fe52e1600",
       "files": 17
     },
     "hyperframes-animation": {
-      "hash": "3d9855346af7d51c",
+      "hash": "5bc2ce098387a547",
       "files": 121
     },
     "hyperframes-cli": {
-      "hash": "966972db5ab8f932",
+      "hash": "42b621ca580541b6",
       "files": 11
     },
     "hyperframes-core": {
-      "hash": "a270c70ced8cf952",
+      "hash": "e9daaccaed05b8b4",
       "files": 19
     },
     "hyperframes-creative": {
@@ -46,7 +46,7 @@
       "files": 10
     },
     "media-use": {
-      "hash": "2e02a0799754e411",
+      "hash": "6c40be3e8bd6eacc",
       "files": 152
     },
     "motion-graphics": {
@@ -58,12 +58,12 @@
       "files": 132
     },
     "pr-to-video": {
-      "hash": "44a9877e7ea1289e",
-      "files": 29
+      "hash": "41171bbed1c5d8f4",
+      "files": 30
     },
     "product-launch-video": {
-      "hash": "8cce4a32487eaf80",
-      "files": 26
+      "hash": "a0f6b1f4c8131ed2",
+      "files": 27
     },
     "remotion-to-hyperframes": {
       "hash": "3a0e6c2affb9f74e",

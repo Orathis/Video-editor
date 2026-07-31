@@ -63,10 +63,23 @@
           {
             "group": "Create with an agent",
             "pages": [
-              "guides/prompting",
+              "prompting/overview",
               "guides/mcp",
               "guides/pipeline",
               "guides/design-tools"
+            ]
+          },
+          {
+            "group": "Prompting in depth",
+            "pages": [
+              "prompting/anatomy",
+              "prompting/specification-dial",
+              "prompting/vocabulary",
+              "prompting/motion",
+              "prompting/storyboards",
+              "prompting/iterating",
+              "prompting/rendering-and-output",
+              "prompting/rules-and-anti-patterns"
             ]
           },
           {
@@ -578,6 +591,11 @@
     {
       "source": "/guides/website-to-video",
       "destination": "/guides/product-launch-video"
+    },
+    {
+      "source": "/guides/prompting",
+      "destination": "/prompting/overview",
+      "permanent": true
     }
   ]
 }

@@ -54,6 +54,8 @@ The main composition gives each nested composition a place on its timeline:
 ></div>
 ```
 
+`data-composition-src` paths resolve from the project root, even when the referencing composition is inside another folder.
+
 This tells HyperFrames to mount `product-demo.html` at four seconds and show a six-second window of it. The nested source keeps its own content and animation.
 
 If the same source is mounted more than once, each instance can start at a different time or receive different [variables](/concepts/variables).

@@ -42,6 +42,9 @@ export function renderObservabilityTelemetryPayload(
     captureMemoryExhaustionDetected: capture.memoryExhaustionDetected,
     captureDeWorkerInversion: capture.deWorkerInversion,
     captureDePreInversionWorkers: capture.dePreInversionWorkers,
+    captureCompositionElementCount: capture.compositionElementCount,
+    captureCompositionElementCountSource: capture.compositionElementCountSource,
+    captureDeShortBand: capture.deShortBand,
     captureDeParallelRouter: capture.deParallelRouter,
     captureDeGpuRenderer: capture.deGpuRenderer,
     captureDePreRouterWorkers: capture.dePreRouterWorkers,
@@ -63,6 +66,7 @@ export function renderObservabilityTelemetryPayload(
     observabilityExtractCacheMisses: extraction?.cacheMisses,
     observabilityInitDurationMs: init?.initDurationMs,
     observabilityInitTweenCount: init?.tweenCount,
+    observabilityInitElementCount: init?.elementCount,
   };
 }
 

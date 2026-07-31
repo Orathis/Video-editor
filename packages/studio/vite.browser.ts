@@ -2,6 +2,7 @@
 
 import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { win32 as pathWin32 } from "node:path";
 import {
   createStudioDevRenderBodyScripts,
   readStudioDevManualEditManifestContent,
@@ -14,18 +15,42 @@ import { seekThumbnailPreview } from "./vite.thumbnail";
 let _browser: import("puppeteer-core").Browser | null = null;
 let _browserLaunchPromise: Promise<import("puppeteer-core").Browser> | null = null;
 
-const CHROME_PATHS = [
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  "/usr/bin/google-chrome",
-  "/usr/bin/chromium-browser",
-];
+function systemChromePaths(env: NodeJS.ProcessEnv, platform: NodeJS.Platform): string[] {
+  if (platform === "win32") {
+    const programFiles = env["PROGRAMFILES"] ?? "C:\\Program Files";
+    const programFilesX86 = env["PROGRAMFILES(X86)"] ?? "C:\\Program Files (x86)";
+    const localAppData = env["LOCALAPPDATA"];
+    return [
+      pathWin32.join(programFiles, "Google", "Chrome", "Application", "chrome.exe"),
+      pathWin32.join(programFilesX86, "Google", "Chrome", "Application", "chrome.exe"),
+      ...(localAppData
+        ? [pathWin32.join(localAppData, "Google", "Chrome", "Application", "chrome.exe")]
+        : []),
+    ];
+  }
+  if (platform === "darwin") {
+    return ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"];
+  }
+  return ["/usr/bin/google-chrome", "/usr/bin/chromium-browser"];
+}
+
+/** Resolve the same explicit browser overrides used by the CLI before system paths. */
+export function findSystemChrome(
+  env: NodeJS.ProcessEnv = process.env,
+  pathExists: (path: string) => boolean = existsSync,
+  platform: NodeJS.Platform = process.platform,
+): string | undefined {
+  const override = env["HYPERFRAMES_BROWSER_PATH"] ?? env["PRODUCER_HEADLESS_SHELL_PATH"];
+  if (override && pathExists(override)) return override;
+  return systemChromePaths(env, platform).find((path) => pathExists(path));
+}
 
 async function getSharedBrowser(): Promise<import("puppeteer-core").Browser | null> {
   if (_browser?.connected) return _browser;
   if (_browserLaunchPromise) return _browserLaunchPromise;
-  _browserLaunchPromise = (async () => {
+  const launchPromise = (async () => {
     const puppeteer = await import("puppeteer-core");
-    const executablePath = CHROME_PATHS.find((p) => existsSync(p));
+    const executablePath = findSystemChrome();
     if (!executablePath) return null;
     _browser = await puppeteer.default.launch({
       headless: true,
@@ -40,15 +65,14 @@ async function getSharedBrowser(): Promise<import("puppeteer-core").Browser | nu
         "--enable-unsafe-swiftshader",
       ],
     });
-    _browserLaunchPromise = null;
     return _browser;
   })();
-  return _browserLaunchPromise;
-}
-
-/** The system Chrome executable path (undefined if not found). */
-export function findSystemChrome(): string | undefined {
-  return CHROME_PATHS.find((p) => existsSync(p));
+  _browserLaunchPromise = launchPromise;
+  try {
+    return await launchPromise;
+  } finally {
+    if (_browserLaunchPromise === launchPromise) _browserLaunchPromise = null;
+  }
 }
 
 // In-flight thumbnail dedup
@@ -121,10 +145,10 @@ export async function generateThumbnail(opts: GenerateThumbnailOptions): Promise
   let bufferPromise = _thumbnailInflight.get(cacheKey);
   if (!bufferPromise) {
     bufferPromise = (async () => {
-      const browser = await getSharedBrowser();
-      if (!browser) return null;
-      let page: Awaited<ReturnType<typeof browser.newPage>> | null = null;
+      let page: Awaited<ReturnType<import("puppeteer-core").Browser["newPage"]>> | null = null;
       try {
+        const browser = await getSharedBrowser();
+        if (!browser) return null;
         page = await browser.newPage();
         await page.setViewport({
           width: opts.width,
@@ -196,7 +220,8 @@ export async function generateThumbnail(opts: GenerateThumbnailOptions): Promise
       }
     })();
     _thumbnailInflight.set(cacheKey, bufferPromise);
-    bufferPromise.finally(() => _thumbnailInflight.delete(cacheKey));
+    const clearInflight = () => _thumbnailInflight.delete(cacheKey);
+    bufferPromise.then(clearInflight, clearInflight);
   }
   return bufferPromise;
 }

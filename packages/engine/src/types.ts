@@ -241,6 +241,38 @@ export interface CapturePerfSummary {
   p99TotalMs: number;
   /** Sub-composition timeline wait outcome (absent pre-init). */
   subTimelineWaitOutcome?: SubTimelineWaitOutcome;
+  /**
+   * Session init telemetry, mirrored from the `[FrameCapture:INIT]` console
+   * line so PARALLEL workers report it too: worker sessions' console buffers
+   * only propagate to the orchestrator on failure, which left the
+   * multi-worker path — the short-comp band's entire population — with 0%
+   * coverage of the motion axis (`observability_init_tween_count`) in fleet
+   * telemetry. Riding the perf summary reuses the one channel that already
+   * flows back per worker on success.
+   */
+  initDurationMs?: number;
+  /** GSAP tween count at init — the motion-axis signal for capture routing analysis. */
+  initTweenCount?: number;
+  /**
+   * Live DOM element count at end of init; undefined when the measurement
+   * failed (never 0 — see collectSessionInitTelemetry).
+   *
+   * WHICH FIELD TO QUERY — two element counts exist and they answer
+   * different questions:
+   *   • `composition_element_count` (+ `_source`) is the ROUTING-RELEVANT
+   *     one. Measured from the PROBE session before the routing decision,
+   *     falling back to a static source scan. That is what the short-comp
+   *     band actually gates on.
+   *   • `observability_init_element_count` (this field) is the
+   *     OBSERVATIONAL counterpart. Measured from the capture session's own
+   *     DOM at end of init, on every surviving render — including the ~83%
+   *     with no probe, where the routing signal is a blind static scan.
+   * They agree for most comps and diverge for one that mutates its DOM
+   * between probe launch and capture init. Use this for distribution and
+   * tail questions; use `composition_element_count` for anything about what
+   * the router did (review finding).
+   */
+  initElementCount?: number;
   /** Correctness warnings observed before or during capture. */
   warnings?: CaptureWarning[];
   /**

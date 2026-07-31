@@ -43,23 +43,14 @@ You need a HeyGen account and access to the HyperFrames connector.
     3. Complete the HeyGen sign-in.
     4. In a new chat, open **Search and tools** and enable HyperFrames.
 
-    Claude supports remote custom connectors on Pro, Max, Team, and Enterprise
-    plans. Team and Enterprise owners configure organization connectors before
-    members connect. See [Anthropic’s current connector
-    instructions](https://support.anthropic.com/en/articles/11175166-about-custom-integrations-using-remote-mcp).
+    Claude supports remote custom connectors on Pro, Max, Team, and Enterprise plans. Team and Enterprise owners configure organization connectors before members connect. See [Anthropic’s current connector instructions](https://support.anthropic.com/en/articles/11175166-about-custom-integrations-using-remote-mcp).
   </Tab>
   <Tab title="ChatGPT">
-    If HyperFrames appears in **Settings → Apps**, choose **Connect** and
-    complete HeyGen authorization.
+    If HyperFrames appears in **Settings → Apps**, choose **Connect** and complete HeyGen authorization.
 
-    To add the MCP address as a custom app with create and render actions, a
-    supported Business or Enterprise/Edu workspace must enable developer mode.
-    An authorized user then opens **Settings → Apps → Create**, enters the
-    endpoint, scans the tools, completes OAuth, and creates the app. Workspace
-    admins control publishing and action access.
+    To add the MCP address as a custom app with create and render actions, a supported Business or Enterprise/Edu workspace must enable developer mode. An authorized user then opens **Settings → Apps → Create**, enters the endpoint, scans the tools, completes OAuth, and creates the app. Workspace admins control publishing and action access.
 
-    See [OpenAI’s current MCP app
-    instructions](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt-beta).
+    See [OpenAI’s current MCP app instructions](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt-beta).
   </Tab>
   <Tab title="Grok">
     1. Open [grok.com/connectors](https://grok.com/connectors).
@@ -67,15 +58,11 @@ You need a HeyGen account and access to the HyperFrames connector.
     3. Enter the MCP address above.
     4. Complete HeyGen authorization.
 
-    Business and Enterprise workspaces require an administrator to provision
-    the connector first. See [xAI’s current connector
-    instructions](https://docs.x.ai/grok/connectors).
+    Business and Enterprise workspaces require an administrator to provision the connector first. See [xAI’s current connector instructions](https://docs.x.ai/grok/connectors).
   </Tab>
 </Tabs>
 
-Host products change their connector interfaces independently. If a menu or
-button is missing, check that host’s current plan and workspace permissions
-before treating it as a HyperFrames failure.
+Host products change their connector interfaces independently. If a menu or button is missing, check that host’s current plan and workspace permissions before treating it as a HyperFrames failure.
 
 ## Create a first composition
 
@@ -120,6 +107,14 @@ Authoring and rendering can use HeyGen credits. Ask the connector to show the av
 
 Compositions and assets are resolved through the HeyGen account or space used during authorization. If a previous composition is missing, first confirm that the connector is signed into the same account and space.
 
+## Current limits
+
+- Rendering runs on HeyGen infrastructure. Use the local path when you need local rendering or self-hosting.
+- The connector cannot upload a new binary file from chat. Upload it to HeyGen first, then reference it by name.
+- Supported aspect ratios are `16:9`, `9:16`, `1:1`, and `4:5`.
+- A host with MCP widget support can show an embedded preview. Text-only clients receive a preview link.
+- Precise source and pixel-level editing belongs in the local project and Studio.
+
 ## Troubleshooting
 
 If authorization loops:
@@ -131,7 +126,7 @@ If authorization loops:
 
 If a preview or render stalls:
 
-1. ask for the current composition or render status;
+1. wait briefly and list the compositions or ask for the current render status;
 2. retry from a new chat if the host session has expired;
 3. keep the composition or job identifier if one is shown;
 4. report the prompt, expected result, actual result, host, and identifier.
@@ -139,5 +134,5 @@ If a preview or render stalls:
 Use [Share feedback](/guides/feedback) when the failure belongs to HyperFrames. Use the host product’s support when the connector cannot be installed or invoked at all.
 
 <Warning>
-  Only connect the production HyperFrames server shown on this page. As with any external app or connector, review the permissions and do not send secrets or private material that the destination should not receive.
+  Only connect the production HyperFrames server shown on this page. As with any external connector, review the permissions and do not send secrets or private material that the destination should not receive.
 </Warning>

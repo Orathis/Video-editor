@@ -18,7 +18,7 @@ Before building, agree on:
 - the visual and emotional direction;
 - required words, media, and claims.
 
-The agent may keep this direction in conversation or write it into the project. What matters is that you can review it before production expands.
+When a project starts from `/hyperframes`, the agent confirms only the important details that were not already in your request. Larger projects record the result in `BRIEF.md` so a later session can continue without asking again.
 
 ## 2. Collect the source material
 
@@ -79,9 +79,9 @@ npx hyperframes lint
 npx hyperframes check
 ```
 
-## 7. Export and share
+## 7. Render and share
 
-Export from Studio or render from the command line. Watch the exported file itself before sending it.
+Render from Studio, ask the agent, or use the CLI. Watch the finished file before sending it.
 
 For another review cycle, publish the project or share the relevant render and clear feedback. Keep source files and project artifacts so the next revision begins with context rather than from scratch.
 
@@ -94,6 +94,7 @@ Not every project has every file.
 | `index.html` | Root composition |
 | `compositions/` | Reusable scenes or nested compositions |
 | `assets/` | Images, video, audio, fonts, and other media |
+| `BRIEF.md` | Confirmed message, audience, format, and direction |
 | `STORYBOARD.md` | Planned sequence and frame direction |
 | `SCRIPT.md` | Final narration text |
 | `DESIGN.md` | Shared visual direction |

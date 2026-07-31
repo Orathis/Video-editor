@@ -32,11 +32,11 @@ import {
   useTimelineTrackLayout,
 } from "./useTimelineTrackLayout";
 import { useTimelineKeyframeHandlers } from "./useTimelineKeyframeHandlers";
-import { STUDIO_KEYFRAMES_ENABLED } from "../../components/editor/manualEditingAvailability";
 import { useTrackGapMenu } from "./useTrackGapMenu";
 import { useTimelineGapHighlights } from "./useTimelineGapHighlights";
 import { useStudioPlaybackContextOptional } from "../../contexts/StudioContext";
 import { TimelineRazorGuide, useTimelineRazorInteraction } from "./TimelineRazorInteraction";
+import { useTimelinePerformanceTelemetry } from "./useTimelinePerformanceTelemetry";
 
 // Re-export pure utilities so existing imports from "./Timeline" still resolve.
 export {
@@ -126,7 +126,7 @@ export const Timeline = memo(function Timeline({
       ),
     [gsapAnimations],
   );
-  const labelMode = STUDIO_KEYFRAMES_ENABLED && hasKeyframedClips;
+  const labelMode = hasKeyframedClips;
   // Without the label column the pre-t=0 breathing room is still TRACKS_LEFT_PAD
   // (dropping it would jam clip 0 against the gutter on every non-keyframed
   // composition); in label mode the 232px label column already provides it.
@@ -277,6 +277,11 @@ export const Timeline = memo(function Timeline({
     });
 
   const displayLayout = useTimelineDisplayLayout(draggedClip, trackOrder, rowHeights);
+  const { recordTimelineScroll } = useTimelinePerformanceTelemetry({
+    totalClipCount: expandedElements.length,
+    totalRowCount: displayLayout.displayTrackOrder.length,
+    zoomMode,
+  });
   const { viewportWidth, showShortcutHint, setScrollRef } = useTimelineScrollViewport(scrollRef, [
     timelineReady,
     expandedElements.length,
@@ -470,6 +475,7 @@ export const Timeline = memo(function Timeline({
         className={`${zoomMode === "fit" ? "overflow-x-hidden" : "overflow-x-auto"} overflow-y-auto h-full outline-none`}
         onScroll={(e) => {
           lastScrollLeftRef.current = e.currentTarget.scrollLeft; // restored across post-edit reload
+          recordTimelineScroll(e.currentTarget);
         }}
         onDragOver={handleAssetDragOver}
         onDragLeave={() => clearDropPreview()}

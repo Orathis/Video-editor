@@ -1,9 +1,10 @@
 /**
  * Activity A of the distributed render pipeline.
  *
- * `plan(projectDir, config, planDir)` composes the existing render stages
- * (compile → probe → extract videos → audio → freeze) into a self-contained
- * `<planDir>/` directory tree that downstream chunk workers consume:
+ * `buildLocalExecutionPlan(projectDir, config, executionPlanDir)` composes the
+ * existing render stages (compile → probe → extract videos → audio → freeze)
+ * into a self-contained local execution directory that downstream chunk
+ * workers consume:
  *
  *     <planDir>/
  *     ├── plan.json
@@ -16,8 +17,9 @@
  *         └── chunks.json
  *
  * Pure function over local paths. No networking. Two invocations with the
- * same inputs produce the same `planHash` — adapters use that contract to
- * short-circuit `plan()` on workflow replay.
+ * same inputs produce the same execution-plan hash. Transport adapters use
+ * that representation either through the legacy v1 `plan()` wrapper or the
+ * v2 manifest/CAS publisher.
  *
  * Banned configurations (GPU encode, hardware browser GL, system primary
  * fonts) are rejected at plan time via `planValidation.ts` so chunk workers
@@ -66,6 +68,7 @@ import {
   validateNoSystemFonts,
 } from "../render/planValidation.js";
 import { snapshotRuntimeEnv } from "../render/runtimeEnvSnapshot.js";
+import { outputNeedsAlpha } from "../render/renderFormat.js";
 import {
   buildSyntheticRenderJob,
   buildPlanVideosJson,
@@ -76,7 +79,7 @@ import {
   readFfmpegVersion,
   readProducerVersion,
 } from "./shared.js";
-import { CURRENT_PLAN_PROTOCOL, type PlanProtocolV1Descriptor } from "./planProtocol.js";
+import { PLAN_PROTOCOL_V1, type PlanProtocolV1Descriptor } from "./planProtocol.js";
 import {
   measurePlanSizeBreakdown,
   type PlanSizeBreakdown,
@@ -252,9 +255,35 @@ export interface DistributedRenderConfig {
   variables?: Record<string, unknown>;
 }
 
+/** Shared local representation consumed by both distributed plan transports. */
+export interface LocalExecutionPlan {
+  executionPlanDir: string;
+  executionPlanHash: string;
+  chunkCount: number;
+  totalFrames: number;
+  fps: 24 | 30 | 60;
+  width: number;
+  height: number;
+  format: DistributedFormat;
+  ffmpegVersion: string;
+  producerVersion: string;
+}
+
+export interface BuildLocalExecutionPlanOptions {
+  /**
+   * Transport-specific size ceiling for the local execution representation.
+   * Legacy v1 uses the monolithic plan-directory limit; v2 disables that
+   * transport cap because it publishes role-scoped content-addressed objects.
+   */
+  readonly executionPlanSizeLimitBytes?: number;
+}
+
 /**
- * Result of {@link plan}. The `planHash` is the content-addressed identifier
- * that adapters key replay short-circuits off of.
+ * Result of the legacy v1 {@link plan} wrapper. The `planHash` is the
+ * content-addressed identifier that adapters key replay short-circuits off of.
+ *
+ * @deprecated Use `planV2()` or `planV2WithPublisher()` for new integrations.
+ * The v1 result remains supported for existing transports.
  */
 export interface PlanResult {
   planDir: string;
@@ -797,15 +826,16 @@ export function resolveDistributedEngineConfig(config: DistributedRenderConfig):
 }
 
 /**
- * Activity A of the distributed render pipeline. Produces a self-contained
- * `<planDir>/` from a project + config. See module docstring for the
- * directory layout.
+ * Build the shared local execution representation used by both transport
+ * protocols. See the module docstring for the directory layout.
  */
-export async function plan(
+export async function buildLocalExecutionPlan(
   projectDir: string,
   config: DistributedRenderConfig,
-  planDir: string,
-): Promise<PlanResult> {
+  executionPlanDir: string,
+  options: Readonly<BuildLocalExecutionPlanOptions> = {},
+): Promise<LocalExecutionPlan> {
+  const planDir = executionPlanDir;
   // Plan-time validation. Rejections here surface as typed errors with
   // non-retryable codes so workflow adapters don't waste retry budget on
   // banned configs. Runs BEFORE any directory creation so a banned input
@@ -819,7 +849,10 @@ export async function plan(
   if (!existsSync(planDir)) mkdirSync(planDir, { recursive: true });
 
   const log = config.logger ?? defaultLogger;
-  const sizeLimitBytes = config.planDirSizeLimitBytes ?? PLAN_DIR_SIZE_LIMIT_BYTES;
+  const sizeLimitBytes =
+    options.executionPlanSizeLimitBytes ??
+    config.planDirSizeLimitBytes ??
+    PLAN_DIR_SIZE_LIMIT_BYTES;
   const abortSignal = config.abortSignal;
   const assertNotAborted = (): void => {
     if (abortSignal?.aborted) {
@@ -888,7 +921,7 @@ export async function plan(
   // move the contents over once the staged work completes.
   const finalCompiledDir = join(planDir, "compiled");
 
-  // webm + mov + png-sequence carry alpha — flip force-screenshot so
+  // Alpha-capable distributed formats flip force-screenshot so
   // compileStage takes the alpha-aware capture path (BeginFrame doesn't
   // preserve alpha on Linux headless-shell). Must match the in-process
   // renderer's needsAlpha logic in `renderOrchestrator.ts` so chunked
@@ -897,8 +930,7 @@ export async function plan(
   // into the planDir and every chunk worker captures opaque RGB — the
   // libvpx-vp9 alpha sub-stream then encodes either uniform alpha or
   // gets downgraded by the encoder, producing un-keyable webm output.
-  const needsAlpha =
-    config.format === "png-sequence" || config.format === "mov" || config.format === "webm";
+  const needsAlpha = outputNeedsAlpha(config.format);
 
   // ── Compile ──
   const compileResult = await runCompileStage({
@@ -911,6 +943,7 @@ export async function plan(
     needsAlpha,
     log,
     assertNotAborted,
+    abortSignal,
     // Distributed renders fail closed on font-fetch errors so the planDir
     // is content-addressed against deterministic fonts only.
     failClosedFontFetch: config.failClosedFontFetch !== false,
@@ -1192,9 +1225,8 @@ export async function plan(
   });
 
   return {
-    planDir,
-    planProtocol: CURRENT_PLAN_PROTOCOL,
-    planHash,
+    executionPlanDir: planDir,
+    executionPlanHash: planHash,
     chunkCount,
     totalFrames,
     fps: config.fps,
@@ -1203,5 +1235,32 @@ export async function plan(
     format: config.format,
     ffmpegVersion,
     producerVersion,
+  };
+}
+
+/**
+ * Legacy v1 transport wrapper around {@link buildLocalExecutionPlan}.
+ *
+ * @deprecated Use `planV2()` or `planV2WithPublisher()` for new integrations.
+ * This wrapper, its layout, and its result shape remain supported.
+ */
+export async function plan(
+  projectDir: string,
+  config: DistributedRenderConfig,
+  planDir: string,
+): Promise<PlanResult> {
+  const executionPlan = await buildLocalExecutionPlan(projectDir, config, planDir);
+  return {
+    planDir: executionPlan.executionPlanDir,
+    planProtocol: PLAN_PROTOCOL_V1,
+    planHash: executionPlan.executionPlanHash,
+    chunkCount: executionPlan.chunkCount,
+    totalFrames: executionPlan.totalFrames,
+    fps: executionPlan.fps,
+    width: executionPlan.width,
+    height: executionPlan.height,
+    format: executionPlan.format,
+    ffmpegVersion: executionPlan.ffmpegVersion,
+    producerVersion: executionPlan.producerVersion,
   };
 }

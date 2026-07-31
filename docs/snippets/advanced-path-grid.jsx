@@ -10,7 +10,7 @@ export const AdvancedPathGrid = () => {
       title: "Direct the agent better",
       detail: "Change the story, source material, or several scenes with one clear revision.",
       action: "Give better direction",
-      href: "/guides/prompting",
+      href: "/prompting/overview",
       video: `${CDN}/wfv2-product-launch.mp4`,
       poster: `${CDN}/wfv2-product-launch.jpg`,
     },

@@ -4,6 +4,7 @@ import { findFfBinary } from "@hyperframes/parsers/ff-binaries";
 import {
   cleanAssetUrl,
   isRemoteOrInlineUrl,
+  isUnresolvedAssetPlaceholder,
   maskNonScannableRanges,
   resolveExistingLocalAsset,
 } from "@hyperframes/parsers/asset-resolution";
@@ -85,10 +86,12 @@ export function collectLocalVideoCandidates(
     const re = new RegExp(videoSrcRe.source, videoSrcRe.flags);
     let match: RegExpExecArray | null;
     while ((match = re.exec(scannable)) !== null) {
-      const src = cleanAssetUrl(match[1] ?? "");
+      const rawSrc = match[1] ?? "";
+      // Placeholder check runs on the RAW value: cleanAssetUrl() splits on ?/# and would chop inside a ${...} token.
+      if (isUnresolvedAssetPlaceholder(rawSrc)) continue;
+      const src = cleanAssetUrl(rawSrc);
       if (!src) continue;
       if (isRemoteOrInlineUrl(src)) continue;
-      if (/^__[A-Z_]+__$/.test(src)) continue;
       const rootRelative = compSrcPath ? rewriteAssetPath(compSrcPath, src) : src;
       const resolvedAsset = resolveExistingLocalAsset(projectDir, rootRelative);
       if (!resolvedAsset) continue;
