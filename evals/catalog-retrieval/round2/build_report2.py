@@ -78,9 +78,16 @@ def score_all(records, gold, shelf, vectors=None, kinds=None):
             pick_vectors=record.get("pick_vectors"),
         )
         best = gold[brief]["best"]
+        shown = record.get("shown") or []
         result["cell"] = cell_key(record)
         result["stratum"] = kinds.get(best[0], "unknown") if best else "unknown"
         result["empty"] = not picks
+        # Whether the right move was even in the list the run could see. Without
+        # this a low fit reads as "the model chose badly" when the real story is
+        # "retrieval never showed it the answer", and those two call for
+        # opposite fixes. Cell a shows nothing and cell b shows everything, so
+        # for them the answer is structural rather than measured.
+        result["gold_shown"] = bool(set(best) & set(shown)) if shown else False
         rows.append(result)
     return rows
 
@@ -96,12 +103,17 @@ def aggregate(rows, key="cell"):
         groups[row[key]].append(row)
     out = {}
     for name, group in sorted(groups.items()):
+        findable = [r for r in group if r["gold_shown"]]
         out[name] = {
             "n": len(group),
             "mountable": _mean([r["mountable"] for r in group]),
             "fit": _mean([r["fit"] for r in group]),
             "pass_rate": _mean([1.0 if r["passed"] else 0.0 for r in group]),
             "empty_rate": _mean([1.0 if r["empty"] else 0.0 for r in group]),
+            "recall": _mean([1.0 if r["gold_shown"] else 0.0 for r in group]),
+            # Fit on the runs where the answer was actually on offer. The gap
+            # between this and fit is the share of the loss retrieval owns.
+            "fit_when_shown": _mean([r["fit"] for r in findable]),
         }
     return out
 
@@ -151,7 +163,16 @@ def _table(caption, columns, body_rows):
 def render(summary, rows):
     failures = [r for r in rows if not r["passed"]][:FAILURE_SAMPLE]
     cells = [
-        [name, s["n"], s["mountable"], s["fit"], s["pass_rate"], s["empty_rate"]]
+        [
+            name,
+            s["n"],
+            s["mountable"],
+            s["fit"],
+            s["pass_rate"],
+            s["empty_rate"],
+            s["recall"],
+            s["fit_when_shown"],
+        ]
         for name, s in summary["cells"].items()
     ]
     strata_rows = [
@@ -178,7 +199,15 @@ def render(summary, rows):
 <p class="sub">{summary["runs_scored"]} runs scored over {summary["briefs"]} briefs.
 Cached input {usage["cached_fraction"]:.1%} of {usage["prompt_tokens"]} prompt tokens.
 Mountable and fit are separate numbers and are never combined.</p>
-{_table("Per cell", ["cell", "n", "mountable", "fit", "pass rate", "empty rate"], cells)}
+{_table(
+    "Per cell",
+    ["cell", "n", "mountable", "fit", "pass rate", "empty rate",
+     "gold shown", "fit when shown"],
+    cells,
+)}
+<p class="sub">Gold shown is how often the right move was in the list the run could see, so
+the gap between fit and fit when shown is the share of the loss retrieval owns rather than
+the model. It reads 0 for the no catalog cell, which shows nothing.</p>
 {_table("Per stratum", ["stratum", "n", "mountable", "fit", "pass rate"], strata_rows)}
 {_table(f"Failures, first {FAILURE_SAMPLE}", ["brief", "cell", "fit", "why"], failure_rows)}
 </body></html>

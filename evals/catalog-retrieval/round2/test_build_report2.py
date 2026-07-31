@@ -16,11 +16,12 @@ GOLD = {
 }
 
 
-def record(brief, condition, k, moves):
+def record(brief, condition, k, moves, shown=None):
     return {
         "brief": brief,
         "condition": condition,
         "k": k,
+        "shown": shown if shown is not None else list(SHELF),
         "picks": [{"move": m, "why": "x"} for m in moves],
         "attempts": [
             {"usage": {"prompt_tokens": 100, "cached_tokens": 40, "completion_tokens": 20}}
@@ -59,6 +60,33 @@ def test_empty_picks_are_counted_not_dropped():
     rows = build_report2.score_all([record("001", "c", 5, [])], GOLD, SHELF)
     assert rows[0]["empty"] is True
     assert build_report2.aggregate(rows)["c@5"]["empty_rate"] == 1.0
+
+
+def test_a_short_list_that_misses_the_answer_is_recall_not_selection():
+    # Two runs pick nothing right, but one was never shown the answer. Reading
+    # both as the model choosing badly would send the fix to the wrong layer.
+    blind = record("001", "c", 5, ["gamma"], shown=["beta", "gamma"])
+    sighted = record("002", "c", 5, ["gamma"], shown=["beta", "gamma"])
+    stats = build_report2.aggregate(
+        build_report2.score_all([blind, sighted], GOLD, SHELF)
+    )["c@5"]
+    assert stats["recall"] == 0.5, stats
+    # Only the run that could see its answer counts toward fit when shown.
+    assert stats["fit_when_shown"] >= stats["fit"], stats
+
+
+def test_the_full_shelf_cell_always_has_the_answer_on_offer():
+    rows = build_report2.score_all([record("001", "b", None, ["alpha"])], GOLD, SHELF)
+    assert rows[0]["gold_shown"] is True
+
+
+def test_the_no_catalog_cell_reports_no_recall_rather_than_a_false_one():
+    # Cell a shows nothing, so "was the answer visible" is structurally false.
+    # Defaulting it to true would flatter the control.
+    rows = build_report2.score_all(
+        [record("001", "a", None, ["alpha"], shown=[])], GOLD, SHELF
+    )
+    assert rows[0]["gold_shown"] is False
 
 
 def test_aggregate_groups_by_cell():
