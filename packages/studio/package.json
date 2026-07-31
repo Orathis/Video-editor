@@ -54,7 +54,8 @@
     "report:sdk-cutover": "bun src/utils/sdkCutoverPolicy.report.ts",
     "test:timeline-default": "bun run test:timeline-virtualization",
     "test:studio-load": "STUDIO_LOAD_ARM=dev bun tests/e2e/studio-load.mjs",
-    "test:studio-load-embedded": "STUDIO_LOAD_ARM=embedded bun tests/e2e/studio-load.mjs"
+    "test:studio-load-embedded": "STUDIO_LOAD_ARM=embedded bun tests/e2e/studio-load.mjs",
+    "test:studio-load-bundle-budget": "vite build && node tests/e2e/studio-bundle-budget.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
