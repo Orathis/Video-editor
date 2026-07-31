@@ -70,15 +70,58 @@
             ]
           },
           {
-            "group": "Prompting in depth",
+            "group": "Prompt by workflow",
+            "pages": [
+              "prompting/product-launch",
+              "prompting/explainers",
+              "prompting/code-and-prs",
+              "prompting/captions-and-talking-heads",
+              "prompting/music-and-slideshows",
+              "prompting/motion-graphics"
+            ]
+          },
+          {
+            "group": "Control the result",
             "pages": [
               "prompting/anatomy",
               "prompting/specification-dial",
               "prompting/vocabulary",
-              "prompting/motion",
+              "prompting/visual-specs",
               "prompting/storyboards",
               "prompting/iterating",
+              "prompting/recreating-references"
+            ]
+          },
+          {
+            "group": "Motion and visuals",
+            "pages": [
+              "prompting/motion",
+              "prompting/transitions",
+              "prompting/code-blocks",
+              "prompting/data-and-maps",
+              "prompting/overlays-and-lower-thirds",
+              "prompting/captions-catalog",
+              "prompting/generated-artwork",
+              "prompting/vfx-and-liquid-glass",
+              "prompting/runtimes-and-3d"
+            ]
+          },
+          {
+            "group": "Media and reusable systems",
+            "pages": [
+              "prompting/media-and-audio",
+              "prompting/design-systems",
+              "prompting/variables-and-templating",
+              "prompting/editing-existing-videos",
               "prompting/rendering-and-output",
+              "prompting/remotion-migration"
+            ]
+          },
+          {
+            "group": "Prompt examples and reference",
+            "pages": [
+              "prompting/examples",
+              "prompting/capstone",
               "prompting/rules-and-anti-patterns"
             ]
           },

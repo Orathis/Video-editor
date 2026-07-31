@@ -16,7 +16,64 @@ description: "Choose the smallest HyperFrames surface for automation, editing, p
   />
 </Frame>
 
-## Choose the smallest surface
+Building on HyperFrames means using an HTML composition inside your own product or production system. The same source can be generated, inspected, edited, embedded, and rendered without translating it into a second format.
+
+## The source of truth is HTML
+
+A composition is a normal HTML document with explicit timing:
+
+```html
+<div
+  id="main"
+  data-composition-id="intro"
+  data-duration="5"
+  data-width="1920"
+  data-height="1080"
+>
+  <h1 class="clip" data-start="0" data-duration="5">
+    Hello from HyperFrames
+  </h1>
+</div>
+```
+
+The `data-*` attributes tell HyperFrames when elements appear and how long the composition lasts. CSS controls the look. JavaScript animation timelines remain seekable, so the same frame can be reproduced in the Player, Studio, a local render, or a cloud worker.
+
+## What you can build
+
+- **Automated video pipelines** that generate or update composition files, validate them, and render the result.
+- **Template systems** that change copy, media, colors, or timing through the SDK.
+- **Embedded previews** that play and seek a composition inside your application.
+- **Editing tools** that combine the SDK for source changes with the Player for live playback.
+- **Rendering services** that run locally, in your own infrastructure, or through a managed backend.
+
+## Start at the highest useful layer
+
+For a script or CI job, the CLI is usually enough:
+
+```bash
+npx hyperframes check
+npx hyperframes render --output video.mp4
+```
+
+Use the SDK only when your application must inspect or change the composition itself:
+
+```ts
+import { openComposition } from "@hyperframes/sdk";
+
+const composition = await openComposition(html);
+composition.setText("hf-title", "A new title");
+const updatedHtml = composition.serialize();
+```
+
+Use the Player when your application only needs playback:
+
+```html
+<hyperframes-player src="/compositions/intro.html" controls></hyperframes-player>
+```
+
+Move down to Producer or Engine only when you need to own the rendering pipeline or exact frame capture. Most integrations do not need to begin there.
+
+## Choose your surface
 
 <CardGroup cols={2}>
   <Card title="CLI" icon="terminal" href="/developers/cli">
@@ -36,6 +93,12 @@ description: "Choose the smallest HyperFrames surface for automation, editing, p
   </Card>
 </CardGroup>
 
-## Deeper reference
+The complete mental model is:
+
+```text
+composition → inspect or edit → play or render
+```
+
+## Reference
 
 [Technical overview →](/developers/overview) · [Packages →](/packages/core) · [Contributing →](/contributing)
