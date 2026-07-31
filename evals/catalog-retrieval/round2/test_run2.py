@@ -247,6 +247,21 @@ class RunnerTests(unittest.TestCase):
         self.assertAlmostEqual(expected_cost, rows[0]["projected_usd"])
         self.assertAlmostEqual(expected_cost, total["projected_usd"])
 
+    def test_the_dry_run_banner_states_the_number_it_actually_bills(self):
+        # The banner is the one line a reader checks before approving spend. It
+        # once said 50 while the arithmetic below it used 800, so the printed
+        # assumption has to come from the constant, not from prose.
+        lines = []
+        run2.dry_run(
+            self.entries,
+            {"fixed": "a beat"},
+            cells=(("a", None),),
+            emit=lines.append,
+        )
+        banner = [line for line in lines if "Assumed output tokens" in line]
+        self.assertEqual(1, len(banner), lines)
+        self.assertIn(str(run2.ASSUMED_OUTPUT_TOKENS), banner[0])
+
     def test_malformed_output_retries_once_and_records_both_attempts(self):
         responses = [
             (

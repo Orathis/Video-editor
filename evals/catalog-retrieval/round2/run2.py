@@ -261,9 +261,13 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
         "Estimated input tokens use characters divided by 4.0; "
         "this heuristic is NOT a real tokenizer count."
     )
+    # Interpolated, never restated. The banner said 50 while the constant said
+    # 800, so the one line a reader checks before approving spend disagreed
+    # with the arithmetic under it by a factor of sixteen.
     emit(
-        "Assumed output tokens are 50 per built run, not measured; "
-        "the assumption uses the round-one observed range of roughly 36-65."
+        f"Assumed output tokens are {ASSUMED_OUTPUT_TOKENS} per built run, not "
+        "measured; thinking is billed as output and ran 489 to 1104 tokens per "
+        "run across the nine cells while the visible answer was 47 to 84."
     )
     emit("Cached tokens are projected as 0 because no requests are made.")
     emit("")
