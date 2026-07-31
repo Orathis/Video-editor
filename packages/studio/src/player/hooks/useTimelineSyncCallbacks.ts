@@ -28,6 +28,11 @@ import {
   buildMissingCompositionElements,
 } from "../lib/timelineIframeHelpers";
 import { acceptedRuntimeMessageFps, inspectStudioRuntimeMessage } from "../lib/runtimeProtocol";
+import {
+  markManifestDeriveEnd,
+  markManifestDeriveStart,
+  markPreviewLoaded,
+} from "../../lib/studioLoadMarks";
 
 interface UseTimelineSyncCallbacksParams {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
@@ -216,6 +221,7 @@ export function useTimelineSyncCallbacks({
       }
 
       const usedHostEls = new Set<Element>();
+      markManifestDeriveStart();
       const els: TimelineElement[] = filtered.map((clip, index) => {
         const hostEl = iframeDoc
           ? findTimelineDomNodeForClip(iframeDoc, clip, index, usedHostEls)
@@ -228,6 +234,7 @@ export function useTimelineSyncCallbacks({
           hostEl,
         });
       });
+      markManifestDeriveEnd();
       const rawDuration = data.durationInFrames / acceptedRuntimeMessageFps(data);
       // Clamp non-finite or absurdly large durations — the runtime can emit
       // Infinity when it detects a loop-inflated GSAP timeline without an
@@ -400,6 +407,7 @@ export function useTimelineSyncCallbacks({
   ]);
 
   const onIframeLoad = useCallback(() => {
+    markPreviewLoaded();
     applyPreviewAudioState();
     if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
 

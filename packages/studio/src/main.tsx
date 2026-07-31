@@ -2,9 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { StudioApp } from "./App";
 import { StudioErrorBoundary } from "./components/StudioErrorBoundary";
+import { markBoot } from "./lib/studioLoadMarks";
 import { trackStudioEvent } from "./utils/studioTelemetry";
 import "./styles/studio.css";
 
+markBoot();
 trackStudioEvent("session_start");
 
 function errorProps(value: unknown): {
