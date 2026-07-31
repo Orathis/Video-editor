@@ -21,6 +21,7 @@ sys.path.insert(0, HERE)
 
 import gate2  # noqa: E402
 import harness2  # noqa: E402
+import run2  # noqa: E402
 
 CHECKPOINT = os.path.join(HERE, "checkpoints", "results.jsonl")
 INDEX = os.path.join(HERE, "catalog-index.json")
@@ -147,6 +148,45 @@ def paired_against_full_shelf(rows, baseline="b"):
     return out
 
 
+def cost_per_cell(records, cells, model=None):
+    """Tokens and dollars per run, per cell, with fit per dollar.
+
+    A cell that wins on fit while shipping forty times the context is not
+    obviously the right choice, so quality and cost belong in the same table
+    rather than in two sections a reader has to hold in their head.
+    """
+    model = model or run2.MODEL
+    totals = collections.defaultdict(
+        lambda: {"prompt": 0, "cached": 0, "completion": 0, "usd": 0.0, "runs": 0}
+    )
+    for record in records:
+        bucket = totals[cell_key(record)]
+        bucket["runs"] += 1
+        for attempt in record.get("attempts") or []:
+            usage = attempt.get("usage") or {}
+            bucket["prompt"] += usage.get("prompt_tokens", 0)
+            bucket["cached"] += usage.get("cached_tokens", 0)
+            bucket["completion"] += usage.get("completion_tokens", 0)
+            bucket["usd"] += run2.usage_cost(usage, model)
+
+    out = {}
+    for name, t in sorted(totals.items()):
+        runs = t["runs"] or 1
+        usd_per_run = t["usd"] / runs
+        fit = cells.get(name, {}).get("fit", 0.0)
+        out[name] = {
+            "runs": t["runs"],
+            "input_per_run": round(t["prompt"] / runs),
+            "cached_per_run": round(t["cached"] / runs),
+            "output_per_run": round(t["completion"] / runs),
+            "usd_per_run": round(usd_per_run, 6),
+            "usd_per_1000_runs": round(usd_per_run * 1000, 2),
+            # The efficiency number: quality bought per dollar of context.
+            "fit_per_dollar": round(fit / usd_per_run, 1) if usd_per_run else 0.0,
+        }
+    return out
+
+
 def spend(records):
     """Recompute cost from the recorded usage rather than trusting a total."""
     prompt = cached = completion = 0
@@ -167,6 +207,7 @@ def spend(records):
 def build_summary(records, rows):
     by_cell = aggregate(rows, "cell")
     return {
+        "cost": cost_per_cell(records, by_cell),
         "runs_scored": len(rows),
         "runs_recorded": len(records),
         "briefs": len({r["brief"] for r in rows}),
@@ -210,6 +251,18 @@ def render(summary, rows):
         for name, s in summary["strata"].items()
     ]
     failure_rows = [[r["brief"], r["cell"], r["fit"], r["reason"]] for r in failures]
+    cost_rows = [
+        [
+            name,
+            c["input_per_run"],
+            c["cached_per_run"],
+            c["output_per_run"],
+            summary["cells"].get(name, {}).get("fit", 0.0),
+            c["usd_per_1000_runs"],
+            c["fit_per_dollar"],
+        ]
+        for name, c in summary["cost"].items()
+    ]
     paired_rows = [
         [name, p["n"], p["cell_fit"], p["full_shelf_fit"],
          round(p["cell_fit"] - p["full_shelf_fit"], 4)]
@@ -243,6 +296,15 @@ Mountable and fit are separate numbers and are never combined.</p>
 <p class="sub">Gold shown is how often the right move was in the list the run could see, so
 the gap between fit and fit when shown is the share of the loss retrieval owns rather than
 the model. It reads 0 for the no catalog cell, which shows nothing.</p>
+{_table(
+    "What each cell costs",
+    ["cell", "input tokens", "of which cached", "output tokens", "fit",
+     "USD per 1000 runs", "fit per dollar"],
+    cost_rows,
+)}
+<p class="sub">Input tokens are per run and include every retry. Fit per dollar is the
+efficiency read: the cell with the best fit and the cell with the best fit per dollar are
+not the same cell, and which one you want depends on how often you call it.</p>
 {_table(
     "Same briefs, short list against full shelf",
     ["cell", "n", "cell fit", "full shelf fit", "difference"],

@@ -110,6 +110,30 @@ def test_spend_reads_every_attempt_not_just_the_last():
     assert usage["cached_fraction"] == 0.4, usage
 
 
+def test_cost_counts_every_attempt_and_divides_by_runs():
+    # A retried run bills twice but is still one run, so per-run input has to be
+    # the sum over attempts, not the last attempt's number.
+    retried = record("001", "b", None, ["alpha"])
+    retried["attempts"] = retried["attempts"] * 2
+    cost = build_report2.cost_per_cell([retried], {})["b"]
+    assert cost["runs"] == 1 and cost["input_per_run"] == 200, cost
+    assert cost["cached_per_run"] == 80 and cost["output_per_run"] == 40, cost
+
+
+def test_fit_per_dollar_prefers_the_cheaper_cell_at_equal_fit():
+    # The whole point of the cost table: a short list that matches the full
+    # shelf on quality should win on efficiency, and the number has to say so.
+    full = record("001", "b", None, ["alpha"])
+    short = record("001", "c", 5, ["alpha"])
+    short["attempts"] = [
+        {"usage": {"prompt_tokens": 10, "cached_tokens": 0, "completion_tokens": 20}}
+    ]
+    cost = build_report2.cost_per_cell(
+        [full, short], {"b": {"fit": 1.0}, "c@5": {"fit": 1.0}}
+    )
+    assert cost["c@5"]["fit_per_dollar"] > cost["b"]["fit_per_dollar"], cost
+
+
 def test_the_paired_table_holds_the_briefs_fixed():
     # 001 is easy enough that the short list finds it, 002 is not. Comparing
     # the short list's average against the full shelf's average over all briefs
