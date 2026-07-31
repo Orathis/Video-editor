@@ -2,16 +2,16 @@ import { describe, expect, it } from "vitest";
 import { STUDIO_LOAD_BUDGETS, resolveStudioLoadBudgets } from "./studioLoadBudgets";
 
 const EXPECTED_STUDIO_LOAD_BUDGETS = {
-  shellReadyP95Ms: 1_000,
-  constrainedShellReadyP95Ms: 2_000,
+  shellReadyP95Ms: 250,
+  constrainedShellReadyP95Ms: 600,
   projectOpen1kClipsP95Ms: 1_500,
   constrainedProjectOpen1kClipsP95Ms: 3_000,
   projectOpen3kClipsP95Ms: 2_500,
   constrainedProjectOpen3kClipsP95Ms: 5_000,
-  devShellReadyP95Ms: 3_000,
-  constrainedDevShellReadyP95Ms: 5_000,
-  devProjectOpen3kClipsP95Ms: 8_000,
-  constrainedDevProjectOpen3kClipsP95Ms: 12_000,
+  devShellReadyP95Ms: 400,
+  constrainedDevShellReadyP95Ms: 1_000,
+  devProjectOpen3kClipsP95Ms: 5_500,
+  constrainedDevProjectOpen3kClipsP95Ms: 9_000,
   eagerEntryChunkGzipBytes: 600 * 1024,
 };
 

@@ -1,0 +1,117 @@
+{
+  "recordedAt": "2026-07-31",
+  "commit": "08c47e8cd",
+  "machine": "Apple silicon laptop, macOS 25.5.0",
+  "note": "Pre-U4 baseline. Captured before any optimisation lands so later runs have something to beat. Every figure is a hf.studio.* performance.measure read from the page; nothing here comes from DOM polling.",
+  "arms": {
+    "dev-1000-virtualization-on": {
+      "arm": "dev",
+      "clips": 1000,
+      "rowVirtualization": "on",
+      "runs": 3,
+      "mountedClips": 152,
+      "hf.studio.shell": {
+        "median": 60.3,
+        "p95": 64.6
+      },
+      "hf.studio.project-open": {
+        "median": 959.3,
+        "p95": 964.6
+      },
+      "hf.studio.preview": {
+        "median": 578.0,
+        "p95": 603.3
+      },
+      "hf.studio.manifest-derive": {
+        "median": 299.2,
+        "p95": 300.0
+      }
+    },
+    "dev-3000-virtualization-on": {
+      "arm": "dev",
+      "clips": 3000,
+      "rowVirtualization": "on",
+      "runs": 7,
+      "mountedClips": 240,
+      "hf.studio.shell": {
+        "median": 59.8,
+        "p95": 64.5
+      },
+      "hf.studio.project-open": {
+        "median": 4219.3,
+        "p95": 4312.8
+      },
+      "hf.studio.preview": {
+        "median": 1235.7,
+        "p95": 1312.5
+      },
+      "hf.studio.manifest-derive": {
+        "median": 2879.9,
+        "p95": 2910.4
+      }
+    },
+    "dev-3000-virtualization-off": {
+      "arm": "dev",
+      "clips": 3000,
+      "rowVirtualization": "off",
+      "runs": 7,
+      "mountedClips": 2900,
+      "hf.studio.shell": {
+        "median": 63.0,
+        "p95": 71.0
+      },
+      "hf.studio.project-open": {
+        "median": 4914.6,
+        "p95": 5423.7
+      },
+      "hf.studio.preview": {
+        "median": 1411.1,
+        "p95": 1968.9
+      },
+      "hf.studio.manifest-derive": {
+        "median": 2926.0,
+        "p95": 3466.6
+      }
+    },
+    "embedded-3000-virtualization-on": {
+      "arm": "embedded",
+      "clips": 3000,
+      "rowVirtualization": "on",
+      "runs": 7,
+      "mountedClips": 240,
+      "hf.studio.shell": {
+        "median": 45.9,
+        "p95": 55.5
+      },
+      "hf.studio.project-open": {
+        "median": 4394.4,
+        "p95": 4518.4
+      },
+      "hf.studio.preview": {
+        "median": 1436.3,
+        "p95": 1508.9
+      },
+      "hf.studio.manifest-derive": {
+        "median": 2888.2,
+        "p95": 3034.0
+      },
+      "verdict": "FAIL \u2014 project-open p95 4518.4ms exceeds the 2500ms budget. Intended: the gate is red until U4 lands."
+    }
+  },
+  "findings": {
+    "quadraticConfirmed": "manifest-derive grows 299.2ms -> 2879.9ms for a 3x clip increase, a factor of 9.6 against a predicted 9.0. The open path is quadratic in clip count, as U4 asserts.",
+    "previewIsLinear": "preview grows 578.0ms -> 1235.7ms over the same 3x, a factor of 2.1. Server-side parse and inlining scale with document size, not quadratically.",
+    "crossover": "At 1000 clips preview is the larger cost (60% of open). At 3000 clips derive overtakes it (68% of open). Both were correct about different regimes; only derive gets worse from here.",
+    "virtualizationDirection": "Row virtualization makes opening FASTER, not slower: 4219.3ms on versus 4914.6ms off at 3000 clips, a 14.2% improvement. The two arms' full run ranges do not overlap (on 4169.9-4312.8, off 4458.6-5423.7 across 7 runs each). derive is unchanged between arms (2879.9 vs 2926.0), consistent with it scanning the iframe document rather than the timeline DOM; the saving is in preview and in mounting 240 rather than 2900 clips into the React tree.",
+    "sevenSecondFigureRetired": "The 7,050ms 'time to interactive' on record came from a probe that polled a mounted-clip count every 400ms until stable for four polls. Measured properly, shell is ~60ms and open at 1000 clips is ~959ms.",
+    "productionBuildBarelyHelpsOpen": "The embedded arm opens in 4394.4ms against the dev arm's 4219.3ms at the same clip count and flag. A production React build does not meaningfully change open time because the cost is algorithmic JS in the derivation, not dev-server or unminified-runtime overhead. Shell time does differ (45.9ms vs 59.8ms) but both are trivial. Consequence: the dev arm is an acceptable proxy for open time, and the retired 7s figure was the old probe's polling artifact rather than dev-mode inflation as previously supposed."
+  },
+  "notMeasured": [
+    "The embedded arm at 1000 clips, and the embedded arm with row virtualization off. Neither changes any conclusion above."
+  ],
+  "eagerEntryChunkGzipBytes": {
+    "measured": 1111170,
+    "budget": 614400,
+    "verdict": "FAIL \u2014 intended, U5 has not landed."
+  }
+}
