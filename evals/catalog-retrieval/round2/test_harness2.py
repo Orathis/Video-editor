@@ -319,6 +319,13 @@ class Embed2Tests(unittest.TestCase):
                         "model": embed2.MODEL,
                         "moves": {"move-a": [1.0]},
                         "briefs": {"brief-a": [2.0]},
+                        # A vector is only reusable if the text behind its name
+                        # is still the text it was made from, so the resume is
+                        # keyed on the digest and the fixture has to carry one.
+                        "digests": {
+                            "moves": {"move-a": embed2._digest("old")},
+                            "briefs": {"brief-a": embed2._digest("old")},
+                        },
                     },
                     fh,
                 )
@@ -351,6 +358,41 @@ class Embed2Tests(unittest.TestCase):
             self.assertEqual([["new"], ["new brief"]], calls)
             self.assertEqual({"move-a", "move-b"}, set(progress["moves"]))
             self.assertEqual({"brief-a", "brief-b"}, set(progress["briefs"]))
+
+    def test_a_reused_name_holding_new_text_is_embedded_again(self):
+        # Brief ids are positions in a corpus, not identities. A regenerated
+        # corpus starts at 001 again, so every id already appears in the vector
+        # file against a different brief. Resuming on the name alone would hand
+        # the new corpus the old corpus's vectors, silently, and the semantic
+        # and hybrid arms would rank against a query nobody wrote.
+        progress = {
+            "model": embed2.MODEL,
+            "moves": {},
+            "briefs": {"001": [9.0]},
+            "digests": {"moves": {}, "briefs": {"001": embed2._digest("round two brief")}},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.object(
+                embed2, "OUT", os.path.join(directory, "vectors.json")
+            ), mock.patch.object(embed2, "embed", return_value=[[7.0]]):
+                embed2._fill_missing(progress, "briefs", {"001": "round three brief"})
+        self.assertEqual([7.0], progress["briefs"]["001"])
+        self.assertEqual(
+            embed2._digest("round three brief"), progress["digests"]["briefs"]["001"]
+        )
+
+    def test_a_vector_file_with_no_digests_is_not_trusted(self):
+        # Round 2's file predates the digests, so nothing in it can be shown to
+        # match the text on disk now. Re-embedding all of it costs a tenth of a
+        # cent; trusting it costs a wrong answer that looks like a right one.
+        progress = {"model": embed2.MODEL, "moves": {}, "briefs": {"001": [9.0]}}
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.object(
+                embed2, "OUT", os.path.join(directory, "vectors.json")
+            ), mock.patch.object(embed2, "embed", return_value=[[7.0]]) as embedded:
+                embed2._fill_missing(progress, "briefs", {"001": "unchanged"})
+        embedded.assert_called_once_with(["unchanged"])
+        self.assertEqual([7.0], progress["briefs"]["001"])
 
     def test_completed_batch_survives_a_later_failure(self):
         with tempfile.TemporaryDirectory() as directory:

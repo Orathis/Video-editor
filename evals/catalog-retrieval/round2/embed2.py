@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Embed the round-two shelf and briefs in resumable batches."""
 
+import hashlib
 import json
 import os
 import urllib.request
@@ -53,15 +54,35 @@ def _write_progress(progress):
     os.replace(temporary, OUT)
 
 
+def _digest(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def _fill_missing(progress, field, sources):
+    """Embed everything whose text is not already vectored under its own name.
+
+    Resuming on the name alone is only safe while a name always means the same
+    text. Brief ids are positions in a corpus, not identities: a regenerated
+    corpus numbers from 001 again, so every id collides with an older brief that
+    says something else. Skipping those would hand round 3's briefs round 2's
+    vectors, quietly, with the semantic and hybrid arms reading the wrong query
+    and no error anywhere. Digesting the source text is what makes the resume
+    mean "already embedded" rather than "name seen before".
+    """
     target = progress[field]
-    pending = [name for name in sorted(sources) if name not in target]
+    digests = progress.setdefault("digests", {}).setdefault(field, {})
+    pending = [
+        name
+        for name in sorted(sources)
+        if name not in target or digests.get(name) != _digest(sources[name])
+    ]
     for offset in range(0, len(pending), BATCH_SIZE):
         names = pending[offset : offset + BATCH_SIZE]
         vectors = embed([sources[name] for name in names])
         if len(vectors) != len(names):
             raise RuntimeError("Embedding response count does not match request count.")
         target.update(zip(names, vectors))
+        digests.update((name, _digest(sources[name])) for name in names)
         _write_progress(progress)
 
 
