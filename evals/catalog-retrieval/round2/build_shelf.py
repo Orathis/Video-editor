@@ -115,7 +115,8 @@ class GitHeadRegistry:
         for path in output.splitlines():
             if not path.startswith(prefix):
                 raise BuildError(f"unexpected HEAD tree path: {path}")
-            names.append(path.removeprefix(prefix))
+            # Sliced rather than str.removeprefix: the run host is Python 3.8.
+            names.append(path[len(prefix) :])
         return names
 
     def item_text(self, plural, name):

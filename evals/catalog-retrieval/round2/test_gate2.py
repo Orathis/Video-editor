@@ -23,7 +23,8 @@ shelf = harness.load_shelf()
 gold = gate.load_gold(os.path.join(os.path.dirname(HERE), "gold"))
 vectors = json.load(open(harness.VECTORS)) if os.path.exists(harness.VECTORS) else None
 round2_shelf = tuple(
-    line.removeprefix("### ").strip()
+    # Sliced rather than str.removeprefix: the run host is Python 3.8.
+    line[len("### ") :].strip()
     for line in open(os.path.join(HERE, "shelf.md"))
     if line.startswith("### ")
 )

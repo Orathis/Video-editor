@@ -571,11 +571,21 @@ class CellSelectionTests(unittest.TestCase):
 class DeploymentPythonTests(unittest.TestCase):
     """The eval runs on devbox, which is Python 3.8, not on the machine that writes it."""
 
-    def test_no_eval_file_uses_syntax_the_devbox_interpreter_cannot_parse(self):
-        # A parenthesized with block is 3.9+ and made two whole test files
-        # uncompilable on devbox. That is invisible here, because the laptop
-        # runs a newer interpreter and the files pass locally, so the tests
-        # silently stopped covering the one machine that spends money.
+    # Each entry is a fragment to look for and what to write instead. All of
+    # them are 3.9 or later, and all of them are invisible on a laptop running
+    # a newer interpreter: the file imports fine locally and blows up on the
+    # one machine that spends money. provider.py already carried a comment
+    # saying the run host is 3.8, and two other files used removeprefix anyway,
+    # which is why this is a test and not a note.
+    # Names are assembled rather than written out, so this table does not
+    # report itself as the offender it is looking for.
+    TOO_NEW = (
+        ("with (", "a parenthesized with block", "write `with a(), b():`"),
+        (".remove" + "prefix(", "str.removeprefix", "slice with [len(prefix) :]"),
+        (".remove" + "suffix(", "str.removesuffix", "slice with [: -len(suffix)]"),
+    )
+
+    def test_no_eval_file_uses_python_the_devbox_interpreter_does_not_have(self):
         rounds = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         offenders = []
         for name in sorted(os.listdir(rounds)):
@@ -585,17 +595,20 @@ class DeploymentPythonTests(unittest.TestCase):
             for filename in sorted(os.listdir(directory)):
                 if not filename.endswith(".py") or filename.startswith("._"):
                     continue
-                path = os.path.join(directory, filename)
-                with open(path) as handle:
+                with open(os.path.join(directory, filename)) as handle:
                     for number, line in enumerate(handle, 1):
-                        if line.rstrip().endswith("with ("):
-                            offenders.append(f"{name}/{filename}:{number}")
-        self.assertEqual(
-            [],
-            offenders,
-            "parenthesized with blocks do not compile on devbox; "
-            "write them as `with a(), b():` instead",
-        )
+                        code = line.split("#")[0]
+                        for fragment, what, instead in self.TOO_NEW:
+                            hit = (
+                                code.rstrip().endswith(fragment)
+                                if fragment == "with ("
+                                else fragment in code
+                            )
+                            if hit:
+                                offenders.append(
+                                    f"{name}/{filename}:{number} uses {what}, {instead}"
+                                )
+        self.assertEqual([], offenders, "\n".join(offenders))
 
 
 if __name__ == "__main__":
