@@ -3,101 +3,60 @@ title: "Create a product or website video"
 description: "Turn a product URL or launch brief into a promo, product tour, or social video."
 ---
 
-Use this workflow when the video should market or explain a product, company, app, or website.
+import { ProductVideoChooser } from "/snippets/product-video-chooser.jsx"
 
-Give the agent the real URL when the site’s interface, language, or visual identity should appear in the result. You can also begin from a written brief or script when no site capture is needed.
+Give HyperFrames the real URL when the product, website, or brand should appear in the result.
 
-Use a [faceless explainer](/guides/faceless-explainer) instead when there is no product to show and the visuals should be invented from an idea or text.
-
-<Frame caption="From the Huly launch film. HyperFrames captured the product's own site, wrote the story, and animated every shot.">
+<Frame caption="A real product-launch film, built from the product itself.">
   <video
     className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-product-launch.mp4"
-    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-product-launch.jpg"
-    autoPlay muted loop playsInline
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/product-launch-huly-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/product-launch-huly-v1.jpg"
+    aria-label="A narrated Huly product-launch film created with HyperFrames"
+    controls
+    playsInline
+    preload="metadata"
   />
 </Frame>
 
-## Start the request
+## What should the video do?
 
-```text
-/hyperframes Create a 45-second product launch video for https://example.com.
-The audience is independent designers. Show the real workflow, focus on
-how quickly they can share a first result, and end with “Try it free.”
-```
+<ProductVideoChooser />
 
-The `/hyperframes` router selects the Product Launch Video workflow.
+A tour features the product as it exists. A launch video rearranges the same evidence into a persuasive story. A social video proves one point and ends.
 
-## Approve the direction
+If you already have approved wording, paste the script and say whether it must remain verbatim. Say **do not capture the website** when the video should use only the supplied brief.
 
-Before the build, confirm:
+Use a [faceless explainer](/guides/faceless-explainer) instead when there is no product to show and the visuals should be invented.
 
-- the audience and single main promise;
-- whether the real site should be captured;
-- the most important product state or task to show;
-- the intended format and length;
-- claims, screens, and words that must be exact;
-- the final action for the viewer.
+## What HyperFrames builds from
 
-## Decide what kind of product video you need
+<div className="my-5 grid gap-3 sm:grid-cols-3">
+  <div className="border-b border-zinc-200 pb-3 dark:border-zinc-800">
+    <div className="font-medium">Real screens</div>
+    <div className="mt-1 text-sm text-zinc-500">The interface and product states worth showing.</div>
+  </div>
+  <div className="border-b border-zinc-200 pb-3 dark:border-zinc-800">
+    <div className="font-medium">Product language</div>
+    <div className="mt-1 text-sm text-zinc-500">Claims, features, proof, and the final action.</div>
+  </div>
+  <div className="border-b border-zinc-200 pb-3 dark:border-zinc-800">
+    <div className="font-medium">Brand system</div>
+    <div className="mt-1 text-sm text-zinc-500">Color, type, imagery, motion, and sound.</div>
+  </div>
+</div>
 
-| Goal | Useful direction |
-| --- | --- |
-| Launch or announce the product | Lead with the change and why it matters. |
-| Show how the product works | Use the real interface and a clear beginning-to-end task. |
-| Create a short social promo | Focus on one message and one action rather than the complete product. |
-| Tour a website | Use captured screens as evidence, not as a slow scrolling recording. |
-| Work from a script | Tell the agent not to capture a website and provide the approved wording. |
+HyperFrames can animate captured product material or rebuild only the part that needs to move. A raw screen recording is not the default.
 
-## Review captured product material
+## You stay in the loop
 
-When the workflow uses a website, check that:
+1. **Story** — approve what the video says and in what order.
+2. **Rough layouts** — see the composition before the detailed build.
+3. **Studio** — watch the result and change visible details.
+4. **Export** — render the approved version.
 
-- the important screens were captured;
-- private or irrelevant information is absent;
-- the product state is realistic;
-- the design feels like the real brand;
-- the video is showing evidence, not merely repeating marketing copy.
+Before export, confirm that every product claim is current, the shown states are realistic, and no private material appears.
 
-The agent may reconstruct product interactions as live visual scenes rather than playing a raw screen recording.
-
-## Keep the story narrow
-
-A short product video rarely has room for every feature.
-
-Choose:
-
-1. one audience;
-2. one main problem;
-3. one product promise;
-4. two or three pieces of proof;
-5. one final action.
-
-Ask for another version when you need a different audience or message rather than forcing everything into one crowded edit.
-
-## Review in Studio
-
-Use the [Storyboard](/studio/storyboard) to check the message and scene sequence.
-
-Use the [canvas](/studio/canvas) and [timeline](/studio/timeline) to refine the product screens, text, pacing, and transitions.
-
-Before export, confirm that claims shown in the video are current and supported by the product.
-
-## Common problems
-
-| Problem | Better direction |
-| --- | --- |
-| The video lists every feature | Choose one audience, one promise, and two or three pieces of proof. |
-| It looks like a scrolling screen recording | Reconstruct the useful interaction and use captures as evidence. |
-| The opening is generic | Show the product or its result earlier. |
-| The UI is too small to understand | Focus each scene on one product area and crop deliberately. |
-| The brand feels copied incorrectly | Supply the correct fonts, colors, logo, and approved product states. |
-
-<CardGroup cols={2}>
-  <Card title="Review in Studio" icon="palette" href="/studio">
-    Check the complete story, refine visible details, and export versions.
-  </Card>
-  <Card title="Choose another workflow" icon="route" href="/workflows">
-    Return to the source-and-outcome chooser.
-  </Card>
-</CardGroup>
+<Card title="Review in Studio" icon="palette" href="/studio">
+  Check the story, product screens, timing, and final version.
+</Card>

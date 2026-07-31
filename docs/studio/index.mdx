@@ -1,123 +1,62 @@
 ---
-title: "Review and edit a project in Studio"
+title: "Take control of a project in Studio"
 sidebarTitle: "Studio overview"
-description: "Understand an existing HyperFrames project, make the right kind of change, and export a version."
+description: "Watch the result, change what you can point at, and export a version."
 ---
 
-HyperFrames Studio is the visual workspace for a project that an agent or teammate has already created.
+import { StudioTaskChooser } from "/snippets/studio-task-chooser.jsx"
 
-Use it to review the story, play the built result, make direct visual changes, ask the agent for broader revisions, and export finished versions. You do not need to understand the project's HTML architecture to start.
-
-<Frame caption="The Studio workspace: project navigation, canvas, Inspector, playback, and timeline remain connected to the same project files.">
-  <img src="/images/studio/overview.jpg" alt="HyperFrames Studio showing the canvas, Inspector, playback controls, and timeline" />
+<Frame caption="One real project stays connected across the canvas, Inspector, playback, and timeline.">
+  <video
+    className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-front-door-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-front-door-v1.jpg"
+    aria-label="A narrated tour of one real HyperFrames Studio project"
+    controls
+    playsInline
+    preload="metadata"
+  />
 </Frame>
 
-## Open the project
-
-From the HyperFrames project folder, run:
+Open the project folder in Studio:
 
 ```bash
 npx hyperframes preview
 ```
 
-Keep the terminal process running and open the local URL it prints.
-
-## First, understand the two views
-
-<CardGroup cols={2}>
-  <Card title="Storyboard: review the plan" icon="table-cells-large" href="/studio/storyboard">
-    Check the sequence, direction, status, narration, and agent feedback before focusing on individual pixels.
-  </Card>
-  <Card title="Preview: review the built result" icon="play" href="/studio/tour">
-    Play the video and work with the canvas, Inspector, timeline, Code, Assets, Catalog, Variables, and Renders.
-  </Card>
-</CardGroup>
-
-They are two views of the same project. Switching views does not create a separate version.
-
-<Frame caption="Storyboard: the plan and running order, before you focus on individual pixels.">
-  <img src="/images/studio/storyboard.jpg" alt="HyperFrames Studio Storyboard view showing scenes in sequence with direction and status" />
-</Frame>
-
-## The safest review order
-
-<Steps>
-  <Step title="Review the storyboard">
-    Confirm that the sequence and intended message still make sense.
-  </Step>
-  <Step title="Watch the complete result once">
-    Resist fixing the first imperfect detail immediately. Notice where the story becomes unclear, slow, unreadable, or visually repetitive.
-  </Step>
-  <Step title="Choose one visible task">
-    Use the pages below for the specific change instead of learning every Studio control.
-  </Step>
-  <Step title="Run a quick check">
-    Resolve visible warnings or copy the generated message to your agent when the fix requires source work.
-  </Step>
-  <Step title="Export a named version">
-    Keep useful iterations rather than overwriting the only file you can compare.
-  </Step>
-</Steps>
-
 ## What do you want to change?
 
-<CardGroup cols={2}>
-  <Card title="Text, layout, or design" icon="pen-ruler" href="/studio/canvas">
-    Select, move, resize, rotate, crop, and style something you can see.
-  </Card>
-  <Card title="Timing or clip order" icon="timeline" href="/studio/timeline">
-    Move, trim, split, align, and organize clips.
-  </Card>
-  <Card title="Animation" icon="wand-magic-sparkles" href="/studio/animation">
-    Adjust keyframes, easing, motion paths, or recorded movement.
-  </Card>
-  <Card title="Media or a reusable visual" icon="photo-film" href="/studio/assets-and-blocks">
-    Import a file, reuse a project asset, or add something from the Catalog.
-  </Card>
-  <Card title="Captions or variables" icon="closed-captioning" href="/studio/captions">
-    Correct transcript timing and text, or update reusable project values.
-  </Card>
-  <Card title="Export a version" icon="download" href="/studio/export">
-    Choose a format and resolution, render, and review the output.
-  </Card>
-</CardGroup>
+<StudioTaskChooser />
 
 ## Studio or agent?
 
-If you can point at the exact thing, start in Studio. If the change spans several scenes or needs new source material, describe the outcome to the agent instead.
-
-| Change | Good place to start |
-| --- | --- |
-| Move a title or adjust its color | Studio |
-| Trim a clip or split it at the playhead | Studio |
-| Make the opening explain the product sooner | Agent |
-| Add a completely new scene with new media | Agent |
-| Fix a warning you do not understand | Copy it to the agent from Studio |
-| Export another resolution of the same layout | Studio |
-| Redesign the layout for another aspect ratio | Agent, then review in Studio |
-
-## Finish safely
-
-Before sharing:
-
-1. Play the entire project from the beginning.
-2. Check the final frame and audio ending.
-3. Run the available lint or project check.
-4. Export a version with a useful name.
-5. Watch the exported file once.
-
-<a href="/studio/export" className="not-prose group flex flex-col sm:flex-row no-underline overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors my-6">
-  <div className="hf-peek">
-    <img
-      src="/images/studio/export.jpg"
-      alt="The Renders panel in HyperFrames Studio, showing format and resolution options"
-    />
+<div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+  <div className="pl-4 border-l-2 border-green-500">
+    <strong>Use Studio when you can point at it</strong>
+    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+      “Move this title.” “Trim this clip.” “Make this caption easier to read.”
+    </p>
   </div>
-  <div className="p-5">
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">When it is ready</span>
-    <span className="mt-1 block text-lg font-semibold text-zinc-900 dark:text-zinc-100">Export a version →</span>
-    <span className="mt-1 block text-sm text-zinc-600 dark:text-zinc-400">Pick a format and resolution, watch the render queue, and keep named versions you can compare instead of overwriting the only file you have.</span>
+  <div className="pl-4 border-l-2 border-zinc-300 dark:border-zinc-700">
+    <strong>Ask the agent when the story must change</strong>
+    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+      “Explain the product sooner.” “Add a new scene.” “Find different source material.”
+    </p>
   </div>
-</a>
+</div>
 
-Faster with the keyboard? See the [shortcuts](/studio/shortcuts). If something blocks the task, [start from the visible symptom](/help), or read [Studio troubleshooting](/studio/troubleshooting).
+## Finish a version
+
+<Steps>
+  <Step title="Watch it through">
+    Check the opening, final frame, and audio ending.
+  </Step>
+  <Step title="Run the check">
+    Fix a visible warning, or copy it to the agent when the source needs work.
+  </Step>
+  <Step title="Export a version">
+    Studio dates the file and keeps past renders in the queue. Watch the exported file once.
+  </Step>
+</Steps>
+
+[Browse the complete Studio manual →](/studio/tour) · [Export a version →](/studio/export)

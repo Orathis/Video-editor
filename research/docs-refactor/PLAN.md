@@ -2,7 +2,19 @@
 
 ## Current approval gate
 
-Approved by the product owner on 2026-07-29. Public implementation is now in progress.
+Approved by the product owner on 2026-07-29. Public implementation is complete
+and ready for review.
+
+The product owner refined the information model on 2026-07-30. Four maturity
+journeys are now the canonical front doors:
+
+1. **Understand HyperFrames** — `/introduction`
+2. **Create a first video** — `/quickstart`
+3. **Go further** — `/go-further`
+4. **Build on HyperFrames** — `/developers`
+
+Workflows, Studio, Catalog, export, and troubleshooting are destinations inside
+these journeys rather than competing front doors.
 
 The approved journeys become the source of truth for:
 
@@ -15,7 +27,7 @@ The approved journeys become the source of truth for:
 
 The route-to-journey contract is maintained in `JOURNEY-IMPLEMENTATION-MAP.md`.
 
-Status: implementation complete; post-release measurement remains
+Status: four-journey page rebuild and film production complete
 Started: 2026-07-28
 Primary audience: people who want to make, edit, and share videos with HyperFrames
 Secondary audience: developers integrating or extending HyperFrames
@@ -36,6 +48,23 @@ A visitor should quickly understand:
 - where technical reference lives when they actually need it.
 
 The docs should feel clear, capable, visual, and human. They should not read like an API dump, marketing filler, or instructions written only for framework contributors.
+
+## Current journey rebuild
+
+The four canonical journey pages are being rebuilt as complete front doors:
+
+1. `/introduction` — understand HyperFrames;
+2. `/quickstart` — create a first video;
+3. `/go-further` — gain more control;
+4. `/developers` — build on HyperFrames.
+
+Each page begins with one complete narrated film and continues with a concise
+written expansion. The shared film series uses River narration, burned phrase
+captions, an intentional music arc, purposeful SFX, real product behavior, and
+real HyperFrames source. Long films use controls and do not autoplay or loop.
+
+The approved Mintlify header, left sidebar, right table of contents, theme, and
+page-width behavior remain unchanged.
 
 ## Navigation decision
 
@@ -75,9 +104,9 @@ Navigation behavior:
 
 - Start here
   - What HyperFrames is
-  - Choose your path
   - Make your first video
-  - How a project works
+  - Go further
+  - Build on HyperFrames
 - Create with an agent
   - Choose a workflow
   - Give the agent a useful brief

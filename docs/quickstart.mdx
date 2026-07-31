@@ -1,152 +1,51 @@
 ---
 title: "Make your first video"
-description: "Go from your own source material to a reviewable HyperFrames video in Studio, then export it."
+description: "Install the HyperFrames skills, make one short request, and continue with your agent, Studio, or the CLI."
 ---
 
-The goal of this guide is not to finish installation. It is to reach a first video you can watch, improve, and export.
+import { QuickstartContinuationGrid } from "/snippets/quickstart-continuation-grid.jsx"
 
-**You need:** an AI coding agent, Node.js, and a folder where the agent can create the project. Most first projects take a few minutes to set up, plus the time needed to plan and build the actual video.
-
-## 1. Choose what you are starting with
-
-Use the closest example. You can change its wording before sending it.
-
-<Tabs>
-  <Tab title="A product or website">
-    This is the request behind the film on [What HyperFrames is](/introduction) — the
-    same project is used as the example throughout these pages.
-
-    ```text
-    /hyperframes Make a 30-second launch video for our new pricing page
-    at https://example.com/pricing. It is for small design teams. Show the
-    real product interface, focus on how quickly a team can share a result,
-    and end with “Try it together.” Keep the pacing calm and premium.
-    ```
-  </Tab>
-  <Tab title="Notes or an idea">
-    ```text
-    /hyperframes Turn these notes into a 45-second visual explainer for a
-    non-technical audience. The viewer should understand the three stages
-    and why the second one matters. Use diagrams and typography rather than
-    stock footage.
-    ```
-  </Tab>
-  <Tab title="Existing footage">
-    ```text
-    /hyperframes Add clean word-level captions to this interview clip.
-    Keep the footage and audio unchanged. Use high contrast and emphasize
-    only the most important phrase in each sentence.
-    ```
-  </Tab>
-  <Tab title="A pull request">
-    ```text
-    /hyperframes Turn https://github.com/example/repo/pull/123 into a
-    45-second feature reveal. Lead with the user impact, then explain the
-    two most important implementation decisions.
-    ```
-  </Tab>
-  <Tab title="A song">
-    ```text
-    /hyperframes Make a 30-second vertical promo driven by this music track.
-    Cut the attached images on the major beats and reserve the chorus for
-    the strongest product moment.
-    ```
-  </Tab>
-</Tabs>
-
-If none resembles your job, use the [workflow chooser](/workflows).
-
-## 2. Install the HyperFrames guidance
-
-Open the project folder in your agent and run:
-
-```bash
-npx hyperframes skills update
-```
-
-This installs the core HyperFrames guidance. The `/hyperframes` router adds a specialized creation workflow when the request needs one.
-
-<Note>
-  Start a fresh agent session if `/hyperframes` is not recognized after installation.
-</Note>
-
-## 3. Send the request
-
-Paste the request you chose, attach or link the real source material, and add anything that must be accurate.
-
-A useful first request answers:
-
-- What should exist when the work is finished?
-- Who will watch it?
-- What source should the agent use?
-- What format, duration, or tone matters?
-- What must appear, and what must not?
-
-Do not write a technical animation specification unless a particular motion is essential. The agent should solve the communication problem first. If you want to get better at this one thing, read [Give your agent a useful brief](/guides/prompting).
-
-## 4. Approve the creative direction
-
-Before building a fresh project, the agent confirms the important choices. Read the response like a short creative brief:
-
-- Is the main message correct?
-- Does the audience match?
-- Is the proposed format and length useful?
-- Does the visual direction fit?
-- Are exact claims, words, screens, and exclusions captured?
-
-Correct misunderstandings here. Changing the direction before the build is faster than rebuilding a finished video around the wrong idea.
-
-## 5. Review the first version in Studio
-
-The agent starts Studio and gives you a local project link. Watch the complete video once before editing individual moments.
-
-<Frame caption="Studio opens the real project so you can review the sequence, select visible elements, change timing, and export versions.">
-  <img src="/images/studio/overview.jpg" alt="HyperFrames Studio showing the video canvas, editing panels, and timeline" />
+<Frame>
+  <video
+    className="w-full aspect-video bg-zinc-950"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-quickstart-v4.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-quickstart-v4.jpg"
+    controls
+    playsInline
+  />
 </Frame>
 
-Check:
+## 1. Install the skills
 
-1. Can a new viewer understand the opening?
-2. Is the main promise or idea accurate?
-3. Does every scene earn its time?
-4. Can text be read before it leaves?
-5. Does the ending give the viewer somewhere to land?
+Run this in your project folder:
 
-Use Studio for a direct, visible change. Ask the agent when the change affects the story, multiple scenes, source files, or new media.
-
-```text
-Make the opening faster and reveal the product by three seconds.
-Keep the current colors. Replace the final line with “Try it free.”
+```bash
+npx skills add heygen-com/hyperframes --full-depth
 ```
 
-[Take the Studio tour →](/studio/tour)
+Choose **Core Skills** in the picker. Then open or restart your coding agent in that folder.
 
-## 6. Export the result
+## 2. Ask for the video
 
-Open **Renders**, choose the format and resolution, and start the export.
+```text
+Using /hyperframes, make a 10-second product intro for https://example.com.
+```
 
-- Choose **MP4** for a normal finished video.
-- Choose **WebM** or **MOV** when another workflow needs transparency or a specific codec.
-- Watch the exported file once, including the final frame and audio ending.
+The agent will propose a direction and ask for anything important that is missing. You do not need to write a production specification.
 
-[See every export option →](/studio/export)
+## 3. Continue from the first version
 
-## You are done when…
+All three paths work with the same project.
 
-You have a video that plays in Studio or an exported file you can watch. Installation alone is not the finish line.
+<QuickstartContinuationGrid />
 
-<a href="/workflows" className="not-prose group flex flex-col sm:flex-row no-underline overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors my-6">
-  <video
-    className="w-full sm:w-64 shrink-0 aspect-video object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/workflows-peek.mp4"
-    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/workflows-peek.jpg"
-    autoPlay muted loop playsInline
-  />
-  <div className="p-5">
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Now make something specific</span>
-    <span className="mt-1 block text-lg font-semibold text-zinc-900 dark:text-zinc-100">Choose a workflow →</span>
-    <span className="mt-1 block text-sm text-zinc-600 dark:text-zinc-400">A launch video, an explainer, captions on footage, a PR walkthrough, a motion graphic, a music-driven cut, or a presentation. Each path tells you what to give the agent.</span>
-  </div>
-</a>
+## What next?
 
-Also useful from here: learn the workspace properly in [Studio](/studio), find a ready-made scene in the [Catalog](/catalog), or start from a visible symptom in [Get unstuck](/help).
+<CardGroup cols={2}>
+  <Card title="Choose a specific workflow" icon="route" href="/workflows">
+    Product launch, explainer, captions, recut, pull request, music, motion graphic, or presentation.
+  </Card>
+  <Card title="Go further" icon="arrow-right" href="/go-further">
+    Direct the agent, edit in Studio, build richer projects, and finish with confidence.
+  </Card>
+</CardGroup>

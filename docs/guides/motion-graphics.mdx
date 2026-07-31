@@ -3,67 +3,44 @@ title: "Create a motion graphic"
 description: "Make a short, motion-led title, statistic, chart, logo sting, or overlay."
 ---
 
-Use Motion Graphics when the piece is short, usually under ten seconds, and movement carries the message.
+import { MotionKindChooser } from "/snippets/motion-kind-chooser.jsx"
 
-Good fits include:
+Use Motion Graphics for one short, design-led idea—usually under ten seconds—where the movement carries the message.
 
-- kinetic type;
-- one important number;
-- a chart reveal;
-- a logo sting;
-- a lower third;
-- an animated quote, headline, or post;
-- a transparent overlay for another video.
-
-<Frame caption="A year-in-review card generated per listener. No narration; the motion carries it.">
+<Frame caption="A complete year-in-review graphic. It uses music and sound, but no narration; the motion carries it.">
   <video
     className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-motion.mp4"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/full-hypecard.mp4"
     poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-motion.jpg"
-    autoPlay muted loop playsInline
+    controls
+    playsInline
+    preload="metadata"
   />
 </Frame>
 
-## Example request
+## What are you animating?
 
-```text
-/hyperframes Create a six-second transparent overlay for “2.4× faster”.
-The number should count up, settle firmly, then clear cleanly. No narration.
-Use white type with one lime accent and export for editing over footage.
-```
+<MotionKindChooser />
 
-Include the exact words or data, intended background, dimensions, duration, and whether transparency is required.
+The same workflow can animate kinetic type, a statistic, chart, logo, lower third, map, real webpage, news headline, or post.
 
-If the piece needs several scenes, narration, or a longer story, use the General Video workflow instead.
+If the result needs narration, several scenes, or a longer story, use [General Video](/guides/general-video).
 
-## Approve the motion idea
+## Choose the output
 
-Confirm:
+- **MP4** for a finished standalone graphic.
+- **WebM or MOV with transparency** for a logo sting, lower third, callout, or other overlay placed over footage.
 
-- the one message or number;
-- the exact duration and dimensions;
-- where the graphic will be used;
-- the background or transparency requirement;
-- the entrance, main action, and clean exit;
-- whether the first or final frame must hold.
+For an overlay, name where it should sit and how long it should hold. The first and final frames must clear cleanly.
 
-Review the first and final frames carefully. An overlay must enter and leave cleanly when placed over another edit.
+## Review the motion
 
-## Common problems
+- The words, data, source, and logo are exact.
+- The complete message is readable while the video plays.
+- The main movement helps communicate the meaning.
+- The opening and ending states are deliberate.
+- A transparent export has been checked over real footage.
 
-| Problem | Better direction |
-| --- | --- |
-| Too many ideas compete in six seconds | Keep one message and one motion idea. |
-| Text is readable only while paused | Hold the resolved state longer. |
-| A transparent overlay leaves visible debris | Review the first and final frames over real footage. |
-| Motion is energetic but communicates nothing | Tie the movement to the meaning of the word, number, or chart. |
-| The result needs narration and several scenes | Move to the custom video workflow. |
-
-<CardGroup cols={2}>
-  <Card title="Find a starting visual" icon="grid-2" href="/catalog">
-    Browse titles, charts, lower thirds, overlays, transitions, and effects.
-  </Card>
-  <Card title="Choose another workflow" icon="route" href="/workflows">
-    Return to the source-and-outcome chooser.
-  </Card>
-</CardGroup>
+<Card title="Browse starting visuals" icon="grid-2" href="/catalog">
+  Find titles, charts, lower thirds, maps, overlays, and effects.
+</Card>

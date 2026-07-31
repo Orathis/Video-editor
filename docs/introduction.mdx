@@ -1,88 +1,42 @@
 ---
 title: "What is HyperFrames?"
 sidebarTitle: "What HyperFrames is"
-description: "Tell an AI agent what you want. It builds a real, editable video project — you refine it in Studio and export the film."
+description: "See what an AI agent can make with ordinary web technology."
 ---
 
 import { ShowcaseWall } from "/snippets/showcase-wall.jsx"
 
-<Frame caption="A website goes in; HyperFrames plans it, builds it, and renders the film. The finished launch film, made with HyperFrames — press play for sound.">
+<Frame>
   <video
     className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/hero-web2vid-v2.mp4"
-    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/hero-web2vid-v2.jpg"
-    autoPlay
-    muted
-    loop
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-introduction-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-introduction-v1.jpg"
     playsInline
     controls
     preload="metadata"
   />
 </Frame>
 
-Start from an idea, a website, a script, a recording, a pull request, or a song. The agent does the first build. You keep control of the result.
-
-## From request to video
-
-<Steps>
-  <Step title="Describe it">
-    Tell the agent what the viewer should understand, feel, or do — and attach a source if you have one.
-  </Step>
-  <Step title="Approve the direction">
-    The agent confirms the creative choices before it spends time building.
-  </Step>
-  <Step title="Refine it in Studio">
-    The first version opens as a real project, not a flattened export. Scenes, timing, text, media, and animation all stay editable — change what you can point at, or ask the agent for a broader revision.
-  </Step>
-  <Step title="Export">
-    Render a standard video, a transparent overlay, a high-resolution file — or keep it as a navigable presentation.
-  </Step>
-</Steps>
+HyperFrames is an open-source framework that turns HTML into video. You make the request; an AI agent builds an editable project; HyperFrames plays or renders it.
 
 ## What can it make?
 
-Every one of these is a finished film made with HyperFrames. Each tile plays silently where it sits — click one to watch it properly, with sound.
+Every tile below is a finished HyperFrames film. Open one to watch it with sound.
 
 <ShowcaseWall />
 
-There is a path for each kind of video:
+## Three things to know
 
-<CardGroup cols={2}>
-  <Card title="Product and website videos" icon="rocket" href="/guides/product-launch-video">
-    Launches, tours, and promos built from a real product interface.
-  </Card>
-  <Card title="Visual explainers" icon="lightbulb" href="/guides/faceless-explainer">
-    Notes, articles, and hard ideas turned into a visual story.
-  </Card>
-  <Card title="Captions and recuts" icon="closed-captioning" href="/guides/captions-and-recuts">
-    Subtitles, titles, and overlays added to footage you already have.
-  </Card>
-  <Card title="Motion graphics" icon="wand-magic-sparkles" href="/guides/motion-graphics">
-    Titles, statistics, charts, logo stings, transparent overlays.
-  </Card>
-  <Card title="Music-driven videos" icon="music" href="/guides/music-to-video">
-    Footage and motion cut to the structure of a track.
-  </Card>
-  <Card title="Interactive presentations" icon="display" href="/workflows#a-presentation">
-    Decks with reveals, notes, branches, and presenter mode.
-  </Card>
-</CardGroup>
+**Agent-built.** The layouts, type, interfaces, motion, transitions, and effects are ordinary HTML, CSS, and JavaScript authored by an AI agent.
 
-[Watch finished work →](/examples) · [Browse the catalog →](/catalog)
+**Editable.** The result is a project folder, not a flattened black box. An agent, Studio, and your own tools can work on the same files.
 
-## Who does what
+**Deterministic.** HyperFrames can seek the project to an exact frame and render the same result reliably.
 
-The agent does the source-heavy work — research, media, narration, building scenes. You direct it and control the visible result.
-
-**Reach for Studio** when you can point at the thing: this text, this clip, this colour, this timing.
-**Ask the agent** when the change is bigger than a click: the story, several scenes at once, or new media.
-
-You never have to touch HTML, packages, or the rendering engine to make and review a video. Those live in [Developers](/developers), for people integrating or extending HyperFrames.
-
-## Your next step
+## Make one
 
 <Card title="Make your first video" icon="play" href="/quickstart" horizontal arrow>
-  The shortest complete path — your own source material to a finished export, in about ten minutes.
+  Install the skills, make one short request, and choose how you want to continue.
 </Card>
 
-Prefer to look around first? Open the [Playground](https://www.hyperframes.dev/) with nothing to install, or learn [Studio](/studio) if an agent already built you a project.
+[Go further →](/go-further) · [Build on HyperFrames →](/developers)

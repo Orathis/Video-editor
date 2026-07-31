@@ -1,74 +1,52 @@
 ---
 title: "Turn a pull request into a video"
-description: "Explain a GitHub pull request as a changelog, feature reveal, fix, or technical walkthrough."
+description: "Show what changed, why it matters, and what happens next."
 ---
 
-Use this workflow when the source is a GitHub pull request or a specific code change.
+import { PrAudienceChooser } from "/snippets/pr-audience-chooser.jsx"
 
-The agent reads the PR, identifies what changed and why it matters, then turns that into a short visual explanation.
+Give HyperFrames a pull request. It reads the diff, commits, files, and contributors—there is no website capture.
 
-<Frame caption="From a film built out of a real pull request — the diff, the files, and the review, on screen.">
+<Frame caption="A real pull request becomes a 32-second explanation with code, before-and-after behavior, and sound.">
   <video
     className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-pr.mp4"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/full-prvideo.mp4"
     poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-pr.jpg"
-    autoPlay muted loop playsInline
+    controls
+    playsInline
+    preload="metadata"
   />
 </Frame>
 
-## Start with the PR
+## Who needs to understand it?
 
-```text
-/hyperframes Turn https://github.com/owner/repo/pull/123 into a
-45-second release video for existing users. Focus on the visible behavior,
-not implementation details. Show the before and after, and include the
-migration note from the PR description.
-```
+<PrAudienceChooser />
 
-Say who the video is for:
+The same pull request needs a different story for users, contributors, or a social audience.
 
-- users need the outcome and any action they must take;
-- contributors may need architecture and tradeoffs;
-- a social audience needs one clear change and visible proof.
-
-## Approve the angle
+## Before it builds
 
 Confirm:
 
-- the intended PR and target branch;
-- whether the audience cares about user impact, architecture, or both;
-- the release state: proposed, merged, released, or planned;
-- the before-and-after behavior;
-- breaking changes or migration work;
-- the maximum level of code detail.
+- the intended pull request and audience;
+- whether the angle is a changelog, feature reveal, fix, or refactor;
+- whether the change is proposed, merged, or released;
+- the visible before and after;
+- any breaking change or migration step.
 
-## Check the facts
+The video should explain the change, not read the pull request description aloud.
 
-Before export:
+## Verify the proof
 
-- verify the PR is the intended source;
-- distinguish shipped behavior from planned follow-up;
-- do not turn test coverage or refactoring into a user-facing claim;
-- include breaking changes and migration steps;
-- confirm issue, version, and product names.
+- The pull request and target branch are correct.
+- Proposed, merged, and released are not confused.
+- User-facing claims match the actual behavior.
+- Code excerpts show only the relevant lines and remain readable.
+- Tests and refactoring are not presented as product features.
+- Contributor names and release details are accurate.
 
-Use [Studio Storyboard](/studio/storyboard) to review the explanation and [Source](/studio/source) when a code excerpt needs adjustment.
+Use [Storyboard](/studio/storyboard) to check the explanation. Use [Studio](/studio) for timing, code framing, captions, and export.
 
-## Common problems
-
-| Problem | Better direction |
-| --- | --- |
-| The video reads the PR description aloud | Build a story around the user or system change. |
-| Refactoring becomes a product claim | Separate internal work from visible behavior. |
-| Code appears too briefly to read | Show only the relevant lines and hold them longer. |
-| The PR is not released yet | Say that clearly instead of presenting it as shipped. |
-| The audience is mixed | Make separate user-facing and contributor-facing versions. |
-
-<CardGroup cols={2}>
-  <Card title="Review in Studio" icon="palette" href="/studio">
-    Check the facts, sequence, code excerpts, timing, and final release language.
-  </Card>
-  <Card title="Choose another workflow" icon="route" href="/workflows">
-    Return to the source-and-outcome chooser.
-  </Card>
-</CardGroup>
+<Card title="Review in Studio" icon="palette" href="/studio">
+  Check the complete explanation and export the version.
+</Card>

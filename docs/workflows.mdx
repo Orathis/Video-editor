@@ -1,52 +1,15 @@
 ---
-title: "Choose a creation workflow"
+title: "What are you starting with?"
 sidebarTitle: "Choose a workflow"
-description: "Pick the situation that matches yours. Each path opens with a finished example, what to give the agent, and a request you can copy."
+description: "Choose the thing you already have. Each path ends with something you can watch, review, or present."
 ---
 
-You do not need to learn HyperFrames' internal workflow names. Pick the situation that resembles yours — each path tells you what to provide and gives you a request to copy.
+import { WorkflowChooser } from "/snippets/workflow-chooser.jsx"
 
-<Tip>
-  First HyperFrames project? Follow [Make your first video](/quickstart) instead. It walks the whole path once, end to end. This page is the faster route when you already know what HyperFrames is.
-</Tip>
+<a href="/quickstart" style={{ fontSize: "0.875rem", opacity: 0.78 }}>
+  First project? Follow the Quickstart →
+</a>
 
-## I am starting with…
+<WorkflowChooser />
 
-<CardGroup cols={2}>
-  <Card title="A product, website, or launch brief" icon="rocket" href="/guides/product-launch-video">
-    Launch videos, product tours, promos, and showcases that use the real interface.
-  </Card>
-  <Card title="Notes, an article, or an idea" icon="lightbulb" href="/guides/faceless-explainer">
-    An explainer where every visual is invented from the subject, not captured from a site.
-  </Card>
-  <Card title="Existing talking-head footage" icon="video" href="/guides/captions-and-recuts">
-    Captions, or designed titles and lower thirds, over footage that stays untouched.
-  </Card>
-  <Card title="A pull request" icon="code-pull-request" href="/guides/pr-to-video">
-    A feature reveal, fix explanation, or changelog built from the diff.
-  </Card>
-  <Card title="A short motion-first idea" icon="wand-magic-sparkles" href="/guides/motion-graphics">
-    Motion is the message: a title, a statistic, a chart, a logo sting, an overlay.
-  </Card>
-  <Card title="A music track" icon="music" href="/guides/music-to-video">
-    Lyric videos, beat-synced slideshows, and promos where the music sets the pacing.
-  </Card>
-  <Card title="A presentation" icon="display" href="/guides/slideshow">
-    A navigable deck with reveals, speaker notes, branching, and presenter mode.
-  </Card>
-  <Card title="Something else entirely" icon="shapes" href="/guides/general-video">
-    Longer or unusual work — montages, title cards, loops, or co-designing the structure.
-  </Card>
-</CardGroup>
-
-<Note>
-  Working with footage? Choose by what must happen to the clip. **Subtitles only, footage untouched** → embedded captions. **Titles, quotes, lower thirds, or side panels over untouched footage** → a designed recut. **Reordering speech, removing pauses, or changing the edit itself** → a [custom video](/guides/general-video). The [captions and recuts guide](/guides/captions-and-recuts) covers the first two.
-</Note>
-
-## After you choose
-
-Install the guidance once with `npx hyperframes skills update`, then start your request with `/hyperframes`. The agent confirms the creative direction before it builds, so correct the message, length, and format at that point — it is much cheaper than rebuilding a finished video around the wrong idea.
-
-When the first version opens, make direct visible edits in [Studio](/studio), and ask the agent for anything that affects the story, several scenes, or new media. Export from Studio's **Renders** panel. If something blocks you, start from the symptom in [Get unstuck](/help).
-
-Writing a stronger request is its own short guide: [Give your agent a useful brief](/guides/prompting).
+Not sure which path fits? [Follow the Quickstart](/quickstart), or ask the docs assistant below.

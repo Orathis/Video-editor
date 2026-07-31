@@ -1,96 +1,64 @@
 ---
 title: "Create an interactive presentation"
 sidebarTitle: "Create an interactive presentation"
-description: "Ask an agent to build a navigable HyperFrames deck with reveals, notes, branches, hotspots, and presenter mode."
+description: "Build a navigable deck with reveals, notes, optional branches, hotspots, and presenter mode."
 ---
 
-A HyperFrames slideshow is a running presentation, not a video pretending to be a deck.
+import { DeckKindChooser } from "/snippets/deck-kind-chooser.jsx"
 
-It can contain discrete slides, progressive reveals, speaker notes, optional branches, clickable hotspots, presenter controls, and an audience view.
+A HyperFrames slideshow stays interactive. The result is a live, navigable deck—not a linear MP4.
 
-<Warning>
-  Choose this workflow only when the final result should remain interactive. A HyperFrames slideshow is presented with `hyperframes present`; rendering it as one linear MP4 is not currently a supported slideshow output.
-</Warning>
+<Frame caption="A real deck: points reveal, slides advance, a hotspot opens optional detail, then the presenter returns to the main story.">
+  <video
+    className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
+    src="/images/showcase/wfv2-slideshow.mp4"
+    poster="/images/showcase/wfv2-slideshow.jpg"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+  />
+</Frame>
 
-## Use it when
+If the result should play from beginning to end without a presenter, use a normal [video workflow](/workflows). A slideshow cannot currently be exported as one complete linear MP4; per-slide snapshots are supported.
 
-- a presenter needs to control the pace;
-- points should reveal one at a time;
-- the audience may choose a branch or detail path;
-- speaker notes and a separate audience view matter;
-- an existing interactive page should become a navigable deck.
+## What control does the presenter need?
 
-Use a normal video workflow when the result should play from beginning to end without a presenter.
+<DeckKindChooser />
 
-## Give the agent
+Attach the source notes, document, page, or existing deck. Name the audience and what should change after the presentation.
 
-- the source notes, document, page, or existing deck;
-- the audience and purpose;
-- the rough number of slides;
-- the main narrative;
-- required brand or visual references;
-- whether you need fragments, branches, hotspots, media, or speaker notes;
-- the environment where it will be presented.
+## Keep the main story clear
 
-```text
-/hyperframes Build a ten-slide interactive product briefing from these
-notes. It is for a sales team introducing the product to design leaders.
-Use progressive reveals, include speaker notes, and add a final branch
-where the presenter can open either the roadmap or pricing detail.
-```
+- **Slides** carry one complete claim and one useful visual.
+- **Reveals** let the presenter add part of an idea at a time.
+- **Branches** hold optional detail without interrupting the story everyone sees.
+- **Speaker notes** help the presenter; they should not repeat the slide.
 
-## What the agent should confirm
+The main story should still make sense when no optional branch is opened.
 
-Before building, agree on:
+## Review it as a presenter
 
-1. **Deliverable:** an interactive slideshow rather than a rendered video.
-2. **Audience and decision:** what should change after the presentation?
-3. **Main line:** the sequence every audience sees.
-4. **Branches:** optional detail that should not interrupt the main story.
-5. **Interaction:** reveals, hotspots, media, and presenter control.
-6. **Handoff:** how and where the deck will be presented.
+- Each slide makes one clear point.
+- Reveals help the explanation.
+- Hotspots are obvious without distracting.
+- Embedded media stops when its slide is left.
+- Presenter notes and the audience view stay separate.
+- The complete deck works with keyboard, touch, and its visible controls.
 
-## Review the first version
-
-Check the deck as a presenter, not as a passive video:
-
-- Does each slide make one clear point?
-- Do reveals help the explanation, or merely delay content?
-- Can the main line stand without opening a branch?
-- Are hotspots obvious enough to use but quiet enough not to distract?
-- Do speaker notes help the presenter rather than repeat the slide?
-- Does embedded media stop when you leave its slide?
-- Can the audience view be shared without exposing presenter notes?
-
-Use [Studio's Slideshow panel](/studio/slideshows) to review and adjust slide metadata.
+Use [Studio’s Slideshow panel](/studio/slideshows) to adjust order, notes, reveals, and branches.
 
 ## Present the deck
-
-Run:
 
 ```bash
 npx hyperframes present <project-directory>
 ```
 
-Open the local URL, then click **Present** or press **P**. HyperFrames opens a separate audience view while the original tab becomes the presenter view with the current slide, next-slide preview, notes, and timer.
+Open the local URL, then click **Present** or press **P**. The audience gets a clean full-screen view while the presenter keeps the current slide, next slide, notes, and timer.
 
-For a call:
+In Google Meet, share the audience **tab**. In Zoom, move the audience tab into its own window and share that window.
 
-- In Google Meet, share the audience **tab**.
-- In Zoom, move the audience tab into its own window and share that window.
-- Keep presenter notes on your own screen.
-
-## Supported output
-
-The primary output is the live, navigable deck. You can also create per-slide snapshots.
-
-If the final deliverable must be a linear MP4 today, ask the agent to make a normal HyperFrames video from the same source rather than sending the slideshow to the video renderer.
-
-## If something goes wrong
-
-- If navigation does nothing, confirm the slideshow project is being served with `hyperframes present`.
-- If a branch cannot be opened, ask the agent to check the hotspot target and slide sequence.
-- If a reveal lands at the wrong moment, identify the slide and reveal number.
-- If the audience view does not play media, interact with the audience tab once so the browser can allow playback.
-
-[Start from a visible symptom →](/help)
+<Card title="Edit slideshow behavior" icon="presentation" href="/studio/slideshows">
+  Adjust slides, reveals, branches, hotspots, and notes.
+</Card>

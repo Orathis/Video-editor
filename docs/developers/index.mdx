@@ -1,61 +1,40 @@
 ---
-title: "Developers"
-description: "CLI, SDK, packages, schemas, deployment, integrations, and contribution guides."
+title: "Build on HyperFrames"
+sidebarTitle: "Developers"
+description: "Choose the smallest HyperFrames surface for automation, editing, playback, rendering, or generated compositions."
 ---
 
-This section is for people integrating HyperFrames, automating it, extending the editor, deploying rendering infrastructure, or working directly with composition source.
-
-If you only want to create or edit a video, begin with [Make your first video](/quickstart) or [Studio](/studio).
+<Frame>
+  <video
+    className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-developers-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-developers-v1.jpg"
+    controls
+    playsInline
+    preload="metadata"
+  />
+</Frame>
 
 ## Choose the smallest surface
 
-```mermaid
-flowchart TD
-    A["What does your system need to do?"] --> B["Run commands or CI jobs"]
-    A --> C["Inspect or edit compositions in an app"]
-    A --> D["Embed playback"]
-    A --> E["Operate custom render infrastructure"]
-    A --> F["Generate or validate raw composition source"]
-    B --> G["CLI"]
-    C --> H["SDK"]
-    D --> I["Player"]
-    E --> J["Focused packages and deployment guides"]
-    F --> K["HTML schema and animation reference"]
-```
-
 <CardGroup cols={2}>
   <Card title="CLI" icon="terminal" href="/developers/cli">
-    Create, check, render, publish, and automate projects from a terminal or CI job.
+    **First result:** validate and render one known project from a terminal or CI job.
   </Card>
   <Card title="SDK quickstart" icon="code" href="/sdk/quickstart">
-    Open a composition, query or edit it, persist changes, and build custom editing surfaces.
+    **First result:** open a composition, query an element, change a value, and save it.
   </Card>
   <Card title="Player" icon="circle-play" href="/packages/player">
-    Embed a seekable HyperFrames composition and control playback from an application.
+    **First result:** embed one composition and seek it from your application.
   </Card>
-  <Card title="Packages" icon="boxes-stacked" href="/packages/core">
-    Add focused parsing, playback, rendering, Studio, or infrastructure capabilities.
+  <Card title="Rendering infrastructure" icon="cloud" href="/deploy/cloud">
+    **First result:** connect one render request to a local, managed, or self-hosted worker.
   </Card>
-  <Card title="Deployment" icon="cloud" href="/deploy/cloud">
-    Render with managed cloud infrastructure, AWS Lambda, or Google Cloud Run.
-  </Card>
-  <Card title="HTML schema" icon="brackets-curly" href="/reference/html-schema">
-    Reference composition elements, timing attributes, tracks, variables, and the media contract.
+  <Card title="Composition and schema" icon="brackets-curly" href="/reference/html-schema">
+    **First result:** generate one valid composition with clips, timing, tracks, and media.
   </Card>
 </CardGroup>
 
-## A good first technical result
+## Deeper reference
 
-Choose one result rather than installing the whole repository:
-
-- render one known project from a script or CI job;
-- open one composition with the SDK and change one value;
-- embed one project with the Player and seek to a timestamp;
-- deploy one minimal render path;
-- validate one generated composition against the schema.
-
-Continue to package or reference pages only when that working path requires more control. Most integrations should not depend on every HyperFrames package.
-
-## Working on HyperFrames itself?
-
-Use [Contributing](/contributing) for repository setup, tests, Catalog contributions, and releases. Product integrations should begin with one of the surfaces above instead.
+[Packages →](/packages/core) · [Deployment →](/deploy/cloud) · [Contributing →](/contributing)

@@ -1,75 +1,51 @@
 ---
 title: "Create a custom video"
-description: "Use the flexible workflow for videos that do not fit a focused source-based route."
+description: "Combine sources, change existing footage, or co-direct a video when no focused workflow fits."
 ---
 
-General Video is the flexible fallback for custom work: brand reels, title cards, multi-scene montages, longer pieces, loops, unusual aspect ratios, and edits that change existing footage.
+import { CollaborationModeChooser } from "/snippets/collaboration-mode-chooser.jsx"
 
-It is also where you can work in a companion-style loop: the agent builds and validates the project while you guide the creative choices.
+Use General Video when the work is genuinely custom: several source types, editable footage, a longer multi-scene story, an unusual format, or close creative collaboration.
 
-<Frame caption="From a film about editing on the timeline. The custom path composes whatever the focused workflows do not cover.">
+<Frame caption="A complete launch film about timeline editing. The custom route combines the story, product evidence, motion, voice, music, and sound.">
   <video
     className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-general.mp4"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/full-timeline.mp4"
     poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-general.jpg"
-    autoPlay muted loop playsInline
+    controls
+    playsInline
+    preload="metadata"
   />
 </Frame>
 
-## Example request
+## How should the agent work with you?
 
-```text
-/hyperframes Create a 75-second brand film from the attached brief,
-photography, and interview selects. Mix live footage with typography.
-Keep the interview audio, but you may restructure the visual sequence.
-Review the storyboard with me before building.
-```
+<CollaborationModeChooser />
 
-Use this route when:
+In companion mode, the agent proposes a complete creative treatment first. You redirect or remove what does not serve the idea; you do not have to request quality layer by layer.
 
-- several different input types must become one video;
-- the underlying footage may be edited;
-- the piece is longer than a focused short workflow;
-- the structure is deliberately unusual;
-- you want to co-direct the work rather than hand over one narrow task.
+## Use the custom route when
 
-## Approve the production shape
+- several kinds of source material must become one video;
+- the underlying footage may be trimmed, reordered, or changed;
+- the piece needs a longer or unusual multi-scene structure;
+- the same idea needs deliberately redesigned versions for different formats;
+- you want to shape the creative treatment with the agent.
 
-Because this route is flexible, agree on more before the build:
+If one source already determines the job—a product URL, article, pull request, track, talking-head clip, or short motion graphic—start with its [focused workflow](/workflows).
 
-- the final deliverable and audience;
-- source material and usage constraints;
-- story structure and approximate length;
-- whether existing footage may be edited;
-- narration, music, and sound direction;
-- review checkpoints;
-- aspect ratios and required versions.
+## Keep feedback useful
 
-## Keep the review loop clear
+Review the story before polishing motion. In Studio, make direct changes you can point to. Ask the agent when feedback affects several scenes, source files, media, or the overall narrative.
 
-1. Agree on the brief.
-2. Approve the storyboard and message.
-3. Review a first built version.
-4. Separate story feedback from visual polish.
-5. Validate and export.
+Before export, confirm:
 
-Studio and the agent are complementary. Make direct visible changes in [Studio](/studio); use the agent for changes that cross scenes, files, media, or the overall story.
+- only source material that serves the story remains;
+- narration, music, sound, and silence have a deliberate role;
+- each requested format has been composed, not merely cropped;
+- the opening and ending feel designed;
+- the complete project passes its checks.
 
-## Common problems
-
-| Problem | Better direction |
-| --- | --- |
-| “Custom” becomes permission to skip the brief | Agree on the outcome and checkpoints before exploring. |
-| Story and visual feedback are mixed together | Fix message and structure before polishing motion. |
-| Every source file is included | Keep only material that serves the final narrative. |
-| Multiple aspect ratios are treated as simple crops | Plan layout changes for each required format. |
-| The scope keeps expanding | Name a reviewable first version and defer optional ideas. |
-
-<CardGroup cols={2}>
-  <Card title="Review in Studio" icon="palette" href="/studio">
-    Inspect the whole result, make direct edits, and export versions.
-  </Card>
-  <Card title="Choose a focused workflow" icon="route" href="/workflows">
-    Return to the chooser when a narrower creation path would work better.
-  </Card>
-</CardGroup>
+<Card title="Review in Studio" icon="palette" href="/studio">
+  Watch the complete result, make direct edits, and export versions.
+</Card>

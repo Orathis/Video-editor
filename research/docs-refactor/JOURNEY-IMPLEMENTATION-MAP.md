@@ -1,21 +1,26 @@
 # Journey implementation map
 
-Status: **Approved and in implementation**
+Status: **Implemented**
 
 This map prevents individual page edits from drifting away from the approved end-to-end journeys.
 
-## P0 journeys
+## Canonical journeys
 
-| Journey                             | Canonical route | Entry promise                                                       | Primary supporting pages                                                    | Success state                                                                        |
-| ----------------------------------- | --------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Understand HyperFrames from zero    | `/introduction` | Understand the product in under a minute and see proof              | Examples, Quickstart, Studio                                                | Person can explain the agent → project → Studio → result loop and choose a next step |
-| Make a first real video             | `/quickstart`   | Reach a reviewable result, not merely complete setup                | Workflows, Prompting, Studio tour, Export                                   | Video plays in Studio or an exported file exists                                     |
-| Start a specific creation workflow  | `/workflows`    | Choose by source and outcome without knowing internal skill names   | Focused workflow pages, Prompting, Studio                                   | Correct workflow starts with a sufficiently useful request                           |
-| Review and edit an existing project | `/studio`       | Understand the workspace, make the right type of change, and export | Storyboard, Tour, Canvas, Timeline, Animation, Export                       | Person makes a visible change or exports a version                                   |
-| Recover when something is wrong     | `/help`         | Start from the symptom and return to the interrupted task           | Common questions, general troubleshooting, Studio troubleshooting, Feedback | Person fixes the problem or produces a useful diagnostic                             |
+| Journey                           | Canonical route | Entry promise                                                         | Primary supporting pages                                           | Success state                                                                              |
+| --------------------------------- | --------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Understand HyperFrames            | `/introduction` | Understand the product in under a minute and see convincing proof     | Examples, Quickstart                                               | Person can explain the request → agent → editable project → result loop                    |
+| Create a first video              | `/quickstart`   | Make a valid first request without writing a production specification | Workflows, Studio, CLI                                             | Person has a playable project and knows the agent, Studio, and CLI are equal continuations |
+| Go further as an experienced user | `/go-further`   | Choose the kind of control needed without searching the whole site    | Studio, Prompting, Media, Concepts, Catalog, Quality, Export, Help | Person completes an edit, improvement, deeper build, or reliable final delivery            |
+| Build on HyperFrames              | `/developers`   | Choose the smallest technical surface for an integration              | CLI, SDK, Player, Packages, Schema, Deployment, Contributing       | One technical surface works in the person's own system                                     |
 
 ## Consolidation decisions
 
+- `/workflows` is the source-material router inside the beginner journey, not a
+  separate maturity journey.
+- `/studio` is the main direct-editing destination inside “Go further,” not a
+  separate maturity journey.
+- `/help` is a recovery destination available from every journey, not a front
+  door.
 - `/guides/create-with-agent` is replaced by `/workflows`.
 - `/guides/choose-your-path` is replaced by `/workflows`.
 - `/guides/help` is replaced by `/help`.
@@ -25,13 +30,13 @@ This map prevents individual page edits from drifting away from the approved end
 
 ## Cross-link contract
 
-Every P0 entry route must:
+Every canonical entry route must:
 
-1. confirm the person's situation in the opening screen;
-2. describe the result they will reach;
-3. keep the main path visible before secondary detail;
-4. link forward to the next task;
-5. link to `/help` where the task can fail;
+1. open with the journey film, without a repeated title card or preamble;
+2. keep the written expansion shorter than the film and useful on its own;
+3. show one visually dominant next action;
+4. rank secondary discovery links at the end;
+5. avoid incidental links between steps;
 6. avoid requiring repository or framework architecture knowledge.
 
 Supporting pages should return people to the journey they came from instead of ending in unrelated reference material.
@@ -40,20 +45,22 @@ Supporting pages should return people to the journey they came from instead of e
 
 Available now:
 
-- finished production video on Introduction;
-- product-loop and task-progress diagrams;
+- lean Introduction composition with one film, one definition, proof wall, three
+  truths, and one dominant action;
+- corrected Quickstart composition with the human installation command, one
+  short request, and agent/Studio/CLI as equal continuations;
+- visual source-material chooser for creation workflows;
+- four always-visible visual control paths on Go further;
 - real Studio workspace imagery;
-- Studio-versus-agent decision diagram;
 - copyable requests based on realistic source material.
 
-Production assets still required:
+Film status:
 
-- 45–60 second “What is HyperFrames?” product-loop video;
-- 75–90 second first-video walkthrough;
-- 60–90 second real Studio tour;
-- 6–12 second task loops for trim, split, text editing, keyframes, Catalog insertion, and export.
-
-Until those assets are produced, existing real videos, screenshots, diagrams, and written equivalents must keep every journey complete.
+- Introduction journey film: published and integrated;
+- re-authored Quickstart journey film: published and integrated;
+- Go-further journey film: published and integrated;
+- Developer journey film: published and integrated;
+- Studio journey film and compact Studio task loops: published and integrated.
 
 ## Removal rule
 

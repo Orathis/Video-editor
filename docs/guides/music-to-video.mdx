@@ -3,76 +3,45 @@ title: "Create a music-driven video"
 description: "Cut footage, images, lyrics, and motion to a track’s beat grid."
 ---
 
-Use Music to Video when the supplied track should control the pacing.
+import { MusicVideoChooser } from "/snippets/music-video-chooser.jsx"
 
-The audio can come from a music file or from a video whose audio should drive the result.
+Start with a music file—or a video whose audio should control the edit. Narration is not added; the track is the spine.
 
-<Frame caption="A track analysed for beats and sections, with every cut snapped to that grid.">
+<Frame caption="A complete music-driven film. Its sections, visual treatments, and cuts follow the track.">
   <video
     className="aspect-video w-full object-cover bg-zinc-100 dark:bg-zinc-900"
-    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-music.mp4"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/full-music.mp4"
     poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-music.jpg"
-    autoPlay muted loop playsInline
+    controls
+    playsInline
+    preload="metadata"
   />
 </Frame>
 
-## Give the agent the track and material
+## What should the track drive?
 
-```text
-/hyperframes Make a 30-second beat-synced promo from track.wav and the
-12 attached product photos. Start restrained, accelerate after the first
-drop, and hold the final logo for two beats. No narration.
-```
+<MusicVideoChooser />
 
-Tell the agent:
+Attach the track and any required images or video with the request. A complete video can also be built entirely from type, graphic templates, and motion.
 
-- which part of the track to use;
-- whether lyrics appear;
-- which media must be included;
-- the desired format and duration;
-- where the energy should change;
-- whether the video must loop.
+## The track sets the structure
 
-## Approve the musical structure
+HyperFrames maps the track’s phrases, energy, onsets, silences, rolls, drops, and hard stops before it plans the visuals.
 
-Confirm:
+A rhythmic track can support cuts on its real beat grid. Calm or loose music should flow by phrase and energy instead of forcing a cut onto every measured beat.
 
-- the exact section of the track;
-- the important beats, drops, phrases, or energy changes;
-- which media and lyrics are approved;
-- the visual arc from opening to ending;
-- whether the edit should loop;
-- how long text must remain readable even when the rhythm is fast.
+The visual treatments change at meaningful musical moments. More beats do not automatically mean more scenes.
 
 ## Review the rhythm
 
-Not every beat needs a cut. Use stronger changes for important musical moments and leave enough visual continuity to understand the material.
+- The correct section of the track is used.
+- Required media appears and lyrics match the vocal.
+- The strongest visual changes land on meaningful musical changes.
+- Important images and text remain long enough to understand.
+- The ending reaches a musical landing or forms a deliberate loop.
 
-Check:
+Use the [Studio timeline](/studio/timeline) to refine cuts, holds, and the ending against the beat markers.
 
-- the first useful downbeat;
-- cuts around drops and transitions;
-- lyric timing;
-- whether important text can be read;
-- the ending or loop point.
-
-Beat markers in the [Studio timeline](/studio/timeline) help refine the cut.
-
-## Common problems
-
-| Problem | Better direction |
-| --- | --- |
-| Every beat causes a cut | Reserve larger changes for stronger musical moments. |
-| The edit is rhythmic but hard to understand | Hold important images and text across several beats. |
-| Lyrics drift from the vocal | Correct transcription and timing before visual polish. |
-| The ending feels cut off | Choose a musical landing or design a deliberate loop. |
-| Supplied media has no visual progression | Assign different material to the intro, build, peak, and ending. |
-
-<CardGroup cols={2}>
-  <Card title="Refine timing in Studio" icon="timeline" href="/studio/timeline">
-    Use beat markers to adjust cuts, holds, and the ending.
-  </Card>
-  <Card title="Choose another workflow" icon="route" href="/workflows">
-    Return to the source-and-outcome chooser.
-  </Card>
-</CardGroup>
+<Card title="Refine timing in Studio" icon="timeline" href="/studio/timeline">
+  Adjust cuts, holds, lyric timing, and the ending.
+</Card>
