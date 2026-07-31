@@ -19,9 +19,42 @@ prefixed with `infisical run --env=dev --`, which injects them for that process 
 below writes a secret to a file or echoes one. Infisical is read only: no step here sets a
 value.
 
-Two keys are used, by name only: the chat path reads `GOOGLE_SERVICE_ACCOUNT_JSON` (override
-the name with `GEMINI_SERVICE_ACCOUNT_ENV` if this installation stores it elsewhere), and the
-embedding path reads the OpenAI key.
+Two keys are used: the chat path wants a Vertex service account, and the embedding path reads
+the OpenAI key.
+
+The chat path's default variable name, `GOOGLE_SERVICE_ACCOUNT_JSON`, is not in the dev
+environment any more, so `GEMINI_SERVICE_ACCOUNT_ENV` has to name whichever variable holds a
+Vertex service account there. Do not guess from the name. The harness has an entitlement probe
+that makes one single-digit-token call, and that is the only honest test of whether a candidate
+both authenticates and is entitled to the chat model:
+
+```
+infisical run --env=dev --silent -- env GEMINI_SERVICE_ACCOUNT_ENV=<candidate> \
+    python3 -c "import provider; provider.validate_model(provider.CHAT_MODEL)"
+```
+
+Silence means it works. To see the candidate names without ever printing a value:
+
+```
+infisical run --env=dev --silent -- python3 -c \
+    "import os; print([k for k in sorted(os.environ) if 'SERVICE_ACCOUNT' in k])"
+```
+
+## The corpus root
+
+Round 3 writes its own corpus and must not generate over round 2's. Round 2's `briefs/` and
+`gold/` are the fixtures `round3/test_stats.py` and `round3/test_recall.py` reproduce round 2's
+published numbers from, so overwriting them destroys the ability to check the statistics at all.
+
+Every step below therefore exports one variable, and the generator, the committee, the pruner,
+the embedder and the sweep all derive their paths from it:
+
+```
+export EVAL_CORPUS_ROOT="$PWD/../round3/corpus"
+```
+
+The shelf is deliberately not under that root. Every round retrieves from the same 424 entries,
+and that sameness is the comparison.
 
 ## Step 1, generation. $2.74 to $10.96
 
@@ -37,7 +70,8 @@ the catalog moved and the wave allocation is no longer one brief per move.
 Then the real run.
 
 ```
-infisical run --env=dev -- env BRIEF_WAVE=1 python3 gen_briefs.py
+infisical run --env=dev --silent -- env BRIEF_WAVE=1 \
+    GEMINI_SERVICE_ACCOUNT_ENV=<the probed name> python3 gen_briefs.py
 ```
 
 Known limit, stated rather than fixed: generation has no dollar meter. Its spend is bounded by
@@ -63,7 +97,8 @@ prices only the tier it can charge; there is a half price batch row in the price
 nothing submits to, so no projection quotes it.
 
 ```
-infisical run --env=dev -- env EVAL_MAX_USD=90 python3 validate_gold.py
+infisical run --env=dev --silent -- env EVAL_MAX_USD=90 \
+    GEMINI_SERVICE_ACCOUNT_ENV=<the probed name> python3 validate_gold.py
 ```
 
 The ceiling stops the run before its first read if the projection exceeds it, and stops mid run
@@ -102,25 +137,31 @@ all three: the stop reason, the rule outcome, and whether the arms converged.
 If the report says `not-evaluable`, an arm family failed to load. Fix that before reading
 anything else; a ranking with one family in it is not a ranking.
 
-## Step 5, paid confirmation. About $6 to $8
+## Step 5, paid confirmation. About $11 at wave 1
 
 Only the top two arms, only for the two quantities recall cannot see: the refusal rate and the
 known-wrong-pick rate that drives the flat 0.5 fit penalty.
 
 `EVAL_CELLS` names them. Without it the runner does the whole nine cell grid, which at wave 1
 size costs roughly five times a two arm confirmation and is a second full round rather than a
-check on the first. Substitute the two arms the step 4 report actually ranked.
+check on the first. Substitute the two arms the step 4 report actually ranked, at the k it
+chose. The `h@70,d@70` below is a placeholder standing in for the pair and the list length the
+sweep on round 2's corpus picked; do not carry it over without reading step 4's own knee table.
+
+The figure above is scaled from a measured dry run: the same pair over round 2's 227 briefs
+priced at $5.950173, and wave 1 is 424 briefs.
 
 ```
 cd ../round2
-EVAL_CELLS="h@10,d@20" EVAL_DRY_RUN=1 python3 run2.py
+EVAL_CELLS="h@70,d@70" EVAL_DRY_RUN=1 python3 run2.py
 ```
 
 The dry run prices the exact pair, so read its total before spending; the range above is an
 estimate and the pair is not known until step 4 finishes. Then:
 
 ```
-infisical run --env=dev -- env EVAL_CELLS="h@10,d@20" EVAL_MAX_USD=90 python3 run2.py
+infisical run --env=dev --silent -- env EVAL_CELLS="h@70,d@70" EVAL_MAX_USD=90 \
+    GEMINI_SERVICE_ACCOUNT_ENV=<the probed name> python3 run2.py
 ```
 
 If the confirmation contradicts the recall ranking, record it as a contradiction. Do not resolve
