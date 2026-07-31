@@ -18,10 +18,14 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+# Round 3 owns the clustered statistics, and round 2 is re-reported through the
+# same module rather than through a second copy that could drift away from it.
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "round3"))
 
 import gate2  # noqa: E402
 import harness2  # noqa: E402
 import run2  # noqa: E402
+import stats  # noqa: E402
 
 CHECKPOINT = os.path.join(HERE, "checkpoints", "results.jsonl")
 INDEX = os.path.join(HERE, "catalog-index.json")
@@ -82,6 +86,10 @@ def score_all(records, gold, shelf, vectors=None, kinds=None):
         shown = record.get("shown") or []
         result["cell"] = cell_key(record)
         result["stratum"] = kinds.get(best[0], "unknown") if best else "unknown"
+        # The cluster key for every interval. It comes from gold rather than
+        # from the brief id because briefs written for the same target move are
+        # correlated, and a brief with no gold move clusters only with itself.
+        result["move"] = best[0] if best else brief
         result["empty"] = not picks
         # Whether the right move was even in the list the run could see. Without
         # this a low fit reads as "the model chose badly" when the real story is
@@ -97,25 +105,46 @@ def _mean(values):
     return round(statistics.fmean(values), 4) if values else 0.0
 
 
+# Every reported mean and how to read it off a scored row. Keeping the list in
+# one place is what stops a metric from picking up an interval while its
+# neighbour keeps shipping a bare number.
+METRICS = (
+    ("mountable", lambda r: r["mountable"]),
+    ("fit", lambda r: r["fit"]),
+    ("pass_rate", lambda r: 1.0 if r["passed"] else 0.0),
+    ("empty_rate", lambda r: 1.0 if r["empty"] else 0.0),
+    ("recall", lambda r: 1.0 if r["gold_shown"] else 0.0),
+)
+
+
 def aggregate(rows, key="cell"):
-    """Collapse rows into per group means. Mountable and fit stay separate."""
+    """Collapse rows into per group means. Mountable and fit stay separate.
+
+    Each mean keeps its own top level key and gains a clustered 95 percent
+    interval under "ci", rather than being replaced by an interval object, so
+    nothing that already reads these numbers changes meaning underneath it.
+    """
     groups = collections.defaultdict(list)
     for row in rows:
         groups[row[key]].append(row)
     out = {}
     for name, group in sorted(groups.items()):
+        # Fit on the runs where the answer was actually on offer. The gap
+        # between this and fit is the share of the loss retrieval owns.
         findable = [r for r in group if r["gold_shown"]]
-        out[name] = {
-            "n": len(group),
-            "mountable": _mean([r["mountable"] for r in group]),
-            "fit": _mean([r["fit"] for r in group]),
-            "pass_rate": _mean([1.0 if r["passed"] else 0.0 for r in group]),
-            "empty_rate": _mean([1.0 if r["empty"] else 0.0 for r in group]),
-            "recall": _mean([1.0 if r["gold_shown"] else 0.0 for r in group]),
-            # Fit on the runs where the answer was actually on offer. The gap
-            # between this and fit is the share of the loss retrieval owns.
-            "fit_when_shown": _mean([r["fit"] for r in findable]),
-        }
+        moves = [r["move"] for r in group]
+        summary = {"n": len(group)}
+        intervals = {}
+        for metric, read in METRICS:
+            values = [read(r) for r in group]
+            summary[metric] = _mean(values)
+            intervals[metric] = stats.clustered_mean(values, moves)
+        summary["fit_when_shown"] = _mean([r["fit"] for r in findable])
+        intervals["fit_when_shown"] = stats.clustered_mean(
+            [r["fit"] for r in findable], [r["move"] for r in findable]
+        )
+        summary["ci"] = intervals
+        out[name] = summary
     return out
 
 
@@ -128,6 +157,9 @@ def paired_against_full_shelf(rows, baseline="b"):
     effect that is only difficulty. This restricts the full shelf to exactly the
     briefs each cell could see the answer in, which is the only comparison that
     holds difficulty fixed.
+
+    The difference carries a clustered interval, because a paired margin without
+    one cannot be read against the pre-registered decision rule.
     """
     by_cell = collections.defaultdict(dict)
     for row in rows:
@@ -144,6 +176,11 @@ def paired_against_full_shelf(rows, baseline="b"):
             "n": len(shared),
             "cell_fit": _mean([briefs[b]["fit"] for b in shared]),
             "full_shelf_fit": _mean([base[b]["fit"] for b in shared]),
+            "difference": stats.clustered_difference(
+                [briefs[b]["fit"] for b in shared],
+                [base[b]["fit"] for b in shared],
+                [briefs[b]["move"] for b in shared],
+            ),
         }
     return out
 
@@ -243,6 +280,8 @@ def render(summary, rows):
             s["empty_rate"],
             s["recall"],
             s["fit_when_shown"],
+            stats.format_interval(s["ci"]["fit"]),
+            s["ci"]["recall"]["n_eff"],
         ]
         for name, s in summary["cells"].items()
     ]
@@ -265,7 +304,8 @@ def render(summary, rows):
     ]
     paired_rows = [
         [name, p["n"], p["cell_fit"], p["full_shelf_fit"],
-         round(p["cell_fit"] - p["full_shelf_fit"], 4)]
+         p["difference"]["mean"], stats.format_interval(p["difference"]),
+         p["difference"]["n_eff"]]
         for name, p in summary["paired"].items()
     ]
     usage = summary["usage"]
@@ -290,12 +330,17 @@ Mountable and fit are separate numbers and are never combined.</p>
 {_table(
     "Per cell",
     ["cell", "n", "mountable", "fit", "pass rate", "empty rate",
-     "gold shown", "fit when shown"],
+     "gold shown", "fit when shown", "fit 95% ci", "n eff"],
     cells,
 )}
 <p class="sub">Gold shown is how often the right move was in the list the run could see, so
 the gap between fit and fit when shown is the share of the loss retrieval owns rather than
 the model. It reads 0 for the no catalog cell, which shows nothing.</p>
+<p class="sub">Every interval is clustered by target move, not by brief, because briefs written
+for the same move are correlated and counting them as independent reports a narrower interval
+than the corpus supports. N eff is the effective sample that clustering leaves on the gold shown
+column, and it is below n wherever that correlation is real. A cell that ran on a single move
+reads unbounded rather than a misleadingly tight number.</p>
 {_table(
     "What each cell costs",
     ["cell", "input tokens", "of which cached", "output tokens", "fit",
@@ -307,12 +352,14 @@ efficiency read: the cell with the best fit and the cell with the best fit per d
 not the same cell, and which one you want depends on how often you call it.</p>
 {_table(
     "Same briefs, short list against full shelf",
-    ["cell", "n", "cell fit", "full shelf fit", "difference"],
+    ["cell", "n", "cell fit", "full shelf fit", "difference",
+     "difference 95% ci", "n eff"],
     paired_rows,
 )}
 <p class="sub">Fit when shown compares different brief sets, because the briefs a short list
 finds are the easy ones. This table holds the briefs fixed and is the only fair read of
-whether a short list beats the whole shelf.</p>
+whether a short list beats the whole shelf. The difference is paired per brief and its interval
+is clustered by target move, so a difference whose interval spans zero has not separated.</p>
 {_table("Per stratum", ["stratum", "n", "mountable", "fit", "pass rate"], strata_rows)}
 {_table(f"Failures, first {FAILURE_SAMPLE}", ["brief", "cell", "fit", "why"], failure_rows)}
 </body></html>
@@ -335,10 +382,13 @@ def main():
     with open(REPORT, "w", encoding="utf-8") as fh:
         fh.write(render(summary, rows))
     print(f"scored {len(rows)} of {len(records)} recorded runs")
-    for name, stats in summary["cells"].items():
+    for name, cell in summary["cells"].items():
+        # n_eff on the same line as n so the gap between them is unavoidable.
         print(
-            f"{name:<6} n={stats['n']:<5} mountable={stats['mountable']:<8} "
-            f"fit={stats['fit']:<8} pass={stats['pass_rate']}"
+            f"{name:<6} n={cell['n']:<5} n_eff={cell['ci']['recall']['n_eff']:<7} "
+            f"mountable={cell['mountable']:<8} fit={cell['fit']:<8} "
+            f"fit_ci={stats.format_interval(cell['ci']['fit'])} "
+            f"pass={cell['pass_rate']}"
         )
     print(f"wrote {REPORT} and {SUMMARY}")
     return 0

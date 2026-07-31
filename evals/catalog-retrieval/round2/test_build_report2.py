@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Checks for the report builder. Run with: python3 test_build_report2.py"""
 
+import glob
+import json
+import math
 import os
 import sys
 
@@ -158,11 +161,99 @@ def test_paired_skips_a_cell_with_no_shared_briefs():
     assert build_report2.paired_against_full_shelf(rows) == {}
 
 
+def real_recall_records(cell):
+    """Round 2's own recall log replayed as scoreable records.
+
+    Only the gold-shown bit is real: whether the correct move was on the list
+    that run could see. That is enough to recompute the recall column and its
+    clustered interval from the committed log without inventing fit numbers the
+    repo does not carry.
+    """
+    gold = {}
+    for path in sorted(glob.glob(os.path.join(HERE, "gold", "*.json"))):
+        brief = os.path.basename(path).split(".")[0]
+        with open(path, encoding="utf-8") as fh:
+            gold[brief] = json.load(fh)
+    with open(os.path.join(HERE, "recall-log.json"), encoding="utf-8") as fh:
+        log = json.load(fh)[cell]
+    shelf = {move: "what: x\n" for entry in gold.values() for move in entry["best"]}
+    shelf["decoy"] = "what: x\n"
+    records = []
+    for brief in sorted(log):
+        best = gold[brief]["best"][0]
+        records.append(
+            record(brief, "h", 10, [best], shown=[best] if log[brief] else ["decoy"])
+        )
+    return records, gold, shelf
+
+
+def test_round2_reports_an_effective_sample_below_its_brief_count():
+    # The verification for the clustered statistics: round 2 published means
+    # over 227 briefs as though those were 227 independent observations. They
+    # cover 158 distinct target moves, and the correlation inside a move costs
+    # roughly 36 briefs' worth of information.
+    records, gold, shelf = real_recall_records("h@10")
+    cell = build_report2.aggregate(
+        build_report2.score_all(records, gold, shelf)
+    )["h@10"]
+    assert cell["n"] == 227, cell["n"]
+    recall = cell["ci"]["recall"]
+    assert recall["clusters"] == 158, recall
+    assert recall["mean"] == 0.4317, recall
+    assert 185.0 < recall["n_eff"] < 205.0, recall
+    assert recall["n_eff"] < cell["n"], recall
+
+
+def test_every_reported_mean_carries_an_interval_around_it():
+    # The interval sits beside each mean rather than replacing it, so a reader
+    # or a downstream script that already knew what "fit" meant still does.
+    records = [record("001", "b", None, ["alpha"]), record("002", "b", None, ["beta"])]
+    cell = build_report2.aggregate(
+        build_report2.score_all(records, GOLD, SHELF)
+    )["b"]
+    for metric, _ in build_report2.METRICS:
+        assert isinstance(cell[metric], float), metric
+        assert cell["ci"][metric]["mean"] == cell[metric], metric
+        assert cell["ci"][metric]["lo"] <= cell[metric] <= cell["ci"][metric]["hi"], metric
+    assert cell["ci"]["fit_when_shown"]["mean"] == cell["fit_when_shown"]
+
+
+def test_briefs_on_one_move_do_not_buy_a_tight_interval():
+    # Both briefs target alpha, so the cell rests on a single cluster and the
+    # interval has to say it bounds nothing. A tight interval here is exactly
+    # the over-precision the clustering exists to stop.
+    gold = {"001": {"best": ["alpha"], "bad": []}, "002": {"best": ["alpha"], "bad": []}}
+    records = [record("001", "b", None, ["alpha"]), record("002", "b", None, ["gamma"])]
+    cell = build_report2.aggregate(build_report2.score_all(records, gold, SHELF))["b"]
+    assert cell["ci"]["fit"]["clusters"] == 1, cell["ci"]["fit"]
+    assert cell["ci"]["fit"]["n_eff"] == 1.0, cell["ci"]["fit"]
+    assert not math.isfinite(cell["ci"]["fit"]["hi"]), cell["ci"]["fit"]
+
+
+def test_the_paired_difference_carries_a_clustered_interval():
+    # Identical fit on both sides of the pairing, so the difference is exactly
+    # zero and its interval must be zero wide rather than a division by zero.
+    records = [
+        record("001", "c", 5, ["alpha"], shown=["alpha", "beta"]),
+        record("002", "c", 5, ["beta"], shown=["beta", "gamma"]),
+        record("001", "b", None, ["alpha"]),
+        record("002", "b", None, ["beta"]),
+    ]
+    rows = build_report2.score_all(records, GOLD, SHELF)
+    difference = build_report2.paired_against_full_shelf(rows)["c@5"]["difference"]
+    assert difference["mean"] == 0.0, difference
+    assert (difference["lo"], difference["hi"]) == (0.0, 0.0), difference
+
+
 def test_render_produces_html_with_every_cell():
     records = [record("001", "b", None, ["alpha"]), record("001", "c", 5, ["gamma"])]
     rows = build_report2.score_all(records, GOLD, SHELF)
     page = build_report2.render(build_report2.build_summary(records, rows), rows)
     assert "<table" in page and "c@5" in page and "mountable" in page
+    # Every headline table ships its error bars, or the report is back to the
+    # bare means round 2 published.
+    assert "fit 95% ci" in page and "n eff" in page, page
+    assert "difference 95% ci" in page, page
     # The report is a rendered artifact, so the house rule applies to it too.
     assert "—" not in page
 
