@@ -4,11 +4,14 @@
 import inspect
 import io
 import json
+import math
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import validate_gold
 
@@ -38,6 +41,12 @@ def gold(*best):
     }
 
 
+def corpus(size, best="move-alpha"):
+    """Build a uniform fixture corpus so replies map to sampled briefs by order."""
+    briefs = {f"{index:05d}": f"fixture brief {index}" for index in range(size)}
+    return briefs, {brief_id: gold(best) for brief_id in briefs}
+
+
 class ValidateGoldTests(unittest.TestCase):
     def setUp(self):
         # Guarded at urlopen, not at a named provider helper: the chat path
@@ -50,6 +59,23 @@ class ValidateGoldTests(unittest.TestCase):
         )
         self.transport_mock = self.transport.start()
         self.addCleanup(self.transport.stop)
+
+        # The committee checkpoint and kill file default into the repo, so
+        # without isolation one test's resume state would silently answer the
+        # next test's run and the suite would stop testing what it claims to.
+        self.workdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.workdir, ignore_errors=True)
+        self.checkpoint = os.path.join(self.workdir, "committee.jsonl")
+        self.kill_file = os.path.join(self.workdir, "STOP")
+        env = patch.dict(
+            validate_gold.os.environ,
+            {
+                "EVAL_COMMITTEE_CHECKPOINT": self.checkpoint,
+                "EVAL_KILL_FILE": self.kill_file,
+            },
+        )
+        env.start()
+        self.addCleanup(env.stop)
 
     def test_context_accepts_only_brief_and_full_shelf(self):
         brief = "Fixture brief sentinel: focus the alpha entry."
@@ -119,6 +145,7 @@ class ValidateGoldTests(unittest.TestCase):
                     {"01": gold("move-alpha")},
                     SHELF,
                     fixture_data=True,
+                    checkpoint_path=os.path.join(self.workdir, "above.jsonl"),
                 )
 
         self.assertEqual(result["accuracy"], 1.0)
@@ -135,6 +162,7 @@ class ValidateGoldTests(unittest.TestCase):
                         {"01": gold("move-alpha")},
                         SHELF,
                         fixture_data=True,
+                        checkpoint_path=os.path.join(self.workdir, "below.jsonl"),
                     )
 
         self.assertIn("Corpus accuracy: 0.00% (0/1)", below_stdout.getvalue())
@@ -253,6 +281,197 @@ class ValidateGoldTests(unittest.TestCase):
         self.assertEqual({row["stratum"] for row in disagreement_sample}, {"layout", "type"})
         self.assertEqual({row["stratum"] for row in control_sample}, {"layout", "type"})
 
+    def test_dry_run_prices_the_committee_and_makes_no_call(self):
+        briefs, gold_by_id = corpus(40)
+        lines = []
+        with patch.object(validate_gold.provider, "chat", Mock()) as chat_mock:
+            projection = validate_gold.committee_dry_run(
+                briefs,
+                gold_by_id,
+                SHELF,
+                sample_rate=validate_gold.ROUND2_SAMPLE_RATE,
+                emit=lines.append,
+            )
+
+        # Structural, not a promise: the chat entry point and the socket
+        # underneath it both have to be untouched for this to be a dry run.
+        self.assertFalse(chat_mock.called)
+        self.assertFalse(self.transport_mock.called)
+        output = "\n".join(lines)
+        self.assertIn("DRY RUN: zero network calls and no key required.", output)
+        self.assertIn("Projected committee cost: $", output)
+        self.assertIn("Sample rate: 20.00% of 40 briefs = 8 sampled", output)
+        self.assertIn("Reads: 8 sampled x 3 readers = 24", output)
+        self.assertGreater(projection["projected_usd"], 0)
+        self.assertEqual(
+            f"${projection['projected_usd']:.6f}" in output,
+            True,
+        )
+
+    def test_projected_reads_are_rate_times_corpus_times_readers(self):
+        for size, rate in ((40, 0.20), (10, 0.30), (1360, 0.20), (7, 1.0)):
+            with self.subTest(size=size, rate=rate):
+                briefs, gold_by_id = corpus(size)
+                with patch.object(validate_gold.provider, "chat", Mock()) as chat_mock:
+                    projection = validate_gold.project_committee(
+                        briefs, gold_by_id, SHELF, sample_rate=rate
+                    )
+                expected_briefs = math.ceil(size * rate)
+                self.assertFalse(chat_mock.called)
+                self.assertEqual(projection["sampled_briefs"], expected_briefs)
+                self.assertEqual(projection["readers"], 3)
+                self.assertEqual(projection["reads"], expected_briefs * 3)
+
+    def test_rate_below_round_two_names_the_widened_bound(self):
+        briefs, gold_by_id = corpus(400)
+        lines = []
+        validate_gold.committee_dry_run(
+            briefs, gold_by_id, SHELF, sample_rate=0.05, emit=lines.append
+        )
+        warning = next(line for line in lines if line.startswith("WARNING:"))
+
+        self.assertIn("below round 2's 20.00%", warning)
+        self.assertIn("Reading 20 of 400 briefs", warning)
+        # Both bounds are named so the reader sees what was traded away, not
+        # just that something got worse.
+        self.assertIn(f"+/-{validate_gold._margin(80):.2%}", warning)
+        self.assertIn(f"+/-{validate_gold._margin(20):.2%}", warning)
+        self.assertGreater(validate_gold._margin(20), validate_gold._margin(80))
+
+        quiet = []
+        validate_gold.committee_dry_run(
+            briefs,
+            gold_by_id,
+            SHELF,
+            sample_rate=validate_gold.ROUND2_SAMPLE_RATE,
+            emit=quiet.append,
+        )
+        self.assertEqual([line for line in quiet if line.startswith("WARNING:")], [])
+
+    def test_round_two_audit_number_reproduces_unchanged(self):
+        # GOLD-AUDIT.md records 83.46% (227/272), 217 unanimous, 55 disagreements
+        # over a corpus round 2 read in full. Reproduced at rate 1.0 (what round
+        # 2 did) and again as a 20 percent sample of a 1360-brief corpus, so the
+        # sampling parameter cannot quietly move the floor arithmetic.
+        for size, rate in ((272, 1.0), (1360, validate_gold.ROUND2_SAMPLE_RATE)):
+            with self.subTest(size=size, rate=rate):
+                briefs, gold_by_id = corpus(size)
+                replies = []
+                for _ in range(217):
+                    replies.extend(canned("move-alpha", "unanimous") for _ in range(3))
+                for _ in range(10):
+                    replies.extend(
+                        [
+                            canned("move-alpha", "majority one"),
+                            canned("move-alpha", "majority two"),
+                            canned("move-beta", "minority"),
+                        ]
+                    )
+                for _ in range(45):
+                    replies.extend(canned("move-beta", "shared blind spot") for _ in range(3))
+
+                with patch.object(validate_gold.provider, "chat", side_effect=replies):
+                    result = validate_gold.evaluate_corpus(
+                        briefs,
+                        gold_by_id,
+                        SHELF,
+                        sample_rate=rate,
+                        checkpoint_path=os.path.join(self.workdir, f"r2-{size}.jsonl"),
+                    )
+
+                self.assertIsNone(result["stop_reason"])
+                self.assertEqual(result["total"], 272)
+                self.assertEqual(result["correct_count"], 227)
+                self.assertEqual(f"{result['accuracy']:.2%}", "83.46%")
+                self.assertEqual(result["unanimous_count"], 217)
+                self.assertEqual(result["disagreement_count"], 55)
+                self.assertEqual(result["floor"], 0.95)
+
+    def test_interrupted_committee_resumes_without_rereading(self):
+        briefs, gold_by_id = corpus(3)
+        first = [canned("move-alpha", "judged before the interruption")] * 3
+        with patch.object(validate_gold.provider, "chat", side_effect=first):
+            with self.assertRaises(StopIteration):
+                validate_gold.evaluate_corpus(briefs, gold_by_id, SHELF)
+
+        with open(self.checkpoint, encoding="utf-8") as fh:
+            checkpointed = [json.loads(line) for line in fh if line.strip()]
+        self.assertEqual(len(checkpointed), 1)
+
+        rest = [canned("move-alpha", "judged on resume") for _ in range(6)]
+        with patch.object(validate_gold.provider, "chat", side_effect=rest) as chat_mock:
+            result = validate_gold.evaluate_corpus(briefs, gold_by_id, SHELF)
+
+        self.assertEqual(chat_mock.call_count, 6)
+        self.assertEqual(result["new_reads"], 2)
+        self.assertEqual(result["total"], 3)
+        self.assertEqual(
+            [record["passes"][0]["why"] for record in result["records"]],
+            [
+                "judged before the interruption",
+                "judged on resume",
+                "judged on resume",
+            ],
+        )
+
+    def test_ceiling_below_projection_stops_before_any_read(self):
+        briefs, gold_by_id = corpus(4)
+        projection = validate_gold.project_committee(briefs, gold_by_id, SHELF)
+        stdout = io.StringIO()
+        with patch.object(validate_gold.provider, "chat", Mock()) as chat_mock:
+            with redirect_stdout(stdout):
+                result, report = validate_gold.validate_corpus(
+                    briefs,
+                    gold_by_id,
+                    SHELF,
+                    max_usd=projection["projected_usd"] / 2,
+                )
+
+        self.assertFalse(chat_mock.called)
+        self.assertFalse(self.transport_mock.called)
+        self.assertEqual(result["stop_reason"], "ceiling")
+        self.assertEqual(result["records"], [])
+        self.assertIsNone(result["accuracy"])
+        self.assertIsNone(report)
+        self.assertIn("ceiling: 0 of 4 sampled briefs judged", stdout.getvalue())
+
+    def test_kill_file_stops_the_committee(self):
+        briefs, gold_by_id = corpus(4)
+        with open(self.kill_file, "w", encoding="utf-8") as fh:
+            fh.write("stop\n")
+
+        stdout = io.StringIO()
+        with patch.object(validate_gold.provider, "chat", Mock()) as chat_mock:
+            with redirect_stdout(stdout):
+                result, report = validate_gold.validate_corpus(briefs, gold_by_id, SHELF)
+
+        self.assertFalse(chat_mock.called)
+        self.assertEqual(result["stop_reason"], "kill file")
+        self.assertIsNone(report)
+        self.assertIn("kill file: 0 of 4 sampled briefs judged", stdout.getvalue())
+
+    def test_rate_zero_is_loud_and_rate_one_reads_everything(self):
+        briefs, gold_by_id = corpus(4)
+        with patch.object(validate_gold.provider, "chat", Mock()) as chat_mock:
+            with self.assertRaisesRegex(SystemExit, "entirely unaudited"):
+                validate_gold.evaluate_corpus(
+                    briefs, gold_by_id, SHELF, sample_rate=0
+                )
+            with self.assertRaisesRegex(SystemExit, "outside 0..1"):
+                validate_gold.project_committee(
+                    briefs, gold_by_id, SHELF, sample_rate=1.5
+                )
+        self.assertFalse(chat_mock.called)
+
+        replies = [canned("move-alpha", "read at full rate") for _ in range(12)]
+        with patch.object(validate_gold.provider, "chat", side_effect=replies):
+            result = validate_gold.evaluate_corpus(
+                briefs, gold_by_id, SHELF, sample_rate=1.0
+            )
+
+        self.assertEqual(result["total"], 4)
+        self.assertEqual(sorted(result["sampled"]), sorted(briefs))
+
 
 def write_fixture_audit():
     briefs = {
@@ -281,14 +500,17 @@ def write_fixture_audit():
         side_effect=AssertionError("network access is disabled for fixture audit creation"),
     ) as transport_mock:
         with patch.object(validate_gold.provider, "chat", side_effect=replies):
-            validate_gold.validate_corpus(
-                briefs,
-                gold_by_id,
-                SHELF,
-                hand_decisions={"02": "move-epsilon"},
-                audit_path=validate_gold.AUDIT_PATH,
-                fixture_data=True,
-            )
+            with tempfile.TemporaryDirectory() as workdir:
+                validate_gold.validate_corpus(
+                    briefs,
+                    gold_by_id,
+                    SHELF,
+                    hand_decisions={"02": "move-epsilon"},
+                    audit_path=validate_gold.AUDIT_PATH,
+                    fixture_data=True,
+                    checkpoint_path=os.path.join(workdir, "committee.jsonl"),
+                    kill_path=os.path.join(workdir, "STOP"),
+                )
         if transport_mock.called:
             raise AssertionError("network transport was reached")
 

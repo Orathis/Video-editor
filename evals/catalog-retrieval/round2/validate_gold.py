@@ -10,6 +10,7 @@ import re
 
 import harness2
 import provider
+import run2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BRIEFS_DIR = os.path.join(HERE, "briefs")
@@ -22,6 +23,20 @@ AUDIT_PATH = os.path.join(HERE, "GOLD-AUDIT.md")
 ACCURACY_FLOOR = 0.95
 SAMPLE_FRACTION = 0.20
 SAMPLE_CAP = 30
+
+COMMITTEE_READERS = 3
+# Round 2's disagreement sampling constant, reused here as the rate below which
+# the corpus-level error bound stops being the one the floor was chosen for.
+ROUND2_SAMPLE_RATE = SAMPLE_FRACTION
+# Round 2 read every brief in its 272-brief corpus, so the default preserves
+# that behaviour exactly. A corpus large enough to need sampling has to say so.
+DEFAULT_SAMPLE_RATE = 1.0
+# Each read carries a brief plus the whole 424-entry shelf, so one read costs
+# about what a full-shelf grid run costs. At 2120 briefs, a 20 percent sample
+# with three readers projects near $32; this leaves headroom without letting a
+# mis-set rate spend unbounded.
+DEFAULT_MAX_USD = 40.00
+DEFAULT_COMMITTEE_CHECKPOINT = os.path.join(HERE, "checkpoints", "committee.jsonl")
 
 COMMITTEE_INSTRUCTIONS = """Reconstruct which single catalog move the brief describes.
 
@@ -47,7 +62,7 @@ def build_committee_context(brief, shelf):
 
 def _committee_pass(brief, shelf):
     context = build_committee_context(brief, shelf)
-    parsed, raw, _usage, _elapsed = provider.chat(
+    parsed, raw, usage, _elapsed = provider.chat(
         context,
         provider.CHAT_MODEL,
         {"temperature": 0},
@@ -62,7 +77,9 @@ def _committee_pass(brief, shelf):
         raise SystemExit(f"committee named a move outside the shelf: {move!r}")
     if not isinstance(why, str) or not why.strip():
         raise SystemExit("committee response is missing non-empty reasoning")
-    return {"move": move, "why": why.strip()}
+    # Usage rides along on the pass so a resumed run can price already-judged
+    # briefs from the checkpoint instead of re-reading them to find out.
+    return {"move": move, "why": why.strip(), "usage": usage if isinstance(usage, dict) else {}}
 
 
 def _gold_candidates(brief_id, item):
@@ -83,7 +100,167 @@ def _stratum(best, shelf):
     return "unclassified"
 
 
-def evaluate_corpus(briefs, gold_by_id, shelf, hand_decisions=None):
+def sampled_brief_ids(briefs, gold_by_id, shelf, sample_rate):
+    """Pick which briefs the committee reads, stratified and deterministic."""
+    if isinstance(sample_rate, bool) or not isinstance(sample_rate, (int, float)):
+        raise SystemExit(f"sample rate must be a number in 0..1: {sample_rate!r}")
+    if sample_rate < 0 or sample_rate > 1:
+        raise SystemExit(f"sample rate {sample_rate} is outside 0..1")
+    if sample_rate == 0:
+        raise SystemExit(
+            "sample rate 0 reads no briefs, so the gold corpus would ship "
+            "entirely unaudited. Choose a rate above 0, or record in writing "
+            "that this corpus carries no committee evidence at all."
+        )
+    total = len(briefs)
+    size = min(total, math.ceil(total * sample_rate))
+    rows = [
+        {
+            "brief_id": brief_id,
+            "stratum": _stratum(_gold_candidates(brief_id, gold_by_id[brief_id]), shelf),
+        }
+        for brief_id in sorted(briefs)
+    ]
+    # Stratification decides which briefs are taken; corpus order decides the
+    # order they are read in, so a full-rate run reads exactly as round 2 did.
+    return sorted(row["brief_id"] for row in _stratified_take(rows, size))
+
+
+def _margin(sample_size):
+    # Widest 95 percent binomial margin, at p = 0.5. Deliberately the
+    # pessimistic case: the point of the warning is the bound, not a best case.
+    return 1.96 * 0.5 / math.sqrt(sample_size)
+
+
+def warn_if_bound_widens(sample_rate, corpus_size, sample_size, emit):
+    """Say out loud how far the corpus error bound loosens below round 2's rate."""
+    if sample_rate >= ROUND2_SAMPLE_RATE:
+        return None
+    round2_size = max(1, min(corpus_size, math.ceil(corpus_size * ROUND2_SAMPLE_RATE)))
+    warning = (
+        f"WARNING: sample rate {sample_rate:.2%} is below round 2's "
+        f"{ROUND2_SAMPLE_RATE:.2%}. Reading {sample_size} of {corpus_size} briefs "
+        f"widens the 95 percent margin on corpus label error from "
+        f"+/-{_margin(round2_size):.2%} at round 2's rate to "
+        f"+/-{_margin(sample_size):.2%}. The {ACCURACY_FLOOR:.0%} floor then "
+        f"bounds the sample, not the corpus."
+    )
+    emit(warning)
+    return warning
+
+
+def project_committee(briefs, gold_by_id, shelf, sample_rate=DEFAULT_SAMPLE_RATE, model=None):
+    """Price the committee from context lengths alone, before any call is made."""
+    model = model or provider.CHAT_MODEL
+    sampled = sampled_brief_ids(briefs, gold_by_id, shelf, sample_rate)
+    chars = sum(
+        len(build_committee_context(briefs[brief_id], shelf)) for brief_id in sampled
+    )
+    reads = len(sampled) * COMMITTEE_READERS
+    estimated_input = chars * COMMITTEE_READERS / run2.CHARS_PER_TOKEN
+    assumed_output = reads * run2.ASSUMED_OUTPUT_TOKENS
+    costs = run2.usage_cost_breakdown(
+        {
+            "prompt_tokens": estimated_input,
+            "cached_tokens": 0,
+            "completion_tokens": assumed_output,
+        },
+        model,
+    )
+    projected = sum(costs.values())
+    return {
+        "model": model,
+        "sample_rate": sample_rate,
+        "corpus_size": len(briefs),
+        "readers": COMMITTEE_READERS,
+        "sampled_briefs": len(sampled),
+        "sampled_ids": sampled,
+        "reads": reads,
+        "chars": chars * COMMITTEE_READERS,
+        "estimated_input_tokens": estimated_input,
+        "cached_tokens": 0,
+        "assumed_output_tokens": assumed_output,
+        "input_usd": costs["uncached"],
+        "cached_usd": costs["cached"],
+        "output_usd": costs["output"],
+        "projected_usd": projected,
+        "usd_per_read": projected / reads if reads else 0.0,
+    }
+
+
+def committee_dry_run(
+    briefs,
+    gold_by_id,
+    shelf,
+    sample_rate=DEFAULT_SAMPLE_RATE,
+    model=None,
+    max_usd=DEFAULT_MAX_USD,
+    emit=print,
+):
+    """Print the committee projection. Makes no call and needs no key."""
+    projection = project_committee(briefs, gold_by_id, shelf, sample_rate, model)
+    emit("DRY RUN: zero network calls and no key required.")
+    emit(
+        "Estimated input tokens use characters divided by "
+        f"{run2.CHARS_PER_TOKEN}; this heuristic is NOT a real tokenizer count."
+    )
+    emit(
+        f"Assumed output tokens are {run2.ASSUMED_OUTPUT_TOKENS} per read, not "
+        "measured. Cached tokens are projected as 0 because no requests are made."
+    )
+    emit("")
+    emit(f"Model: {projection['model']}")
+    emit(
+        f"Sample rate: {projection['sample_rate']:.2%} of "
+        f"{projection['corpus_size']} briefs = {projection['sampled_briefs']} sampled"
+    )
+    emit(
+        f"Reads: {projection['sampled_briefs']} sampled x "
+        f"{projection['readers']} readers = {projection['reads']}"
+    )
+    emit(
+        f"Context chars: {projection['chars']}, estimated input tokens "
+        f"{projection['estimated_input_tokens']:.2f}, assumed output tokens "
+        f"{projection['assumed_output_tokens']}"
+    )
+    emit(
+        f"Projected committee cost: ${projection['projected_usd']:.6f} "
+        f"(${projection['usd_per_read']:.6f} per read) "
+        f"= ${projection['input_usd']:.6f} input + "
+        f"${projection['output_usd']:.6f} output"
+    )
+    emit(f"Ceiling: ${max_usd:.2f}")
+    if projection["projected_usd"] > max_usd:
+        emit(
+            f"ceiling: projection ${projection['projected_usd']:.6f} exceeds the "
+            f"${max_usd:.2f} ceiling; a real run would stop before its first read."
+        )
+    warn_if_bound_widens(
+        sample_rate, projection["corpus_size"], projection["sampled_briefs"], emit
+    )
+    return projection
+
+
+def _record_cost(record, model):
+    return sum(
+        run2.usage_cost(item.get("usage") or {}, model)
+        for item in record.get("passes", [])
+        if isinstance(item, dict)
+    )
+
+
+def evaluate_corpus(
+    briefs,
+    gold_by_id,
+    shelf,
+    hand_decisions=None,
+    sample_rate=DEFAULT_SAMPLE_RATE,
+    checkpoint_path=None,
+    kill_path=None,
+    max_usd=DEFAULT_MAX_USD,
+    model=None,
+    emit=print,
+):
     """Run the blind committee and return records with hand overrides applied."""
     if not briefs:
         raise SystemExit("refusing to validate zero briefs; corpus accuracy would be vacuous")
@@ -123,10 +300,49 @@ def evaluate_corpus(briefs, gold_by_id, shelf, hand_decisions=None):
                 f"{hand_decision!r}"
             )
 
+    model = model or provider.CHAT_MODEL
+    projection = project_committee(briefs, gold_by_id, shelf, sample_rate, model)
+    sampled = projection["sampled_ids"]
+    warn_if_bound_widens(
+        sample_rate, len(briefs), len(sampled), emit
+    )
+
+    checkpoint_path = checkpoint_path or os.environ.get(
+        "EVAL_COMMITTEE_CHECKPOINT", DEFAULT_COMMITTEE_CHECKPOINT
+    )
+    kill_path = kill_path or os.environ.get("EVAL_KILL_FILE", run2.DEFAULT_KILL_FILE)
+    judged = {
+        record["brief_id"]: record
+        for record in run2.load_checkpoint(checkpoint_path)
+        if isinstance(record.get("brief_id"), str)
+    }
+    total_usd = sum(
+        _record_cost(record, model)
+        for brief_id, record in judged.items()
+        if brief_id in set(sampled)
+    )
+    stop_reason = None
+    # Priced before it runs: a ceiling under the projection stops the committee
+    # without spending anything, which is the whole point of projecting first.
+    if projection["projected_usd"] > max_usd or total_usd > max_usd:
+        stop_reason = "ceiling"
+
     records = []
-    for brief_id in sorted(briefs):
+    new_reads = 0
+    for brief_id in sampled:
+        if brief_id in judged:
+            records.append(judged[brief_id])
+            continue
+        if stop_reason:
+            break
+        if os.path.exists(kill_path):
+            stop_reason = "kill file"
+            break
         constructed_gold = validated_gold[brief_id]
-        passes = [_committee_pass(briefs[brief_id], shelf) for _ in range(3)]
+        passes = [
+            _committee_pass(briefs[brief_id], shelf)
+            for _ in range(COMMITTEE_READERS)
+        ]
         counts = collections.Counter(item["move"] for item in passes)
         ranked = counts.most_common()
         committee_majority = ranked[0][0] if ranked[0][1] >= 2 else None
@@ -142,34 +358,45 @@ def evaluate_corpus(briefs, gold_by_id, shelf, hand_decisions=None):
             final_move = committee_majority
             correct = committee_majority in constructed_gold
 
-        records.append(
-            {
-                "brief_id": brief_id,
-                "constructed_gold": list(constructed_gold),
-                "effective_gold": effective_gold,
-                "passes": passes,
-                "committee_candidates": sorted(counts),
-                "committee_majority": committee_majority,
-                "unanimous_agreement": unanimous_agreement,
-                "disagreement": not unanimous_agreement,
-                "hand_decision": hand_decision,
-                "final_move": final_move,
-                "correct": correct,
-                "stratum": _stratum(constructed_gold, shelf),
-            }
-        )
+        record = {
+            "brief_id": brief_id,
+            "constructed_gold": list(constructed_gold),
+            "effective_gold": effective_gold,
+            "passes": passes,
+            "committee_candidates": sorted(counts),
+            "committee_majority": committee_majority,
+            "unanimous_agreement": unanimous_agreement,
+            "disagreement": not unanimous_agreement,
+            "hand_decision": hand_decision,
+            "final_move": final_move,
+            "correct": correct,
+            "stratum": _stratum(constructed_gold, shelf),
+        }
+        run2._append_checkpoint(checkpoint_path, record)
+        records.append(record)
+        new_reads += 1
+        total_usd += _record_cost(record, model)
+        if total_usd > max_usd:
+            stop_reason = "ceiling"
+            break
 
     correct_count = sum(record["correct"] for record in records)
     return {
         "records": records,
         "total": len(records),
         "correct_count": correct_count,
-        "accuracy": correct_count / len(records),
+        "accuracy": correct_count / len(records) if records else None,
         "unanimous_count": sum(
             record["unanimous_agreement"] for record in records
         ),
         "disagreement_count": sum(record["disagreement"] for record in records),
         "floor": ACCURACY_FLOOR,
+        "projection": projection,
+        "sampled": sampled,
+        "new_reads": new_reads,
+        "total_usd": total_usd,
+        "stop_reason": stop_reason,
+        "checkpoint_path": checkpoint_path,
     }
 
 
@@ -366,8 +593,19 @@ def validate_corpus(
     hand_decisions=None,
     audit_path=None,
     fixture_data=False,
+    **committee_kwargs,
 ):
-    result = evaluate_corpus(briefs, gold_by_id, shelf, hand_decisions)
+    result = evaluate_corpus(briefs, gold_by_id, shelf, hand_decisions, **committee_kwargs)
+    if result["stop_reason"]:
+        # An interrupted committee has no verdict to give. Reporting PASS or
+        # BLOCK off a partial sample would be the exact false confidence the
+        # ceiling and kill file exist to prevent.
+        print(
+            f"{result['stop_reason']}: {result['total']} of "
+            f"{len(result['sampled'])} sampled briefs judged, "
+            f"{result['new_reads']} new, ${result['total_usd']:.6f}"
+        )
+        return result, None
     report = render_audit(result, fixture_data=fixture_data)
     print(
         f"Corpus accuracy: {result['accuracy']:.2%} "
@@ -416,11 +654,33 @@ def load_corpus(briefs_dir=BRIEFS_DIR, gold_dir=GOLD_DIR):
     return briefs, gold_by_id
 
 
+def _env_float(name, default):
+    try:
+        return float(os.environ.get(name, default))
+    except ValueError:
+        raise SystemExit(f"{name} must be a number") from None
+
+
 def main():
     briefs, gold_by_id = load_corpus()
     shelf = harness2.load_shelf()
-    validate_corpus(briefs, gold_by_id, shelf, audit_path=AUDIT_PATH)
+    sample_rate = _env_float("EVAL_SAMPLE_RATE", DEFAULT_SAMPLE_RATE)
+    max_usd = _env_float("EVAL_MAX_USD", DEFAULT_MAX_USD)
+    if os.environ.get("EVAL_DRY_RUN") == "1":
+        committee_dry_run(
+            briefs, gold_by_id, shelf, sample_rate=sample_rate, max_usd=max_usd
+        )
+        return 0
+    validate_corpus(
+        briefs,
+        gold_by_id,
+        shelf,
+        audit_path=AUDIT_PATH,
+        sample_rate=sample_rate,
+        max_usd=max_usd,
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
