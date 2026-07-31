@@ -19,6 +19,7 @@ REPO_ROOT = HERE.parents[2]
 CATALOG = HERE / "catalog-index.json"
 BRIEFS_DIR = HERE / "briefs"
 GOLD_DIR = HERE / "gold"
+ATTEMPTS_LOG = HERE / "attempts.jsonl"
 
 MODEL = os.environ.get("BRIEF_MODEL", provider.CHAT_MODEL)
 BRIEF_TEMPERATURE = 0.7
@@ -45,18 +46,13 @@ NEIGHBOR_SCORE_RATIO = 0.5
 # harness2.semantic_topk after the separately gated embed2.py vector build. The
 # corpus record and reporting contract stay unchanged when those vectors exist.
 
-# This is an equal-thirds split, not a proportional sample of the shelf. Equal
-# counts give all three source types the same statistical power instead of
-# letting the most common registry source dominate the corpus and verdict.
-# There are only 25 primitive moves, so the 100 primitive targets reuse a move
-# about four times on average. Each use still receives its own presentation
-# constraints and inverse-constructed brief.
-PER_SOURCE = {"primitive": 100, "block": 100, "component": 100}
-
 STRATIFICATION_TOLERANCE = 10
-# This is the allowed shortfall per source after exhausted moves are dropped.
-# It is not a backfill budget: replacing a dropped target would bias the corpus
-# toward moves that happen to be easier to describe.
+# This is the allowed number of moves left behind by the gates before the run
+# warns. It is not a backfill budget: replacing a dropped target would bias the
+# corpus toward moves that happen to be easier to describe. Under per-move
+# allocation the same refusal is expressed as an attempt that is spent whether
+# or not it produced a brief, so a rejected move simply stays one brief behind
+# and is reported as such.
 
 FORCED_PORTRAIT = {"caliper-caption-rail", "chevron-pill-card-morph"}
 ASPECT_ROTATION = ("16:9", "16:9", "16:9", "9:16", "1:1")
@@ -163,56 +159,110 @@ def load_source_text(name, catalog_entry):
     return "\n".join(lines)
 
 
-def choose_targets(catalog, per_source=PER_SOURCE):
-    """Return deterministic, coarse-family round-robin targets by source."""
-    grouped = {source: defaultdict(list) for source in per_source}
-    for name, entry in catalog.items():
-        source = (
-            "primitive"
-            if entry["sources"] in ("primitive", "primitive+component")
-            else entry["sources"]
-        )
-        if source not in grouped:
-            continue
-        # build_shelf._group folds tags, jobs, and family into group. Its first
-        # token is therefore a coarse family proxy, and the only uniform signal
-        # because blocks and primitives do not declare a separate family field.
-        bucket = entry["group"].split(",", 1)[0].strip()
-        grouped[source][bucket].append(name)
+def source_of(entry):
+    """Fold the primitive+component hybrid into the primitive stratum."""
+    if entry["sources"] in ("primitive", "primitive+component"):
+        return "primitive"
+    return entry["sources"]
 
+
+def choose_targets(catalog, wave=1, attempts=None):
+    """Return the targets that bring every catalog move up to `wave` attempts.
+
+    Allocation is per move, not per source. Round two split briefs equally
+    across the three source types so each carried the same statistical power.
+    That reasoning does not survive scaling: the shelf holds 25 primitives
+    against 290 components, so an equal-thirds split at round three volume
+    would pile roughly 700 briefs onto 25 primitive moves. At the measured
+    intra-cluster correlation of 0.33, 28 briefs on one move carry about as
+    much information as three independent ones, so the stratum would look large
+    and say almost nothing. One brief per move per wave keeps cluster sizes
+    uniform and the clustered variance calculation honest.
+
+    `attempts` counts generation attempts already spent per move, not briefs
+    accepted. A move the gates rejected has spent its wave, so it is not
+    re-emitted later: backfilling it would bias the corpus toward moves that
+    happen to be easy to describe. Counting attempts is also what makes a wave
+    resumable, since a rerun after a partial failure emits only the moves that
+    were never reached.
+    """
+    if isinstance(wave, bool) or not isinstance(wave, int) or wave < 1:
+        raise ValueError(f"wave must be a positive integer, got {wave!r}")
+    spent = attempts or {}
     targets = []
-    for source, wanted in per_source.items():
-        buckets = grouped[source]
-        if wanted and not buckets:
-            raise ValueError(f"no catalog entries for source {source!r}")
-        keys = sorted(buckets)
-        names = {key: sorted(buckets[key]) for key in keys}
-        offsets = {key: 0 for key in keys}
-        picked = 0
-        while picked < wanted:
-            # Each sweep takes the next unused move from every family, and a
-            # family that is spent is skipped rather than wrapped. Wrapping the
-            # short families early is what made 100 block briefs land on only 53
-            # of the 109 blocks: no move repeats until every move has been used.
-            progressed = False
-            for key in keys:
-                choices = names[key]
-                if offsets[key] >= len(choices):
-                    continue
-                targets.append((choices[offsets[key]], source))
-                offsets[key] += 1
-                picked += 1
-                progressed = True
-                if picked == wanted:
-                    break
-            if picked == wanted:
-                break
-            if not progressed:
-                # More briefs wanted than the stratum has moves, so start a
-                # fresh cycle. Repeats then spread evenly across families
-                # instead of piling onto whichever family is smallest.
-                offsets = {key: 0 for key in keys}
+    for name in sorted(catalog):
+        source = source_of(catalog[name])
+        targets.extend((name, source) for _ in range(wave - spent.get(name, 0)))
     return targets
+
+
+def wave_report(catalog, wave, accepted):
+    """Describe the corpus at `wave`: composition, cluster sizes and shortfall.
+
+    Per-source counts are reported every wave because the equal-thirds
+    guarantee is deliberately gone. The corpus now mirrors the shelf's own
+    shape, and that shift has to be visible rather than inferred from a
+    constant that no longer exists.
+    """
+    per_source = Counter()
+    per_move_counts = Counter()
+    shortfall = []
+    for name in sorted(catalog):
+        have = accepted.get(name, 0)
+        per_source[source_of(catalog[name])] += have
+        per_move_counts[have] += 1
+        if have < wave:
+            shortfall.append({"name": name, "accepted": have, "missing": wave - have})
+    return {
+        "wave": wave,
+        "moves": len(catalog),
+        "expected": wave * len(catalog),
+        "accepted": sum(per_source.values()),
+        "per_source": dict(sorted(per_source.items())),
+        "per_move_counts": dict(sorted(per_move_counts.items())),
+        "flat": len(per_move_counts) <= 1,
+        "shortfall": shortfall,
+    }
+
+
+def load_attempts(path):
+    """Return (attempts, accepted) counts per move from the wave log.
+
+    Attempts are what allocation reads, so a move whose brief the gates
+    rejected is not retried in a later wave. Accepted counts are what the
+    shortfall is measured against, which is how the difference stays visible.
+    """
+    attempts = Counter()
+    accepted = Counter()
+    path = Path(path)
+    if not path.exists():
+        return attempts, accepted
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        attempts[row["name"]] += 1
+        if row["status"] == "accept":
+            accepted[row["name"]] += 1
+    return attempts, accepted
+
+
+def record_attempt(path, name, status):
+    """Append one attempt outcome, so a killed wave resumes where it stopped."""
+    if path is None:
+        return
+    with open(path, "a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"name": name, "status": status}) + "\n")
+
+
+def next_index(briefs_dir):
+    """Return the highest brief id already written, so waves do not overwrite."""
+    written = [
+        int(path.stem)
+        for path in Path(briefs_dir).glob("*.md")
+        if path.stem.isdigit()
+    ]
+    return max(written, default=0)
 
 
 def pick_aspect(name, index):
@@ -330,6 +380,8 @@ def generate_corpus(
     briefs_dir=BRIEFS_DIR,
     gold_dir=GOLD_DIR,
     emit=print,
+    attempts_log=None,
+    start_index=0,
 ):
     briefs_dir = Path(briefs_dir)
     gold_dir = Path(gold_dir)
@@ -341,7 +393,7 @@ def generate_corpus(
     accepted = []
     dropped = []
 
-    for index, (name, source_bucket) in enumerate(targets, start=1):
+    for index, (name, source_bucket) in enumerate(targets, start=start_index + 1):
         brief_id = f"{index:03d}"
         duration = pick_duration(index)
         register = pick_register(index)
@@ -365,6 +417,7 @@ def generate_corpus(
             dropped.append(
                 {"name": name, "source": source_bucket, "reasons": reasons}
             )
+            record_attempt(attempts_log, name, "drop")
             emit(f"DROP {brief_id} {name}: {', '.join(reasons)}")
             continue
 
@@ -403,6 +456,7 @@ def generate_corpus(
                 "bad": bad,
             }
         )
+        record_attempt(attempts_log, name, "accept")
         emit(f"ACCEPT {brief_id} {name} after {len(reasons) + 1} attempt(s)")
 
     return {"accepted": accepted, "dropped": dropped}
@@ -491,10 +545,13 @@ def _fixture_response(brief):
 def _fixture_demo():
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     entries = harness2.load_shelf()
-    targets = choose_targets(
-        catalog,
-        {"primitive": 2, "block": 2, "component": 2},
-    )
+    # A wave covers all 424 moves, so the demo takes the first two of each
+    # source rather than paying for the whole shelf to show the mechanics.
+    sampled = defaultdict(list)
+    for target in choose_targets(catalog, 1):
+        if len(sampled[target[1]]) < 2:
+            sampled[target[1]].append(target)
+    targets = [target for source in sorted(sampled) for target in sampled[source]]
     passing = (
         "Group the subject into a singular beat. Shape a lucid cadence, then "
         "land decisively. Keep the moment purposeful, poised, and uncluttered."
@@ -574,10 +631,12 @@ def main():
     if os.environ.get("GEN_BRIEFS_FIXTURE_DEMO") == "1":
         return _fixture_demo()
 
+    wave = int(os.environ.get("BRIEF_WAVE", "1"))
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     entries = harness2.load_shelf()
-    targets = choose_targets(catalog)
-    print(f"target composition: {len(targets)} {_source_counts(targets)}")
+    spent, _ = load_attempts(ATTEMPTS_LOG)
+    targets = choose_targets(catalog, wave, spent)
+    print(f"wave {wave} targets: {len(targets)} {_source_counts(targets)}")
     result = generate_corpus(
         entries,
         catalog,
@@ -585,18 +644,21 @@ def main():
         chat=provider.chat,
         briefs_dir=BRIEFS_DIR,
         gold_dir=GOLD_DIR,
+        attempts_log=ATTEMPTS_LOG,
+        start_index=next_index(BRIEFS_DIR),
     )
     accepted = result["accepted"]
     dropped = result["dropped"]
-    accepted_counts = _source_counts(accepted)
-    print(f"accepted composition: {len(accepted)} {accepted_counts}")
-    for source, wanted in PER_SOURCE.items():
-        actual = accepted_counts.get(source, 0)
-        if actual < wanted - STRATIFICATION_TOLERANCE:
-            print(
-                f"STRATIFICATION WARNING {source}: {actual} accepted, "
-                f"target {wanted}, tolerance {STRATIFICATION_TOLERANCE}"
-            )
+    print(f"accepted this wave: {len(accepted)} {_source_counts(accepted)}")
+    _, accepted_total = load_attempts(ATTEMPTS_LOG)
+    report = wave_report(catalog, wave, accepted_total)
+    print("wave report: " + json.dumps(report, sort_keys=True))
+    if len(report["shortfall"]) > STRATIFICATION_TOLERANCE:
+        print(
+            f"STRATIFICATION WARNING wave {wave}: {len(report['shortfall'])} moves "
+            f"below {wave} brief(s), tolerance {STRATIFICATION_TOLERANCE}, "
+            "never backfilled"
+        )
     print(f"dropped: {len(dropped)}")
     for item in dropped:
         print(f"{item['name']}: {', '.join(item['reasons'])}")

@@ -133,22 +133,155 @@ class BriefGeneratorTests(unittest.TestCase):
         for item in result["accepted"]:
             self.assertFalse(briefs.contains_move_name(item["brief_text"], item["name"]))
 
-    def test_target_choice_is_deterministic_and_exactly_equal_thirds(self):
-        first = briefs.choose_targets(self.catalog)
-        second = briefs.choose_targets(self.catalog)
+    def test_wave_one_covers_every_move_exactly_once_and_is_deterministic(self):
+        first = briefs.choose_targets(self.catalog, 1)
+        second = briefs.choose_targets(self.catalog, 1)
         self.assertEqual(first, second)
-        self.assertEqual(300, len(first))
+        self.assertEqual(len(self.catalog), len(first))
         self.assertEqual(
-            briefs.PER_SOURCE,
+            {name: 1 for name in self.catalog},
+            dict(Counter(name for name, _ in first)),
+        )
+        # The equal-thirds guarantee is gone on purpose, so the wave now
+        # mirrors the shelf's own shape instead of flattening it.
+        self.assertEqual(
+            {"block": 109, "component": 290, "primitive": 25},
             dict(Counter(source for _, source in first)),
         )
 
+    def test_wave_three_gives_every_move_uniform_cluster_size(self):
+        targets = briefs.choose_targets(self.catalog, 3)
+        self.assertEqual(3 * len(self.catalog), len(targets))
+        self.assertEqual({3}, set(Counter(name for name, _ in targets).values()))
+
+    def test_rerun_after_partial_failure_emits_only_the_missing_targets(self):
+        wave = 2
+        full = briefs.choose_targets(self.catalog, wave)
+        done = sorted(self.catalog)[:100]
+        # A killed wave leaves an attempt count for everything it reached.
+        spent = {name: wave for name in done}
+        resumed = briefs.choose_targets(self.catalog, wave, spent)
+        self.assertEqual(len(full) - wave * len(done), len(resumed))
+        self.assertEqual(set(), {name for name, _ in resumed} & set(done))
+        self.assertEqual(
+            {wave},
+            set(Counter(name for name, _ in resumed).values()),
+        )
+
+    def test_gate_rejection_is_never_backfilled_and_is_reported(self):
+        catalog = {
+            "move-alpha": {"sources": "primitive"},
+            "move-beta": {"sources": "block"},
+        }
+        # move-beta spent both waves but the gates only accepted the first.
+        spent = {"move-alpha": 2, "move-beta": 2}
+        accepted = {"move-alpha": 2, "move-beta": 1}
+
+        wave_three = briefs.choose_targets(catalog, 3, spent)
+        self.assertEqual(
+            [("move-alpha", "primitive"), ("move-beta", "block")],
+            wave_three,
+        )
+
+        report = briefs.wave_report(catalog, 2, accepted)
+        self.assertEqual(3, report["accepted"])
+        self.assertFalse(report["flat"])
+        self.assertEqual({1: 1, 2: 1}, report["per_move_counts"])
+        self.assertEqual(
+            [{"name": "move-beta", "accepted": 1, "missing": 1}],
+            report["shortfall"],
+        )
+
+    def test_wave_report_names_per_source_counts_and_flat_clusters(self):
+        catalog = {
+            "move-alpha": {"sources": "primitive+component"},
+            "move-beta": {"sources": "block"},
+            "move-gamma": {"sources": "component"},
+        }
+        report = briefs.wave_report(
+            catalog,
+            2,
+            {"move-alpha": 2, "move-beta": 2, "move-gamma": 2},
+        )
+        self.assertTrue(report["flat"])
+        self.assertEqual({2: 3}, report["per_move_counts"])
+        self.assertEqual(6, report["expected"])
+        self.assertEqual([], report["shortfall"])
+        self.assertEqual(
+            {"block": 2, "component": 2, "primitive": 2},
+            report["per_source"],
+        )
+
+    def test_non_positive_wave_is_rejected_and_empty_catalog_is_empty(self):
+        for wave in (0, -1, 1.0, True, "1"):
+            with self.subTest(wave=wave):
+                with self.assertRaises(ValueError):
+                    briefs.choose_targets(self.catalog, wave)
+        self.assertEqual([], briefs.choose_targets({}, 3))
+        empty = briefs.wave_report({}, 1, {})
+        self.assertEqual(
+            {"wave": 1, "moves": 0, "expected": 0, "accepted": 0},
+            {key: empty[key] for key in ("wave", "moves", "expected", "accepted")},
+        )
+        self.assertEqual([], empty["shortfall"])
+
+    def test_attempt_log_counts_attempts_not_acceptances(self):
+        name = "caption-camera-follow"
+
+        def always_leak(context, model, config=None):
+            return canned_response(f"Use {name} for this beat.")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "attempts.jsonl"
+            self.assertEqual((Counter(), Counter()), briefs.load_attempts(log))
+            briefs.generate_corpus(
+                self.entries,
+                self.catalog,
+                [(name, "primitive")],
+                chat=always_leak,
+                briefs_dir=root / "briefs",
+                gold_dir=root / "gold",
+                emit=lambda _: None,
+                attempts_log=log,
+            )
+            spent, accepted = briefs.load_attempts(log)
+
+        self.assertEqual({name: 1}, dict(spent))
+        self.assertEqual({}, dict(accepted))
+        # The rejected move has spent its wave, so wave two owes it one brief,
+        # not two. Its shortfall stays on the books instead of being refilled.
+        self.assertEqual(
+            1,
+            len(briefs.choose_targets({name: self.catalog[name]}, 2, spent)),
+        )
+
+    def test_later_wave_never_overwrites_an_earlier_wave_brief(self):
+        names = ["caption-camera-follow", "depth-rack-focus"]
+
+        def accept_first(context, model, config=None):
+            return canned_response(PASSING_BRIEF)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for _ in range(2):
+                briefs.generate_corpus(
+                    self.entries,
+                    self.catalog,
+                    [(name, "primitive") for name in names],
+                    chat=accept_first,
+                    briefs_dir=root / "briefs",
+                    gold_dir=root / "gold",
+                    emit=lambda _: None,
+                    start_index=briefs.next_index(root / "briefs"),
+                )
+            written = sorted(path.name for path in (root / "briefs").glob("*.md"))
+
+        self.assertEqual(["001.md", "002.md", "003.md", "004.md"], written)
+
     def test_all_accept_corpus_preserves_exact_small_stratification(self):
         requested = {"primitive": 8, "block": 8, "component": 8}
-        pool = briefs.choose_targets(
-            self.catalog,
-            {"primitive": 40, "block": 20, "component": 80},
-        )
+        pool = briefs.choose_targets(self.catalog, 1)
         targets = []
         selected = Counter()
         for target in pool:
@@ -196,7 +329,15 @@ class BriefGeneratorTests(unittest.TestCase):
             set(first_gold),
         )
         self.assertNotIn("brief", first_gold)
-        self.assertEqual("9:16", result["accepted"][0]["aspect"])
+        # Per-move allocation orders targets by name, so the forced-portrait
+        # override is asserted where those moves actually land rather than at a
+        # position the old round-robin happened to put one of them in.
+        portrait = [
+            item for item in result["accepted"] if item["name"] in briefs.FORCED_PORTRAIT
+        ]
+        self.assertEqual(sorted(briefs.FORCED_PORTRAIT), sorted(item["name"] for item in portrait))
+        for item in portrait:
+            self.assertEqual("9:16", item["aspect"])
 
     def test_lexical_and_fixture_cosine_reports_both_execute(self):
         entries = {
