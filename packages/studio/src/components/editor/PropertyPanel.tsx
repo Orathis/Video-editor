@@ -20,13 +20,14 @@ import { createTransformCommitHandlers } from "./propertyPanelTransformCommit";
 import { resolveAnimIdForProperty } from "../../player/components/TimelinePropertyLanes";
 import { resolveEditingSections } from "@hyperframes/core/editing";
 import { MediaSection } from "./propertyPanelMediaSection";
+import { VstSection } from "./propertyPanelVstSection";
 import { ColorGradingSection } from "./propertyPanelColorGradingSection";
 import { domEditSelectionToFacts } from "./domEditingLayers";
 import { TextSection, StyleSections } from "./propertyPanelSections";
 import { GsapAnimationSection } from "./GsapAnimationSection";
 import { PropertyPanel3dTransform } from "./propertyPanel3dTransform";
 import { KeyframeNavigation } from "./KeyframeNavigation";
-import { STUDIO_FLAT_INSPECTOR_ENABLED } from "./manualEditingAvailability";
+import { STUDIO_FLAT_INSPECTOR_ENABLED, STUDIO_VST_ENABLED } from "./manualEditingAvailability";
 import { PropertyPanelFlat } from "./PropertyPanelFlat";
 import { createGsapLivePreview } from "./gsapLivePreview";
 import { usePlayerStore, liveTime } from "../../player";
@@ -35,20 +36,6 @@ import { type PropertyPanelProps } from "./propertyPanelHelpers";
 import { GestureRecordPanelButton } from "./GestureRecordControl";
 import { PropertyPanelEmptyState } from "./PropertyPanelEmptyState";
 import { DesignPanelInputProvider } from "../../contexts/DesignPanelInputContext";
-
-// Re-export helpers that external consumers import from this module
-export {
-  buildInsetClipPathSides,
-  buildStrokeStyleUpdates,
-  buildStrokeWidthStyleUpdates,
-  getCssFilterFunctionPx,
-  getClipPathInsetPx,
-  inferBoxShadowPreset,
-  inferClipPathPreset,
-  normalizePanelPxValue,
-  parseInsetClipPathSides,
-  setCssFilterFunctionPx,
-} from "./propertyPanelHelpers";
 
 // fallow-ignore-next-line complexity
 export const PropertyPanel = memo(function PropertyPanel(props: PropertyPanelProps) {
@@ -109,6 +96,8 @@ export const PropertyPanel = memo(function PropertyPanel(props: PropertyPanelPro
     recordingState,
     recordingDuration,
     onToggleRecording,
+    vstHost = null,
+    domEditSaveTimestampRef,
   } = props;
   const styles = element?.computedStyles ?? EMPTY_STYLES;
   const { showToast } = useStudioShellContext();
@@ -376,6 +365,16 @@ export const PropertyPanel = memo(function PropertyPanel(props: PropertyPanelPro
             onSetAttribute={onSetAttribute}
             onSetHtmlAttribute={onSetHtmlAttribute}
             onRemoveBackground={onRemoveBackground}
+          />
+        )}
+
+        {STUDIO_VST_ENABLED && sections.vstFx && (
+          <VstSection
+            projectId={projectId}
+            element={element}
+            onSetAttribute={onSetAttribute}
+            vstHost={vstHost}
+            domEditSaveTimestampRef={domEditSaveTimestampRef}
           />
         )}
 
