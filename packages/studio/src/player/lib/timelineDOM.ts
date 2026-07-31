@@ -26,6 +26,7 @@ import {
   getTimelineElementIdentity,
   isTimelineIgnoredElement,
   readTimelineElementZIndex,
+  type TimelineDomIndex,
 } from "./timelineElementHelpers";
 
 // Re-export helpers that were previously public from this module so that
@@ -46,7 +47,9 @@ export {
   buildTimelineElementIdentity,
   // fallow-ignore-next-line unused-exports
   getTimelineElementIdentity,
+  createTimelineDomIndex,
   findTimelineDomNodeForClip,
+  type TimelineDomIndex,
 } from "./timelineElementHelpers";
 
 // Re-export iframe helpers so the hook can keep a single import source.
@@ -73,8 +76,9 @@ export function createTimelineElementFromManifestClip(params: {
   fallbackIndex: number;
   doc?: Document | null;
   hostEl?: Element | null;
+  index?: TimelineDomIndex;
 }): TimelineElement {
-  const { clip, fallbackIndex, doc } = params;
+  const { clip, fallbackIndex, doc, index } = params;
   let hostEl = params.hostEl ?? null;
   const label = getTimelineElementDisplayLabel({
     id: clip.id,
@@ -93,8 +97,8 @@ export function createTimelineElementFromManifestClip(params: {
     hfId = hostEl.getAttribute("data-hf-id") || undefined;
     selector = getTimelineElementSelector(hostEl);
     selectorIndex =
-      doc && selector ? getTimelineElementSelectorIndex(doc, hostEl, selector) : undefined;
-    sourceFile = getTimelineElementSourceFile(hostEl);
+      doc && selector ? getTimelineElementSelectorIndex(doc, hostEl, selector, index) : undefined;
+    sourceFile = getTimelineElementSourceFile(hostEl, index);
   }
 
   const identity = buildTimelineElementIdentity({
@@ -147,7 +151,10 @@ export function createTimelineElementFromManifestClip(params: {
     let resolvedSrc = clip.compositionSrc;
     if (!resolvedSrc) {
       hostEl =
-        doc?.querySelector(`[data-composition-id="${CSS.escape(clip.compositionId)}"]`) ?? hostEl;
+        (index
+          ? index.byCompositionId.get(clip.compositionId)
+          : doc?.querySelector(`[data-composition-id="${CSS.escape(clip.compositionId)}"]`)) ??
+        hostEl;
       resolvedSrc =
         hostEl?.getAttribute("data-composition-src") ??
         hostEl?.getAttribute("data-composition-file") ??
@@ -168,9 +175,9 @@ export function createTimelineElementFromManifestClip(params: {
       entry.selector = getTimelineElementSelector(hostEl);
       entry.selectorIndex =
         doc && entry.selector
-          ? getTimelineElementSelectorIndex(doc, hostEl, entry.selector)
+          ? getTimelineElementSelectorIndex(doc, hostEl, entry.selector, index)
           : undefined;
-      entry.sourceFile = getTimelineElementSourceFile(hostEl);
+      entry.sourceFile = getTimelineElementSourceFile(hostEl, index);
       const nextIdentity = buildTimelineElementIdentity({
         preferredId: clip.id,
         label,

@@ -1,12 +1,17 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createTimelineElementFromManifestClip,
   parseTimelineFromDOM,
   createImplicitTimelineLayersFromDOM,
   mergeTimelineElementsPreservingDowngrades,
+  createTimelineDomIndex,
+  findTimelineDomNodeForClip,
+  type TimelineDomIndex,
 } from "./timelineDOM";
 import type { TimelineElement } from "../store/playerStore";
+import type { ClipManifestClip } from "./playbackTypes";
+import { generateStudioLoadFixture } from "../../../tests/e2e/generateStudioLoadFixture.mjs";
 
 function el(id: string, extra: Partial<TimelineElement> = {}): TimelineElement {
   return { id, tag: "img", start: 0, duration: 5, track: 0, ...extra };
@@ -16,6 +21,47 @@ function makeDoc(html: string): Document {
   const d = document.implementation.createHTMLDocument();
   d.body.innerHTML = html;
   return d;
+}
+
+function manifestClip(element: Element, index: number): ClipManifestClip {
+  const compositionId = element.getAttribute("data-composition-id");
+  return {
+    id: element.id || element.getAttribute("data-hf-id"),
+    label: `Clip ${index}`,
+    start: Number(element.getAttribute("data-start")),
+    duration: Number(element.getAttribute("data-duration")),
+    track: Number(element.getAttribute("data-track-index")),
+    kind: compositionId ? "composition" : "element",
+    tagName: element.tagName.toLowerCase(),
+    compositionId,
+    parentCompositionId: null,
+    compositionSrc: null,
+    assetUrl: null,
+  };
+}
+
+/**
+ * The whole per-clip derivation, exactly as processTimelineMessage runs it.
+ * Async only so the un-indexed arm — which is quadratic by construction, ~80s
+ * at 3,000 clips under jsdom — yields often enough to keep vitest's worker RPC
+ * heartbeat alive; a fully synchronous run makes the suite exit non-zero.
+ */
+async function deriveManifestElements(
+  doc: Document,
+  clips: readonly ClipManifestClip[],
+  index?: TimelineDomIndex,
+): Promise<TimelineElement[]> {
+  const used = new Set<Element>();
+  const elements: TimelineElement[] = [];
+  for (const [fallbackIndex, clip] of clips.entries()) {
+    const hostEl = findTimelineDomNodeForClip(doc, clip, fallbackIndex, used, index);
+    if (hostEl) used.add(hostEl);
+    elements.push(
+      createTimelineElementFromManifestClip({ clip, fallbackIndex, doc, hostEl, index }),
+    );
+    if (fallbackIndex % 100 === 99) await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  return elements;
 }
 
 describe("parseTimelineFromDOM — hfId from data-hf-id", () => {
@@ -204,6 +250,129 @@ describe("createTimelineElementFromManifestClip — source-scoped selector ident
     expect(element.sourceFile).toBe("scene.html");
     expect(element.selectorIndex).toBe(1);
     expect(element.key).toBe("scene.html:.sub:1");
+  });
+});
+
+describe("createTimelineElementFromManifestClip — indexed identity parity", () => {
+  it("keeps every id and key byte-identical across the generated 3,000-clip fixture", async () => {
+    const files = generateStudioLoadFixture({ clipCount: 3_000, trackCount: 150 });
+    const doc = makeDoc(files["index.html"]);
+    const subComposition = makeDoc(files["compositions/load-details.html"]);
+    const template = subComposition.querySelector("template");
+    const host = doc.querySelector('[data-composition-id="studio-load-details"]');
+    if (!(template instanceof HTMLTemplateElement) || !host) {
+      throw new Error("invalid generated fixture");
+    }
+    host.append(template.content.cloneNode(true));
+
+    const nodes = Array.from(doc.querySelectorAll(".clip"));
+    nodes.forEach((node, index) => {
+      if (!node.id && index % 29 !== 0) node.setAttribute("data-hf-id", `hf-${index}`);
+    });
+    const clips = nodes.map(manifestClip);
+    const nullIdCount = clips.filter((clip) => clip.id == null).length;
+    // Both arms run the FULL derivation, node resolution included — handing the
+    // legacy arm a pre-resolved hostEl would compare only the identity builder
+    // and could not see the indexed path resolving a clip to a different node.
+    const legacy = await deriveManifestElements(doc, clips);
+    const indexed = await deriveManifestElements(doc, clips, createTimelineDomIndex(doc));
+
+    expect(nodes).toHaveLength(3_000);
+    expect(nullIdCount).toBeGreaterThan(0);
+    expect(indexed.map(({ id, key }) => ({ id, key }))).toEqual(
+      legacy.map(({ id, key }) => ({ id, key })),
+    );
+  }, 300_000);
+
+  it("keeps a null-id clip's selector occurrence identity unchanged", async () => {
+    const doc = makeDoc(`
+      <main data-composition-id="root" data-composition-file="index.html">
+        <div class="clip card" data-start="0" data-duration="4" data-track-index="0"></div>
+        <div class="clip card" data-start="4" data-duration="4" data-track-index="1"></div>
+      </main>
+    `);
+    const clip: ClipManifestClip = {
+      id: null,
+      label: "Card",
+      start: 4,
+      duration: 4,
+      track: 1,
+      kind: "element",
+      tagName: "div",
+      compositionId: null,
+      parentCompositionId: null,
+      compositionSrc: null,
+      assetUrl: null,
+    };
+    const legacy = await deriveManifestElements(doc, [clip]);
+    const indexed = await deriveManifestElements(doc, [clip], createTimelineDomIndex(doc));
+
+    expect(indexed[0]).toMatchObject({
+      id: legacy[0]?.id,
+      key: legacy[0]?.key,
+      selector: ".card",
+      selectorIndex: 1,
+    });
+  });
+
+  it("resolves an inlined composition without extra document queries", async () => {
+    const doc = makeDoc(`
+      <main data-composition-id="root" data-composition-file="index.html">
+        <section data-hf-id="host-hf" data-composition-id="nested"
+          data-composition-file="nested.html" data-start="0" data-duration="4"></section>
+      </main>
+    `);
+    const clip: ClipManifestClip = {
+      id: "host-hf",
+      label: "Nested",
+      start: 0,
+      duration: 4,
+      track: 0,
+      kind: "composition",
+      tagName: "section",
+      compositionId: "nested",
+      parentCompositionId: null,
+      compositionSrc: null,
+      assetUrl: null,
+    };
+    const legacy = (await deriveManifestElements(doc, [clip]))[0];
+    const index = createTimelineDomIndex(doc);
+    const querySpy = vi.spyOn(doc, "querySelector");
+    const indexed = (await deriveManifestElements(doc, [clip], index))[0];
+
+    expect(indexed).toMatchObject({
+      compositionSrc: legacy?.compositionSrc,
+      domId: legacy?.domId,
+      hfId: legacy?.hfId,
+      id: legacy?.id,
+      key: legacy?.key,
+    });
+    expect(querySpy).not.toHaveBeenCalled();
+  });
+
+  it("bounds document-wide queries for a 500-clip manifest including an inlined composition", async () => {
+    const clipsMarkup = Array.from(
+      { length: 499 },
+      (_, index) =>
+        `<div class="clip card" data-hf-id="hf-${index}" data-start="${index}" data-duration="1" data-track-index="${index}"></div>`,
+    ).join("");
+    const doc = makeDoc(`
+      <main data-composition-id="root" data-composition-file="index.html">
+        ${clipsMarkup}
+        <section class="clip card" data-hf-id="composition-host" data-composition-id="nested"
+          data-composition-file="nested.html" data-start="499" data-duration="1" data-track-index="499"></section>
+      </main>
+    `);
+    const clips = Array.from(doc.querySelectorAll(".clip"), manifestClip);
+    const queryAllSpy = vi.spyOn(doc, "querySelectorAll");
+    const querySpy = vi.spyOn(doc, "querySelector");
+    const index = createTimelineDomIndex(doc);
+    const elements = await deriveManifestElements(doc, clips, index);
+
+    expect(elements).toHaveLength(500);
+    expect(elements.at(-1)?.compositionSrc).toBe("nested.html");
+    expect(queryAllSpy).toHaveBeenCalledTimes(1);
+    expect(querySpy).not.toHaveBeenCalled();
   });
 });
 

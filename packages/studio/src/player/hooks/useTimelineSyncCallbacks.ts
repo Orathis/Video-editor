@@ -16,6 +16,7 @@ import type { PlaybackAdapter, ClipManifestClip, IframeWindow } from "../lib/pla
 import {
   parseTimelineFromDOM,
   createTimelineElementFromManifestClip,
+  createTimelineDomIndex,
   findTimelineDomNodeForClip,
   createImplicitTimelineLayersFromDOM,
   buildStandaloneRootTimelineElement,
@@ -222,9 +223,10 @@ export function useTimelineSyncCallbacks({
 
       const usedHostEls = new Set<Element>();
       markManifestDeriveStart();
+      const timelineDomIndex = iframeDoc ? createTimelineDomIndex(iframeDoc) : undefined;
       const els: TimelineElement[] = filtered.map((clip, index) => {
         const hostEl = iframeDoc
-          ? findTimelineDomNodeForClip(iframeDoc, clip, index, usedHostEls)
+          ? findTimelineDomNodeForClip(iframeDoc, clip, index, usedHostEls, timelineDomIndex)
           : null;
         if (hostEl) usedHostEls.add(hostEl);
         return createTimelineElementFromManifestClip({
@@ -232,6 +234,7 @@ export function useTimelineSyncCallbacks({
           fallbackIndex: index,
           doc: iframeDoc,
           hostEl,
+          index: timelineDomIndex,
         });
       });
       markManifestDeriveEnd();

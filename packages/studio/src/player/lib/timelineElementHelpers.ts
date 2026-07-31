@@ -10,7 +10,11 @@
 import type { TimelineElement } from "../store/playerStore";
 import type { ClipManifestClip } from "./playbackTypes";
 import { isFinitePositive } from "./playbackAdapter";
-import { getSourceScopedSelectorIndex } from "../../utils/sourceScopedSelectorIndex";
+import {
+  createSourceScopedSelectorIndex,
+  getSourceScopedSelectorIndex,
+  type SourceScopedSelectorIndex,
+} from "../../utils/sourceScopedSelectorIndex";
 
 // ---------------------------------------------------------------------------
 // Layer-reveal lift transparency
@@ -261,7 +265,21 @@ export function getTimelineElementSelector(el: Element): string | undefined {
   return undefined;
 }
 
-export function getTimelineElementSourceFile(el: Element): string | undefined {
+export interface TimelineDomIndex {
+  readonly byClass: ReadonlyMap<string, Element>;
+  readonly byCompositionId: ReadonlyMap<string, Element>;
+  readonly byDomId: ReadonlyMap<string, Element>;
+  readonly byHfId: ReadonlyMap<string, Element>;
+  readonly selectorOccurrences: SourceScopedSelectorIndex;
+  readonly sourceFiles: ReadonlyMap<Element, string | undefined>;
+  readonly timelineNodes: readonly Element[];
+}
+
+export function getTimelineElementSourceFile(
+  el: Element,
+  index?: TimelineDomIndex,
+): string | undefined {
+  if (index) return index.sourceFiles.get(el);
   const ownerRoot = el.parentElement?.closest("[data-composition-id]");
   return (
     ownerRoot?.getAttribute("data-composition-file") ??
@@ -274,13 +292,15 @@ export function getTimelineElementSelectorIndex(
   doc: Document,
   el: Element,
   selector: string | undefined,
+  index?: TimelineDomIndex,
 ): number | undefined {
   return getSourceScopedSelectorIndex(
     doc,
     el,
     selector,
-    getTimelineElementSourceFile(el),
+    getTimelineElementSourceFile(el, index),
     getTimelineElementSourceFile,
+    index?.selectorOccurrences,
   );
 }
 
@@ -369,6 +389,76 @@ export function deriveTimelineStoreKey(params: {
 // DOM node querying
 // ---------------------------------------------------------------------------
 
+/**
+ * Source file every element resolves to, in one document-order pass.
+ *
+ * Mirrors {@link getTimelineElementSourceFile} exactly: the scope is read off
+ * the nearest ancestor-or-self `[data-composition-id]` of the element's PARENT,
+ * and only that element's own file/src attribute counts. An untagged nested
+ * composition root therefore scopes to undefined rather than inheriting its
+ * grandparent's file — which is what `closest()` does today, and a scope that
+ * diverged here would change every affected element's key.
+ */
+function buildSourceFileMap(elements: readonly Element[]): Map<Element, string | undefined> {
+  const sourceFiles = new Map<Element, string | undefined>();
+  const childSourceFiles = new Map<Element, string | undefined>();
+  for (const element of elements) {
+    const sourceFile = element.parentElement
+      ? childSourceFiles.get(element.parentElement)
+      : undefined;
+    sourceFiles.set(element, sourceFile);
+    childSourceFiles.set(
+      element,
+      element.hasAttribute("data-composition-id")
+        ? (element.getAttribute("data-composition-file") ??
+            element.getAttribute("data-composition-src") ??
+            undefined)
+        : sourceFile,
+    );
+  }
+  return sourceFiles;
+}
+
+/** First-in-document-order wins, matching getElementById / querySelector. */
+function keepFirst(map: Map<string, Element>, key: string | null, element: Element): void {
+  if (key && !map.has(key)) map.set(key, element);
+}
+
+export function createTimelineDomIndex(doc: Document): TimelineDomIndex {
+  const elements = Array.from(doc.querySelectorAll("*"));
+  const byClass = new Map<string, Element>();
+  const byCompositionId = new Map<string, Element>();
+  const byDomId = new Map<string, Element>();
+  const byHfId = new Map<string, Element>();
+  const sourceFiles = buildSourceFileMap(elements);
+  const timedNodes: Element[] = [];
+  let rootComposition: Element | null = null;
+
+  for (const element of elements) {
+    keepFirst(byDomId, element.id, element);
+    keepFirst(byHfId, element.getAttribute("data-hf-id"), element);
+    const compositionId = element.getAttribute("data-composition-id");
+    keepFirst(byCompositionId, compositionId, element);
+    if (compositionId) rootComposition ??= element;
+    for (const className of element.classList) keepFirst(byClass, className, element);
+    if (element.hasAttribute("data-start")) timedNodes.push(element);
+  }
+
+  return {
+    byClass,
+    byCompositionId,
+    byDomId,
+    byHfId,
+    selectorOccurrences: createSourceScopedSelectorIndex(elements, (element) =>
+      sourceFiles.get(element),
+    ),
+    sourceFiles,
+    timelineNodes: timedNodes.filter(
+      (node) => node !== rootComposition && !isTimelineIgnoredElement(node),
+    ),
+  };
+}
+
 function getTimelineDomNodes(doc: Document): Element[] {
   const rootComp = doc.querySelector("[data-composition-id]");
   return Array.from(doc.querySelectorAll("[data-start]")).filter(
@@ -406,16 +496,33 @@ function findTimelineDomNode(doc: Document, id: string): Element | null {
   );
 }
 
+function findIndexedTimelineDomNode(index: TimelineDomIndex, id: string): Element | null {
+  return (
+    index.byDomId.get(id) ??
+    index.byHfId.get(id) ??
+    index.byCompositionId.get(id) ??
+    index.byClass.get(id) ??
+    null
+  );
+}
+
 export function findTimelineDomNodeForClip(
   doc: Document,
   clip: ClipManifestClip,
   fallbackIndex: number,
   usedNodes = new Set<Element>(),
+  index?: TimelineDomIndex,
 ): Element | null {
-  const byIdentity = clip.id ? findTimelineDomNode(doc, clip.id) : null;
+  const byIdentity = clip.id
+    ? index
+      ? findIndexedTimelineDomNode(index, clip.id)
+      : findTimelineDomNode(doc, clip.id)
+    : null;
   if (byIdentity && !usedNodes.has(byIdentity)) return byIdentity;
 
-  const candidates = getTimelineDomNodes(doc).filter((node) => !usedNodes.has(node));
+  const candidates = (index?.timelineNodes ?? getTimelineDomNodes(doc)).filter(
+    (node) => !usedNodes.has(node),
+  );
   const exact = candidates.find((node) => nodeMatchesManifestClip(node, clip));
   if (exact) return exact;
 
