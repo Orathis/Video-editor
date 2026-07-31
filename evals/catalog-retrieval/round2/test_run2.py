@@ -198,22 +198,18 @@ class RunnerTests(unittest.TestCase):
             expected_input * prices["input"]
             + run2.ASSUMED_OUTPUT_TOKENS * prices["output"]
         ) / 1_000_000
-        with (
-            mock.patch.object(
-                provider,
-                "chat",
-                side_effect=AssertionError("chat must not run"),
-            ),
-            mock.patch.object(
-                provider,
-                "embed",
-                side_effect=AssertionError("embed must not run"),
-            ),
-            mock.patch.object(
-                provider,
-                "validate_model",
-                side_effect=AssertionError("validation must not run"),
-            ),
+        with mock.patch.object(
+            provider,
+            "chat",
+            side_effect=AssertionError("chat must not run"),
+        ), mock.patch.object(
+            provider,
+            "embed",
+            side_effect=AssertionError("embed must not run"),
+        ), mock.patch.object(
+            provider,
+            "validate_model",
+            side_effect=AssertionError("validation must not run"),
         ):
             rows, total = run2.dry_run(
                 self.entries,
@@ -221,16 +217,15 @@ class RunnerTests(unittest.TestCase):
                 cells=(("a", None),),
                 emit=lambda _: None,
             )
-            with (
-                mock.patch.dict(os.environ, {"EVAL_DRY_RUN": "1"}, clear=False),
-                mock.patch.object(harness2, "load_shelf", return_value=self.entries),
-                mock.patch.object(
-                    harness2,
-                    "load_briefs",
-                    return_value={"fixed": brief},
-                ),
-                contextlib.redirect_stdout(io.StringIO()),
-            ):
+            with mock.patch.dict(
+                os.environ, {"EVAL_DRY_RUN": "1"}, clear=False
+            ), mock.patch.object(
+                harness2, "load_shelf", return_value=self.entries
+            ), mock.patch.object(
+                harness2,
+                "load_briefs",
+                return_value={"fixed": brief},
+            ), contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(0, run2.main())
         self.assertEqual(expected_chars, rows[0]["chars"])
         self.assertEqual(expected_input, rows[0]["estimated_input_tokens"])
@@ -448,13 +443,10 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual("Bearer stub-token", request.get_header("Authorization"))
 
     def test_empty_candidates_are_unparseable_not_an_error(self):
-        with (
-            self._stub_auth(),
-            mock.patch.object(
-                provider.urllib.request,
-                "urlopen",
-                return_value=StubResponse({"candidates": []}),
-            ),
+        with self._stub_auth(), mock.patch.object(
+            provider.urllib.request,
+            "urlopen",
+            return_value=StubResponse({"candidates": []}),
         ):
             parsed, raw, usage, _ = provider.chat("context", provider.CHAT_MODEL)
         self.assertIsNone(parsed)
@@ -468,18 +460,15 @@ class ProviderTests(unittest.TestCase):
                 {"index": 0, "embedding": [1.0, 0.0]},
             ]
         }
-        with (
-            mock.patch.dict(
-                os.environ,
-                {provider.EMBED_KEY_ENV: "stub-key"},
-                clear=False,
-            ),
-            mock.patch.object(
-                provider.urllib.request,
-                "urlopen",
-                return_value=StubResponse(response),
-            ) as transport,
-        ):
+        with mock.patch.dict(
+            os.environ,
+            {provider.EMBED_KEY_ENV: "stub-key"},
+            clear=False,
+        ), mock.patch.object(
+            provider.urllib.request,
+            "urlopen",
+            return_value=StubResponse(response),
+        ) as transport:
             vectors = provider.embed(["first", "second"])
         request = transport.call_args.args[0]
         self.assertEqual("Bearer stub-key", request.get_header("Authorization"))
@@ -497,13 +486,10 @@ class ProviderTests(unittest.TestCase):
             {},
             io.BytesIO(b"slow down"),
         )
-        with (
-            self._stub_auth(),
-            mock.patch.object(
-                provider.urllib.request,
-                "urlopen",
-                side_effect=error,
-            ),
+        with self._stub_auth(), mock.patch.object(
+            provider.urllib.request,
+            "urlopen",
+            side_effect=error,
         ):
             with self.assertRaises(RuntimeError) as caught:
                 provider.chat("context", provider.CHAT_MODEL)
@@ -563,6 +549,36 @@ class CellSelectionTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as caught:
             run2.parse_cells(",,")
         self.assertIn("selected no cells", str(caught.exception))
+
+
+class DeploymentPythonTests(unittest.TestCase):
+    """The eval runs on devbox, which is Python 3.8, not on the machine that writes it."""
+
+    def test_no_eval_file_uses_syntax_the_devbox_interpreter_cannot_parse(self):
+        # A parenthesized with block is 3.9+ and made two whole test files
+        # uncompilable on devbox. That is invisible here, because the laptop
+        # runs a newer interpreter and the files pass locally, so the tests
+        # silently stopped covering the one machine that spends money.
+        rounds = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        offenders = []
+        for name in sorted(os.listdir(rounds)):
+            directory = os.path.join(rounds, name)
+            if not os.path.isdir(directory):
+                continue
+            for filename in sorted(os.listdir(directory)):
+                if not filename.endswith(".py") or filename.startswith("._"):
+                    continue
+                path = os.path.join(directory, filename)
+                with open(path) as handle:
+                    for number, line in enumerate(handle, 1):
+                        if line.rstrip().endswith("with ("):
+                            offenders.append(f"{name}/{filename}:{number}")
+        self.assertEqual(
+            [],
+            offenders,
+            "parenthesized with blocks do not compile on devbox; "
+            "write them as `with a(), b():` instead",
+        )
 
 
 if __name__ == "__main__":

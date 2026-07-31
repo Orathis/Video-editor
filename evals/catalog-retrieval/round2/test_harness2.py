@@ -202,10 +202,9 @@ class Harness2Tests(unittest.TestCase):
         # nothing to signal that its real input was gone.
         lexical = harness2.lexical_topk(self.brief, self.entries, 10)
 
-        with (
-            mock.patch.object(harness2, "VECTORS", self.vector_path),
-            mock.patch.object(harness2, "semantic_topk", return_value=[]),
-        ):
+        with mock.patch.object(
+            harness2, "VECTORS", self.vector_path
+        ), mock.patch.object(harness2, "semantic_topk", return_value=[]):
             with self.assertRaises(SystemExit) as empty:
                 harness2.hybrid_topk(self.brief_id, self.brief, self.entries, 10)
         self.assertIn("cannot fuse", str(empty.exception))
@@ -287,9 +286,10 @@ class Embed2Tests(unittest.TestCase):
                 }
             )
 
-        with (
-            mock.patch.dict(os.environ, {"OPENAI_API_KEY": "stub-key"}, clear=False),
-            mock.patch.object(embed2.urllib.request, "urlopen", side_effect=stub_urlopen),
+        with mock.patch.dict(
+            os.environ, {"OPENAI_API_KEY": "stub-key"}, clear=False
+        ), mock.patch.object(
+            embed2.urllib.request, "urlopen", side_effect=stub_urlopen
         ):
             vectors = embed2.embed(["first", "second"])
 
@@ -329,23 +329,21 @@ class Embed2Tests(unittest.TestCase):
                 calls.append(texts)
                 return [[float(len(text))] for text in texts]
 
-            with (
-                mock.patch.dict(os.environ, {"OPENAI_API_KEY": "stub-key"}, clear=False),
-                mock.patch.object(embed2, "OUT", out),
-                mock.patch.object(embed2, "BATCH_SIZE", 1),
-                mock.patch.object(embed2, "embed", side_effect=stub_embed),
-                mock.patch.object(
-                    harness2,
-                    "load_shelf",
-                    return_value={"move-a": "old", "move-b": "new"},
-                ),
-                mock.patch.object(
-                    harness2,
-                    "load_briefs",
-                    return_value={"brief-a": "old", "brief-b": "new brief"},
-                ),
-                contextlib.redirect_stdout(io.StringIO()),
-            ):
+            with mock.patch.dict(
+                os.environ, {"OPENAI_API_KEY": "stub-key"}, clear=False
+            ), mock.patch.object(embed2, "OUT", out), mock.patch.object(
+                embed2, "BATCH_SIZE", 1
+            ), mock.patch.object(
+                embed2, "embed", side_effect=stub_embed
+            ), mock.patch.object(
+                harness2,
+                "load_shelf",
+                return_value={"move-a": "old", "move-b": "new"},
+            ), mock.patch.object(
+                harness2,
+                "load_briefs",
+                return_value={"brief-a": "old", "brief-b": "new brief"},
+            ), contextlib.redirect_stdout(io.StringIO()):
                 embed2.main()
 
             with open(out, encoding="utf-8") as fh:
@@ -358,14 +356,12 @@ class Embed2Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             out = os.path.join(directory, "vectors.json")
             progress = {"model": embed2.MODEL, "moves": {}, "briefs": {}}
-            with (
-                mock.patch.object(embed2, "OUT", out),
-                mock.patch.object(embed2, "BATCH_SIZE", 1),
-                mock.patch.object(
-                    embed2,
-                    "embed",
-                    side_effect=([[1.0]], RuntimeError("stubbed failure")),
-                ),
+            with mock.patch.object(embed2, "OUT", out), mock.patch.object(
+                embed2, "BATCH_SIZE", 1
+            ), mock.patch.object(
+                embed2,
+                "embed",
+                side_effect=([[1.0]], RuntimeError("stubbed failure")),
             ):
                 with self.assertRaisesRegex(RuntimeError, "stubbed failure"):
                     embed2._fill_missing(
