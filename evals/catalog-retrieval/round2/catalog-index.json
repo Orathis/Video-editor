@@ -408,7 +408,9 @@
   "caliper-caption-rail": {
     "avoid_when": "Do not use it for 16x9, because its aspects declaration does not include 16x9 and the header makes the 1080x1920 portrait format non-negotiable.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/caliper-caption-rail.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/caliper-caption-rail.mp4"
+    ],
     "group": "Annotation.",
     "install_path": "evals/catalog-retrieval/sources/primitives/caliper-caption-rail.html",
     "pairs_with": "marker-highlight, receipt-card.",
@@ -755,7 +757,9 @@
   "chevron-pill-card-morph": {
     "avoid_when": "Do not use it when verified 16x9 support is required, because its aspects declaration does not include 16x9.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/chevron-pill-card-morph.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/chevron-pill-card-morph.mp4"
+    ],
     "group": "Interface morphs.",
     "install_path": "evals/catalog-retrieval/sources/primitives/chevron-pill-card-morph.html",
     "pairs_with": "press-ripple, state-chip-rail.",
@@ -1448,7 +1452,9 @@
   "depth-rack-focus": {
     "avoid_when": "Avoid it when animated blur is unacceptable, because blur on the foreground and message planes is the stated focus mechanic.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/depth-rack-focus.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/depth-rack-focus.mp4"
+    ],
     "group": "Camera moves.",
     "install_path": "evals/catalog-retrieval/sources/primitives/depth-rack-focus.html",
     "pairs_with": "focus-rack, z-punch-through.",
@@ -1788,7 +1794,9 @@
   "glyph-ring-assemble": {
     "avoid_when": "Avoid it when every glyph must remain visible throughout the orbit, because a glyph crossing the central mark vanishes for about 0.3 seconds.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/glyph-ring-assemble.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/glyph-ring-assemble.mp4"
+    ],
     "group": "Text effects.",
     "install_path": "evals/catalog-retrieval/sources/primitives/glyph-ring-assemble.html",
     "pairs_with": "kinetic-type-swap, version-plate-type.",
@@ -2860,7 +2868,9 @@
   "orbit-ring-camera": {
     "avoid_when": "Avoid it when square or portrait framing needs the same composition quality as landscape, because those aspects are only re-aimed while the move is composed for 16x9.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/orbit-ring-camera.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/orbit-ring-camera.mp4"
+    ],
     "group": "Camera moves.",
     "install_path": "evals/catalog-retrieval/sources/primitives/orbit-ring-camera.html",
     "pairs_with": "echo-trail, plan-room-audit.",
@@ -3079,7 +3089,9 @@
   "persona-card-fan": {
     "avoid_when": "Avoid it when portrait or square framing must be as fully composed as landscape, because those aspects are only kept inside the frame and the move is composed for 16x9.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/persona-card-fan.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/persona-card-fan.mp4"
+    ],
     "group": "Card assembly.",
     "install_path": "evals/catalog-retrieval/sources/primitives/persona-card-fan.html",
     "pairs_with": "thread-message-stack, receipt-card.",
@@ -3115,7 +3127,9 @@
   "pill-row-collapse": {
     "avoid_when": "Avoid it when a label may be bisected during reveal, because the type-in clip is deliberately quantized to character boundaries.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/pill-row-collapse.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/pill-row-collapse.mp4"
+    ],
     "group": "Process sequences.",
     "install_path": "evals/catalog-retrieval/sources/primitives/pill-row-collapse.html",
     "pairs_with": "state-chip-rail, rank-list-settle.",
@@ -3127,7 +3141,9 @@
   "plan-room-audit": {
     "avoid_when": "Avoid it when the shot must be natively composed for landscape, because the header states that it is native to 9x16 and composed only for that orientation.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/plan-room-audit.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/plan-room-audit.mp4"
+    ],
     "group": "Annotation.",
     "install_path": "evals/catalog-retrieval/sources/primitives/plan-room-audit.html",
     "pairs_with": "caliper-caption-rail, whiteboard-ink.",
@@ -3261,7 +3277,9 @@
   "rank-list-settle": {
     "avoid_when": "Avoid it when the winner cannot be the last row, because the geometry parks only the last row on the focus line and requires that row to carry the winner class.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/rank-list-settle.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/rank-list-settle.mp4"
+    ],
     "group": "List assembly.",
     "install_path": "evals/catalog-retrieval/sources/primitives/rank-list-settle.html",
     "pairs_with": "pill-row-collapse, state-chip-rail.",
@@ -3273,7 +3291,9 @@
   "receipt-card": {
     "avoid_when": "Avoid it when landscape must be the native composition, because the header identifies the card as 9x16 native and authors its safe zone for 9x16.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/receipt-card.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/receipt-card.mp4"
+    ],
     "group": "Card assembly.",
     "install_path": "evals/catalog-retrieval/sources/primitives/receipt-card.html",
     "pairs_with": "marker-highlight, persona-card-fan.",
@@ -4297,7 +4317,9 @@
   "thread-message-stack": {
     "avoid_when": "Avoid it when frame zero must be empty, because the thread deliberately opens on three settled bubbles.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/thread-message-stack.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/thread-message-stack.mp4"
+    ],
     "group": "List assembly.",
     "install_path": "evals/catalog-retrieval/sources/primitives/thread-message-stack.html",
     "pairs_with": "persona-card-fan, receipt-card.",
@@ -4821,7 +4843,9 @@
   "version-plate-type": {
     "avoid_when": "Avoid it when every word must retain its natural proportions, because resolved words are fitted to one constant ink width and the box separately changes width and height.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/version-plate-type.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/version-plate-type.mp4"
+    ],
     "group": "Text effects.",
     "install_path": "evals/catalog-retrieval/sources/primitives/version-plate-type.html",
     "pairs_with": "glyph-ring-assemble, kinetic-type-swap.",
@@ -5058,7 +5082,9 @@
   "z-punch-through": {
     "avoid_when": "Avoid it when the clip needs a hold, because the documented 2.10-second envelope is filled by the move and has no hold.",
     "blurb_source": "primitive",
-    "existence_proof": ["evals/catalog-retrieval/sources/previews/z-punch-through.mp4"],
+    "existence_proof": [
+      "evals/catalog-retrieval/sources/previews/z-punch-through.mp4"
+    ],
     "group": "Transitions.",
     "install_path": "evals/catalog-retrieval/sources/primitives/z-punch-through.html",
     "pairs_with": "match-cut, depth-rack-focus.",
