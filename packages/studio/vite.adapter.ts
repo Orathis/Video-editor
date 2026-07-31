@@ -20,6 +20,10 @@ import {
   createBackgroundRemovalJob,
   createProjectSignature,
 } from "@hyperframes/studio-server";
+import {
+  getVstSidecar as getVstSidecarSync,
+  startVstSidecar,
+} from "@hyperframes/studio-server/vst-sidecar";
 import type { RegistryItem } from "@hyperframes/core/registry";
 import { createRetryingModuleLoader, ensureProducerDist } from "./vite.producer";
 import { createStudioDevRenderBodyScripts } from "./vite.studioMotion";
@@ -392,6 +396,16 @@ export function createViteAdapter(dataDir: string, server: ViteDevServer): Studi
       }
 
       return { written, block };
+    },
+
+    startVstSidecar: async () => {
+      const { port, token } = await startVstSidecar();
+      return { port, token };
+    },
+
+    getVstSidecarStatus: () => {
+      const running = getVstSidecarSync();
+      return running ? { running: true, port: running.port } : { running: false, port: null };
     },
   };
 }

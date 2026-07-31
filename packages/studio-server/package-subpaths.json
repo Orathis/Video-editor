@@ -67,6 +67,12 @@
       "runtime": "./dist/helpers/mediaProxyPreview.js",
       "types": "./dist/helpers/mediaProxyPreview.d.ts",
       "environments": ["bun", "node"]
+    },
+    "./vst-sidecar": {
+      "source": "./src/vstSidecar.ts",
+      "runtime": "./dist/vstSidecar.js",
+      "types": "./dist/vstSidecar.d.ts",
+      "environments": ["bun", "node"]
     }
   }
 }

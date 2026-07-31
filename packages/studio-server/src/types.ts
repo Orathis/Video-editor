@@ -203,4 +203,22 @@ export interface StudioApiAdapter {
     project: ResolvedProject;
     blockName: string;
   }): Promise<{ written: string[]; block: RegistryItem }>;
+
+  /**
+   * Optional: start the VST host sidecar and return its bound port + the
+   * shared-secret token the sidecar generated for this run (see
+   * `hyperframes_vst/server.py`'s `_authenticate` in the
+   * `heygen-com/hyperframes-vst-host` repo).
+   * Absent means VST plugin hosting isn't supported in this studio mode. The
+   * browser connects directly to `ws://localhost:<port>/?token=<token>` —
+   * both are simply relayed back to the client, not proxied. The token
+   * prevents any other local process/webpage that might guess or scan the
+   * ephemeral port from also driving the sidecar (native plugin loading is
+   * inherently native code execution; chain loading also reads arbitrary
+   * files off disk).
+   */
+  startVstSidecar?: () => Promise<{ port: number; token: string }>;
+
+  /** Optional: current VST sidecar status. Absent implies not running. */
+  getVstSidecarStatus?: () => { running: boolean; port: number | null };
 }

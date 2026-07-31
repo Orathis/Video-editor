@@ -34,6 +34,10 @@ import {
 import { resolveAutoProxy } from "../utils/projectConfig.js";
 import { getElementScreenshotClip } from "@hyperframes/studio-server/screenshot-clip";
 import type { ScreenshotClip } from "@hyperframes/studio-server/screenshot-clip";
+import {
+  getVstSidecar as getVstSidecarSync,
+  startVstSidecar,
+} from "@hyperframes/studio-server/vst-sidecar";
 import type { RenderJob } from "@hyperframes/producer";
 import { seekCompositionTimeline } from "../capture/captureCompositionFrame.js";
 import {
@@ -646,6 +650,16 @@ export function createStudioServer(options: StudioServerOptions): StudioServer {
         return rel;
       });
       return { written: relativePaths, block: item };
+    },
+
+    startVstSidecar: async () => {
+      const { port, token } = await startVstSidecar();
+      return { port, token };
+    },
+
+    getVstSidecarStatus: () => {
+      const running = getVstSidecarSync();
+      return running ? { running: true, port: running.port } : { running: false, port: null };
     },
   };
 

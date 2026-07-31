@@ -74,6 +74,12 @@
       "node": "./dist/helpers/mediaProxyPreview.js",
       "import": "./src/helpers/mediaProxyPreview.ts",
       "types": "./src/helpers/mediaProxyPreview.ts"
+    },
+    "./vst-sidecar": {
+      "bun": "./src/vstSidecar.ts",
+      "node": "./dist/vstSidecar.js",
+      "import": "./src/vstSidecar.ts",
+      "types": "./src/vstSidecar.ts"
     }
   },
   "publishConfig": {
@@ -119,6 +125,10 @@
       "./media-proxy-preview": {
         "import": "./dist/helpers/mediaProxyPreview.js",
         "types": "./dist/helpers/mediaProxyPreview.d.ts"
+      },
+      "./vst-sidecar": {
+        "import": "./dist/vstSidecar.js",
+        "types": "./dist/vstSidecar.d.ts"
       }
     },
     "main": "./dist/index.js",
