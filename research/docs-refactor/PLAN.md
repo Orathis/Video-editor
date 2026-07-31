@@ -330,6 +330,9 @@ Old docs and changelogs are leads, not proof.
 - [x] Add the first real Studio workspace visual.
 - [x] Add focused visuals for difficult interactions.
 - [x] Move or redirect the buried manual-editing page.
+- [x] Replace the Studio front-door film with a current narrated product walkthrough.
+- [x] Recapture the Studio stills and four task loops from the same real project.
+- [x] Publish the final Studio media under immutable versioned CDN URLs.
 
 ### Phase 5 — Consolidation
 
@@ -345,6 +348,7 @@ Old docs and changelogs are leads, not proof.
 - [x] Review desktop and mobile navigation.
 - [x] Add and visually review sendable routes for common user questions.
 - [x] Add page ownership and freshness rules.
+- [x] Merge the current `main` prompting guide and product changes before final QA.
 - [ ] After release, use Mintlify analytics to inspect real searches, no-result queries, and weak result ranking.
 
 ## Deliverables

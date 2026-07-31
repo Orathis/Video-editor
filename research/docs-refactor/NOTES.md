@@ -829,3 +829,24 @@ New navigation should be task-shaped:
   typography change. Removing the cross-origin TT Norms declarations also
   removes four repeatable browser console errors while preserving the approved
   effective site font.
+
+### 2026-07-31 — Studio delivery and current-main sync
+
+- The replacement Studio film uses the current `field-notes` project and real
+  Studio 0.7.86 captures. It runs 56 seconds with River narration, BGM, SFX,
+  and one stable caption rail. Film lint, browser check, and all five seam
+  checks pass; all 1,680 frames were measured with zero blank, white, or flat
+  frames. Integrated loudness is -16.6 LUFS and the worst narration-to-bed
+  separation is 12.3 dB.
+- Replaced the Studio overview, Storyboard, Design, and Export stills with one
+  coherent capture set. The four muted loops now show direct editing, a real
+  persisted timeline trim, the real Ask agent handoff, and a real Studio render.
+- Published the film, poster, four loops, and four loop posters under first-use
+  `*-v2` keys in `s3://heygen-public/hyperframes-oss/docs/images/showcase/` with
+  immutable one-year cache headers. S3 metadata and CDN content types were
+  verified after upload.
+- Merged `origin/main` at `a3c8f897f` before final QA. Preserved the approved
+  Guides / Studio / Catalog / Developers chrome, added the new Prompt Guide as
+  progressive disclosure inside Guides, redirected the retired
+  `/guides/prompting` route, and kept the beginner Quickstart intentionally
+  short.

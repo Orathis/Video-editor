@@ -19,8 +19,8 @@ export const AdvancedPathGrid = () => {
       detail: "Change visible design, text, media, timing, and animation in the live project.",
       action: "Open the Studio guide",
       href: "/studio",
-      video: `${CDN}/studio-design-loop-v1.mp4`,
-      poster: `${CDN}/studio-design-loop-v1.jpg`,
+      video: `${CDN}/studio-direct-edit-loop-v2.mp4`,
+      poster: `${CDN}/studio-direct-edit-loop-v2.jpg`,
     },
     {
       title: "Build richer compositions",
@@ -36,8 +36,8 @@ export const AdvancedPathGrid = () => {
         "Validate the project, render through Studio, an agent, or the CLI, and review the file.",
       action: "Finish the project",
       href: "/guides/export-and-share",
-      video: `${CDN}/studio-export-loop-v1.mp4`,
-      poster: `${CDN}/studio-export-loop-v1.jpg`,
+      video: `${CDN}/studio-check-render-loop-v2.mp4`,
+      poster: `${CDN}/studio-check-render-loop-v2.jpg`,
     },
   ];
   const [reducedMotion, setReducedMotion] = useState(false);
