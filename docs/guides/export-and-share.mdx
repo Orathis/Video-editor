@@ -1,32 +1,79 @@
 ---
 title: "Export and share"
 sidebarTitle: "Overview"
-description: "Choose a format, render a finished file, or publish a project for review."
+description: "Check a project, render it through Studio, an agent, or the CLI, and review the finished file before sharing."
 ---
 
-For most finished videos, export an MP4 at the project’s original resolution. Choose another format only when the next tool or platform requires it.
+Finish the same project through Studio, your agent, or the command line. Choose the surface that fits how you are already working.
 
-| Need | Good starting choice |
-| --- | --- |
-| Upload or share a normal finished video | MP4 |
-| Keep transparency for an overlay | WebM or MOV with a compatible alpha workflow |
-| Continue editing in another video tool | High-quality MOV or the format requested by that tool |
-| Deliver a high-resolution master | 4K preset |
-| Let someone review an evolving project | Publish a stable share link |
+## 1. Watch and check the project
 
-<CardGroup cols={2}>
-  <Card title="Export from Studio" icon="download" href="/studio/export">
-    Choose format, quality, resolution, and frame rate from the Renders panel.
-  </Card>
-  <Card title="Render from the command line" icon="terminal" href="/guides/rendering">
-    Use local, automated, or batch rendering.
-  </Card>
-  <Card title="4K rendering" icon="display" href="/guides/4k-rendering">
-    Export a larger master without redesigning the composition.
-  </Card>
-  <Card title="HDR" icon="sun" href="/guides/hdr">
-    Use a high-dynamic-range workflow when the full delivery chain supports it.
-  </Card>
-</CardGroup>
+Watch the complete video once before rendering. Check the opening, every scene boundary, captions, important media, and the audio ending.
 
-Before delivery, watch the export itself. A project can look correct at one preview moment while still containing a late caption, missing media frame, or abrupt ending elsewhere.
+Run the project checks from Studio, ask the agent to run them, or use:
+
+```bash
+npx hyperframes lint
+npx hyperframes check
+```
+
+`lint` checks the composition structure. `check` opens the project in a browser and catches runtime, layout, motion, and contrast problems.
+
+## 2. Render the version
+
+### Ask the agent
+
+```text
+Run the HyperFrames checks, fix any failures, and render an MP4 to video.mp4.
+```
+
+This is useful when a failure requires a source change or you want the agent to manage the complete finish.
+
+### Use Studio
+
+Open **Export**, choose the required format and resolution, then start the render. The Renders panel shows progress and keeps completed versions available to download.
+
+### Use the CLI
+
+```bash
+npx hyperframes render --output video.mp4
+```
+
+Use the CLI for a direct local render, scripts, CI, or repeatable batches.
+
+## 3. Choose the file the destination needs
+
+MP4 at the authored resolution is the normal finished-video choice. Use another format only when the next tool or platform requires it.
+
+| Need                                    | Good starting choice                                  |
+| --------------------------------------- | ----------------------------------------------------- |
+| Upload or share a normal finished video | MP4                                                   |
+| Keep transparency for an overlay        | WebM or MOV with a compatible alpha workflow          |
+| Continue editing in another video tool  | High-quality MOV or the format requested by that tool |
+| Deliver a high-resolution master        | 4K preset                                             |
+
+Increasing the output resolution does not repair low-resolution source media. Changing frame rate does not improve motion that was authored for a different cadence.
+
+## 4. Review the exported file
+
+Open the rendered file itself rather than relying on the Studio preview.
+
+- Watch the first and final seconds.
+- Check captions, cuts, and the most complex transition.
+- Listen for clipped narration, late sound effects, or an abrupt music ending.
+- Confirm the duration, dimensions, and file format.
+- Use a filename that identifies the project and version.
+
+## 5. Share the right thing
+
+Send the finished file when someone only needs to watch or publish it.
+
+Publish the project when someone needs a stable browser link to the current version:
+
+```bash
+npx hyperframes publish
+```
+
+Keep the source project when another agent, developer, or editor must continue the work.
+
+For format-specific controls, use [Studio export](/studio/export), [CLI rendering](/guides/rendering), [4K](/guides/4k-rendering), or [HDR](/guides/hdr).

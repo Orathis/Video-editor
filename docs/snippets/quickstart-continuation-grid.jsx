@@ -1,12 +1,10 @@
 /**
  * Three equally valid ways to continue from the first playable version.
  *
- * The still comes directly from the same example.com project used in the
- * journey film. The choices are intentionally not links: discovery happens
- * only at the end of the page.
+ * The choices are intentionally not links: discovery happens only at the end
+ * of the page.
  */
 export const QuickstartContinuationGrid = () => {
-  const CDN = "https://static.heygen.ai/hyperframes-oss/docs/images/showcase";
   const paths = [
     {
       title: "Ask the agent",
@@ -27,26 +25,11 @@ export const QuickstartContinuationGrid = () => {
 
   return (
     <div style={{ margin: "1.5rem 0" }}>
-      <img
-        src={`${CDN}/journey-quickstart-v4-paths.jpg`}
-        alt="The same HyperFrames project ready to continue with an agent, Studio, or the CLI."
-        loading="lazy"
-        style={{
-          display: "block",
-          width: "100%",
-          aspectRatio: "16 / 9",
-          objectFit: "cover",
-          background: "#111",
-          borderRadius: "12px",
-          margin: 0,
-        }}
-      />
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))",
           gap: "0.75rem",
-          marginTop: "0.75rem",
         }}
       >
         {paths.map((path) => (

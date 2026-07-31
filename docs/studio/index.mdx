@@ -1,62 +1,125 @@
 ---
-title: "Take control of a project in Studio"
+title: "Work on a project in Studio"
 sidebarTitle: "Studio overview"
-description: "Watch the result, change what you can point at, and export a version."
+description: "Open a HyperFrames project, make visible changes, adjust timing and motion, and render a finished version."
 ---
 
-import { StudioTaskChooser } from "/snippets/studio-task-chooser.jsx"
-
-<Frame caption="One real project stays connected across the canvas, Inspector, playback, and timeline.">
+<Frame>
   <video
     className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
     src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-front-door-v1.mp4"
     poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-front-door-v1.jpg"
-    aria-label="A narrated tour of one real HyperFrames Studio project"
+    alt="A narrated tour of a real HyperFrames Studio project"
+    aria-label="A narrated tour of a real HyperFrames Studio project"
     controls
     playsInline
     preload="metadata"
   />
 </Frame>
 
-Open the project folder in Studio:
+Studio edits the same HTML project your agent created. Open the project folder:
 
 ```bash
 npx hyperframes preview
 ```
 
-## What do you want to change?
+Use the canvas for visible changes, the Inspector for exact properties, and the timeline for anything that happens over time.
 
-<StudioTaskChooser />
+## 1. Select the thing you want to change
 
-## Studio or agent?
+Pause on the relevant frame, then click the element on the canvas. A selected element gets an outline and handles. If several elements overlap, find the exact one in **Layers**.
 
-<div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
-  <div className="pl-4 border-l-2 border-green-500">
-    <strong>Use Studio when you can point at it</strong>
-    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-      “Move this title.” “Trim this clip.” “Make this caption easier to read.”
-    </p>
-  </div>
-  <div className="pl-4 border-l-2 border-zinc-300 dark:border-zinc-700">
-    <strong>Ask the agent when the story must change</strong>
-    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-      “Explain the product sooner.” “Add a new scene.” “Find different source material.”
-    </p>
-  </div>
-</div>
+<Frame>
+  <video
+    className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-design-loop-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-design-loop-v1.jpg"
+    alt="Selecting an element and changing it in HyperFrames Studio"
+    aria-label="Selecting an element and changing it in HyperFrames Studio"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+  />
+</Frame>
 
-## Finish a version
+With the element selected:
 
-<Steps>
-  <Step title="Watch it through">
-    Check the opening, final frame, and audio ending.
-  </Step>
-  <Step title="Run the check">
-    Fix a visible warning, or copy it to the agent when the source needs work.
-  </Step>
-  <Step title="Export a version">
-    Studio dates the file and keeps past renders in the queue. Watch the exported file once.
-  </Step>
-</Steps>
+- drag it on the canvas to move, resize, rotate, or crop it;
+- open **Design** to change text, layout, color, media, or other properties;
+- undo immediately when the result is not what you intended.
 
-[Browse the complete Studio manual →](/studio/tour) · [Export a version →](/studio/export)
+## 2. Fix when something happens
+
+Use the timeline when the right element appears at the wrong moment.
+
+<Frame>
+  <video
+    className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-timing-loop-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-timing-loop-v1.jpg"
+    alt="Adjusting clip timing in the HyperFrames Studio timeline"
+    aria-label="Adjusting clip timing in the HyperFrames Studio timeline"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+  />
+</Frame>
+
+- Drag a clip to move it earlier or later.
+- Drag an edge to change how long it remains.
+- Move the playhead through the surrounding cut before judging the change.
+- Use the razor only when one supported clip must become two.
+
+## 3. Adjust motion or replace media
+
+Select an element and open its motion controls to work with animation and keyframes. Diamonds on the timeline mark values at specific moments. Move the playhead to one, change the value, then play through the complete movement.
+
+For media, select the image, video, or audio element and replace its source from the Inspector or Assets. Recheck its crop, duration, and transition after replacement.
+
+<Frame>
+  <video
+    className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-motion-loop-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-motion-loop-v1.jpg"
+    alt="Editing animation and media in HyperFrames Studio"
+    aria-label="Editing animation and media in HyperFrames Studio"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+  />
+</Frame>
+
+## 4. Decide whether Studio is the right tool
+
+Use Studio for a change you can point at: wording, position, styling, media, timing, or one animation.
+
+Ask the agent when the change affects the story, several scenes, source research, or the project structure. Both edit the same project, so you can move between them without exporting or converting anything.
+
+## 5. Check and render the version
+
+Watch the complete project once. Pay particular attention to the opening, scene boundaries, captions, and audio ending. Run **Check** and fix visible problems before rendering.
+
+Open **Export**, choose the format and resolution required by the destination, and start the render. Watch the exported file itself before sharing it.
+
+<Frame>
+  <video
+    className="aspect-video w-full bg-zinc-100 object-cover dark:bg-zinc-900"
+    src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-export-loop-v1.mp4"
+    poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/studio-export-loop-v1.jpg"
+    alt="Checking and exporting a version from HyperFrames Studio"
+    aria-label="Checking and exporting a version from HyperFrames Studio"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+  />
+</Frame>
+
+Need one control in detail? Use the [workspace tour](/studio/tour), [canvas](/studio/canvas), [timeline](/studio/timeline), [animation](/studio/animation), or [export](/studio/export) reference.

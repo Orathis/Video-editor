@@ -1,26 +1,95 @@
 ---
-title: "Learn how HyperFrames works"
+title: "How a HyperFrames project works"
 sidebarTitle: "Overview"
-description: "The few ideas that make projects easier to understand, edit, and reuse."
+description: "Understand the project, composition, timing, variables, and rendering model behind every HyperFrames video."
 ---
 
-You can create and edit a project without learning its internals. These concepts are useful when you want to understand why a timeline behaves a certain way or communicate clearly with an agent.
+A HyperFrames project is a folder of HTML compositions, media, fonts, and project settings. The agent writes it, Studio or the SDK can edit it, and HyperFrames can play or render it frame by frame.
 
-<CardGroup cols={2}>
-  <Card title="Compositions" icon="layer-group" href="/concepts/compositions">
-    Understand how a complete video is assembled from scenes and timed elements.
-  </Card>
-  <Card title="Variables" icon="sliders" href="/concepts/variables">
-    Make text, colors, media, and other values easy to change or personalize.
-  </Card>
-  <Card title="Timing data" icon="clock" href="/concepts/data-attributes">
-    See how starts, durations, tracks, and project dimensions are represented.
-  </Card>
-  <Card title="Deterministic rendering" icon="repeat" href="/concepts/determinism">
-    Learn why the same project can render the same frame reliably.
-  </Card>
-</CardGroup>
+<div className="not-prose my-8 grid gap-3 sm:grid-cols-4">
+  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">1</div>
+    <div className="mt-2 font-medium">Request</div>
+    <div className="mt-1 text-sm text-zinc-500">What the video should accomplish.</div>
+  </div>
+  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">2</div>
+    <div className="mt-2 font-medium">Agent</div>
+    <div className="mt-1 text-sm text-zinc-500">
+      Writes the story, HTML, motion, and media plan.
+    </div>
+  </div>
+  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">3</div>
+    <div className="mt-2 font-medium">Project</div>
+    <div className="mt-1 text-sm text-zinc-500">Editable compositions and source files.</div>
+  </div>
+  <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">4</div>
+    <div className="mt-2 font-medium">Video</div>
+    <div className="mt-1 text-sm text-zinc-500">A deterministic render of the project.</div>
+  </div>
+</div>
 
-<Note>
-  Frame adapters and raw data attributes are implementation concepts. Read them when you are building custom motion or debugging a project, not as prerequisites for using Studio.
-</Note>
+## Project, composition, element
+
+The **project** is the complete working folder. It can contain several compositions, media files, narration, music, fonts, and rendered versions.
+
+A **composition** is one finite, seekable HTML page. It might be the complete video, one scene, a caption layer, or a reusable element nested inside another composition.
+
+An **element** is something inside a composition: text, a shape, an image, video, audio, or another composition.
+
+```text
+project
+├── index.html              complete video
+├── compositions/           scenes and reusable compositions
+├── assets/                 video, images, audio, and fonts
+└── renders/                finished files
+```
+
+## Time is written into the project
+
+Clips carry their start, duration, and track in HTML. That is why Studio, the Player, the SDK, and the renderer can all agree on what should exist at an exact moment.
+
+```html
+<img
+  id="product-shot"
+  class="clip"
+  data-start="2"
+  data-duration="3"
+  data-track-index="1"
+  src="./assets/product.png"
+/>
+```
+
+This image appears at two seconds, remains for three seconds, and sits on track one. Animation timelines are paused and seekable, so HyperFrames can request any frame without playing from the beginning.
+
+## Compositions make larger projects manageable
+
+A complete video can be one composition, but larger work is easier to understand when scenes or systems are separated. A title sequence, product demo, caption layer, and outro can each be built and checked independently, then assembled into the master composition.
+
+Nested compositions also make useful parts reusable. Change the source once and every place using that composition receives the update.
+
+## Variables separate content from design
+
+Variables expose values such as a title, color, image, price, or customer name without requiring someone to rewrite the layout. One authored composition can then produce several versions while preserving its design and motion.
+
+Use variables when the same structure should accept different approved inputs. Use a normal edit when the structure itself needs to change.
+
+## A render is a repeatable playback
+
+During rendering, HyperFrames seeks the project to an exact time, captures the frame, advances, and repeats. Media and audio follow the same timeline.
+
+For the same inputs and settings, the same timestamp should produce the same result. That is why compositions avoid the current clock, unseeded randomness, and render-time network requests.
+
+## Where each tool fits
+
+| Need                                     | Surface |
+| ---------------------------------------- | ------- |
+| Change the story or several source files | Agent   |
+| Make a visible or timing edit            | Studio  |
+| Query or edit a composition in code      | SDK     |
+| Embed and seek a live composition        | Player  |
+| Validate, preview, or render             | CLI     |
+
+Go deeper only when the task requires it: [compositions](/concepts/compositions), [variables](/concepts/variables), [timing attributes](/concepts/data-attributes), or [deterministic rendering](/concepts/determinism).
