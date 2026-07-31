@@ -416,14 +416,14 @@ class ProviderTests(unittest.TestCase):
                 "totalTokenCount": 13,
             },
         }
-        with (
-            self._stub_auth(),
-            mock.patch.object(
-                provider.urllib.request,
-                "urlopen",
-                return_value=StubResponse(body),
-            ) as transport,
-        ):
+        # Nested rather than a parenthesized with block: devbox runs Python
+        # 3.8 and cannot compile that syntax, which made this whole file
+        # unrunnable on the one machine the eval actually runs on.
+        with self._stub_auth(), mock.patch.object(
+            provider.urllib.request,
+            "urlopen",
+            return_value=StubResponse(body),
+        ) as transport:
             parsed, raw, usage, seconds = provider.chat(
                 "context",
                 provider.CHAT_MODEL,
