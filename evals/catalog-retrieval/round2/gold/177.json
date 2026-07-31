@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-grid"],
+  "acceptable": [],
+  "bad": ["transitions-light", "transitions-blur"],
+  "why_best": "Segmenting the frame into a coordinated visual pattern provides the polished, structured rhythm required for a tech-forward commercial presentation.",
+  "why_bad": "A generic full-screen fade would drain the kinetic energy, making the feature sequence feel passive and outdated.",
+  "trap": "A near-miss would stagger the individual element timing too loosely, creating visual clutter instead of a sleek, cohesive shift."
+}

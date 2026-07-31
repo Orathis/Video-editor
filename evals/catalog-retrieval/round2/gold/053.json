@@ -1,0 +1,8 @@
+{
+  "best": ["persona-card-fan"],
+  "acceptable": [],
+  "bad": ["orbit-ring-camera", "receipt-card"],
+  "why_best": "It introduces a growing list of visual choices inside a strict broadcast boundary while keeping the main presenter totally unobscured.",
+  "why_bad": "Horizontal scrolling or expanding linear lists would rapidly overflow the news layout and drown out the primary speaker.",
+  "trap": "A near-miss will mistakenly apply a dark tint to the background layers instead of letting natural shadows define the depth."
+}

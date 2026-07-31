@@ -1,0 +1,8 @@
+{
+  "best": ["fade-through"],
+  "acceptable": [],
+  "bad": ["zoom-through-transition", "frosted-glass-wipe"],
+  "why_best": "This visual reset signals a complete editorial pivot between major news segments while preserving the anchor team's calm, credible presence.",
+  "why_bad": "A direct hard cut or high-energy wipe would feel aggressive and disrupt the viewer's comprehension of the shift in topic.",
+  "trap": "A near-miss will cross-contaminate the visual content by blurring the outgoing and incoming headlines together simultaneously rather than resolving through a clean intermediate stage."
+}

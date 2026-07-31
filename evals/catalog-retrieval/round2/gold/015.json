@@ -1,0 +1,8 @@
+{
+  "best": ["state-chip-rail"],
+  "acceptable": [],
+  "bad": ["z-punch-through", "pill-row-collapse"],
+  "why_best": "This rhythmic sequential presentation gives enterprise viewers an instant, intuitive grasp of system progression and control.",
+  "why_bad": "A sudden screen wipe or erratic full-page shift would disrupt the logical order of operations and make the software feel unpredictable.",
+  "trap": "A near-miss will fail to establish a clear visual hierarchy between past, present, and future phases, confusing the viewer about where the live action currently sits."
+}

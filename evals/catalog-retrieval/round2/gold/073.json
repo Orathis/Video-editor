@@ -1,0 +1,8 @@
+{
+  "best": ["orbit-ring-camera"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "plan-room-audit"],
+  "why_best": "Grounding the audience in an energetic close-up before pulling back to reveal the complete operational map creates a clear and satisfying sense of scale.",
+  "why_bad": "Cutting straight to a flat overview deprives the moment of its momentum and turns a journey into a static diagram.",
+  "trap": "A careless build will rotate the text annotations along with the angled spatial geometry, destroying their readability mid-flight."
+}

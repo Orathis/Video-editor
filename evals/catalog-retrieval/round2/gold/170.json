@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-magnetic"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-portal"],
+  "why_best": "This subtle spatial feedback gives dense dashboard components an intuitive, tactile quality that enhances focus without interrupting data analysis.",
+  "why_bad": "A harsh, instantaneous state jump would break visual continuity and make the high-level metrics feel unpolished and rigid.",
+  "trap": "Allowing the visual influence to pull elements too far off-grid will compromise data readability and break the clean interface structure."
+}

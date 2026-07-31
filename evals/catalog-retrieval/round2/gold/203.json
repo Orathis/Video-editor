@@ -1,0 +1,8 @@
+{
+  "best": ["accordion"],
+  "acceptable": [],
+  "bad": ["collapsible", "item"],
+  "why_best": "It gives dense news stories room to breathe by letting viewers digest high-level summaries before opting into granular data.",
+  "why_bad": "A hard cut or abrupt pop-in would disrupt the viewer's mental map of the editorial hierarchy and feel like a glitch rather than an intentional drill-down.",
+  "trap": "A clumsy execution will blur the boundary line separating the header from the newly exposed material, making the layout look broken rather than structured."
+}

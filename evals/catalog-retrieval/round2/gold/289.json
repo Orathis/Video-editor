@@ -1,0 +1,8 @@
+{
+  "best": ["field"],
+  "acceptable": [],
+  "bad": ["radio", "checkbox"],
+  "why_best": "It cleanly binds contextual guidance and interaction space into a single visual anchor that builds confidence.",
+  "why_bad": "Treating the entry area and its explanatory elements as isolated floating pieces creates visual clutter and confuses hierarchy.",
+  "trap": "A near-miss would over-emphasize heavy border framing while suffocating the spatial breathing room between the heading and helper context."
+}

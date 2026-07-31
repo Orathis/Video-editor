@@ -1,0 +1,8 @@
+{
+  "best": ["halftone-dissolve"],
+  "acceptable": [],
+  "bad": ["transitions-dissolve", "transitions-radial"],
+  "why_best": "A stylized textural reveal elevates a routine screen change into a distinct visual event while maintaining structural flow.",
+  "why_bad": "A standard cross-fade or abrupt straight wipe feels uninspired and lacks the graphic flair required for this dynamic user journey.",
+  "trap": "Misjudging the scale of the expanding openings will make the pattern feel like distracting visual clutter rather than a clean, rhythmic reveal."
+}

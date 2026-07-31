@@ -1,0 +1,8 @@
+{
+  "best": ["lt-kicker-name"],
+  "acceptable": [],
+  "bad": ["lt-mask-reveal", "lt-dark-card"],
+  "why_best": "This approach grounds the subject's credentials directly over live footage without blocking key visual action or cluttering the frame with heavy background shapes.",
+  "why_bad": "Enclosing the typography in a solid box would obscure the footage and make the talent presentation feel like an overly intrusive broadcast news banner.",
+  "trap": "A near-miss will let the structural anchor line feel disconnected from the text block, causing the typography to look like it is drifting on top of the live video."
+}

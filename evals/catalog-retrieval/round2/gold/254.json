@@ -1,0 +1,8 @@
+{
+  "best": ["chart"],
+  "acceptable": [],
+  "bad": ["skeleton", "skeleton-block"],
+  "why_best": "A steady, ground-up vertical expansion visually translates raw corporate metrics into an unmistakable story of scale and comparative performance.",
+  "why_bad": "Spinning, flipping, or opacity-fading the elements would obscure the relative visual values and undermine the serious tone required for executive reporting.",
+  "trap": "A near-miss will overshoot the terminal heights or add elastic bounce, ruining the sense of strict mathematical precision."
+}

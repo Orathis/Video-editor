@@ -1,0 +1,8 @@
+{
+  "best": ["halftone-dissolve"],
+  "acceptable": [],
+  "bad": ["transitions-dissolve", "transitions-radial"],
+  "why_best": "Perforating the scene through a disciplined pattern maintains structural authority while softening a major context switch.",
+  "why_bad": "A sudden raw cut or heavy linear wipe creates visual fatigue and breaks the polished flow expected of executive-grade software.",
+  "trap": "Allowing the individual apertures to lose their strict geometric spacing during expansion makes the transition feel chaotic rather than engineered."
+}

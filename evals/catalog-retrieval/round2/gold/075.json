@@ -1,0 +1,8 @@
+{
+  "best": ["z-punch-through"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "focus-rack"],
+  "why_best": "This approach maintains continuous narrative velocity by using physical depth to bridge distinct brand states without breaking immersion.",
+  "why_bad": "A flat two-dimensional wipe or standard fade disrupts the spatial energy and feels too passive for a high-impact product reveal.",
+  "trap": "Failing to overlap the foreground exit with the background arrival, which leaves a brief dead window in the visual momentum."
+}

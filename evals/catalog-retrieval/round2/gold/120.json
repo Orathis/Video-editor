@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-context-menu"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-widgets"],
+  "why_best": "The soft refraction creates an immediate perception of visual depth and modern elegance ideal for high-end creative utilities.",
+  "why_bad": "A stark, solid pop-up card would slice through the backdrop violently, breaking the sense of an integrated environment.",
+  "trap": "An overly aggressive background blur will make the surface look like cheap translucent plastic rather than a clear refractive panel."
+}

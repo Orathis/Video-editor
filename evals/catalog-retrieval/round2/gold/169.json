@@ -1,0 +1,8 @@
+{
+  "best": ["code-shader-dissolve"],
+  "acceptable": [],
+  "bad": ["domain-warp-dissolve", "chromatic-radial-split"],
+  "why_best": "It instantly communicates an algorithmic, high-performance origin while guaranteeing total legibility the moment the visual lands.",
+  "why_bad": "A standard lateral wipe or gradual fade feels mundane and misses the chance to signal computational intelligence.",
+  "trap": "Over-extending the hot visual distortion past the arrival moment, which muddies the final text instead of letting it snap clean."
+}

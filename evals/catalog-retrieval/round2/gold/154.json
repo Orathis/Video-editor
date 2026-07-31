@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-widgets"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-context-menu"],
+  "why_best": "Stacking crisp, semi-translucent analytical surfaces over a continuously evolving color field establishes an elegant sense of dimension that makes abstract metrics feel physical and refined.",
+  "why_bad": "A rigid, high-contrast flat layout with solid backgrounds would strip away the atmospheric depth, turning a fluid creative environment into an uninspired corporate dashboard.",
+  "trap": "Making the floating containers too transparent, causing the underlying color movement to bleed through so heavily that text readability is compromised."
+}

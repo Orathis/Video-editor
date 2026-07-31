@@ -1,0 +1,8 @@
+{
+  "best": ["button-group"],
+  "acceptable": [],
+  "bad": ["native-select", "toggle"],
+  "why_best": "Seamlessly shifting focus across contiguous choices gives the viewer an immediate, tactile understanding of the interface's responsiveness without breaking visual rhythm.",
+  "why_bad": "Abruptly popping the selection into existence without a unified structural baseline undermines the polished, premium feel of the product showcase.",
+  "trap": "A weak execution would let the surrounding container distort or jitter during the highlight transition instead of staying rock-solid."
+}

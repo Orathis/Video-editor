@@ -1,0 +1,8 @@
+{
+  "best": ["lt-clean-bar"],
+  "acceptable": [],
+  "bad": ["lt-soft-pill", "lt-dark-card"],
+  "why_best": "A swift, edge-aligned presentation grounds speaker identity instantly without competing with their facial performance.",
+  "why_bad": "A heavy, full-screen graphic or aggressive visual entrance would hijack audience attention away from the speaker's message.",
+  "trap": "Dismissing the graphic prematurely before viewers can comfortably read both the speaker's name and full title."
+}

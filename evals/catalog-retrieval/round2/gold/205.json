@@ -1,0 +1,8 @@
+{
+  "best": ["camera-rig-depth-stack"],
+  "acceptable": [],
+  "bad": ["keyframe-scrub-stack", "svg-line-draw-loader"],
+  "why_best": "It naturally directs user focus across dense content by using physical dimensional weight rather than jarring flat transitions.",
+  "why_bad": "A simple flat sliding effect or quick fade would strip away spatial context and make the structural relationship between screens feel disjointed.",
+  "trap": "A near-miss will blur background elements so aggressively that the viewer loses all sense of placement within the overall hierarchy."
+}

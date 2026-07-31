@@ -1,0 +1,8 @@
+{
+  "best": ["chevron-pill-card-morph"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "button-group"],
+  "why_best": "Sustaining a single evolving interface element keeps the user mentally anchored while moving them swiftly from search to decision.",
+  "why_bad": "Dissolving or swapping separate layouts breaks visual continuity, making the transaction feel like an intrusive secondary screen.",
+  "trap": "A near-miss will execute the spatial expansion in rigid sequential steps instead of letting the vertical and horizontal structural shifts overlap naturally."
+}

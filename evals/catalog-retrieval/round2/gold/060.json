@@ -1,0 +1,8 @@
+{
+  "best": ["grade-split-reveal"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "match-cut"],
+  "why_best": "Anchoring the raw and polished states side-by-side proves the software's artistic impact instantly before committing to the full-frame result.",
+  "why_bad": "A simple crossfade conceals the exact threshold of enhancement, making the visual elevation feel like a trick rather than a tangible improvement.",
+  "trap": "Rushing through the mid-screen comparison deprives the viewer of the critical pause needed to inspect detail."
+}

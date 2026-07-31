@@ -1,0 +1,8 @@
+{
+  "best": ["caliper-caption-rail"],
+  "acceptable": [],
+  "bad": ["plan-room-audit", "chevron-pill-card-morph"],
+  "why_best": "Binding the typography directly against the device chassis visually reinforces the extreme thinness of the hardware by turning the headline itself into an exact physical dimension.",
+  "why_bad": "Leaving the copy floating loosely in empty space alongside the product weakens the technical story, reducing a bold engineering claim to a generic floating subtitle.",
+  "trap": "A near-miss will leave too much empty space between the type and the handset edge, treating the graphic like an external callout rather than a physical measurement bonded to the surface."
+}

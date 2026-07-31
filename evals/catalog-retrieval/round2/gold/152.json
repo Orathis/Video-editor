@@ -1,0 +1,8 @@
+{
+  "best": ["lt-mask-reveal"],
+  "acceptable": [],
+  "bad": ["lt-kicker-name", "lt-accent-underline"],
+  "why_best": "It establishes immediate corporate hierarchy without cluttering the screen with unnecessary background containers or heavy geometry.",
+  "why_bad": "A solid block slide-in would feel overly broadcast-heavy and obscure critical background metrics behind opaque paneling.",
+  "trap": "A near-miss would desynchronize the trailing text emergence from the leading edge, making the secondary details look like an accidental afterthought rather than a coordinated system event."
+}

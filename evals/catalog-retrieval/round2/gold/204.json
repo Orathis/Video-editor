@@ -1,0 +1,8 @@
+{
+  "best": ["oversized-cursor"],
+  "acceptable": [],
+  "bad": ["touch-indicator", "cursor-glyph-trail"],
+  "why_best": "An exaggerated visual indicator instantly clarifies human agency in a complex developer environment without leaving clutter behind.",
+  "why_bad": "Relying on subtle element highlights alone risks losing the viewer's attention in a high-density layout where active engagement needs to be explicit.",
+  "trap": "A common flaw is lingering over the target after contact, obscuring the critical visual feedback state produced by the action."
+}

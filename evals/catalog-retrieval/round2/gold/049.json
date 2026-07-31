@@ -1,0 +1,8 @@
+{
+  "best": ["version-plate-type"],
+  "acceptable": [],
+  "bad": ["glyph-ring-assemble", "match-cut"],
+  "why_best": "It establishes a tactile, editor-driven rhythm by contrasting raw print assembly with asynchronous digital layout manipulation.",
+  "why_bad": "Using a standard camera zoom or symmetrical scale would erase the hands-on graphic design aesthetic and make the motion feel automated.",
+  "trap": "A flawed execution will scale the visual container proportionally on both axes instead of driving width and height independently."
+}

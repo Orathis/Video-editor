@@ -1,0 +1,8 @@
+{
+  "best": ["glitch"],
+  "acceptable": [],
+  "bad": ["thermal-distortion", "swirl-vortex"],
+  "why_best": "It aggressively commands attention during critical narrative shifts, giving the promotional material a sharp, cutting-edge vitality.",
+  "why_bad": "A soft dissolve or fluid wipe would undermine the urgent, tech-forward momentum and make the brand feel passive.",
+  "trap": "Overloading the visual noise so heavily or for so long that it reads as an accidental system failure rather than an intentional stylized beat."
+}

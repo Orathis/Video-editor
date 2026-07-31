@@ -1,0 +1,8 @@
+{
+  "best": ["input-feedback"],
+  "acceptable": [],
+  "bad": ["page-slide", "text-state-swap"],
+  "why_best": "It creates an immediate tactile distinction between user error and system validation within a high-density tool layout.",
+  "why_bad": "A static color swap or passive pop-up fails to deliver the urgent visual friction required for instant error recognition.",
+  "trap": "Over-exaggerating the rejection movement will make the tool feel broken or hostile rather than precise and supportive."
+}

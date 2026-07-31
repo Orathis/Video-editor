@@ -1,0 +1,8 @@
+{
+  "best": ["before-after-wipe"],
+  "acceptable": [],
+  "bad": ["comparison-split", "iris-reveal"],
+  "why_best": "This approach delivers undeniable proof of technical transformation by allowing simultaneous visual evaluation of both legacy and upgraded states.",
+  "why_bad": "Replacing the frame entirely or fading between views forces developers to rely on memory rather than direct visual comparison.",
+  "trap": "Extending the reveal completely off screen leaves only one state visible, nullifying the side-by-side context entirely."
+}

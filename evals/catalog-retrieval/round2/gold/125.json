@@ -1,0 +1,8 @@
+{
+  "best": ["macos-notification"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "It introduces immediate real-time urgency by leveraging the subconscious familiarity of modern personal desktop alerts over live media.",
+  "why_bad": "Using a traditional full-width news lower-third would erase the private, direct-message context that drives this editorial beat.",
+  "trap": "A near-miss will feel like a clunky website ad rather than mimicking the refined, translucent finish of a native operating system panel."
+}

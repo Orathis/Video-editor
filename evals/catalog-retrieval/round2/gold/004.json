@@ -1,0 +1,8 @@
+{
+  "best": ["press-ripple"],
+  "acceptable": [],
+  "bad": ["halftone-dissolve", "oversized-cursor"],
+  "why_best": "It transforms a basic functional click into a tangible moment of payoff, matching the tactile feedback expected from professional creative tools.",
+  "why_bad": "An instantaneous, flat visual toggle would make the action feel weightless and unconsidered, failing to mark a pivotal moment of intent.",
+  "trap": "A flawed execution will allow the radiating energy wave to dissipate too quickly, stripping the interaction of its sense of weight and resonance."
+}

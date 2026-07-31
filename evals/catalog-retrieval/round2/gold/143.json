@@ -1,0 +1,8 @@
+{
+  "best": ["world-map"],
+  "acceptable": [],
+  "bad": ["spain-map", "us-map"],
+  "why_best": "This progressive regional visual sequence gives high-density international reporting immediate clarity and editorial authority within a portrait-oriented broadcast window.",
+  "why_bad": "A static full-canvas display would instantly overload mobile viewers with unranked visual noise rather than steering them through the overarching story.",
+  "trap": "A flawed execution will crowd the tall frame by letting callout popups obscure neighboring territories during the sequential highlight phase."
+}

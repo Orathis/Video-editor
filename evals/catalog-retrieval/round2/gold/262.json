@@ -1,0 +1,8 @@
+{
+  "best": ["collapsible"],
+  "acceptable": [],
+  "bad": ["carousel", "accordion"],
+  "why_best": "It preserves the creator's mental flow by dynamically balancing visual minimalism with immediate access to deep settings.",
+  "why_bad": "Instantly snapping elements into existence disrupts spatial awareness and causes uncomfortable visual jarring across the layout.",
+  "trap": "Failing to synchronize the surrounding containers, causing distracting layout jitter as the surface expands."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["grade-split-reveal"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "match-cut"],
+  "why_best": "This beat builds instant consumer trust by demonstrating tangible quality improvements through direct contrast before settling on the finished result.",
+  "why_bad": "A simple cross-dissolve or sudden cut hides the process of enhancement, making the upgrade feel arbitrary rather than earned.",
+  "trap": "A weak execution will rush past the mid-frame rest, depriving the audience of the moment where the quality difference actually lands."
+}

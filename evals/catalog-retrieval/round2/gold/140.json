@@ -1,0 +1,8 @@
+{
+  "best": ["ios26-liquid-glass"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-context-menu"],
+  "why_best": "It bridges abstract UI concepts with tangible physical hardware, giving executive audiences an immediate sense of tactile luxury and technical sophistication.",
+  "why_bad": "A flat, two-dimensional presentation of the interface would feel like a standard wireframe, stripping away the visual prestige required for high-stakes executive visual beats.",
+  "trap": "A common failure point is treating the dynamic surface materials as opaque overlays, which destroys the realistic light transmission passing through the interface layers."
+}

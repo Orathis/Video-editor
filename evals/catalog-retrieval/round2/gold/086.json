@@ -1,0 +1,8 @@
+{
+  "best": ["marker-highlight"],
+  "acceptable": [],
+  "bad": ["receipt-card", "whiteboard-ink"],
+  "why_best": "Adding a tactile accent to a sleek enterprise dashboard instantly signals strategic focus without sacrificing professional legibility.",
+  "why_bad": "Aggressive scaling or neon blinking would make the corporate dashboard look like a consumer ad rather than an authoritative intelligence tool.",
+  "trap": "A near-miss will initiate the secondary accent gesture before the surrounding statement has fully settled, muddying reading order."
+}

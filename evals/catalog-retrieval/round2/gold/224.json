@@ -1,0 +1,8 @@
+{
+  "best": ["beat-pulse-background"],
+  "acceptable": [],
+  "bad": ["beat-accent", "aurora-drift"],
+  "why_best": "Anchoring the background's chromatic radiance to an underlying temporal cadence establishes focus and energy without cluttering the high-density dashboard.",
+  "why_bad": "Relying on sweeping foreground motion or invasive object transitions would disrupt data readability and breach the professional composure required for an executive view.",
+  "trap": "A near-miss will turn the smooth, synchronized rise of ambient light into a chaotic strobe or a harsh alarm-like flash."
+}

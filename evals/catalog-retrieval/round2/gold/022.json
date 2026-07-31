@@ -1,0 +1,8 @@
+{
+  "best": ["whiteboard-ink"],
+  "acceptable": [],
+  "bad": ["marker-highlight", "svg-line-draw-loader"],
+  "why_best": "Unfolding a graphic line by line mirrors human problem-solving, making creative software feel immediate, organic, and intelligent.",
+  "why_bad": "Simply dropping in a fully rendered asset destroys the sense of real-time ideation that defines a collaborative workspace.",
+  "trap": "A weak attempt will rush the progressive construction so quickly that it reads like an artificial loader rather than a genuine creative act."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["item"],
+  "acceptable": [],
+  "bad": ["select-item", "registry"],
+  "why_best": "This disciplined approach emphasizes functional clarity, ensuring technical users can scan dense interfaces without visual fatigue.",
+  "why_bad": "Introducing sweeping entrance motions or dramatic color shifts would disrupt the utility-first mindset required for high-efficiency workspaces.",
+  "trap": "A minor misstep would be letting the peripheral outline blur or soften, destroying the crisp definition expected in developer tooling."
+}

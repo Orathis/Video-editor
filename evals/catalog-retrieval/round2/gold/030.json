@@ -1,0 +1,8 @@
+{
+  "best": ["chevron-pill-card-morph"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "button-group"],
+  "why_best": "This seamless, single-surface expansion maintains uninterrupted focus, visually reassuring the viewer that their typed intent directly produced the final payment state.",
+  "why_bad": "Fading out the input chip and cross-dissolving into a separate overlay breaks spatial memory and makes the checkout flow feel disorienting and disjointed.",
+  "trap": "A common failure is waiting for the horizontal stretch to completely finish before starting the vertical expansion, which breaks the dynamic fluid feel and exposes the transition as a multi-step sequence."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["reddit-post"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "Grounding complex engineering tools in genuine user discussion instantly validates technical utility with authentic social proof.",
+  "why_bad": "A glossy, heavily stylized promo motion would feel out of place in a functional software demonstration and ruin the visual authenticity.",
+  "trap": "Exaggerating the visual hierarchy of the engagement metrics, which turns a subtle proof-point into a distracting marketing graphic."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["scroll-feed"],
+  "acceptable": [],
+  "bad": ["swipe-rail", "headline-slam"],
+  "why_best": "This continuous vertical momentum immediately communicates infinite digital depth and high-velocity engagement.",
+  "why_bad": "A slow, elegant fade or static multi-panel layout would communicate deliberate editorial curation rather than compulsive real-time consumption.",
+  "trap": "A near-miss will introduce abrupt complete stops on individual layout blocks, destroying the relentless kinetic pressure required for the beat."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-iphone-device"],
+  "acceptable": [],
+  "bad": ["macos-tahoe-liquid-glass", "ios26-liquid-glass"],
+  "why_best": "This fluid spatial sweep delivers an authoritative editorial overview while maintaining high visual polish appropriate for a prime-time tech segment.",
+  "why_bad": "A static slide or flat two-dimensional layout would flatten the premium tactile depth and fail to command authority in a modern news broadcast.",
+  "trap": "A common pitfall is swinging the vantage point so rapidly that the display telemetry becomes an unreadable blur."
+}

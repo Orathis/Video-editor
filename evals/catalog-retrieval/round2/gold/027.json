@@ -1,0 +1,8 @@
+{
+  "best": ["caption-camera-follow"],
+  "acceptable": [],
+  "bad": ["kinetic-type-swap", "glyph-ring-assemble"],
+  "why_best": "This approach continually re-anchors the viewer's focus while visually demonstrating the growing scope of the narrative.",
+  "why_bad": "A static framing with shrinking text would feel cheap and diminish the punch of each newly delivered word.",
+  "trap": "A near-miss would feature jarring step-changes in framing instead of an uninterrupted, continuous pull."
+}

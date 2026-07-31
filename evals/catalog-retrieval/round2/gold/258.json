@@ -1,0 +1,8 @@
+{
+  "best": ["scan-band"],
+  "acceptable": [],
+  "bad": ["svg-mask-reveal", "text-shimmer"],
+  "why_best": "It provides a momentary burst of technical texture and active status without obscuring the core visual identity or interrupting the utility-first workflow.",
+  "why_bad": "A continuous flickering glitch or persistent animated background would create visual fatigue and distract developers from reading critical screen data.",
+  "trap": "A near-miss will let the color bleeding leak outside the traveling highlight zone instead of keeping the chromatic separation strictly isolated within the passing highlight edge."
+}

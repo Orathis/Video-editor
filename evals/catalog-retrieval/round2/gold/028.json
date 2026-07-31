@@ -1,0 +1,8 @@
+{
+  "best": ["persona-card-fan"],
+  "acceptable": [],
+  "bad": ["orbit-ring-camera", "receipt-card"],
+  "why_best": "It gives full spotlight to the active feature while preserving a neat visual index of previous selections beside the speaker.",
+  "why_bad": "Replacing items completely or sliding them off-screen destroys the impression of a rich catalog and forces the viewer to rely on memory.",
+  "trap": "Setting fixed spacing steps for receding elements rather than anchoring the rear boundary will cause the group to push into the presenter's frame."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-novel"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-silver-aerogel", "code-snippet-apple-terminal-grass"],
+  "why_best": "Sequential character progression matches the editorial pacing of a news graphic while honoring the literary tone.",
+  "why_bad": "Dropping the entire code block onto the frame instantly destroys the sense of an unfolding narrative and overpowers a vertical layout.",
+  "trap": "A near-miss will accelerate the cadence into a jarring, machine-like flicker that prevents the viewer from reading along."
+}

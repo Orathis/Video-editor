@@ -1,0 +1,8 @@
+{
+  "best": ["match-cut"],
+  "acceptable": [],
+  "bad": ["grade-split-reveal", "marker-highlight"],
+  "why_best": "This approach maintains high narrative velocity while establishing a direct visual link between the call-to-action and its eventual outcome.",
+  "why_bad": "A slow cross-dissolve or spatial wipe would muddy the visual hierarchy and feel sluggish for a high-impact marketing reveal.",
+  "trap": "Failing to align the incoming focal shape's size and center point precisely at the instant of the scene swap will cause a jarring jump that destroys the illusion."
+}

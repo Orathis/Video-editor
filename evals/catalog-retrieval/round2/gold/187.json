@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-red-sands"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-ocean", "code-snippet-apple-terminal-solid-colors"],
+  "why_best": "It delivers immediate technical credibility through a warm, iconic console aesthetic that feels both authentic and visually striking.",
+  "why_bad": "A generic modern application window would strip away the raw, tactile feel of hand-crafted command line authorship.",
+  "trap": "Setting the textual reveal to an instant block drop or defaulting to standard high-contrast matrix colors instead of the distinct warm palette."
+}

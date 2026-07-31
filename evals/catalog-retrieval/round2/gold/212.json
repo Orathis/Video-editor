@@ -1,0 +1,8 @@
+{
+  "best": ["morph-text"],
+  "acceptable": [],
+  "bad": ["motion-blur", "blur-in"],
+  "why_best": "Seamlessly melting one key term into another visually reinforces the platform's ability to effortlessly synthesize complex, shifting information into a single unified stream.",
+  "why_bad": "A sudden slide or hard jump cut between terms would feel disjointed and cheapen the dashboard's modern, high-touch data narrative.",
+  "trap": "Over-softening the shapes during the shift will make the typography unreadable, muddying the corporate messaging into unrecognizable blobs."
+}

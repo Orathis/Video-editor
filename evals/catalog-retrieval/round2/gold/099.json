@@ -1,0 +1,8 @@
+{
+  "best": ["version-plate-type"],
+  "acceptable": [],
+  "bad": ["glyph-ring-assemble", "match-cut"],
+  "why_best": "Directing the layout through independent boundary adjustments creates a visceral, interface-driven momentum that highlights precise dynamic control.",
+  "why_bad": "Treating this moment with a uniform camera scaling effect would shrink both dimensions equally, destroying the punchy graphic tension.",
+  "trap": "A near-miss will scale the horizontal and vertical dimensions together, missing the single-axis adjustments that give the graphic container its distinct editor-driven feel."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["hover-card"],
+  "acceptable": [],
+  "bad": ["tooltip", "popover"],
+  "why_best": "Anchoring the dimensional expansion directly to the viewer's point of engagement maintains seamless cognitive continuity while delivering a refined, high-touch experience.",
+  "why_bad": "A rigid, center-stage modal pop-up would abruptly sever the browsing momentum and destroy the sense of lightweight discovery.",
+  "trap": "A near-miss will default to an arbitrary center-origin expansion, instantly breaking the physical illusion that the content is sprouting directly from the target."
+}

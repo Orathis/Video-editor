@@ -1,0 +1,8 @@
+{
+  "best": ["marker-highlight"],
+  "acceptable": [],
+  "bad": ["receipt-card", "whiteboard-ink"],
+  "why_best": "An organic overlay brings human intention to the visual field, instantly directing focus to the core value proposition.",
+  "why_bad": "Fading or flashing the word itself breaks the typographic flow and feels like a technical glitch rather than an intentional note.",
+  "trap": "Revealing the accent before the audience has time to parse the full line will destroy the reading cadence."
+}

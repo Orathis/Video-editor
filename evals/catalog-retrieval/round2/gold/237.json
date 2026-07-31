@@ -1,0 +1,8 @@
+{
+  "best": ["breadcrumb"],
+  "acceptable": [],
+  "bad": ["pagination", "cursor"],
+  "why_best": "It demonstrates product clarity and spatial orientation in marketing collateral without overwhelming the viewer with dense UI clutter.",
+  "why_bad": "A dramatic full-screen transition would obscure the broader system context and make subtle navigational clarity feel overly aggressive.",
+  "trap": "Giving intermediate visual links the same contrast as the destination point, destroying the clear visual hierarchy."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["inline-highlight"],
+  "acceptable": [],
+  "bad": ["caption-highlight", "caption-parallax-layers"],
+  "why_best": "It elevates critical copy instantly without distorting the layout or competing with adjacent data visualizers.",
+  "why_bad": "A dramatic full-card scale or aggressive flashing element would disrupt reading momentum and compromise the professional tone of the interface.",
+  "trap": "Allowing the color layer to sit above the typography during its reveal, which temporarily obscures text legibility."
+}

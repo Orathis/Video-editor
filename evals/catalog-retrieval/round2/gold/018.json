@@ -1,0 +1,8 @@
+{
+  "best": ["plan-room-audit"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "persona-card-fan"],
+  "why_best": "Overlapping the spatial alignment phase with the step-by-step room verification maintains narrative velocity while keeping each data point cleanly legible.",
+  "why_bad": "Holding a completely static diagram on screen while reciting numbers aloud kills viewer engagement and looks like a raw placeholder graphic.",
+  "trap": "A common mistake is waiting for the rotation to completely stop before initiating callouts, which wastes screen time and disrupts fluid pacing."
+}

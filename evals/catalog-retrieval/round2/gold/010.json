@@ -1,0 +1,8 @@
+{
+  "best": ["grade-split-reveal"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "match-cut"],
+  "why_best": "This visual progression instantly validates the platform's processing power by letting users directly weigh raw capture against polished output.",
+  "why_bad": "A standard dissolve or instant pop would obscure the craftsmanship, making the enhancement feel like a cheap preset rather than a deliberate transformation.",
+  "trap": "Rushing past the central pause will ruin the moment of evaluation, depriving the viewer of the necessary beat to appreciate the contrast."
+}

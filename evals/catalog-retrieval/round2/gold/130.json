@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-clear-dark"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-clear-light", "code-snippet-apple-terminal-silver-aerogel"],
+  "why_best": "Mimicking the organic cadence of live creation grounds the showcase in an authentic, highly focused experience.",
+  "why_bad": "Instantly flashing full blocks of text on screen destroys the sense of active craftsmanship and flattens the motion into a static read.",
+  "trap": "A careless execution would render the workspace background completely solid, losing the subtle atmospheric depth of the visual environment behind it."
+}

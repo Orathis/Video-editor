@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-dark-2026"],
+  "acceptable": [],
+  "bad": ["code-snippet-dark-plus", "code-snippet-dark-modern"],
+  "why_best": "Grounding the visual narrative in a realistic authoring environment instantly establishes technical credibility with a specialized audience.",
+  "why_bad": "Replacing the structured workspace with stylized abstract graphics would obscure real utility and feel disconnected from real craft.",
+  "trap": "Pacing the live generation too uniformly, which makes the automated creation look synthetic rather than human-driven."
+}

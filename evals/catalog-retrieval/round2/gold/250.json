@@ -1,0 +1,8 @@
+{
+  "best": ["card"],
+  "acceptable": [],
+  "bad": ["hover-card", "badge"],
+  "why_best": "This restrained, luminous arrival mirrors the reflective moment a creator experiences when a render or export successfully finishes.",
+  "why_bad": "An overly aggressive slide or jarring pop-in would shatter the studio's calm atmosphere and make a high-end authoring tool feel like a noisy web dashboard.",
+  "trap": "A near-miss will let the final interactive trigger draw attention too early instead of letting the eye travel naturally from top header down to the resolution."
+}

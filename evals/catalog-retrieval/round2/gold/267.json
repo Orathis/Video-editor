@@ -1,0 +1,8 @@
+{
+  "best": ["constellation-hub"],
+  "acceptable": [],
+  "bad": ["locked-nucleus-orbit", "svg-stroke-trace"],
+  "why_best": "It visually constructs an ecosystem step-by-step, linking each narrative beat to a central core so the visual hierarchy mirrors the product story.",
+  "why_bad": "Fading in all surrounding elements simultaneously would scatter the viewer's attention and flatten the narrative progression into static clutter.",
+  "trap": "Revealing outer points before their linking pathways actually reach them breaks the illusion of energy radiating from the origin."
+}

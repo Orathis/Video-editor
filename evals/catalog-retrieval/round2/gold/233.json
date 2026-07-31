@@ -1,0 +1,8 @@
+{
+  "best": ["stop-motion-cadence"],
+  "acceptable": [],
+  "bad": ["typed-prompt", "code-terminal-run"],
+  "why_best": "Staccato, tactile motion gives high-density editorial graphics an authoritative physical weight that demands viewer focus in vertical feeds.",
+  "why_bad": "Ultra-smooth digital interpolations would flatten the artisanal character, turning an impactful editorial statement into generic broadcast filler.",
+  "trap": "A weak execution will smooth out the subtle edge vibration during quiet moments, causing the visual elements to feel frozen and lifeless rather than handcrafted."
+}

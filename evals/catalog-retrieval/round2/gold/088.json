@@ -1,0 +1,8 @@
+{
+  "best": ["receipt-card"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "marker-highlight"],
+  "why_best": "This sequence establishes dramatic editorial weight, holds kinetic energy during the read, and delivers instant punch without distracting motion.",
+  "why_bad": "Animating a wipe or stroke across the text pulls focus toward the mechanics of the reveal rather than landing the statement with immediate authority.",
+  "trap": "A near-miss will mistakenly wipe the accent color left-to-right across the passage instead of shifting the entire highlighted region all at once."
+}

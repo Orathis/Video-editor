@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-clear-light"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-clear-dark", "code-snippet-apple-terminal-grass"],
+  "why_best": "Grounding the presentation in a realistic, refined command-line context instantly builds trust with a technical audience while maintaining a high-end visual standard.",
+  "why_bad": "Using a high-contrast, dark matrix-style visual would feel clich\u00e9 and overly aggressive for a refined product presentation.",
+  "trap": "A weak execution would render the window fully opaque, losing the subtle frosted glass depth that connects the workspace to the broader composition."
+}

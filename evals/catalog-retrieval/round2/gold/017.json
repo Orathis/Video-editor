@@ -1,0 +1,8 @@
+{
+  "best": ["halftone-dissolve"],
+  "acceptable": [],
+  "bad": ["transitions-dissolve", "transitions-radial"],
+  "why_best": "It channels classic print-journalism heritage into a crisp digital broadcast visual language, elevating a routine segment change into an authoritative editorial statement.",
+  "why_bad": "A conventional soft crossfade would feel atmospheric and unconsidered, completely failing to reinforce the structured, objective tone required for broadcast reporting.",
+  "trap": "Treating the graphic perforations as mere colored overlay dots rather than functional apertures that reveal the destination visual within."
+}

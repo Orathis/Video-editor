@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-text-cursor"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-portal"],
+  "why_best": "This punchy, high-contrast emergence commands immediate focus while honoring the technical, line-by-line precision essential to a developer environment.",
+  "why_bad": "A soft, gradual cross-fade would destroy the sense of active command execution and render the message passive and dull.",
+  "trap": "A near-miss will let the prismatic color fringing bleed too heavily over the letterforms, rendering the actual text illegible."
+}

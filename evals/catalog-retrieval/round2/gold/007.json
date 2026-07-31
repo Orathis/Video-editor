@@ -1,0 +1,8 @@
+{
+  "best": ["echo-trail"],
+  "acceptable": [],
+  "bad": ["cursor-glyph-trail", "offset-path-traveler"],
+  "why_best": "It explicitly visualizes spatial trajectory and speed while keeping the final layout pristine and focused.",
+  "why_bad": "A static slide or simple linear glide lacks the visual weight required to emphasize the path taken, making the arrival feel abrupt rather than earned.",
+  "trap": "Allowing the lingering visual remnants to persist or dissolve independently after stopping rather than folding back into the main shape upon arrival."
+}

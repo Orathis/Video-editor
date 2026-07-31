@@ -1,0 +1,8 @@
+{
+  "best": ["arc-motion-path"],
+  "acceptable": [],
+  "bad": ["bezier-callout-route", "orbital-feature-path"],
+  "why_best": "A sweeping, self-orienting traversal cleanly bridges distant visual anchors in portrait broadcast formats without feeling rigid or blocking central content.",
+  "why_bad": "A direct linear slide feels clinical and robotic, cutting abruptly across the frame rather than drawing the viewer's eye naturally through the visual hierarchy.",
+  "trap": "Failing to tilt the graphic along its traveling angle causes the element to feel like a disconnected sticker drifting awkwardly across the shot."
+}

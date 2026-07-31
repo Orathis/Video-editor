@@ -1,0 +1,8 @@
+{
+  "best": ["lt-color-block"],
+  "acceptable": [],
+  "bad": ["lt-bold-block", "lt-side-rule"],
+  "why_best": "This punchy, high-impact arrival creates an instant visual hierarchy that matches the fast-paced, authoritative tone of a live broadcast.",
+  "why_bad": "A slow, delicate fade would feel passive and get swallowed by the energetic pace of the surrounding broadcast.",
+  "trap": "A sloppy execution will let the text elements reveal before the supporting graphical layer has fully settled into position."
+}

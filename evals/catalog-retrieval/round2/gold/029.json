@@ -1,0 +1,8 @@
+{
+  "best": ["press-ripple"],
+  "acceptable": [],
+  "bad": ["halftone-dissolve", "oversized-cursor"],
+  "why_best": "It bridges the gap between passive observation and decisive user action, giving the interface state change a clear physical trigger.",
+  "why_bad": "A sudden static pop or simple tint change without a physical trigger would make the system update feel unprompted and easy to miss.",
+  "trap": "Retracting the directing pointer before the activation energy fully expands breaks the illusion of physical cause and effect."
+}

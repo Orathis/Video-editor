@@ -1,0 +1,8 @@
+{
+  "best": ["macos-tahoe-liquid-glass"],
+  "acceptable": [],
+  "bad": ["vfx-liquid-glass", "vfx-iphone-device"],
+  "why_best": "A sweeping dimensional dynamic underscores the depth and material quality of the visual shaders without feeling hyperactive.",
+  "why_bad": "A static frontal framing flattened into two dimensions would completely erase the dimensional depth and subtle light refraction that define this showcase.",
+  "trap": "A near-miss would over-rotate past the primary focal plane, blurring the crisp legibility of the core window text."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["context-menu"],
+  "acceptable": [],
+  "bad": ["dropdown-menu", "command-menu-item"],
+  "why_best": "This spatial beat grounds expert-level control directly at the focal point, honoring the speed and flow state essential to high-end creative tools.",
+  "why_bad": "A centered modal window or static workspace panel forces unnecessary eye travel and severs the direct connection to the element being manipulated.",
+  "trap": "A subtle mistake would be floating the panel away from its origin anchor, making the reveal feel disconnected from the precise point of interaction."
+}

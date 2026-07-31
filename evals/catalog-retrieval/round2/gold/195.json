@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-solid-colors"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-ocean", "code-snippet-apple-terminal-basic"],
+  "why_best": "This organic pacing mirrors the authentic rhythm of an engineer at work, making the product feel grounded, functional, and instantly recognizable to technical decision-makers.",
+  "why_bad": "Slapping static blocks of text onto the screen all at once destroys the sense of active progress and leaves the scene feeling like a flat presentation slide rather than a live system.",
+  "trap": "A weak attempt will make the character reveal feel like a mechanical robotic stream instead of mimicking human thought and keystroke cadence."
+}

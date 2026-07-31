@@ -1,0 +1,8 @@
+{
+  "best": ["soft-blur-in"],
+  "acceptable": [],
+  "bad": ["focus-blur-resolve", "typewriter"],
+  "why_best": "This approach builds anticipation while maintaining an elevated, premium tone that respects the viewer's attention.",
+  "why_bad": "A hard, sudden entrance would break the luxurious mood and feel overly aggressive for a high-end brand presentation.",
+  "trap": "A common mistake is letting the element drift too far across the screen, turning a subtle focus adjustment into a distracting slide."
+}

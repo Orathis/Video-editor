@@ -1,0 +1,8 @@
+{
+  "best": ["browser-device-stage"],
+  "acceptable": [],
+  "bad": ["ui-focus-zoom", "device-frame-stage"],
+  "why_best": "Framing the tooling within a canonical digital viewport immediately communicates where this software lives without cluttering the screen with unnecessary context.",
+  "why_bad": "Floating bare UI components directly over abstract backgrounds strips away spatial context, making complex technical interactions feel ungrounded and confusing.",
+  "trap": "A weak execution would let the surrounding container overshadow the interior viewport content, stealing visual priority from the actual workflow being demonstrated."
+}

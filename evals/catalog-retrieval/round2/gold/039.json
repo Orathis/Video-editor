@@ -1,0 +1,8 @@
+{
+  "best": ["thread-message-stack"],
+  "acceptable": [],
+  "bad": ["rank-list-settle", "browser-flow"],
+  "why_best": "This approach delivers the visceral authenticity of a live, unscripted exchange while keeping the underlying media front and center.",
+  "why_bad": "A static slide or full-screen layout kills the sense of active momentum and severs the viewer's connection to the main action.",
+  "trap": "Failing to give incoming thoughts a slight visual beat of anticipation before they materialize makes the dialogue feel synthetic rather than conversational."
+}

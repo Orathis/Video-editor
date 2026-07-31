@@ -1,0 +1,8 @@
+{
+  "best": ["pill-row-collapse"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "caption-clip-wipe"],
+  "why_best": "It grounds the audience with a high-level overview before smoothly funneling their attention into a single high-priority hero concept.",
+  "why_bad": "Jumping straight to the single focal point without showing the broader sequence strips away the essential context of where this step fits in the overarching process.",
+  "trap": "Rushing the pause on the complete lineup will leave viewers frustrated, as they won't have enough time to comprehend the entire workflow before it condenses."
+}

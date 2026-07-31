@@ -1,0 +1,8 @@
+{
+  "best": ["glyph-ring-assemble"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "version-plate-type"],
+  "why_best": "Constraining every element to a single shared central rotation preserves the graphic harmony of the identity during high-speed kinetic transition.",
+  "why_bad": "Treating the characters as independent projectiles flying out on individual paths turns a controlled choreography into chaotic debris.",
+  "trap": "Dispatched elements must initiate their journey from the end of the word toward the beginning, rather than following natural reading order."
+}

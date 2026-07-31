@@ -1,0 +1,8 @@
+{
+  "best": ["lt-dark-card"],
+  "acceptable": [],
+  "bad": ["lt-clean-bar", "lt-kicker-name"],
+  "why_best": "A grounded dark container provides the necessary contrast and structure to make corporate credentials instantly readable against washed-out lighting.",
+  "why_bad": "Using translucent or light-toned graphic elements would cause the typography to bleed into the bright video layer, destroying visual hierarchy.",
+  "trap": "A subtle mistake would be letting the decorative accent line render simultaneously with the main title instead of letting it act as a secondary visual punctuation mark."
+}

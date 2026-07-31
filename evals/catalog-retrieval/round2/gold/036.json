@@ -1,0 +1,8 @@
+{
+  "best": ["marker-highlight"],
+  "acceptable": [],
+  "bad": ["receipt-card", "whiteboard-ink"],
+  "why_best": "It delivers immediate visual clarity in a technical context by cleanly drawing eyes to the core message without distracting from the surrounding interface.",
+  "why_bad": "Scaling or flashing the complete phrase creates chaotic movement that obscures the actual keyword the viewer needs to isolate.",
+  "trap": "Initiating the focus gesture before the base line of copy has fully settled renders the primary phrase unreadable."
+}

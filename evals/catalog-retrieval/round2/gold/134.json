@@ -1,0 +1,8 @@
+{
+  "best": ["flowchart-vertical"],
+  "acceptable": [],
+  "bad": ["flowchart", "data-flow-pipes"],
+  "why_best": "It instantly communicates human-guided automated decisioning within a dense, executive-level monitoring interface.",
+  "why_bad": "A static or purely passive visualization fails to highlight the real-time adaptive recalibration that drives user trust.",
+  "trap": "Overglamorizing the visual assets with distracting decorative animations rather than letting the structural re-routing speak for itself."
+}

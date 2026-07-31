@@ -1,0 +1,8 @@
+{
+  "best": ["dropdown-menu"],
+  "acceptable": [],
+  "bad": ["context-menu", "command-menu"],
+  "why_best": "Anchoring the surface expansion directly to the interaction point maintains seamless spatial memory during complex editing tasks.",
+  "why_bad": "A generic fade-in or a static central modal breaks visual momentum and detaches the action from the cursor's location.",
+  "trap": "A common mistake is scaling the container from its geometric center rather than fanning out from the specific trigger point."
+}

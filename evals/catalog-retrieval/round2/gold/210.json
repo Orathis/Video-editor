@@ -1,0 +1,8 @@
+{
+  "best": ["alert-dialog"],
+  "acceptable": [],
+  "bad": ["dialog", "sheet"],
+  "why_best": "A heavy, centered focal takeover instantly breaks workflow momentum to signal an irreversible system command.",
+  "why_bad": "A subtle slide-in or toast-style notification would lack the visual authority needed to prevent an accidental destructive action.",
+  "trap": "A near-miss will let the background dim too slowly, allowing the user's eyes to drift away from the central decision before it fully lands."
+}

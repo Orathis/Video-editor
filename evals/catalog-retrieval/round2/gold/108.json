@@ -1,0 +1,8 @@
+{
+  "best": ["lt-bold-block"],
+  "acceptable": [],
+  "bad": ["lt-color-block", "lt-stack-bars"],
+  "why_best": "It commands instant visual priority in a narrow aspect ratio without pulling attention away from the main subject.",
+  "why_bad": "A slow, drifting entrance would feel hesitant and drain energy from an assertive presentation.",
+  "trap": "Allowing the text to reveal before its backdrop fully anchors, rendering the label ungrounded and weak."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["press-ripple"],
+  "acceptable": [],
+  "bad": ["halftone-dissolve", "oversized-cursor"],
+  "why_best": "This approach builds tactile confidence by linking deliberate visual contact directly to visual confirmation before clearing the focal area.",
+  "why_bad": "An instant state toggle without physical feedback feels jarring and unconvincing in a consumer showcase.",
+  "trap": "A poor execution will make the visual shockwave dissipate before the surface fully registers its activated state, breaking the illusion of causality."
+}

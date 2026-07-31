@@ -1,0 +1,8 @@
+{
+  "best": ["text-shimmer"],
+  "acceptable": [],
+  "bad": ["push-in", "char-slam-explode"],
+  "why_best": "This subtle gleam elevates the visual hierarchy instantly while respecting the viewer's reading flow in a portrait mobile layout.",
+  "why_bad": "Bouncing or scaling the text block would feel noisy and cheapen the refined consumer app experience.",
+  "trap": "A near-miss will let the highlight linger or endlessly loop, turning a crisp moment of accent into a tacky distraction."
+}

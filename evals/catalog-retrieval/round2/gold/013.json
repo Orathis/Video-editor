@@ -1,0 +1,8 @@
+{
+  "best": ["receipt-card"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "marker-highlight"],
+  "why_best": "It establishes immediate physical authority with a weighted entrance, then instantly locks viewer focus onto the visual payoff of the core quote.",
+  "why_bad": "A standard dissolve or static lower third would lack the physical impact required to signal a pivotal source citation.",
+  "trap": "Animating the emphasis as a progressive sweeping stroke or directional wipe across the words rather than a single unified color shift."
+}

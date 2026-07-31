@@ -1,0 +1,8 @@
+{
+  "best": ["thread-message-stack"],
+  "acceptable": [],
+  "bad": ["rank-list-settle", "browser-flow"],
+  "why_best": "This approach captures genuine modern conversation by pairing physical weight with realistic, humanized cadence.",
+  "why_bad": "Using smooth, cross-fading reveals or mechanical uniform timing destroys the urgency and authentic feel of live communication.",
+  "trap": "A near-miss will mistakenly show anticipation indicators on outgoing responses or make the arrival intervals completely uniform."
+}

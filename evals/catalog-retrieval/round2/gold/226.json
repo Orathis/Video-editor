@@ -1,0 +1,8 @@
+{
+  "best": ["chart-story"],
+  "acceptable": [],
+  "bad": ["count-up", "decline-chart"],
+  "why_best": "Building sequentially toward a highlighted peak transforms raw figures into an irresistible, self-evidencing argument.",
+  "why_bad": "A sudden full-frame reveal or chaotic non-sequential entry deprives the audience of the logical build-up required for conviction.",
+  "trap": "Drawing attention to the hero figure before the surrounding comparative context has completely settled."
+}

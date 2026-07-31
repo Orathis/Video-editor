@@ -1,0 +1,8 @@
+{
+  "best": ["vox-annotate"],
+  "acceptable": [],
+  "bad": ["scramble-reveal", "text-shimmer"],
+  "why_best": "Connecting an editorial highlight directly to an explanatory label anchors abstract commentary to precise source text without interrupting the narrative flow.",
+  "why_bad": "Splitting the text highlight and the label into separate sequential pops breaks the viewer's focus and feels like an uncoordinated template effect.",
+  "trap": "A weak execution will let the top label appear before the connecting line finishes rising, destroying the illusion of a single fluid pen stroke."
+}

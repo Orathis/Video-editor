@@ -1,0 +1,8 @@
+{
+  "best": ["particle-text-dissolve"],
+  "acceptable": [],
+  "bad": ["pill-row-collapse", "glyph-ring-assemble"],
+  "why_best": "It visually manifests the exact moment an abstract creative impulse condenses into a concrete statement.",
+  "why_bad": "A hard geometric slide or standard interface wipe feels too mechanical, stripping the moment of its organic sense of discovery.",
+  "trap": "A weak execution will let the scattered points feel like random electronic noise rather than purposeful fragments finding their home."
+}

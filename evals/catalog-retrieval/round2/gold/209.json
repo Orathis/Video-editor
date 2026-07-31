@@ -1,0 +1,8 @@
+{
+  "best": ["alert"],
+  "acceptable": [],
+  "bad": ["tooltip", "popover"],
+  "why_best": "This approach mirrors high-stakes newsroom breaking updates, giving critical notifications maximum editorial weight within a compact square canvas.",
+  "why_bad": "Injecting playful bounces or casual transitions would completely undermine the urgent, industrial authority required for a high-priority system status.",
+  "trap": "Cutting short the steady dwell state, which deprives the viewer of the necessary time to digest both the symbol and textual breakdown."
+}

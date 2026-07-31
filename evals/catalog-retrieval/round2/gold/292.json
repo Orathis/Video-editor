@@ -1,0 +1,8 @@
+{
+  "best": ["grid-pixelate-wipe"],
+  "acceptable": [],
+  "bad": ["transitions-blur", "transitions-dissolve"],
+  "why_best": "This modular visual breakdown cleanly resets the creative mindset while reinforcing the structured nature of the workspace.",
+  "why_bad": "A simple cross-dissolve would smear distinct ideas together, softening a transition that needs to feel like a clear chapter break.",
+  "trap": "A near-miss will clear the visual block units simultaneously across the whole canvas rather than staggering their departure in an organic cascade."
+}

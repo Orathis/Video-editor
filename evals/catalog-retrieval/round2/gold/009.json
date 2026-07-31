@@ -1,0 +1,8 @@
+{
+  "best": ["glyph-ring-assemble"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "version-plate-type"],
+  "why_best": "A shared circular axis creates a tightly disciplined kinetic gesture that commands attention while guaranteeing an identical, crisp arrival.",
+  "why_bad": "Exploding characters outward along distinct radial paths introduces chaotic visual clutter that weakens brand recall.",
+  "trap": "A common mistake is releasing the characters from left to right, which ruins the sharp unzipping effect and spoils the surprising rhythm of the reassembly."
+}

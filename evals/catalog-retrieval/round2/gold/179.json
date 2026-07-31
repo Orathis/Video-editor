@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-dark-modern"],
+  "acceptable": [],
+  "bad": ["code-snippet-dark-plus", "code-snippet-dark-2026"],
+  "why_best": "This approach provides immediate visual evidence of technical work unfolding in real time, lending authenticity and momentum to the broadcast story.",
+  "why_bad": "Relying on abstract motion graphics or static screenshots would feel detached and fail to communicate the live act of digital creation.",
+  "trap": "An imperfect execution would dump all text onto the screen at once, eliminating the rhythmic human agency behind the work."
+}

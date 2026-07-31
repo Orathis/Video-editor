@@ -1,0 +1,8 @@
+{
+  "best": ["plan-room-audit"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "persona-card-fan"],
+  "why_best": "This approach merges dynamic entrance and spatial verification into one continuous movement, eliminating static downtime while building analytical authority.",
+  "why_bad": "Presenting a completely stationary schematic and relying solely on audio to tally room data kills narrative velocity and dulls visual interest.",
+  "trap": "A near-miss will reveal text labels while the main sheet is still turning, forcing typography to wobble or requiring awkward counter-rotation."
+}

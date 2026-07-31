@@ -1,0 +1,8 @@
+{
+  "best": ["ui-3d-reveal"],
+  "acceptable": [],
+  "bad": ["transitions-radial", "transitions-3d"],
+  "why_best": "Giving the interface physical depth elevates a standard feature highlight into an immersive, premium showcase tailored for high-converting promo feeds.",
+  "why_bad": "A simple two-dimensional fade or slide would flatten the composition, making a flagship feature feel like a static screenshot rather than an engaging experience.",
+  "trap": "An amateur execution will over-rotate the angles and turn the interface into an unreadable illusion rather than a polished product highlight."
+}

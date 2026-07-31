@@ -1,0 +1,8 @@
+{
+  "best": ["z-punch-through"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "focus-rack"],
+  "why_best": "Physical spatial penetration creates an immediate visual bridge between distinct states without interrupting visual momentum.",
+  "why_bad": "Flat cross-fades or simple planar scaling destroy the perception of genuine spatial depth and feel visually passive.",
+  "trap": "Pausing the destination layer until the foreground boundary completely vanishes creates an awkward dead gap that breaks the continuous momentum."
+}

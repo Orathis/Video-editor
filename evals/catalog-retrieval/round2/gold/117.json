@@ -1,0 +1,8 @@
+{
+  "best": ["us-map-hex"],
+  "acceptable": [],
+  "bad": ["us-map", "us-map-bubble"],
+  "why_best": "It eliminates spatial bias so visual impact directly reflects metric values rather than physical footprint.",
+  "why_bad": "Traditional topography causes small, high-value hubs to vanish while vast, low-density regions dominate the screen.",
+  "trap": "Squeezing labels into uneven borders instead of maintaining strict geometric uniformity across every unit."
+}

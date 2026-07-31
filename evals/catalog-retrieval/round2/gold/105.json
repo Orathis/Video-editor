@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-basic"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-grass", "code-snippet-apple-terminal-ocean"],
+  "why_best": "This approach builds immediate trust with a technical audience by honoring the organic rhythm of live software creation.",
+  "why_bad": "A flashy, instantaneous visual reveal would feel disingenuous and alienate viewers who value functional transparency.",
+  "trap": "Rushing the rhythm into an uncalibrated text dump that strips away the sensation of a live execution."
+}

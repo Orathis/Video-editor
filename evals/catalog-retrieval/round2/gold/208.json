@@ -1,0 +1,8 @@
+{
+  "best": ["ai-generation-canvas"],
+  "acceptable": [],
+  "bad": ["chat-to-preview-layout", "terminal-to-browser-deploy"],
+  "why_best": "Spatial continuity directly communicates the effortless translation of raw intent into a fully-formed workspace.",
+  "why_bad": "Abruptly cutting to a finished interface breaks the illusion of creation and detaches the output from the initial input.",
+  "trap": "Misaligning the layout's growth with the appearance of interior panels, which creates visual clutter instead of an intentional organic unfold."
+}

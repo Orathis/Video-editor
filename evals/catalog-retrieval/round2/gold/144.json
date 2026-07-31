@@ -1,0 +1,8 @@
+{
+  "best": ["code-morph"],
+  "acceptable": [],
+  "bad": ["three-orbiting-cards", "code-snippet-flight"],
+  "why_best": "Directly linking persistent elements across both states preserves mental context and highlights exact functional changes.",
+  "why_bad": "A hard cut or full panel reset forces the developer to manually re-parse unchanged code, breaking focus.",
+  "trap": "Allowing unmatched elements to intersect haphazardly creates visual noise that masks the structural relationship between the two states."
+}

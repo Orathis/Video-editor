@@ -1,0 +1,8 @@
+{
+  "best": ["lt-side-rule"],
+  "acceptable": [],
+  "bad": ["lt-accent-underline", "lt-color-block"],
+  "why_best": "It delivers instant speaker context over complex visual backgrounds while maintaining an uncluttered, high-end professional aesthetic.",
+  "why_bad": "Encasing the typography inside a heavy opaque container would obstruct the subject and cheapen the polished broadcast feel.",
+  "trap": "Misjudging the visual contrast between the background footage and floating text, leaving the title unreadable against high-brightness regions of the shot."
+}

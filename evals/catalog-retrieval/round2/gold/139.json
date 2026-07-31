@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-blur"],
+  "acceptable": [],
+  "bad": ["transitions-grid", "transitions-light"],
+  "why_best": "It provides a gentle visual reset that keeps the user engaged across distinct imagery without the jarring disruption of a hard cut.",
+  "why_bad": "Using a rigid directional swipe would feel overly editorial and interrupt the continuous, fluid flow of the experience.",
+  "trap": "A weak execution will obscure the subjects for too long, turning a brisk handoff into a muddy, sluggish pause."
+}

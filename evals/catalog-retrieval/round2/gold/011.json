@@ -1,0 +1,8 @@
+{
+  "best": ["marker-highlight"],
+  "acceptable": [],
+  "bad": ["receipt-card", "whiteboard-ink"],
+  "why_best": "Staggering the visual accent after the statement resolves builds a natural editorial hierarchy that directs the eye right when the narration hits.",
+  "why_bad": "Revealing the baseline statement with the emphasis already applied flattens the visual reveal and robs the key term of its weight.",
+  "trap": "Triggering the secondary callout a fraction of a second too early telegraphs the focal point before the spoken line delivers it."
+}

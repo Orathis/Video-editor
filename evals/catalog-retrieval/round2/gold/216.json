@@ -1,0 +1,8 @@
+{
+  "best": ["cta-close"],
+  "acceptable": [],
+  "bad": ["cta-lockup", "logo-brand-close"],
+  "why_best": "It translates narrative momentum into a confident, grounded destination where the audience knows exactly what step to take next.",
+  "why_bad": "Allowing elements to slide in passively or float endlessly weakens the finality and feels like an unfinished transition.",
+  "trap": "A common mistake is letting the interactive anchor bounce repeatedly after settling, which destroys the still authority required for the wrap-up."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["spain-map"],
+  "acceptable": [],
+  "bad": ["us-map", "world-map"],
+  "why_best": "Revealing geographic data sequentially creates a clear editorial cadence that prevents visual overload on tall mobile displays.",
+  "why_bad": "Dumping all regional shades onto the screen simultaneously flattens the story, forcing the viewer to hunt for meaning without visual guidance.",
+  "trap": "Pacing the regional reveals too uniformly will turn an engaging geographic narrative into a monotonous procedural loader."
+}

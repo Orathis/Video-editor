@@ -1,0 +1,8 @@
+{
+  "best": ["swipe-rail"],
+  "acceptable": [],
+  "bad": ["gesture-tap", "touch-indicator"],
+  "why_best": "It creates a fluid, authoritative sequence that guides viewer focus smoothly between distinct editorial insights.",
+  "why_bad": "A hard cut or simple crossfade fails to communicate the tactile, deliberate progression essential for active broadcast updates.",
+  "trap": "Failing to let the motion coast naturally before landing, which makes the transition feel rigid and artificial."
+}

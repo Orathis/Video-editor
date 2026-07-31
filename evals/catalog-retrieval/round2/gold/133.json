@@ -1,0 +1,8 @@
+{
+  "best": ["code-highlight"],
+  "acceptable": [],
+  "bad": ["code-scroll", "glass-code-block"],
+  "why_best": "It forces total clarity in a dense text layout by temporarily suppressing non-essential details to feature a single critical row.",
+  "why_bad": "Zooming into the text frame directly would destroy the structural framing of the full script and disorient the viewer.",
+  "trap": "Failing to maintain enough legibility in the secondary text makes the surrounding environment feel broken rather than intentionally suppressed."
+}

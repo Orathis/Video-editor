@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-distortion"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "transitions-push"],
+  "why_best": "This expressive approach instantly signals high production value and creative flexibility to video creators seeking bold stylistic choices.",
+  "why_bad": "A simple linear dissolve or rigid geometric wipe would feel utterly mundane and fail to inspire artists looking for cutting-edge visual flair.",
+  "trap": "The key mistake would be over-stretching the visuals until the underlying imagery becomes completely unrecognisable, losing the spatial context of the incoming shot."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-terminal-run"],
+  "acceptable": [],
+  "bad": ["typed-prompt", "icon-morph-beat"],
+  "why_best": "This step-by-step progression provides instant visual credibility and demonstrates technical cause-and-effect within a fast-moving news segment.",
+  "why_bad": "A static screenshot or simple dissolve obscures the operational narrative, robbing the visual of its sense of live validation.",
+  "trap": "A near-miss will let the initial entry and the resulting output blur together without the precise beat of hesitation that signals processing."
+}

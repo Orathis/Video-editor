@@ -1,0 +1,8 @@
+{
+  "best": ["domain-warp-dissolve"],
+  "acceptable": [],
+  "bad": ["cross-warp-morph", "transitions-distortion"],
+  "why_best": "This fluid distortion bridges disparate imagery by transforming the scene into an abstract visual bridge rather than cutting away.",
+  "why_bad": "A straight hard cut or simple geometric wipe would shatter the ethereal, continuous atmosphere required for this moment.",
+  "trap": "The primary mistake would be allowing the distortion to look like uniform screen static or cheap digital noise rather than a smooth, swirling liquid melt."
+}

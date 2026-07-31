@@ -1,0 +1,8 @@
+{
+  "best": ["echo-trail"],
+  "acceptable": [],
+  "bad": ["cursor-glyph-trail", "offset-path-traveler"],
+  "why_best": "This approach instantly communicates trajectory and speed in complex operational views without requiring extra analytical charts.",
+  "why_bad": "A basic static cross-fade hides the velocity and directional flow essential for high-stakes operational tracking.",
+  "trap": "The main hazard is allowing the lingering historical artifacts to remain onscreen after arrival rather than absorbing cleanly back into the primary element."
+}

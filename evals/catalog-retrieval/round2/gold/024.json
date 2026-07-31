@@ -1,0 +1,8 @@
+{
+  "best": ["version-plate-type"],
+  "acceptable": [],
+  "bad": ["glyph-ring-assemble", "match-cut"],
+  "why_best": "This approach grounds the visual beat in the precise, functional language of digital authoring tools.",
+  "why_bad": "A standard lens zoom undermines the theme by treating responsive layout reflows like static footage.",
+  "trap": "A near-miss implementation will scale both dimensions proportionally at once, failing to decouple the independent horizontal and vertical boundary adjustments."
+}

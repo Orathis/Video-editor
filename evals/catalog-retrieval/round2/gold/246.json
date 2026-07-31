@@ -1,0 +1,8 @@
+{
+  "best": ["camera-scan-gate"],
+  "acceptable": [],
+  "bad": ["toggle-flip", "gesture-tap"],
+  "why_best": "This sequence creates an authoritative sense of physical verification that builds tension during the search and delivers immediate satisfaction upon recognition.",
+  "why_bad": "A static overlay or instant state swap deprives the viewer of seeing the system actively evaluating and locking onto real-world input.",
+  "trap": "Failing to pause briefly on the locked confirmation before transitioning away makes the validation feel accidental rather than deliberate."
+}

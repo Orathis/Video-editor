@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-portal"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-magnetic"],
+  "why_best": "This dynamic threshold crossing instantly signals a major context shift, making a routine section change feel momentous and immersive.",
+  "why_bad": "A standard lateral wipe or simple fade would feel mundane, failing to convey the profound shift in environment that this update demands.",
+  "trap": "A near-miss will focus too much on glowing peripheral debris, obscuring the incoming interface elements at the critical moment of arrival."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["icon-swap"],
+  "acceptable": [],
+  "bad": ["text-state-swap", "micro-scale-fade"],
+  "why_best": "This elegant visual recast transforms a routine interface state change into a high-impact focal point tailored for a luxury promotional showcase.",
+  "why_bad": "A sudden hard cut between visual states would feel jarringly unfinished, interrupting the hero presentation's sleek cinematic cadence.",
+  "trap": "Allowing the optical softening phase to drag too long will make the software feel sluggish rather than responsive and sophisticated."
+}

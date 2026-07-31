@@ -1,0 +1,8 @@
+{
+  "best": ["glyph-ring-assemble"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "version-plate-type"],
+  "why_best": "Sweeping the characters along a unified, unbroken circular trajectory generates dramatic visual intrigue while ensuring a seamless, high-precision landing.",
+  "why_bad": "Allowing characters to burst outward radially and bounce back makes the brand feel chaotically shattered rather than tightly choreographed.",
+  "trap": "A typical mistake is treating each character as an independent free-floating element rather than locking every piece to one shared circular path."
+}

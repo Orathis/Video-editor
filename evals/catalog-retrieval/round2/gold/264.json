@@ -1,0 +1,8 @@
+{
+  "best": ["command-menu"],
+  "acceptable": [],
+  "bad": ["dropdown-menu", "context-menu"],
+  "why_best": "This crisp, immediate rhythm honors the high-velocity expectations of terminal-driven power users.",
+  "why_bad": "Adding dramatic entrance flourishes or heavy visual embellishments would frustrate a user seeking instantaneous execution.",
+  "trap": "Delaying the green indicator feedback past the choice selection, which ruins the sense of real-time responsiveness."
+}

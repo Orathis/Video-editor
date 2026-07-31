@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-liquid-background"],
+  "acceptable": [],
+  "bad": ["vfx-liquid-glass", "vfx-shatter"],
+  "why_best": "It establishes an active, living depth beneath time-sensitive reporting while preserving crisp foreground hierarchy.",
+  "why_bad": "A completely static backdrop renders dynamic broadcast coverage flat and visually uninteresting.",
+  "trap": "Pushing the depth distortion too high, which warps contrast and makes overlying text unreadable."
+}

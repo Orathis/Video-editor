@@ -1,0 +1,8 @@
+{
+  "best": ["particle-text-dissolve"],
+  "acceptable": [],
+  "bad": ["pill-row-collapse", "glyph-ring-assemble"],
+  "why_best": "Coalescing critical messaging from subtle background noise creates an irresistible focal pull that elevates vital data points above routine interface elements.",
+  "why_bad": "A standard hard cut or simple linear fade would render the high-value statement unremarkable, causing it to drown in the surrounding layout.",
+  "trap": "A near-miss will linger too long in the chaotic mid-transition, sacrificing legibility for visual flair rather than snapping crisply into perfect clarity."
+}

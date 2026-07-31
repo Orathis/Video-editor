@@ -1,0 +1,8 @@
+{
+  "best": ["echo-trail"],
+  "acceptable": [],
+  "bad": ["cursor-glyph-trail", "offset-path-traveler"],
+  "why_best": "Exposing temporal persistence along a path instantly conveys speed and precision without requiring extra explanatory callouts.",
+  "why_bad": "A plain translational movement lacks energy and fails to communicate the high-performance agility of the feature.",
+  "trap": "Leaving behind residual visual artifacts after the subject arrives at its rest position, which breaks the crisp final frame."
+}

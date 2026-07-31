@@ -1,0 +1,8 @@
+{
+  "best": ["data-chart"],
+  "acceptable": [],
+  "bad": ["animated-bar-chart", "animated-line-chart"],
+  "why_best": "This approach builds trust by pacing complex analytical information into a deliberate, narrative progression rather than overwhelming the viewer all at once.",
+  "why_bad": "A sudden static dump of raw figures forces the audience to decode relationships manually, destroying momentum and editorial focus.",
+  "trap": "Unveiling the secondary contextual trajectory before the foundational metric blocks have established the structural baseline."
+}

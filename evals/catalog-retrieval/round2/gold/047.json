@@ -1,0 +1,8 @@
+{
+  "best": ["whiteboard-ink"],
+  "acceptable": [],
+  "bad": ["marker-highlight", "svg-line-draw-loader"],
+  "why_best": "This progressive construction method breaks down dense explanatory graphics into easily digestible, human-scale steps that build viewer comprehension naturally.",
+  "why_bad": "Instantly dropping the entire completed visual onto the screen at once would overwhelm the audience with information and flatten the story's visual hierarchy.",
+  "trap": "A near-miss will rush the progressive reveals or mismatch the highlight timing, breaking the illusion of an unfolding live explanation."
+}

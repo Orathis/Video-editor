@@ -1,0 +1,8 @@
+{
+  "best": ["receipt-card"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "marker-highlight"],
+  "why_best": "Simultaneously inverting the background and text colors in place gives the key insight immediate weight and executive clarity for quick visual parsing.",
+  "why_bad": "A progressive horizontal wipe across the phrase draws out the motion unnecessarily and feels like a casual hand-drawn marker rather than a crisp visual callout.",
+  "trap": "A near-miss will accidentally slide or stretch the emphasis bar across the text line rather than transitioning the entire highlight block uniformly at once."
+}

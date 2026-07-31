@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-flight"],
+  "acceptable": [],
+  "bad": ["glass-code-block", "code-accordion"],
+  "why_best": "Demonstrating progressive construction visually proves modularity while taking full advantage of the vertical screen real estate.",
+  "why_bad": "A simple cross-fade or static pop-in obscures the relationship between individual components and the larger operational system.",
+  "trap": "Colliding or overlapping the incoming structural blocks during motion will destroy the polished, enterprise-grade feel."
+}

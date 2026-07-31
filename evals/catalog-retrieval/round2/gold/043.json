@@ -1,0 +1,8 @@
+{
+  "best": ["plan-room-audit"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "persona-card-fan"],
+  "why_best": "Unfolding structural geometry while simultaneously populating data tags ensures complex spatial information is digested step-by-step without visual static.",
+  "why_bad": "Static snapshots or chaotic simultaneous reveals force the viewer to hunt for context, diluting the perceived rigor of the assessment.",
+  "trap": "Staggering numerical callouts out of sync with their corresponding spatial highlights breaks the narrative illusion of a live system checking off items."
+}

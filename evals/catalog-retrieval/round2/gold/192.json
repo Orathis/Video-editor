@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-high-contrast"],
+  "acceptable": [],
+  "bad": ["code-snippet-high-contrast-light", "code-snippet-monokai"],
+  "why_best": "This approach immerses technical viewers directly into the authentic flow of creation while maintaining maximum legibility across the interface.",
+  "why_bad": "A slow, cinematic pan over abstract graphic shapes would completely strip away the functional realism and authority that a developer audience expects.",
+  "trap": "A near-miss would artificially speed up the text reveal so much that it feels like a macro paste rather than thoughtful, human-paced generation."
+}

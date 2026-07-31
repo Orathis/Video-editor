@@ -1,0 +1,8 @@
+{
+  "best": ["pill-row-collapse"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "caption-clip-wipe"],
+  "why_best": "It establishes full system clarity before directing absolute focus onto the primary point of action.",
+  "why_bad": "Filtering elements through a generic dissolve without spatial movement destroys the sense of continuity and visual hierarchy.",
+  "trap": "Allowing secondary elements to drift or dismiss independently breaks the unified rhythm of the sequence shedding its excess."
+}

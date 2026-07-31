@@ -1,0 +1,8 @@
+{
+  "best": ["blur-in"],
+  "acceptable": [],
+  "bad": ["remocn-ui", "registry"],
+  "why_best": "It mirrors the natural psychological process of an idea taking definitive form inside a high-end design environment.",
+  "why_bad": "A sharp slide or hard directional entrance would disrupt the meditative tone and feel like an intrusive overlay rather than an emerging visual truth.",
+  "trap": "Failing to keep the contrast tight enough during the transition, causing the typography to look muddy or indistinct for too long before settling."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["vector-editor-rig"],
+  "acceptable": [],
+  "bad": ["device-frame-stage", "store-badge-lockup"],
+  "why_best": "Holding on a sustained interactive canvas allows the audience to absorb the refined precision and technical elegance of the creative workflow.",
+  "why_bad": "Cutting rapidly between disparate interface panels or rushing the canvas interaction destroys the sense of focused craftsmanship and makes the environment feel chaotic.",
+  "trap": "A near-miss would over-emphasize decorative control panels rather than keeping the visual spotlight squarely on the active creation taking shape."
+}

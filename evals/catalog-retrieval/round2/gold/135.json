@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-media-controls"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-context-menu"],
+  "why_best": "This visual dynamic perfectly balances striking promotional artistry with a tangible sense of modern software craftsmanship.",
+  "why_bad": "A rigid or opaque transition would destroy the sense of depth and render the visual dimension completely flat.",
+  "trap": "A sloppy variation will muddy the color separation, causing the translucent layers to look washed out rather than crystalline."
+}

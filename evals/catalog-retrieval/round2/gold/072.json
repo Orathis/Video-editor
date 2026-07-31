@@ -1,0 +1,8 @@
+{
+  "best": ["whiteboard-ink"],
+  "acceptable": [],
+  "bad": ["marker-highlight", "svg-line-draw-loader"],
+  "why_best": "Constructing the visual step-by-step mirrors how developers untangle complex logic, turning an abstract concept into an intuitive lightbulb moment.",
+  "why_bad": "Dropping a fully formed diagram onto the screen instantaneously creates cognitive overload and robs the narrative of its instructional clarity.",
+  "trap": "Rushing the terminal text reveal before the final line completes its journey breaks the illusion of a single, continuous thought process."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["vignette"],
+  "acceptable": [],
+  "bad": ["mesh-gradient-bg", "shimmer-sweep"],
+  "why_best": "It elegantly isolates key content without altering layout structure or hiding peripheral UI.",
+  "why_bad": "A hard boundary mask or full screen blur would feel overly disruptive and break user flow in a daily consumer context.",
+  "trap": "Making the perimeter transition too heavy-handed, which turns a subtle framing trick into an accidental muddy border."
+}

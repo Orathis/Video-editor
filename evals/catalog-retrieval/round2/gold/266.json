@@ -1,0 +1,8 @@
+{
+  "best": ["conic-progress-ring"],
+  "acceptable": [],
+  "bad": ["star-rating-fill", "logo-wall"],
+  "why_best": "Binding the central readout to a sweeping perimeter halo creates an unmistakable sense of completion tailored for high-density monitoring.",
+  "why_bad": "A generic linear bar or instant text swap lacks the deliberate central focus required to command attention on a busy screen.",
+  "trap": "A common mistake is letting the central digits complete their count before the outer border finishes its journey."
+}

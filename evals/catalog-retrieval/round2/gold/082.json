@@ -1,0 +1,8 @@
+{
+  "best": ["echo-trail"],
+  "acceptable": [],
+  "bad": ["cursor-glyph-trail", "offset-path-traveler"],
+  "why_best": "Revealing the spatial arc through fading visual remnants lets creative users visualize trajectory and speed at a glance before the subject settles.",
+  "why_bad": "A simple linear glide without visual history leaves the viewer guessing about the precise curvature and timing of the path.",
+  "trap": "A near-miss will fail to cleanly pull the lingering duplicates back into the main body at the end, leaving clutter on the canvas."
+}

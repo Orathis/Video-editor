@@ -1,0 +1,8 @@
+{
+  "best": ["empty"],
+  "acceptable": [],
+  "bad": ["alert", "tooltip"],
+  "why_best": "This restrained presentation reinforces brand precision by treating missing content as an intentional, highly polished visual resting point.",
+  "why_bad": "A dramatic or overly kinetic arrival would introduce unneeded chaos to an ordinary system pause.",
+  "trap": "A near-miss will accidentally make the layout look broken or unrendered by stripping away too much structural visual weight."
+}

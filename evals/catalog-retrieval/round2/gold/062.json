@@ -1,0 +1,8 @@
+{
+  "best": ["depth-rack-focus"],
+  "acceptable": [],
+  "bad": ["focus-rack", "focus-swap"],
+  "why_best": "It visually replicates the mental process of looking past ambient market noise to lock onto a decisive strategic insight.",
+  "why_bad": "A simple side swipe or pop-in would turn a revealing discovery into an uninspired slideshow transition.",
+  "trap": "A flawed execution will resolve the main text before the foreground overlay clears, muddying the climax of the reveal."
+}

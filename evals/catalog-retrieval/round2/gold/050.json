@@ -1,0 +1,8 @@
+{
+  "best": ["z-punch-through"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "focus-rack"],
+  "why_best": "This forward spatial commitment gives complex enterprise workflows a visceral sense of depth and immediate narrative progression.",
+  "why_bad": "A standard lateral wipe or simple crossfade feels like a disconnected page flip rather than a purposeful deep-dive into critical operational data.",
+  "trap": "Allowing a visual pause between the exit of the foreground barrier and the arrival of the inner payload will instantly destroy the perceived velocity."
+}

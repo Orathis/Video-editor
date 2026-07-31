@@ -1,0 +1,8 @@
+{
+  "best": ["lt-stack-bars"],
+  "acceptable": [],
+  "bad": ["lt-bold-block", "lt-dark-card"],
+  "why_best": "A dual opposing entry establishes an immediate structural balance that signals high-production journalistic authority.",
+  "why_bad": "A soft fade or casual float would feel too informal and lack the editorial urgency required for a structured news presentation.",
+  "trap": "A near-miss will miscalculate the convergence timing, causing the sub-layer to land out of cadence with the main identity block."
+}

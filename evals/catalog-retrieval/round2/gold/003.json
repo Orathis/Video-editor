@@ -1,0 +1,8 @@
+{
+  "best": ["persona-card-fan"],
+  "acceptable": [],
+  "bad": ["orbit-ring-camera", "receipt-card"],
+  "why_best": "This approach spotlights every new choice individually while containing the overall footprint so the presenter remains the clear focal point.",
+  "why_bad": "Allowing the stack to grow linearly across the frame would crowd the presenter and break the composition's balance.",
+  "trap": "An imprecise attempt will move the deepest background layer outward with each arrival rather than locking that boundary and compressing the inner space."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["news-ticker"],
+  "acceptable": [],
+  "bad": ["lower-third-bild", "yt-lower-third"],
+  "why_best": "This approach grounds vertical promotional footage with the immediate gravitas and urgency of live breaking broadcasts.",
+  "why_bad": "A centered full-screen text overlay would block essential product visuals in a tall, mobile-first framing.",
+  "trap": "Pacing the continuous horizontal text stream too aggressively will render the secondary updates completely unreadable on handheld screens."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["carousel"],
+  "acceptable": [],
+  "bad": ["collapsible", "radio"],
+  "why_best": "It offers viewers an intuitive way to explore a linear series of visual stories while keeping the surrounding deck contextually grounded.",
+  "why_bad": "A jarring dissolve or sudden cut destroys the sense of spatial continuity, leaving the audience disoriented within the sequence.",
+  "trap": "A near-miss will obscure the incoming and outgoing cards entirely, erasing the depth cues that hint at the broader gallery."
+}

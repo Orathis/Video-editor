@@ -1,0 +1,8 @@
+{
+  "best": ["count-up"],
+  "acceptable": [],
+  "bad": ["chart-story", "icon-morph-beat"],
+  "why_best": "Showing the live shift between values actively proves the platform's underlying capability while grounding the target metric in verifiable progress.",
+  "why_bad": "Instantly cutting straight to the final figure deprives the viewer of the satisfying scale and sense of real-time computational work.",
+  "trap": "A near-miss will over-exaggerate the landing bounce, making a precise technical tool feel like an overly playful consumer app."
+}

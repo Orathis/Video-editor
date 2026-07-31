@@ -1,0 +1,8 @@
+{
+  "best": ["flowchart"],
+  "acceptable": [],
+  "bad": ["flowchart-vertical", "data-flow-pipes"],
+  "why_best": "Capturing live revisions alongside dynamic path building highlights the canvas's fluid responsiveness to active trial and error.",
+  "why_bad": "Revealing a perfectly pre-assembled structure all at once makes the experience feel like an uninspired slide deck rather than a flexible workspace.",
+  "trap": "Making the textual revision appear instantaneous rather than rhythmically input obscures the human touch driving the structural evolution."
+}

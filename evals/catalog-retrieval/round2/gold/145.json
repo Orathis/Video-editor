@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-notification"],
+  "acceptable": [],
+  "bad": ["liquid-glass-context-menu", "liquid-glass-widgets"],
+  "why_best": "It seamlessly balances high-impact information delivery with a tranquil, premium atmosphere that keeps the user grounded in the experience.",
+  "why_bad": "Reverting to heavy, opaque pop-ups would aggressively sever the atmospheric continuity and feel harsh against the fluid environment.",
+  "trap": "Over-blurring the surface panels until they lose their defined refractive edges and crumble into muddy, unreadable grey rectangles."
+}

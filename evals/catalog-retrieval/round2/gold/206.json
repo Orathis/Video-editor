@@ -1,0 +1,8 @@
+{
+  "best": ["decline-chart"],
+  "acceptable": [],
+  "bad": ["chart-story", "aurora-drift"],
+  "why_best": "Coupling atmospheric darkening directly with the falling data turns abstract numerical loss into a visceral sense of impending risk.",
+  "why_bad": "An abrupt cut or playful animated burst would completely destroy the uncomfortable tension required to agitate the viewer.",
+  "trap": "A near-miss will desynchronize the canvas dimming from the numerical progression, making the mood change feel like an unrelated glitch rather than an expressive narrative result."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["caret"],
+  "acceptable": [],
+  "bad": ["input", "typewriter"],
+  "why_best": "A focused visual heartbeat grounds the interface in real-time execution, giving the audience immediate confidence that input is being processed.",
+  "why_bad": "Introducing bouncy, playful micro-interactions would undermine the sterile, technical tone expected from a professional workspace environment.",
+  "trap": "A poor execution might allow the focal indicator to continue pulsing indefinitely after content generation begins, cluttering the view instead of yielding gracefully to the emerging data."
+}

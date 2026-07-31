@@ -1,0 +1,8 @@
+{
+  "best": ["velocity-throw-snap"],
+  "acceptable": [],
+  "bad": ["swipe-rail", "screen-flow-carousel"],
+  "why_best": "It captures the energetic, professional workflow of an editor searching through media while guaranteeing immediate focus on the key asset.",
+  "why_bad": "A gentle linear slide would feel sluggish and uninspired, killing the tool's sense of high-performance tactile feedback.",
+  "trap": "A near-miss will let the final target bounce or oscillate around the focal point instead of stopping dead on the mark."
+}

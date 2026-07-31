@@ -1,0 +1,8 @@
+{
+  "best": ["particle-text-dissolve"],
+  "acceptable": [],
+  "bad": ["pill-row-collapse", "glyph-ring-assemble"],
+  "why_best": "It visually translates complex, scattered raw information turning into a single authoritative headline for a news audience.",
+  "why_bad": "A standard visual slide or blocky card wipe would feel overly routine and fail to convey the sense of emergent clarity.",
+  "trap": "A near-miss will leave the final letterforms slightly soft or fragmented instead of locking into dead-sharp editorial legibility."
+}

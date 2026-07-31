@@ -1,0 +1,8 @@
+{
+  "best": ["caption-clip-wipe"],
+  "acceptable": [],
+  "bad": ["caption-pill-karaoke", "caption-matrix-decode"],
+  "why_best": "A continuous horizontal uncovering aligns seamlessly with natural reading patterns, maintaining high engagement without distracting from the main hook.",
+  "why_bad": "An abrupt flash-in or heavy vertical bounce would feel too chaotic for a clean layout, pulling focus away from the visual narrative.",
+  "trap": "A near-miss would bleed the boundary across multiple words simultaneously, blurring the distinction between individual vocal beats and losing the rhythmic punch."
+}

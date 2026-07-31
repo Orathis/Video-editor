@@ -1,0 +1,8 @@
+{
+  "best": ["thread-message-stack"],
+  "acceptable": [],
+  "bad": ["rank-list-settle", "browser-flow"],
+  "why_best": "This approach captures the raw urgency of a live breaking exchange without obscuring the underlying footage or cluttering the frame with unnecessary network branding.",
+  "why_bad": "A slow, elegant cross-fade of text blocks would erase the impression of real-time human interaction, making the sequence look like a static slide rather than a live event.",
+  "trap": "A near-miss would wrongly apply the pre-arrival indicator to outgoing lines, destroying the authenticity of the interface."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["spring-pop"],
+  "acceptable": [],
+  "bad": ["beat-accent", "spring-scale-in"],
+  "why_best": "This lively entrance provides an immediate visual punch that highlights critical system status without stalling the user's workflow.",
+  "why_bad": "A simple flat fade or linear reveal feels too sterile and lacks the tactile feedback needed for an important status update.",
+  "trap": "Starting the transition from complete invisibility or letting it oscillate back and forth, which turns a quick accent into a distracting glitch."
+}

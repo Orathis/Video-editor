@@ -1,0 +1,8 @@
+{
+  "best": ["checkbox"],
+  "acceptable": [],
+  "bad": ["toggle", "radio"],
+  "why_best": "A snappy, physical state change instantly validates brief user actions without interrupting visual momentum.",
+  "why_bad": "A slow, floating crossfade would feel unresponsive and disconnect the user from their immediate inputs.",
+  "trap": "Misaligning the container's physical compression with the internal color fill, causing the surface to feel hollow."
+}

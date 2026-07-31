@@ -1,0 +1,8 @@
+{
+  "best": ["plan-room-audit"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "persona-card-fan"],
+  "why_best": "Overlapping the spatial sweep with the initial zone highlighting maintains narrative momentum while ensuring all textual data drops neatly on an upright grid.",
+  "why_bad": "Waiting for the document to park completely before starting the analysis turns a fluid spatial reveal into a static presentation slide.",
+  "trap": "A near-miss would land text labels while the surface is still rotating, forcing callouts to spin in space or require unnatural counter-rotation."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-ocean"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-solid-colors", "code-snippet-apple-terminal-basic"],
+  "why_best": "Revealing content line by line inside an iconic dark workspace grounds the creative tool in genuine builder culture while maintaining a high visual polish.",
+  "why_bad": "Displaying the complete output instantly destroys the sense of real-time craftsmanship and turns a dynamic process into a dry snapshot.",
+  "trap": "A near-miss will set the character reveal cadence too uniformly, turning what should feel like thoughtful human output into an artificial visual feed."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["variable-axis-type"],
+  "acceptable": [],
+  "bad": ["variable-font-flex", "beat-accent"],
+  "why_best": "Evolving the text's internal presence while holding its spatial position gives the headline instant editorial power without disrupting the user's visual frame of reference.",
+  "why_bad": "Translating or scaling the entire text block across the vertical screen causes layout jitter and forces the viewer to chase moving type across the viewport.",
+  "trap": "Allowing the text baseline or surrounding bounds to shift even a single pixel during the transformation breaks the seamless, grounded illusion."
+}

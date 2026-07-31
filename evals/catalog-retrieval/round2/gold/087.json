@@ -1,0 +1,8 @@
+{
+  "best": ["depth-rack-focus"],
+  "acceptable": [],
+  "bad": ["focus-rack", "focus-swap"],
+  "why_best": "It establishes immediate cinematic dimension on a flat display by transferring optical visual priority from the near plane directly to the hero copy.",
+  "why_bad": "A flat lateral wipe or simple opacity cross-fade would strip away the narrative prestige and spatial weight required for a major marketing takeaway.",
+  "trap": "A subtle mistake would be halting the forward push before the secondary text finishes resolving, ruining the continuous physical presence of the shot."
+}

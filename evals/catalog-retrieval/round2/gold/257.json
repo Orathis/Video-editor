@@ -1,0 +1,8 @@
+{
+  "best": ["checkout-flow"],
+  "acceptable": [],
+  "bad": ["signup-flow", "ai-prompt-flow"],
+  "why_best": "This sequential broadcast-style presentation installs immediate credibility and lets complex transactional data settle comfortably into the viewer's visual hierarchy.",
+  "why_bad": "Whimsical animations or sudden full-screen reveals would erode visual authority and create unnecessary cognitive friction around monetary figures.",
+  "trap": "Staggering elements so rapidly that the summary and final figures obscure each other's legibility during the visual transition."
+}

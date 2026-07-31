@@ -1,0 +1,8 @@
+{
+  "best": ["z-punch-through"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "focus-rack"],
+  "why_best": "Piercing directly through the foreground barrier creates an immediate spatial shift that maintains high momentum within a modern consumer experience.",
+  "why_bad": "A flat 2D slide or crossfade would feel like an uninspired visual swap rather than a visceral journey into the content.",
+  "trap": "A near-miss will allow the outer frame to clear completely before the incoming subject arrives, creating a dead void that kills the kinetic energy."
+}

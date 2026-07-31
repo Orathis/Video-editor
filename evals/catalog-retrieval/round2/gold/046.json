@@ -1,0 +1,8 @@
+{
+  "best": ["match-cut"],
+  "acceptable": [],
+  "bad": ["grade-split-reveal", "marker-highlight"],
+  "why_best": "It preserves the user's visual line of sight across a dramatic layout change without requiring a distracting full-screen dissolve or slide.",
+  "why_bad": "Slipping into a slow wipe or spatial push would sluggishly disrupt the precise momentum required when transforming a focal tool into a result display.",
+  "trap": "Misaligning the shared element's visual center during the instant shift, causing an unpleasant visual jitter that destroys the illusion of continuity."
+}

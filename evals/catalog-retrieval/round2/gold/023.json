@@ -1,0 +1,8 @@
+{
+  "best": ["orbit-ring-camera"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "plan-room-audit"],
+  "why_best": "Commencing close on the action builds instant visual urgency before expanding to reveal the full macro system in a single cohesive breath.",
+  "why_bad": "Using a flat 2D scale animation instead of a spatial perspective zoom destroys the dimensional weight and makes the close-up tracking feel artificial.",
+  "trap": "A near-miss will lock the textual labels to the tilted background plane rather than keeping every data tag strictly upright and camera-facing."
+}

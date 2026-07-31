@@ -1,0 +1,8 @@
+{
+  "best": ["stitched-text-draw"],
+  "acceptable": [],
+  "bad": ["scramble-reveal", "variable-font-flex"],
+  "why_best": "This tactile approach grounds the identity in human craft and tangible authenticity, making the brand feel genuinely constructed rather than digitally rendered.",
+  "why_bad": "A standard polished wipe or sleek geometric fade would flatten the visual texture and destroy the sense of deliberate, physical craftsmanship.",
+  "trap": "A common misstep is treating the stroke generation as purely fluid vector paths, missing the tiny organic imperfections and terminal accents that sell the impression of real material work."
+}

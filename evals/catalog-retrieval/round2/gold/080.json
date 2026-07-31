@@ -1,0 +1,8 @@
+{
+  "best": ["chevron-pill-card-morph"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "button-group"],
+  "why_best": "Maintaining a single persistent visual anchor throughout the container expansion preserves context and builds absolute confidence in a transactional flow.",
+  "why_bad": "Dissolving or swapping intermediate UI elements across discrete steps shatters visual continuity and makes a seamless flow feel like a sequence of disconnected modal popups.",
+  "trap": "Delaying the vertical expansion until horizontal growth has completely finished will make the fluid gesture feel like rigid, serialized steps."
+}

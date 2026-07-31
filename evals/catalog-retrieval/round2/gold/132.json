@@ -1,0 +1,8 @@
+{
+  "best": ["us-map"],
+  "acceptable": [],
+  "bad": ["spain-map", "us-map-bubble"],
+  "why_best": "A sequential regional reveal lets the viewer process geographic density and data distribution across the territory without cognitive overload.",
+  "why_bad": "Slamming all regional data onto the screen instantly flattens the visual hierarchy and prevents users from spotting geographic anomalies as the visualization populates.",
+  "trap": "Revealing the numerical metrics before their corresponding geographic boundaries finish resolving breaks the spatial association."
+}

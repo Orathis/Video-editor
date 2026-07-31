@@ -1,0 +1,8 @@
+{
+  "best": ["tabs-slide-indicator"],
+  "acceptable": [],
+  "bad": ["page-slide", "panel-reveal"],
+  "why_best": "A continuous spatial transfer preserves the creator's mental map while switching context across tools.",
+  "why_bad": "Fading or instantly hard-cutting between selection states severs the spatial relationship between adjacent options.",
+  "trap": "A near-miss will let the highlight stretch or deform excessively during transit, making a precise creative utility feel overly elastic and imprecise."
+}

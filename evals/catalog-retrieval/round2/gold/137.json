@@ -1,0 +1,8 @@
+{
+  "best": ["spotify-card"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "Anchoring audio telemetry in a designated visual corner provides instant soundtrack context without stealing focus from the primary news broadcast.",
+  "why_bad": "Centering the graphical element or making it dominate the frame disrupts the newsroom grid hierarchy and feels like an advertisement rather than ambient editorial metadata.",
+  "trap": "A near-miss will render the progress element completely frozen instead of giving it the subtle live movement required for real-time broadcast fidelity."
+}

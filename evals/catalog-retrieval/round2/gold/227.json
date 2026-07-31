@@ -1,0 +1,8 @@
+{
+  "best": ["line-swap"],
+  "acceptable": [],
+  "bad": ["beat-pulse-background", "beat-accent"],
+  "why_best": "Replacing the full thought in place preserves graphic real estate while immediately elevating the core editorial shift.",
+  "why_bad": "Stacking both statements or fading between them dilutes the urgency and makes the update feel like an afterthought rather than a decisive pivot.",
+  "trap": "A near-miss will trigger the accent mark before the replacement text has completely settled, ruining the visual cadence."
+}

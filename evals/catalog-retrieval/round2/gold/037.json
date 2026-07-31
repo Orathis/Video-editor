@@ -1,0 +1,8 @@
+{
+  "best": ["depth-rack-focus"],
+  "acceptable": [],
+  "bad": ["focus-rack", "focus-swap"],
+  "why_best": "It creates a cinematic sense of physical spatial depth that draws the viewer directly into the core narrative without requiring full spatial geometry.",
+  "why_bad": "A plain graphic wipe or flat opacity fade would feel like a cheap presentation slide, stripping away the tactile elegance this moment demands.",
+  "trap": "Stopping the camera's physical forward glide during the optical transition, which instantly ruins the illusion of a real optical lens moving through space."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["button"],
+  "acceptable": [],
+  "bad": ["toggle", "button-group"],
+  "why_best": "It builds absolute user trust by clearly delineating input intent, system processing, and final verification within an authoritative control suite.",
+  "why_bad": "An instant, unmediated visual jump would confuse operators and induce panic over whether their multi-million dollar transaction was processed.",
+  "trap": "The initial physical collapse must carry precise visual weight rather than playful elasticity to maintain an enterprise tone."
+}

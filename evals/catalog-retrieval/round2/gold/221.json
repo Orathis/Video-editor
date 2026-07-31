@@ -1,0 +1,8 @@
+{
+  "best": ["avatar"],
+  "acceptable": [],
+  "bad": ["toggle-group", "select"],
+  "why_best": "Establishing identity with clean visual hierarchy instantly communicates editorial authority and live availability to the viewer.",
+  "why_bad": "A playful or overly fluid entrance undermines the serious, real-time urgency required of a newsroom visual hierarchy.",
+  "trap": "Letting the live status node arrive out of sync with the main identity tile creates visual clutter and breaks broadcast polish."
+}

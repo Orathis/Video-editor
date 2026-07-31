@@ -1,0 +1,8 @@
+{
+  "best": ["match-cut"],
+  "acceptable": [],
+  "bad": ["grade-split-reveal", "marker-highlight"],
+  "why_best": "Anchoring the scene swap to an identical visual center creates an intuitive semantic bridge between two distinct pieces of information.",
+  "why_bad": "A soft fade or gradual cross-dissolve would drag down the broadcast momentum and dilute the precision of the graphic statement.",
+  "trap": "Failing to align the exact screen position and dimension of the shared focal element at the moment of the scene swap will shatter the illusion of continuity."
+}

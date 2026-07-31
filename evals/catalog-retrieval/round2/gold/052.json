@@ -1,0 +1,8 @@
+{
+  "best": ["caption-camera-follow"],
+  "acceptable": [],
+  "bad": ["kinetic-type-swap", "glyph-ring-assemble"],
+  "why_best": "This continuous outward expansion preserves immediate legibility while visually conveying the compounding scale of the overall message.",
+  "why_bad": "Static cuts or simple lateral pans treat each phrase in isolation, completely losing the sensation of an unfolding, interconnected thought.",
+  "trap": "Allowing the framing to hitch or misalign, making incoming elements feel mismatched in relative emphasis rather than seamlessly uniform."
+}

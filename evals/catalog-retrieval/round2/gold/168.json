@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-man-page"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-grass", "code-snippet-apple-terminal-basic"],
+  "why_best": "This presentation instantly telegraphs deep technical expertise and classic utility, building trust with a developer audience through familiar visual shorthand.",
+  "why_bad": "Swapping this for a polished modern interface or abstract visual card strips away the gritty authenticity and focus required for a true developer beat.",
+  "trap": "Failing to pace the text reveal naturally will destroy the illusion of a live human session and turn an engaging moment into a static wall of text."
+}

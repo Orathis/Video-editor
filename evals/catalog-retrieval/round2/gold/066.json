@@ -1,0 +1,8 @@
+{
+  "best": ["kinetic-type-swap"],
+  "acceptable": [],
+  "bad": ["ticker-takeover", "line-swap"],
+  "why_best": "Focusing motion onto an isolated focal point keeps the core sentence readable while driving natural curiosity toward the resolution.",
+  "why_bad": "Animating or wiping the entire line of text introduces unnecessary visual noise and distracts from the targeted message.",
+  "trap": "Failing to reserve enough spatial bounds for the longest phrasing variation will cause the surrounding layout to jitter during transitions."
+}

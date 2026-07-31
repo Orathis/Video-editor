@@ -1,0 +1,8 @@
+{
+  "best": ["halftone-dissolve"],
+  "acceptable": [],
+  "bad": ["transitions-dissolve", "transitions-radial"],
+  "why_best": "It introduces a tactile, print-inspired visual rhythm that elevates a standard screen swap into an intentional, branded moment of technical reveal.",
+  "why_bad": "A plain linear opacity fade would feel lazy and unconsidered, stripping the interface of visual identity during a key context shift.",
+  "trap": "Allowing the aperture scale to bloom too quickly before establishing the underlying matrix will blur the graphic geometry into muddy digital noise."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["kinetic-type-swap"],
+  "acceptable": [],
+  "bad": ["ticker-takeover", "line-swap"],
+  "why_best": "This approach highlights flexibility and precision simultaneously by cycling choices inside a stable line of thought.",
+  "why_bad": "Wiping the entire phrase away each time would shatter the viewer's reading flow and destroy the sentence's cumulative context.",
+  "trap": "A common pitfall is letting the surrounding phrase reflow or jump around as the changing terms vary in length."
+}

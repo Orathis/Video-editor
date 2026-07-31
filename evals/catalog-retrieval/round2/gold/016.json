@@ -1,0 +1,8 @@
+{
+  "best": ["kinetic-type-swap"],
+  "acceptable": [],
+  "bad": ["ticker-takeover", "line-swap"],
+  "why_best": "Anchoring the core statement while cycling a single variable focuses attention directly on the evolving idea without visual clutter.",
+  "why_bad": "Replacing the entire statement for every iteration breaks the viewer's reading momentum and distracts from the specific term being explored.",
+  "trap": "Allowing the container dimensions to jump when cycling terms of different character counts, which breaks the visual stability of the surrounding layout."
+}

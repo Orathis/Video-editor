@@ -1,0 +1,8 @@
+{
+  "best": ["native-select"],
+  "acceptable": [],
+  "bad": ["button-group", "select-item"],
+  "why_best": "This precise visual hierarchy elevates raw interface data into an easily digestible broadcast graphic without distracting from the core narrative.",
+  "why_bad": "Adding fluid, playful animations or exaggerated spatial drops would destroy the broadcast credibility and obscure the underlying technical data.",
+  "trap": "A weak visual contrast on the active outline that fails to clearly signify the precise instant the state shifts."
+}

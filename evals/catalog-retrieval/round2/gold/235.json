@@ -1,0 +1,8 @@
+{
+  "best": ["outline-draw"],
+  "acceptable": [],
+  "bad": ["text-shimmer", "count-up"],
+  "why_best": "Encapsulating the focal point with a continuous boundary visually seals the subject, giving the viewer immediate confirmation of its importance.",
+  "why_bad": "A sudden fade-in or abrupt scale pulse would feel unearned and lack the deliberate sense of endorsement this moment requires.",
+  "trap": "A near-miss would misalign the terminal point of the enclosure, leaving an unsealed gap or messy overlap at the final join."
+}

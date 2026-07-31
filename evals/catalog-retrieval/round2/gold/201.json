@@ -1,0 +1,8 @@
+{
+  "best": ["caption-parallax-layers"],
+  "acceptable": [],
+  "bad": ["caption-matrix-decode", "caption-gradient-fill"],
+  "why_best": "It integrates the brand messaging into the physical world of the shot, delivering a high-production polish that makes the hero element feel larger than life.",
+  "why_bad": "Slapping flat graphics across the foreground obscures our primary visual anchor and feels cheap, breaking the cinematic illusion.",
+  "trap": "A failure to maintain tight spatial occlusion around the foreground subject's edges will make the lettering look like an unconvincing floating glitch."
+}

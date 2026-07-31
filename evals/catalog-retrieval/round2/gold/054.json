@@ -1,0 +1,8 @@
+{
+  "best": ["press-ripple"],
+  "acceptable": [],
+  "bad": ["halftone-dissolve", "oversized-cursor"],
+  "why_best": "This motion establishes physical weight and undeniable proof of execution for a high-value interaction.",
+  "why_bad": "An abrupt visual jump without physical compression deprives the user of tactile cause and effect.",
+  "trap": "A weak execution will decouple the pointer movement from the surface deflection, breaking the illusion of direct physical contact."
+}

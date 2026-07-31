@@ -1,0 +1,8 @@
+{
+  "best": ["chevron-pill-card-morph"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "button-group"],
+  "why_best": "Unbroken structural continuity maintains the user's focus and creates a feeling of frictionless momentum throughout the purchase flow.",
+  "why_bad": "Crossfading between static layers or stepping through discrete screens destroys the sense of unified surface continuity and makes the system feel sluggish.",
+  "trap": "A near-miss will complete the horizontal widening entirely before starting the vertical bloom, turning a seamless single gesture into two robotic, disjointed moves."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["receipt-card"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "marker-highlight"],
+  "why_best": "This approach creates an immediate visual hook while keeping the audience fixated on the critical message through a sharp, synchronized visual highlight.",
+  "why_bad": "Using a progressive wipe or highlighter motion across the phrasing softens the visual impact and drags out a beat that demands immediate clarity.",
+  "trap": "A superficial attempt will mistakenly animate the accent field as a directional sweep across the phrase rather than transforming the entire block uniformly at once."
+}

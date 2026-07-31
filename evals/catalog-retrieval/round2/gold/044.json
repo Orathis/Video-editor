@@ -1,0 +1,8 @@
+{
+  "best": ["focus-rack"],
+  "acceptable": [],
+  "bad": ["depth-rack-focus", "focus-swap"],
+  "why_best": "This approach cleanly reallocates user attention within a dense data environment while preserving the underlying spatial context.",
+  "why_bad": "Replacing the screen content entirely or hard-cutting between cards would shatter the viewer's visual mental model of the dashboard.",
+  "trap": "A near-miss would execute the spatial transition too hastily, breaking the deliberate rhythm required for executive-level data comprehension."
+}

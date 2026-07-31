@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-cover"],
+  "acceptable": [],
+  "bad": ["transitions-push", "transitions-scale"],
+  "why_best": "This decisive visual takeover creates a clean break in the narrative, giving the incoming broadcast graphic absolute priority over stale visual context.",
+  "why_bad": "A soft blend or gradual dissolve would undermine the urgency of a news update, making the transition feel passive and indecisive.",
+  "trap": "A subtle failure occurs if the underlying graphic panel moves away prematurely, exposing empty background rather than letting the new plate dominate it fully."
+}

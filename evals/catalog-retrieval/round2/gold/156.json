@@ -1,0 +1,8 @@
+{
+  "best": ["x-post"],
+  "acceptable": [],
+  "bad": ["reddit-post", "tiktok-follow"],
+  "why_best": "Injecting real-world developer sentiment at this moment grounds abstract features in genuine community endorsement.",
+  "why_bad": "A full-screen takeover or heavy cinematic transition would derail the technical momentum and feel like an aggressive marketing pitch.",
+  "trap": "Focusing too heavily on decorative entry effects rather than ensuring the community numbers and core text are legible at a glance."
+}

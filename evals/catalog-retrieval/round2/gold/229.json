@@ -1,0 +1,8 @@
+{
+  "best": ["caption-blend-difference"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-basic", "code-snippet-apple-terminal-grass"],
+  "why_best": "It solves legibility over complex visual backgrounds while giving the composition a high-fashion, contemporary edge.",
+  "why_bad": "Slapping a dark container box behind the text clutter-blocks the imagery and undermines the sleek, mobile-native polished feel.",
+  "trap": "A near-miss will trigger a uniform color shift across whole words at once instead of letting individual letter strokes split neatly over changing light boundaries."
+}

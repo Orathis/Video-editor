@@ -1,0 +1,8 @@
+{
+  "best": ["aspect-ratio"],
+  "acceptable": [],
+  "bad": ["native-select", "label"],
+  "why_best": "Establishing a precise structural perimeter grounds the imagery and gives technical context before the user engages with the media.",
+  "why_bad": "Allowing content to expand organically without defined visual boundaries creates a cluttered, unpredictable layout that destabilizes the consumer UI experience.",
+  "trap": "A near-miss will make the spatial coordinate readouts overly prominent, overshadowing the encased imagery instead of acting as subtle metadata."
+}

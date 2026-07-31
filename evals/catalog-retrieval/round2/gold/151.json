@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-grass"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-basic", "code-snippet-apple-terminal-pro"],
+  "why_best": "It instantly grounds the feature in authentic engineering culture through iconic retro visual language.",
+  "why_bad": "A slick, heavily styled modern UI overlay would strip away the tactile, raw credibility this beat demands.",
+  "trap": "Instantly rendering whole lines of text at once instead of letting the content materialize character by character will break the illusion of real-time creation."
+}

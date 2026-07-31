@@ -8,7 +8,11 @@ import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHELF = os.path.join(HERE, "shelf.md")
-BRIEFS = os.path.join(HERE, "..", "briefs")
+# Round two's own briefs, the ones the generator writes here. Pointing one
+# directory up reaches round one's five briefs instead, which loads and runs
+# without complaint and would quietly measure the whole grid on the wrong
+# corpus.
+BRIEFS = os.path.join(HERE, "briefs")
 VECTORS = os.path.join(HERE, "vectors.json")
 RRF_C = 60
 

@@ -1,0 +1,8 @@
+{
+  "best": ["sticky-mock-swap"],
+  "acceptable": [],
+  "bad": ["offset-path-traveler", "tracing-beam"],
+  "why_best": "Anchoring the frame while evolving its internal content lets prospective clients compare distinct workflow states without visual disorientation.",
+  "why_bad": "Cutting rapidly between whole new screen locations destroys spatial continuity and makes the system feel fragmented rather than unified.",
+  "trap": "A common mistake is desynchronizing the visual state morph with the supporting narrative text, leaving viewers looking at old data while reading new claims."
+}

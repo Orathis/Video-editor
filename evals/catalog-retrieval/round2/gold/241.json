@@ -1,0 +1,8 @@
+{
+  "best": ["beat-accent"],
+  "acceptable": [],
+  "bad": ["logo-sting", "beat-pulse-background"],
+  "why_best": "This quick impulse provides maximum visual punctuation on a single cue while keeping the experience snappy.",
+  "why_bad": "A slow sweep or lingering highlight would drag down the tempo and feel out of sync with the audio energy.",
+  "trap": "A sloppy execution will let the energy bleed out slowly rather than snapping back to rest instantly."
+}

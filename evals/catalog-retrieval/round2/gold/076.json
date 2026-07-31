@@ -1,0 +1,8 @@
+{
+  "best": ["caliper-caption-rail"],
+  "acceptable": [],
+  "bad": ["plan-room-audit", "chevron-pill-card-morph"],
+  "why_best": "Simultaneously aligning and seating the graphic turns a simple text callout into an active demonstration of industrial precision.",
+  "why_bad": "Revealing the text and then pausing before stepping through a separate alignment phase creates a clunky, instructional presentation that kills visual speed.",
+  "trap": "Setting too wide a gap between the final text position and the product boundary will make the visual feel like a detached blueprint label rather than an integrated physical mark."
+}

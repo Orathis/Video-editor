@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-light-2026"],
+  "acceptable": [],
+  "bad": ["code-snippet-light-plus", "code-snippet-solarized-light"],
+  "why_best": "Simulating real-time creation anchors the product in active progress, making technical execution feel fluid and approachable.",
+  "why_bad": "Flashing the full content on screen all at once creates immediate visual cognitive load and feels like a static screenshot rather than a live feature demonstration.",
+  "trap": "A near-miss will make the pace of visual appearance overly mechanical and uniform, destroying the cadence of organic human authorship."
+}

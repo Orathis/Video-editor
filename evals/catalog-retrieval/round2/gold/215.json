@@ -1,0 +1,8 @@
+{
+  "best": ["ascii-render-pass"],
+  "acceptable": [],
+  "bad": ["ordered-dither-pass", "particle-image-reveal"],
+  "why_best": "Grounding the presentation in a progressive structural tightening creates a sense of live data processing tailored for high-stakes news graphics.",
+  "why_bad": "Using a smooth corporate crossfade or standard cinematic blur would feel too polished and soften the analytical edge of a hard-news delivery.",
+  "trap": "Pacing the transition so slowly that the imagery remains a blocky blur during key editorial reads."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["focus-swap"],
+  "acceptable": [],
+  "bad": ["comparison-split", "multi-device-splay"],
+  "why_best": "It establishes an immediate visual hierarchy without losing context, keeping both choices present while telling the viewer exactly where to look.",
+  "why_bad": "A sudden cut or complete departure of the inactive panel destroys the side-by-side comparison that gives this marketing beat its context.",
+  "trap": "Softening the inactive element so aggressively that it disappears into an illegible smear, ruining the balanced relationship between the two options."
+}

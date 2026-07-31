@@ -1,0 +1,8 @@
+{
+  "best": ["persona-card-fan"],
+  "acceptable": [],
+  "bad": ["orbit-ring-camera", "receipt-card"],
+  "why_best": "It highlights the active selection with full visual prominence while neatly consolidating historical options into a constant, non-intrusive footprint.",
+  "why_bad": "Allowing new panels to simply push older ones sideways off the stage would destroy the visual history and crowd out the presenter.",
+  "trap": "An imprecise build will linearly offset each tucked panel by a fixed distance instead of dynamically recalculating their shared compression inside the bounded footprint."
+}

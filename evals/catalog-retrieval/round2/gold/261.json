@@ -1,0 +1,8 @@
+{
+  "best": ["multiplayer-cursors"],
+  "acceptable": [],
+  "bad": ["aurora-drift", "conic-progress-ring"],
+  "why_best": "It visibly demonstrates live human presence and instant synchronization in a way that immediately resonates with modern remote teams.",
+  "why_bad": "Static screenshots or isolated single-user actions fail to convey the dynamic vitality and seamless harmony of a shared live canvas.",
+  "trap": "Focusing too heavily on erratic individual trails rather than cohesive focal convergence will make the workspace feel chaotic instead of collaborative."
+}

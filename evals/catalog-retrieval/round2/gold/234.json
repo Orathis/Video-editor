@@ -1,0 +1,8 @@
+{
+  "best": ["split-tilt-cards"],
+  "acceptable": [],
+  "bad": ["before-after-wipe", "pull-back-reveal"],
+  "why_best": "Constructing a mirrored spatial arrival naturally establishes equal weight for two competing options while signaling a direct comparison.",
+  "why_bad": "Staggering the entrance or relying on flat vertical stacks destroys the immediate side-by-side symmetry required for evaluation.",
+  "trap": "Allowing the resting drift to become too pronounced will make the underlying content unreadable during a critical decision point."
+}

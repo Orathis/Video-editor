@@ -1,0 +1,8 @@
+{
+  "best": ["whiteboard-ink"],
+  "acceptable": [],
+  "bad": ["marker-highlight", "svg-line-draw-loader"],
+  "why_best": "Building the illustration step-by-step grounds abstract product features in a human, inventive rhythm that builds anticipation naturally.",
+  "why_bad": "Instantly popping the entire graphic onto screen all at once strips away the sense of craft and fails to lead the user's attention deliberately.",
+  "trap": "A weak execution will reveal the accompanying text label too early, ruining the suspense before the visual figure finishes taking shape."
+}

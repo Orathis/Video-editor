@@ -1,0 +1,8 @@
+{
+  "best": ["aurora-drift"],
+  "acceptable": [],
+  "bad": ["grain-field", "drift-hold"],
+  "why_best": "This approach anchors the screen environment with understated warmth, letting critical interface controls take top visual priority.",
+  "why_bad": "Introducing sharp structural transitions or high-contrast activity behind the UI would fracture focus and fatigue the user.",
+  "trap": "A common mistake is letting visual boundaries become too distinct, causing distracting hard shapes to slice across the interface."
+}

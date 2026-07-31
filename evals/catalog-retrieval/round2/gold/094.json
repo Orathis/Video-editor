@@ -1,0 +1,8 @@
+{
+  "best": ["focus-rack"],
+  "acceptable": [],
+  "bad": ["depth-rack-focus", "focus-swap"],
+  "why_best": "This spatial handoff establishes clear visual hierarchy and narrative progression within a tight square canvas without cluttering the screen or cutting away.",
+  "why_bad": "An abrupt cut or simple opacity cross-dissolve destroys the illusion of physical depth and fails to communicate the spatial relationship between the two subjects.",
+  "trap": "A near-miss will shift the dimensional perspective but forget to soften the receded element, leaving competing items equally sharp and destroying the intended hierarchy."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["svg-stroke-trace"],
+  "acceptable": [],
+  "bad": ["ascii-trail-reveal", "pull-back-reveal"],
+  "why_best": "Constructing the geometry live on screen conveys investigative clarity and immediate journalistic credibility before the main narrative unfolds.",
+  "why_bad": "A simple abrupt fade or slide-in lacks the deliberate, analytical craft required for a high-density broadcast breakdown.",
+  "trap": "A near-miss will let the completed graphic freeze completely static after forming, ruining the live broadcast feel."
+}

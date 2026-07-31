@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-radial"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "transitions-push"],
+  "why_best": "Anchoring the scene shift around a core focal point focuses attention directly on the incoming interface while keeping the vertical canvas balanced.",
+  "why_bad": "A simple linear slide would feel generic and fail to highlight the precise, geometric visual polish expected in a specialized design component.",
+  "trap": "A near-miss will allow the expanding boundary to become off-center, producing an uneven wobble that destroys the technical precision of the movement."
+}

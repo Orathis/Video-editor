@@ -1,0 +1,8 @@
+{
+  "best": ["cinematic-zoom"],
+  "acceptable": [],
+  "bad": ["light-leak", "transitions-scale"],
+  "why_best": "Sprinting straight along the z-axis instantly communicates a deep dive into root-cause data without disrupting the user's mental map of the system hierarchy.",
+  "why_bad": "A horizontal sliding wipe would make the navigation feel like a lateral step between equals rather than an aggressive drill-down into critical mechanics.",
+  "trap": "A near-miss would over-streak the edges to the point of muddying the destination visual before the motion comes to a complete rest."
+}

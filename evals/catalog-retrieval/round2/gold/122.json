@@ -1,0 +1,8 @@
+{
+  "best": ["lt-accent-underline"],
+  "acceptable": [],
+  "bad": ["lt-side-rule", "lt-mask-reveal"],
+  "why_best": "This sequential layer build establishes instant professional hierarchy while preserving maximum screen real estate for the underlying interview.",
+  "why_bad": "Dropping a heavy, opaque container block over the footage would obscure essential video context and feel visually aggressive for a refined executive setting.",
+  "trap": "A near-miss will prematurely reveal the supporting subtitle before the horizontal line finishes extending, breaking the structural sequence and drawing the eye out of order."
+}

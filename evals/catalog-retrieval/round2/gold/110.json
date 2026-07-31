@@ -1,0 +1,8 @@
+{
+  "best": ["lower-third-bild"],
+  "acceptable": [],
+  "bad": ["news-ticker", "lt-clean-bar"],
+  "why_best": "This high-contrast graphic anchoring brings urgent editorial authority to key identifiers while leaving the central visual canvas unobstructed.",
+  "why_bad": "A full-screen transitional overlay or a floating ambient tag would either obscure critical dashboard data or lack the necessary visual gravity.",
+  "trap": "Allowing the typography to sit loosely without tight container boundaries will destroy the punchy, tabloid-style precision required for the effect."
+}

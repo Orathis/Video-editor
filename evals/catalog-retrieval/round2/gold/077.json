@@ -1,0 +1,8 @@
+{
+  "best": ["caption-camera-follow"],
+  "acceptable": [],
+  "bad": ["kinetic-type-swap", "glyph-ring-assemble"],
+  "why_best": "It preserves the full integrity of an evolving narrative, ensuring immediate readability without sacrificing the overarching context.",
+  "why_bad": "Cutting between isolated text cards would fragment the editorial message and obscure how the dynamic parts of the report connect.",
+  "trap": "Dimming or obscuring past phrases as new ones arrive breaks the sense of an unbroken, permanent record."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["focus-rack"],
+  "acceptable": [],
+  "bad": ["depth-rack-focus", "focus-swap"],
+  "why_best": "This technique redirects user attention seamlessly between layered content planes without altering the underlying layout structure.",
+  "why_bad": "Physically sliding or swapping the surfaces creates unnecessary visual noise and breaks the mental map of a persistent workspace.",
+  "trap": "A near-miss will misalign the softening of the front plane with the emergence of the rear plane, causing an uncomfortable moment where neither object feels clear."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["yt-lower-third"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "This targeted visual insertion seamlessly embeds social proof and conversion prompts into a high-density metric interface without obscuring core visual data.",
+  "why_bad": "A heavy, full-screen transition or persistent static visual overlay would disrupt the analytical clarity required by an enterprise environment.",
+  "trap": "A flawed visual timing structure will cause the element to linger past its intended window, drawing attention away from the primary interface content."
+}

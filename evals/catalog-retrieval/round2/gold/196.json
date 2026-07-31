@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-high-contrast-light"],
+  "acceptable": [],
+  "bad": ["code-snippet-high-contrast", "code-snippet-light-plus"],
+  "why_best": "The crisp visual environment paired with a progressive textual reveal perfectly mirrors the focused clarity of an author in flow.",
+  "why_bad": "Dropping the entire block of text onto the screen at once eliminates the temporal rhythm and makes the workspace look like an uninspired static screenshot.",
+  "trap": "A near-miss will draw too much visual attention to the surrounding control panels instead of letting them act as a quiet anchor for the central performance."
+}

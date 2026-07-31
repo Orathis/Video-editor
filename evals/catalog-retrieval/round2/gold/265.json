@@ -1,0 +1,8 @@
+{
+  "best": ["icon-morph-beat"],
+  "acceptable": [],
+  "bad": ["offset-path-traveler", "sticky-mock-swap"],
+  "why_best": "It gives immediate, elegant feedback on a completed task while maintaining spatial visual continuity.",
+  "why_bad": "Replacing the visual entirely with an abrupt jump cut would feel unpolished and disconnect the user from the state change.",
+  "trap": "Making the final emphasis too aggressive or springy will make a simple state confirmation feel theatrical and slow."
+}

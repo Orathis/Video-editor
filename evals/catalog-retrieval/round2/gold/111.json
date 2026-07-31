@@ -1,0 +1,8 @@
+{
+  "best": ["us-map-bubble"],
+  "acceptable": [],
+  "bad": ["us-map-flow", "us-map"],
+  "why_best": "This approach instantly translates complex spatial performance into an intuitive visual hierarchy that highlights regional strength at a glance.",
+  "why_bad": "Opting for a dense statistical table or bar chart strips away the compelling regional story and fails to convey geographic scale.",
+  "trap": "A subtle mistake would be allowing the focal nodes to overlap haphazardly, obscuring critical quantitative callouts and muddying the visual hierarchy."
+}

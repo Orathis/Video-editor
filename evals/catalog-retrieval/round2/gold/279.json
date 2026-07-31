@@ -1,0 +1,8 @@
+{
+  "best": ["physical-exit"],
+  "acceptable": [],
+  "bad": ["swipe-rail", "drift-hold"],
+  "why_best": "It endows the transition with a playful, tangible energy that reinforces the dynamic flow of the showcase.",
+  "why_bad": "Allowing the element to simply dissolve away would kill the promotional pacing and feel uninspired.",
+  "trap": "The easiest mistake is letting the object fade out or lose velocity before it has fully cleared the boundary."
+}

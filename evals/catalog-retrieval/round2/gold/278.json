@@ -1,0 +1,8 @@
+{
+  "best": ["drawer"],
+  "acceptable": [],
+  "bad": ["sheet", "popover"],
+  "why_best": "This approach anchors secondary workflows directly beneath the current focus, retaining operational context in a restricted vertical viewport.",
+  "why_bad": "Taking over the entire screen with a harsh full-page replacement severs the user's mental map of the underlying analytics.",
+  "trap": "A common misstep is letting the new panel bounce or float loosely, which destroys the rigid, high-precision aesthetic required for an executive tool."
+}

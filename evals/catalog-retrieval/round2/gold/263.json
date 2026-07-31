@@ -1,0 +1,8 @@
+{
+  "best": ["combobox"],
+  "acceptable": [],
+  "bad": ["select-item", "select"],
+  "why_best": "This crisp visual sequence maintains rigorous structural hierarchy in a tall format while delivering rapid visual proof required for an editorial news register.",
+  "why_bad": "Allowing the contextual choices to drift freely or unfold with playful elasticity destroys the authoritative tone and severs the physical link to the primary input.",
+  "trap": "A subtle misfire occurs if the confirmation signal triggers before the target choice settles into place, breaking the visual logic of intent and verification."
+}

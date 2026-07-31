@@ -1,0 +1,8 @@
+{
+  "best": ["focus-rack"],
+  "acceptable": [],
+  "bad": ["depth-rack-focus", "focus-swap"],
+  "why_best": "Guiding visual hierarchy through simulated depth allows us to contrast two connected messages without breaking layout continuity.",
+  "why_bad": "Panning elements off-stage or hard-cutting between slides destroys the physical relationship and shared context between the two subjects.",
+  "trap": "A near-miss will desynchronize the optical depth cues, making the distant plane resolve into sharp definition before the foreground softens."
+}

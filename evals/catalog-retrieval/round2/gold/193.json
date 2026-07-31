@@ -1,0 +1,8 @@
+{
+  "best": ["sdf-iris"],
+  "acceptable": [],
+  "bad": ["glitch", "transitions-radial"],
+  "why_best": "This focal expansion creates an intimate, spotlight-like momentum that grounds the user's focus on the primary element before revealing the full vertical canvas.",
+  "why_bad": "A hard directional wipe or simple crossfade lacks the dramatic focal intent needed to anchor the hero graphic during an environment switch.",
+  "trap": "Expanding from the frame's geometric center rather than aligning with the visually prominent point of interest will feel disconnected from the layout's actual focal point."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["state-chip-rail"],
+  "acceptable": [],
+  "bad": ["z-punch-through", "pill-row-collapse"],
+  "why_best": "A structured horizontal progression provides an authoritative, broadcast-ready cadence for tracking system milestones at a glance.",
+  "why_bad": "Using chaotic, unanchored pop-ups would shatter the continuous news-graphic rhythm and obscure the sequence of events.",
+  "trap": "Failing to visually subdue completed steps causes historical stages to compete with the active focal point."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["pill-row-collapse"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "caption-clip-wipe"],
+  "why_best": "This approach anchors the big picture first, giving the viewer structural orientation before funneling their attention into the main focus.",
+  "why_bad": "Jumping directly to the isolated element without showing the full overview deprives the audience of the necessary framework and editorial scale.",
+  "trap": "Failing to hold the completed overview long enough to be read as a coherent whole will break the audience's comprehension."
+}

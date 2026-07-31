@@ -1,0 +1,8 @@
+{
+  "best": ["depth-rack-focus"],
+  "acceptable": [],
+  "bad": ["focus-rack", "focus-swap"],
+  "why_best": "Guiding attention through optical clarity leverages real-world visual cues to make the core message feel discovered rather than merely presented.",
+  "why_bad": "Flattening the spatial planes into a standard lateral push would erase the sense of physical space and make the reveal feel mechanical.",
+  "trap": "Failing to maintain the continuous forward momentum throughout the entire beat will make the tail end of the sequence feel dead and frozen."
+}

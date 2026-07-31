@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-shatter"],
+  "acceptable": [],
+  "bad": ["vfx-portal", "vfx-magnetic"],
+  "why_best": "It provides an unmistakable, high-impact visual punctuation mark when a workspace experiences an unrecoverable crash or violent state change.",
+  "why_bad": "A gentle dissolve or fade would make a terminal event look like a routine page load, stripping the moment of its critical urgency.",
+  "trap": "A weak execution would linger on the post-impact dispersion for too long, turning an abrupt system shock into a sluggish particle animation."
+}

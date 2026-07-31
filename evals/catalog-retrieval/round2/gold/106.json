@@ -1,0 +1,8 @@
+{
+  "best": ["us-map-flow"],
+  "acceptable": [],
+  "bad": ["us-map-bubble", "us-map-hex"],
+  "why_best": "It elevates raw spatial coordinates into an evocative narrative of volume, velocity, and nationwide systemic interaction.",
+  "why_bad": "Relying on flat static markers or isolated regional callouts completely severs the thematic sense of dynamic movement across a shared expanse.",
+  "trap": "Failing to elevate the paths into three-dimensional space will collapse the visual center into an unreadable tangle of overlapping lines."
+}

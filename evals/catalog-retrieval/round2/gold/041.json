@@ -1,0 +1,8 @@
+{
+  "best": ["kinetic-type-swap"],
+  "acceptable": [],
+  "bad": ["ticker-takeover", "line-swap"],
+  "why_best": "Anchoring the context while rapidly resolving the core keyword visually conveys active updates and precision without overwhelming the screen.",
+  "why_bad": "Animating the entire phrase or wiping whole lines of text would shatter visual stability and distract from the specific editorial update.",
+  "trap": "A near-miss execution will allow the surrounding words to jitter or reflow as different term lengths cycle through, destroying the visual anchor."
+}

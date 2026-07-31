@@ -1,0 +1,8 @@
+{
+  "best": ["lt-soft-pill"],
+  "acceptable": [],
+  "bad": ["lt-clean-bar", "lt-dark-card"],
+  "why_best": "This lively visual introduction gives instant broadcast authority to the guest while maintaining an approachable, sleek aesthetic suitable for modern conversation shows.",
+  "why_bad": "A heavy corporate wipe or prolonged slide would feel too rigid and disrupt the natural momentum of an unscripted chat.",
+  "trap": "A common mistake is letting the element overshoot its vertical positioning so aggressively that it distracts from the subject's facial expressions."
+}

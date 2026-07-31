@@ -1,0 +1,8 @@
+{
+  "best": ["version-plate-type"],
+  "acceptable": [],
+  "bad": ["glyph-ring-assemble", "match-cut"],
+  "why_best": "It establishes immediate visual authority by transitioning from raw print texture to controlled, interface-driven spatial manipulation.",
+  "why_bad": "A continuous camera scale or uniform focal zoom would destroy the feeling of a live digital tool manipulating distinct spatial axes.",
+  "trap": "Allowing the vertical balance to drift during horizontal frame shifts will instantly break the illusion of an active UI cursor anchor."
+}

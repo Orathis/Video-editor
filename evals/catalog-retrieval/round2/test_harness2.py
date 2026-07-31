@@ -228,6 +228,18 @@ class Harness2Tests(unittest.TestCase):
         contexts = self.contexts()
         self.assertEqual(9, len(contexts))
 
+    def test_every_stage_reads_the_same_brief_corpus(self):
+        # The generator, the gold committee and the runner each resolve the
+        # brief directory themselves. When the runner resolved one directory up
+        # it found round one's five briefs, loaded them without error, and would
+        # have scored the whole paid grid against the wrong corpus.
+        import gen_briefs
+        import validate_gold
+
+        runner = os.path.realpath(harness2.BRIEFS)
+        self.assertEqual(runner, os.path.realpath(gen_briefs.BRIEFS_DIR))
+        self.assertEqual(runner, os.path.realpath(validate_gold.BRIEFS_DIR))
+
 
 class Embed2Tests(unittest.TestCase):
     def setUp(self):

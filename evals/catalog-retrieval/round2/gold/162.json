@@ -1,0 +1,8 @@
+{
+  "best": ["code-scroll"],
+  "acceptable": [],
+  "bad": ["code-highlight", "code-3d-extrude"],
+  "why_best": "This approach preserves macro-level structural context while instantly directing intense focus to the specific logic under discussion.",
+  "why_bad": "An instant hard cut to an isolated snippet strips away the surrounding architecture, leaving the viewer disoriented about where this logic operates.",
+  "trap": "A near-miss will obscure the surrounding text too early in the movement, causing the audience to lose their visual anchor before arriving at the target."
+}

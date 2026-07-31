@@ -1,0 +1,8 @@
+{
+  "best": ["match-cut"],
+  "acceptable": [],
+  "bad": ["grade-split-reveal", "marker-highlight"],
+  "why_best": "Carrying an identical focal point through an instantaneous view shift instantly proves that the incoming interface is a direct downstream result of the user's trigger.",
+  "why_bad": "Fading or sliding the whole viewport would make a high-efficiency developer environment feel sluggish and blur the relationship between action and output.",
+  "trap": "A near-miss will slightly misalign the scale or position at the instant of the swap, turning an elegant continuity beat into an annoying visual glitch."
+}
