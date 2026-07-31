@@ -5,3 +5,5 @@ vectors.json
 round2/vectors.json
 checkpoints/
 round2/checkpoints/
+round3/corpus/vectors.json
+round3/corpus/checkpoints/
