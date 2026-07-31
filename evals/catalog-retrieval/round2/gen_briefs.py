@@ -12,6 +12,7 @@ from pathlib import Path
 
 import harness2
 import provider
+import run2
 
 
 HERE = Path(__file__).resolve().parent
@@ -627,9 +628,96 @@ def _fixture_demo():
     return 0
 
 
+def project_generation(catalog, wave, spent=None, model=None, max_attempts=GEN_MAX_ATTEMPTS):
+    """Price a generation wave from prompt lengths alone, before any call is made.
+
+    The grid and the committee are both priced before they run. Generation was
+    not, which left the one cost that scales with the corpus as the only one
+    nobody could see at the gate.
+
+    Attempts are reported as a floor and a ceiling rather than as a point. A move
+    costs one call if its first brief passes every gate and up to max_attempts if
+    it keeps failing them, and the acceptance rate of a wave that has not run is
+    not something this function can know. Inventing a rate here would turn a
+    bounded projection into a guess wearing a decimal point.
+    """
+    model = model or MODEL
+    targets = choose_targets(catalog, wave, spent)
+    # The same source text generate_corpus loads, not source_of's stratum label:
+    # the prompt carries the whole artifact, so pricing the label would report a
+    # cost around three orders of magnitude below the real one. Reading the files
+    # here also preflights them, so a missing source fails at the gate rather than
+    # partway through a paid wave.
+    source_texts = {
+        name: load_source_text(name, catalog[name]) for name, _ in dict.fromkeys(targets)
+    }
+    chars = sum(len(PROMPT.format(source=source_texts[name])) for name, _ in targets)
+    projection = {
+        "model": model,
+        "wave": wave,
+        "targets": len(targets),
+        "max_attempts": max_attempts,
+        "chars_per_attempt_pass": chars,
+    }
+    for label, attempts in (("floor", 1), ("ceiling", max_attempts)):
+        calls = len(targets) * attempts
+        estimated_input = chars * attempts / run2.CHARS_PER_TOKEN
+        assumed_output = calls * run2.ASSUMED_OUTPUT_TOKENS
+        costs = run2.usage_cost_breakdown(
+            {
+                "prompt_tokens": estimated_input,
+                "cached_tokens": 0,
+                "completion_tokens": assumed_output,
+            },
+            model,
+        )
+        projection[label] = {
+            "attempts_per_move": attempts,
+            "calls": calls,
+            "estimated_input_tokens": estimated_input,
+            "assumed_output_tokens": assumed_output,
+            "projected_usd": sum(costs.values()),
+        }
+    return projection
+
+
+def generation_dry_run(catalog, wave, spent=None, model=None, emit=print):
+    """Emit the projection and make no call. Zero network, no key required."""
+    projection = project_generation(catalog, wave, spent, model)
+    emit("DRY RUN: zero network calls and no key required.")
+    emit(
+        f"Estimated input tokens use characters divided by {run2.CHARS_PER_TOKEN}; "
+        "this heuristic is NOT a real tokenizer count."
+    )
+    emit(
+        f"Assumed output tokens are {run2.ASSUMED_OUTPUT_TOKENS} per call, not "
+        "measured. Cached tokens are projected as 0 because no requests are made."
+    )
+    emit(f"Model: {projection['model']}")
+    emit(f"Wave {projection['wave']}: {projection['targets']} targets")
+    for label in ("floor", "ceiling"):
+        row = projection[label]
+        emit(
+            f"{label.capitalize()} at {row['attempts_per_move']} attempt(s) per move: "
+            f"{row['calls']} calls, ${row['projected_usd']:.6f}"
+        )
+    emit(
+        "The true cost sits between them and depends on the acceptance rate, which "
+        "attempts.jsonl records once a wave has actually run."
+    )
+    return projection
+
+
 def main():
     if os.environ.get("GEN_BRIEFS_FIXTURE_DEMO") == "1":
         return _fixture_demo()
+
+    if os.environ.get("EVAL_DRY_RUN") == "1":
+        wave = int(os.environ.get("BRIEF_WAVE", "1"))
+        catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+        spent, _ = load_attempts(ATTEMPTS_LOG)
+        generation_dry_run(catalog, wave, spent)
+        return 0
 
     wave = int(os.environ.get("BRIEF_WAVE", "1"))
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))

@@ -137,6 +137,12 @@ class Harness2Tests(unittest.TestCase):
             entries = round1.load_shelf()
             briefs = round1.load_briefs()
 
+            # Round one's vectors.json is gitignored and lives only where round
+            # one actually ran, so a fresh checkout has the lexical half of this
+            # parity check and not the semantic half. Erroring out would report a
+            # missing untracked input as a broken retriever, and skipping the
+            # whole test would throw away the half that needs no vectors.
+            semantic = os.path.exists(round1.VECTORS)
             with mock.patch.object(harness2, "VECTORS", round1.VECTORS):
                 for brief_id, brief in briefs.items():
                     self.assertEqual(round1.tokens(brief), harness2.tokens(brief))
@@ -145,10 +151,13 @@ class Harness2Tests(unittest.TestCase):
                             round1.lexical_topk(brief, entries, k),
                             harness2.lexical_topk(brief, entries, k),
                         )
-                        self.assertEqual(
-                            round1.semantic_topk(brief_id, entries, k),
-                            harness2.semantic_topk(brief_id, entries, k),
-                        )
+                        if semantic:
+                            self.assertEqual(
+                                round1.semantic_topk(brief_id, entries, k),
+                                harness2.semantic_topk(brief_id, entries, k),
+                            )
+        if not semantic:
+            self.skipTest(f"lexical parity checked; {round1.VECTORS} absent")
 
     def test_retriever_k_counts_and_prefix_stability(self):
         lexical = {

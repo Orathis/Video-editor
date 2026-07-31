@@ -481,6 +481,63 @@ class BriefGeneratorTests(unittest.TestCase):
             calls[0][1],
         )
 
+    def _priced_catalog(self, root):
+        """A two move catalog whose sources are real files on disk."""
+        catalog = {}
+        for name, body in (("move-alpha", "alpha " * 400), ("move-beta", "beta")):
+            path = root / f"{name}.html"
+            path.write_text(f"<!--\n{body}\n-->", encoding="utf-8")
+            catalog[name] = {
+                "sources": "primitive",
+                "install_path": str(path.relative_to(briefs.REPO_ROOT)),
+            }
+        return catalog
+
+    def test_the_projection_prices_the_source_text_not_the_stratum_label(self):
+        # source_of returns "primitive", the source text is the artifact itself.
+        # Pricing the label reports a cost far below the real one, and the two are
+        # only distinguishable when one source is much longer than the other.
+        with tempfile.TemporaryDirectory(dir=briefs.REPO_ROOT) as temporary:
+            catalog = self._priced_catalog(Path(temporary))
+            projection = briefs.project_generation(catalog, 1)
+        label_only = 2 * len(briefs.PROMPT.format(source="primitive"))
+        self.assertEqual(2, projection["targets"])
+        self.assertGreater(projection["chars_per_attempt_pass"], label_only * 2)
+
+    def test_the_projection_is_linear_in_waves_and_bounded_by_max_attempts(self):
+        with tempfile.TemporaryDirectory(dir=briefs.REPO_ROOT) as temporary:
+            catalog = self._priced_catalog(Path(temporary))
+            one = briefs.project_generation(catalog, 1)
+            two = briefs.project_generation(catalog, 2)
+        self.assertAlmostEqual(
+            2 * one["floor"]["projected_usd"], two["floor"]["projected_usd"], places=9
+        )
+        self.assertAlmostEqual(
+            briefs.GEN_MAX_ATTEMPTS * one["floor"]["projected_usd"],
+            one["ceiling"]["projected_usd"],
+            places=9,
+        )
+
+    def test_the_projection_preflights_a_missing_source_rather_than_pricing_it(self):
+        catalog = {
+            "missing-move": {
+                "sources": "primitive",
+                "install_path": "evals/catalog-retrieval/round2/no-such-source.html",
+            }
+        }
+        with self.assertRaises(FileNotFoundError):
+            briefs.project_generation(catalog, 1)
+
+    def test_the_dry_run_emits_both_bounds_and_makes_no_call(self):
+        lines = []
+        with tempfile.TemporaryDirectory(dir=briefs.REPO_ROOT) as temporary:
+            catalog = self._priced_catalog(Path(temporary))
+            briefs.generation_dry_run(catalog, 1, emit=lines.append)
+        page = "\n".join(lines)
+        self.assertIn("DRY RUN: zero network calls", page)
+        self.assertIn("Floor at 1 attempt(s) per move", page)
+        self.assertIn(f"Ceiling at {briefs.GEN_MAX_ATTEMPTS} attempt(s) per move", page)
+
     def test_missing_source_preflight_makes_no_call_and_writes_nothing(self):
         catalog = {
             "missing-move": {
