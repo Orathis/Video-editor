@@ -110,6 +110,30 @@ def test_spend_reads_every_attempt_not_just_the_last():
     assert usage["cached_fraction"] == 0.4, usage
 
 
+def test_the_paired_table_holds_the_briefs_fixed():
+    # 001 is easy enough that the short list finds it, 002 is not. Comparing
+    # the short list's average against the full shelf's average over all briefs
+    # would credit the short list for only being graded on the easy one.
+    records = [
+        record("001", "c", 5, ["alpha"], shown=["alpha", "beta"]),
+        record("002", "c", 5, ["gamma"], shown=["alpha", "gamma"]),
+        record("001", "b", None, ["alpha"]),
+        record("002", "b", None, ["beta"]),
+    ]
+    rows = build_report2.score_all(records, GOLD, SHELF)
+    paired = build_report2.paired_against_full_shelf(rows)["c@5"]
+    # Only 001 had its answer shown, so both sides are measured on 001 alone.
+    assert paired["n"] == 1, paired
+    assert paired["cell_fit"] == paired["full_shelf_fit"], paired
+
+
+def test_paired_skips_a_cell_with_no_shared_briefs():
+    rows = build_report2.score_all(
+        [record("001", "c", 5, ["gamma"], shown=["beta"])], GOLD, SHELF
+    )
+    assert build_report2.paired_against_full_shelf(rows) == {}
+
+
 def test_render_produces_html_with_every_cell():
     records = [record("001", "b", None, ["alpha"]), record("001", "c", 5, ["gamma"])]
     rows = build_report2.score_all(records, GOLD, SHELF)

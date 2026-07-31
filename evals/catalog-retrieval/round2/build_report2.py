@@ -118,6 +118,35 @@ def aggregate(rows, key="cell"):
     return out
 
 
+def paired_against_full_shelf(rows, baseline="b"):
+    """Compare each cell with the full shelf on the same briefs.
+
+    fit_when_shown is conditioned on retrieval having succeeded, and the briefs
+    where a short list finds the answer are the easy ones. Reading that column
+    across cells therefore compares different brief sets and can invent an
+    effect that is only difficulty. This restricts the full shelf to exactly the
+    briefs each cell could see the answer in, which is the only comparison that
+    holds difficulty fixed.
+    """
+    by_cell = collections.defaultdict(dict)
+    for row in rows:
+        by_cell[row["cell"]][row["brief"]] = row
+    base = by_cell.get(baseline, {})
+    out = {}
+    for cell, briefs in sorted(by_cell.items()):
+        if cell == baseline:
+            continue
+        shared = [b for b, r in briefs.items() if r["gold_shown"] and b in base]
+        if not shared:
+            continue
+        out[cell] = {
+            "n": len(shared),
+            "cell_fit": _mean([briefs[b]["fit"] for b in shared]),
+            "full_shelf_fit": _mean([base[b]["fit"] for b in shared]),
+        }
+    return out
+
+
 def spend(records):
     """Recompute cost from the recorded usage rather than trusting a total."""
     prompt = cached = completion = 0
@@ -143,6 +172,7 @@ def build_summary(records, rows):
         "briefs": len({r["brief"] for r in rows}),
         "cells": by_cell,
         "strata": aggregate(rows, "stratum"),
+        "paired": paired_against_full_shelf(rows),
         "usage": spend(records),
         "best_fit_cell": max(by_cell, key=lambda c: by_cell[c]["fit"]) if by_cell else None,
     }
@@ -180,6 +210,11 @@ def render(summary, rows):
         for name, s in summary["strata"].items()
     ]
     failure_rows = [[r["brief"], r["cell"], r["fit"], r["reason"]] for r in failures]
+    paired_rows = [
+        [name, p["n"], p["cell_fit"], p["full_shelf_fit"],
+         round(p["cell_fit"] - p["full_shelf_fit"], 4)]
+        for name, p in summary["paired"].items()
+    ]
     usage = summary["usage"]
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -208,6 +243,14 @@ Mountable and fit are separate numbers and are never combined.</p>
 <p class="sub">Gold shown is how often the right move was in the list the run could see, so
 the gap between fit and fit when shown is the share of the loss retrieval owns rather than
 the model. It reads 0 for the no catalog cell, which shows nothing.</p>
+{_table(
+    "Same briefs, short list against full shelf",
+    ["cell", "n", "cell fit", "full shelf fit", "difference"],
+    paired_rows,
+)}
+<p class="sub">Fit when shown compares different brief sets, because the briefs a short list
+finds are the easy ones. This table holds the briefs fixed and is the only fair read of
+whether a short list beats the whole shelf.</p>
 {_table("Per stratum", ["stratum", "n", "mountable", "fit", "pass rate"], strata_rows)}
 {_table(f"Failures, first {FAILURE_SAMPLE}", ["brief", "cell", "fit", "why"], failure_rows)}
 </body></html>
