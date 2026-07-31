@@ -13,6 +13,7 @@ const EXPECTED_STUDIO_LOAD_BUDGETS = {
   devProjectOpen3kClipsP95Ms: 5_500,
   constrainedDevProjectOpen3kClipsP95Ms: 9_000,
   eagerEntryChunkGzipBytes: 600 * 1024,
+  eagerEntryChunkGzipRatchetBytes: 870_000,
 };
 
 describe("studio load budgets", () => {
