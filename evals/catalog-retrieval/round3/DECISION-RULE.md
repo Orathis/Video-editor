@@ -14,11 +14,11 @@ git merge-base --is-ancestor <this commit> <any result commit>
 Which catalog retrieval arm ships as the default for the frame workers. The candidates are the
 three arms round 2 already ran:
 
-| arm | how it retrieves | what it needs at run time |
-|---|---|---|
-| lexical | term overlap against the shelf | nothing, the shelf itself |
-| semantic | cosine over embedded entries | an embedding index, rebuilt when the catalog changes |
-| hybrid | reciprocal rank fusion of the two | both indexes, and the same rebuild |
+| arm      | how it retrieves                  | what it needs at run time                            |
+| -------- | --------------------------------- | ---------------------------------------------------- |
+| lexical  | term overlap against the shelf    | nothing, the shelf itself                            |
+| semantic | cosine over embedded entries      | an embedding index, rebuilt when the catalog changes |
+| hybrid   | reciprocal rank fusion of the two | both indexes, and the same rebuild                   |
 
 Each is swept over list length k and, for hybrid, over fusion weight.
 
@@ -27,12 +27,12 @@ Each is swept over list length k and, for hybrid, over fusion weight.
 Round 2 measured, on the same briefs, what happens once the correct move is already on the shown
 list. Every arm converts that into a good pick at the same rate:
 
-| comparison | briefs where both showed gold | fit difference | t |
-|---|---|---|---|
-| hybrid k=10 against semantic k=10 | 69 | +0.019 | 0.63 |
-| lexical k=10 against semantic k=10 | 34 | +0.015 | 0.28 |
-| semantic k=20 against lexical k=20 | 49 | -0.024 | -0.62 |
-| hybrid k=10 against lexical k=10 | 53 | +0.006 | 0.24 |
+| comparison                         | briefs where both showed gold | fit difference | t     |
+| ---------------------------------- | ----------------------------- | -------------- | ----- |
+| hybrid k=10 against semantic k=10  | 69                            | +0.019         | 0.63  |
+| lexical k=10 against semantic k=10 | 34                            | +0.015         | 0.28  |
+| semantic k=20 against lexical k=20 | 49                            | -0.024         | -0.62 |
+| hybrid k=10 against lexical k=10   | 53                            | +0.006         | 0.24  |
 
 The conversion rate across all seven short-list cells sits between 0.774 and 0.872 with no
 ordering by arm family. Nothing distinguishes the arms except whether the answer was on the list.
@@ -107,3 +107,22 @@ reported as one.
 - Naming the whole shelf still scores 0.0.
 - Exactly one variable changes between cells in the paid confirmation.
 - The gate regressions carried forward from round 1 and round 2 keep passing.
+
+## The same rule, in machine-readable form
+
+`sweep.py` reads this block and drives its branch from it. It restates the prose above and
+carries nothing the prose does not already state, so editing this block changes what the sweep
+decides. That is the point: a rule the code can only agree with is a rule that was pre-registered.
+
+```json
+{
+  "confidence": 0.95,
+  "decision_tier": ["lexical", "semantic", "hybrid"],
+  "tie_break": {
+    "prefer": "lexical",
+    "because": "needs no embedding index, so it cannot serve stale vectors"
+  },
+  "max_waves": 5,
+  "exploratory_tier_can_win": false
+}
+```
