@@ -137,12 +137,15 @@ def semantic_topk(brief_id, entries, k):
 def hybrid_topk(brief_id, brief, entries, k):
     """Fuse full lexical and semantic rankings with reciprocal rank fusion."""
     lexical = lexical_topk(brief, entries, len(entries))
-    if not os.path.exists(VECTORS):
-        return lexical[:k]
-
+    # Falling back to the lexical list when the vectors are missing would make
+    # the hybrid arm silently report lexical's numbers under its own name, and
+    # an arm comparison built on that reads as a tie rather than as a broken
+    # input. Semantic already exits loudly here, so hybrid does too.
     semantic = semantic_topk(brief_id, entries, len(entries))
     if not semantic:
-        return lexical[:k]
+        raise SystemExit(
+            f"empty semantic ranking for {brief_id} from {VECTORS}: hybrid cannot fuse"
+        )
 
     scores = {}
     # 60 is the standard RRF constant and keeps rank differences well behaved.

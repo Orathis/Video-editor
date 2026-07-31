@@ -185,23 +185,33 @@ class Harness2Tests(unittest.TestCase):
         self.assertEqual(10, len(hybrid))
         self.assertTrue(set(hybrid) <= (set(lexical) | set(semantic)))
 
-    def test_hybrid_falls_back_for_empty_or_missing_semantic_ranking(self):
-        expected = harness2.lexical_topk(self.brief, self.entries, 10)
+    def test_hybrid_exits_loudly_rather_than_answering_as_lexical(self):
+        # This test used to assert the opposite. Hybrid fell back to the
+        # lexical list whenever the vectors were missing or empty, which never
+        # fired during the round two grid because the vectors were present, but
+        # made an offline sweep report a hybrid curve identical to lexical with
+        # nothing to signal that its real input was gone.
+        lexical = harness2.lexical_topk(self.brief, self.entries, 10)
+
         with (
             mock.patch.object(harness2, "VECTORS", self.vector_path),
             mock.patch.object(harness2, "semantic_topk", return_value=[]),
         ):
-            self.assertEqual(
-                expected,
-                harness2.hybrid_topk(self.brief_id, self.brief, self.entries, 10),
-            )
+            with self.assertRaises(SystemExit) as empty:
+                harness2.hybrid_topk(self.brief_id, self.brief, self.entries, 10)
+        self.assertIn("cannot fuse", str(empty.exception))
 
         missing = os.path.join(self.temporary.name, "missing.json")
         with mock.patch.object(harness2, "VECTORS", missing):
-            self.assertEqual(
-                expected,
-                harness2.hybrid_topk(self.brief_id, self.brief, self.entries, 10),
-            )
+            with self.assertRaises(SystemExit) as absent:
+                harness2.hybrid_topk(self.brief_id, self.brief, self.entries, 10)
+        self.assertIn(missing, str(absent.exception))
+
+        # The fused list still differs from the bare lexical list when the
+        # vectors are present, so the loud exit did not just disable the arm.
+        with mock.patch.object(harness2, "VECTORS", self.vector_path):
+            fused = harness2.hybrid_topk(self.brief_id, self.brief, self.entries, 10)
+        self.assertNotEqual(lexical, fused)
 
     def test_full_context_contains_all_424_names(self):
         context, shown = harness2.build_context(

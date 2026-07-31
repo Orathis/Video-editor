@@ -113,8 +113,19 @@ def main(argv=None):
     print("{0} briefs, {1} gold, {2} shelf entries".format(len(briefs), len(gold), len(entries)))
     header = "arm".ljust(10) + "".join("k={0}".format(k).rjust(9) for k in ks)
     print(header)
-    for arm, curve in sweep(briefs, gold, entries, arms, ks).items():
+    # Arms are swept one at a time so a missing embedding file, which the
+    # harness reports by exiting, only silences the arms that need vectors.
+    # Lexical needs none and must still print.
+    unavailable = []
+    for arm in arms:
+        try:
+            curve = sweep(briefs, gold, entries, [arm], ks)[arm]
+        except SystemExit as exit_reason:
+            unavailable.append((arm, str(exit_reason)))
+            continue
         print(arm.ljust(10) + "".join("{0:.4f}".format(curve[k]).rjust(9) for k in ks))
+    for arm, reason in unavailable:
+        print("{0} not swept: {1}".format(arm.ljust(10), reason))
     return 0
 
 
