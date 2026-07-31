@@ -185,7 +185,30 @@ def project_committee(briefs, gold_by_id, shelf, sample_rate=DEFAULT_SAMPLE_RATE
         "output_usd": costs["output"],
         "projected_usd": projected,
         "usd_per_read": projected / reads if reads else 0.0,
+        "batch_usd": _batch_projection(estimated_input, assumed_output, model),
     }
+
+
+def _batch_projection(estimated_input, assumed_output, model):
+    """Same reads on the batch tier, or None when the model has no batch entry.
+
+    The committee is the dominant cost of a scaled round and it has no latency
+    requirement, so the tier is a real decision rather than a detail. Pricing
+    only the interactive tier at the gate would overstate the round by roughly
+    two times and could talk the corpus down for no reason.
+    """
+    batch_model = f"{model}:batch"
+    if batch_model not in run2.PRICE_TABLE:
+        return None
+    costs = run2.usage_cost_breakdown(
+        {
+            "prompt_tokens": estimated_input,
+            "cached_tokens": 0,
+            "completion_tokens": assumed_output,
+        },
+        batch_model,
+    )
+    return sum(costs.values())
 
 
 def committee_dry_run(
@@ -229,6 +252,15 @@ def committee_dry_run(
         f"= ${projection['input_usd']:.6f} input + "
         f"${projection['output_usd']:.6f} output"
     )
+    if projection["batch_usd"] is not None:
+        batch_per_read = (
+            projection["batch_usd"] / projection["reads"] if projection["reads"] else 0.0
+        )
+        emit(
+            f"Same reads on the batch tier: ${projection['batch_usd']:.6f} "
+            f"(${batch_per_read:.6f} per read). The committee has no latency "
+            "requirement, so this is the tier a real run should use."
+        )
     emit(f"Ceiling: ${max_usd:.2f}")
     if projection["projected_usd"] > max_usd:
         emit(

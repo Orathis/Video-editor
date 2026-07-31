@@ -308,6 +308,42 @@ class ValidateGoldTests(unittest.TestCase):
             True,
         )
 
+    def test_projection_prices_the_batch_tier_beside_the_interactive_one(self):
+        # The committee is the dominant cost of a scaled round and has no
+        # latency requirement, so quoting only the interactive tier at the gate
+        # would overstate the round by about two times.
+        briefs, gold_by_id = corpus(40)
+        lines = []
+        projection = validate_gold.committee_dry_run(
+            briefs,
+            gold_by_id,
+            SHELF,
+            sample_rate=validate_gold.ROUND2_SAMPLE_RATE,
+            emit=lines.append,
+        )
+
+        self.assertIsNotNone(projection["batch_usd"])
+        self.assertLess(projection["batch_usd"], projection["projected_usd"])
+        self.assertAlmostEqual(
+            projection["batch_usd"], projection["projected_usd"] / 2, places=6
+        )
+        self.assertIn("Same reads on the batch tier: $", "\n".join(lines))
+
+    def test_projection_omits_the_batch_line_for_a_model_without_that_tier(self):
+        briefs, gold_by_id = corpus(4)
+        lines = []
+        with patch.dict(
+            validate_gold.run2.PRICE_TABLE,
+            {"solo-model": {"input": 1.0, "cached": 0.1, "output": 5.0}},
+            clear=False,
+        ):
+            projection = validate_gold.committee_dry_run(
+                briefs, gold_by_id, SHELF, model="solo-model", emit=lines.append
+            )
+
+        self.assertIsNone(projection["batch_usd"])
+        self.assertNotIn("batch tier", "\n".join(lines))
+
     def test_projected_reads_are_rate_times_corpus_times_readers(self):
         for size, rate in ((40, 0.20), (10, 0.30), (1360, 0.20), (7, 1.0)):
             with self.subTest(size=size, rate=rate):
