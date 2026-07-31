@@ -29,8 +29,12 @@ PRICE_TABLE = {
         "cached": 0.15,
         "output": 7.50,
     },
-    # Batch halves both directions. The grid has no latency requirement, so this
-    # is the tier the real run should use.
+    # Batch halves both directions, but nothing here submits batch work: every
+    # caller goes through provider.chat, which posts to the synchronous endpoint.
+    # This row is a note on what the tier would cost, not a price anything can
+    # pay, so no projection may quote it. Quoting it once already understated a
+    # gate by half. Add the submission path first, in the same change that starts
+    # pricing it.
     "gemini-3.6-flash:batch": {
         "input": 0.75,
         "cached": 0.075,
