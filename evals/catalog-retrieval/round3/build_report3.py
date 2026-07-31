@@ -157,6 +157,18 @@ def _ranked(row):
     return {key: value for key, value in row.items() if key != "flags"}
 
 
+# The report and the summary are artifacts other people read. An absolute path
+# from the machine that built them says whose laptop ran the sweep and where the
+# checkout sits, neither of which is a finding, and it makes the same reason read
+# differently on every machine.
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+
+
+def _portable(reason):
+    """Rewrite any path inside a reason string to repo relative."""
+    return reason.replace(_REPO + os.sep, "")
+
+
 def build_summary(
     swept,
     unavailable,
@@ -189,7 +201,9 @@ def build_summary(
         "curve": curve_rows(swept, clusters),
         "margins": margin_rows(rows, clusters),
         "knees": knee_rows(swept, clusters, tokens, price),
-        "unavailable": dict(unavailable),
+        "unavailable": {
+            label: _portable(reason) for label, reason in unavailable.items()
+        },
         "converged": sweep.converged(swept, ks) if ks else False,
         "outcome": {
             "branch": outcome["branch"],
@@ -326,6 +340,13 @@ def render(summary):
             "means does not. A difference whose interval contains zero has not "
             "separated, and step 3 of the rule then decides on operations rather than "
             "on the larger number."
+            if margins
+            # A header row with nothing under it reads as a pairing that failed.
+            # There is a difference between "nothing separated" and "there was
+            # never a second arm to pair against", and only one of them is a result.
+            else "Nothing to pair: fewer than two arms in the decision tier were "
+            "swept, so there is no runner-up to hold brief difficulty fixed "
+            "against. This is a missing input, not a tie."
         ),
         _table(
             "Recall curve, every arm at every k",

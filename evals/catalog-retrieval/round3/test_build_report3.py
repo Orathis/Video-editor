@@ -370,6 +370,18 @@ class DegradedInputTests(unittest.TestCase):
         page = build_report3.render(summary)
         self.assertIn("Arm semantic was not swept", page)
         self.assertIn("indistinguishable from an arm that lost", page)
+        # The reason carries the path of the index it could not find. Rendering the
+        # builder's own absolute path would date the report to one checkout on one
+        # machine and say nothing about the sweep.
+        self.assertNotIn(build_report3._REPO, page)
+        self.assertNotIn(build_report3._REPO, json.dumps(summary))
+
+    def test_one_arm_alone_says_there_was_no_runner_up_rather_than_showing_a_tie(self):
+        summary = summarise((3, 2, 1), {"lexical": arm(ALWAYS, "lexical")})
+        self.assertEqual([], summary["margins"])
+        page = build_report3.render(summary)
+        self.assertIn("This is a missing input, not a tie.", page)
+        self.assertNotIn("has not separated", page)
 
     def test_an_unpriced_knee_says_so_instead_of_guessing_the_exchange_rate(self):
         summary = tied_summary(priced=False)
