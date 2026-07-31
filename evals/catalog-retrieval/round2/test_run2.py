@@ -217,8 +217,25 @@ class RunnerTests(unittest.TestCase):
                 cells=(("a", None),),
                 emit=lambda _: None,
             )
+            # main() runs the whole default grid, and the d and h cells rank
+            # against vectors.json rather than against the stubbed shelf. Left
+            # unstubbed, this passed only on a machine where that file is
+            # absent and those cells were skipped, and raised KeyError on the
+            # one machine that has it, which is the machine the eval runs on.
+            vectors = os.path.join(self.temporary.name, "vectors.json")
+            with open(vectors, "w") as handle:
+                json.dump(
+                    {
+                        "model": "stub",
+                        "briefs": {"fixed": [1.0, 0.0]},
+                        "moves": {"move-a": [1.0, 0.0], "move-b": [0.0, 1.0]},
+                    },
+                    handle,
+                )
             with mock.patch.dict(
                 os.environ, {"EVAL_DRY_RUN": "1"}, clear=False
+            ), mock.patch.object(
+                harness2, "VECTORS", vectors
             ), mock.patch.object(
                 harness2, "load_shelf", return_value=self.entries
             ), mock.patch.object(
