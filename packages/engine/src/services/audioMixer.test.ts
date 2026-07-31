@@ -1,8 +1,17 @@
 // fallow-ignore-file code-duplication
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { makeFakeSidecar } from "./vstSidecarTestFixture";
+
+async function waitFor(predicate: () => boolean, timeoutMs: number, intervalMs = 20) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (predicate()) return;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
 
 // The mix filter graph is written to a temp file and passed via
 // a file-valued filter option (not inlined via -filter_complex) so the command
@@ -46,7 +55,48 @@ vi.mock("../utils/ffprobe.js", async (importOriginal) => {
   return { ...actual, extractAudioMetadata: extractAudioMetadataMock };
 });
 
-import { parseAudioElements, processCompositionAudio } from "./audioMixer.js";
+import { parseAudioElements, processCompositionAudio, type AudioElement } from "./audioMixer.js";
+
+/** Create a base/work temp-dir pair and register both for the test's `afterEach` cleanup. */
+function setupTempDirs(tempDirs: string[]): { baseDir: string; workDir: string } {
+  const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
+  const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
+  tempDirs.push(baseDir, workDir);
+  return { baseDir, workDir };
+}
+
+/** Build an `AudioElement` fixture with sensible test defaults, overridden per test. */
+function makeAudioElement(
+  overrides: Partial<AudioElement> & Pick<AudioElement, "id" | "src">,
+): AudioElement {
+  return {
+    start: 0,
+    end: 2,
+    mediaStart: 0,
+    layer: 0,
+    volume: 1,
+    type: "audio",
+    ...overrides,
+  };
+}
+
+/**
+ * Queue the mock ffmpeg runner to succeed on the first call (the prepare
+ * step) then fail the second (the mix) with the given stderr/exitCode.
+ * Shared by the automation-fallback and legacy-filter-option-retry tests,
+ * both of which need a successful prepare followed by a failing mix.
+ */
+function queueSuccessfulPrepareThenFailingMix(stderr: string, exitCode: number): void {
+  runFfmpegMock
+    .mockImplementationOnce(async () => {
+      capturedFilterScripts.push("");
+      return { success: true, durationMs: 1, stderr: "", exitCode: 0 };
+    })
+    .mockImplementationOnce(async () => {
+      capturedFilterScripts.push("");
+      return { success: false, durationMs: 1, stderr, exitCode };
+    });
+}
 
 describe("processCompositionAudio", () => {
   const tempDirs: string[] = [];
@@ -116,25 +166,12 @@ describe("processCompositionAudio", () => {
   });
 
   it("preserves muted tracks and uses unity master gain by default", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     writeFileSync(join(baseDir, "voice.wav"), "stub");
 
     const result = await processCompositionAudio(
-      [
-        {
-          id: "voice",
-          src: "voice.wav",
-          start: 0,
-          end: 2,
-          mediaStart: 0,
-          layer: 0,
-          volume: 0,
-          type: "audio",
-        },
-      ],
+      [makeAudioElement({ id: "voice", src: "voice.wav", volume: 0 })],
       baseDir,
       workDir,
       join(baseDir, "out.m4a"),
@@ -155,9 +192,7 @@ describe("processCompositionAudio", () => {
   });
 
   it("compensates amix normalization so multi-track master gain equals track count", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     writeFileSync(join(baseDir, "a.wav"), "stub");
     writeFileSync(join(baseDir, "b.wav"), "stub");
@@ -165,36 +200,9 @@ describe("processCompositionAudio", () => {
 
     const result = await processCompositionAudio(
       [
-        {
-          id: "a",
-          src: "a.wav",
-          start: 0,
-          end: 2,
-          mediaStart: 0,
-          layer: 0,
-          volume: 0.8,
-          type: "audio",
-        },
-        {
-          id: "b",
-          src: "b.wav",
-          start: 0,
-          end: 2,
-          mediaStart: 0,
-          layer: 1,
-          volume: 1,
-          type: "audio",
-        },
-        {
-          id: "c",
-          src: "c.wav",
-          start: 0,
-          end: 2,
-          mediaStart: 0,
-          layer: 2,
-          volume: 0.5,
-          type: "audio",
-        },
+        makeAudioElement({ id: "a", src: "a.wav", layer: 0, volume: 0.8 }),
+        makeAudioElement({ id: "b", src: "b.wav", layer: 1, volume: 1 }),
+        makeAudioElement({ id: "c", src: "c.wav", layer: 2, volume: 0.5 }),
       ],
       baseDir,
       workDir,
@@ -467,29 +475,24 @@ describe("processCompositionAudio", () => {
   });
 
   it("uses frame-evaluated volume automation when keyframes are present", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     writeFileSync(join(baseDir, "voice.wav"), "stub");
 
     const result = await processCompositionAudio(
       [
-        {
+        makeAudioElement({
           id: "voice",
           src: "voice.wav",
           start: 2,
           end: 5,
-          mediaStart: 0,
-          layer: 0,
           volume: 0,
           volumeKeyframes: [
             { time: 2, volume: 0 },
             { time: 3, volume: 1 },
             { time: 5, volume: 0.5 },
           ],
-          type: "audio",
-        },
+        }),
       ],
       baseDir,
       workDir,
@@ -508,9 +511,7 @@ describe("processCompositionAudio", () => {
   });
 
   it("bounds expression nesting for dense keyframe automation without dropping the envelope", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     writeFileSync(join(baseDir, "bgm.wav"), "stub");
 
@@ -527,17 +528,13 @@ describe("processCompositionAudio", () => {
 
     const result = await processCompositionAudio(
       [
-        {
+        makeAudioElement({
           id: "bgm",
           src: "bgm.wav",
-          start: 0,
           end: 10,
-          mediaStart: 0,
-          layer: 0,
           volume: 0,
           volumeKeyframes: keyframes,
-          type: "audio",
-        },
+        }),
       ],
       baseDir,
       workDir,
@@ -561,9 +558,7 @@ describe("processCompositionAudio", () => {
   });
 
   it("falls back to a static-volume mix instead of dropping audio when the automated mix fails", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     writeFileSync(join(baseDir, "bgm.wav"), "stub");
 
@@ -573,37 +568,20 @@ describe("processCompositionAudio", () => {
     // one-time overrides bypass the default mock's capturedFilterScripts
     // push, so they push an empty placeholder themselves to keep the array
     // index-aligned with call order for the fallback mix's assertion below.
-    runFfmpegMock
-      .mockImplementationOnce(async () => {
-        capturedFilterScripts.push("");
-        return { success: true, durationMs: 1, stderr: "", exitCode: 0 };
-      })
-      .mockImplementationOnce(async () => {
-        capturedFilterScripts.push("");
-        return {
-          success: false,
-          durationMs: 1,
-          stderr: "Error initializing filters",
-          exitCode: 234,
-        };
-      });
+    queueSuccessfulPrepareThenFailingMix("Error initializing filters", 234);
 
     const result = await processCompositionAudio(
       [
-        {
+        makeAudioElement({
           id: "bgm",
           src: "bgm.wav",
-          start: 0,
           end: 5,
-          mediaStart: 0,
-          layer: 0,
           volume: 0.8,
           volumeKeyframes: [
             { time: 0, volume: 0.8 },
             { time: 5, volume: 0 },
           ],
-          type: "audio",
-        },
+        }),
       ],
       baseDir,
       workDir,
@@ -624,9 +602,7 @@ describe("processCompositionAudio", () => {
   });
 
   it("keeps the ffmpeg command line short with a large track count (regression for spawn ENAMETOOLONG)", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     // Reported in the wild at 146 timed audio clips: the old inline
     // -filter_complex string scaled with track count and blew past the OS
@@ -635,16 +611,13 @@ describe("processCompositionAudio", () => {
     const elements = Array.from({ length: trackCount }, (_, i) => {
       const filename = `clip-${i}.wav`;
       writeFileSync(join(baseDir, filename), "stub");
-      return {
+      return makeAudioElement({
         id: `clip-${i}`,
         src: filename,
         start: i * 0.1,
         end: i * 0.1 + 0.5,
-        mediaStart: 0,
         layer: i,
-        volume: 1,
-        type: "audio" as const,
-      };
+      });
     });
 
     const result = await processCompositionAudio(
@@ -677,40 +650,17 @@ describe("processCompositionAudio", () => {
   });
 
   it("retries with the current file-valued filter option when a nightly removes the legacy alias", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     writeFileSync(join(baseDir, "voice.wav"), "stub");
 
-    runFfmpegMock
-      .mockImplementationOnce(async () => {
-        capturedFilterScripts.push("");
-        return { success: true, durationMs: 1, stderr: "", exitCode: 0 };
-      })
-      .mockImplementationOnce(async () => {
-        capturedFilterScripts.push("");
-        return {
-          success: false,
-          durationMs: 1,
-          stderr: "Unrecognized option 'filter_complex_script'.\nError splitting the argument list",
-          exitCode: 8,
-        };
-      });
+    queueSuccessfulPrepareThenFailingMix(
+      "Unrecognized option 'filter_complex_script'.\nError splitting the argument list",
+      8,
+    );
 
     const result = await processCompositionAudio(
-      [
-        {
-          id: "voice",
-          src: "voice.wav",
-          start: 0,
-          end: 2,
-          mediaStart: 0,
-          layer: 0,
-          volume: 1,
-          type: "audio",
-        },
-      ],
+      [makeAudioElement({ id: "voice", src: "voice.wav" })],
       baseDir,
       workDir,
       join(baseDir, "out.m4a"),
@@ -728,9 +678,7 @@ describe("processCompositionAudio", () => {
   });
 
   it("prepares percent-encoded non-Latin audio srcs from decoded filesystem paths", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     const encodedFilename =
       "%D9%87%D9%86%D8%A7%20%D9%85%D8%B1%D9%88%D8%A7%20-%20%D9%85%D8%A8%D8%A7%D8%B1%D9%83.mp4";
@@ -739,18 +687,7 @@ describe("processCompositionAudio", () => {
     writeFileSync(join(baseDir, "assets", filename), "stub");
 
     const result = await processCompositionAudio(
-      [
-        {
-          id: "voice",
-          src: `assets/${encodedFilename}`,
-          start: 0,
-          end: 2,
-          mediaStart: 0,
-          layer: 0,
-          volume: 1,
-          type: "audio",
-        },
-      ],
+      [makeAudioElement({ id: "voice", src: `assets/${encodedFilename}` })],
       baseDir,
       workDir,
       join(baseDir, "out.m4a"),
@@ -766,26 +703,13 @@ describe("processCompositionAudio", () => {
   });
 
   it("prepares browser root-absolute audio srcs from the project root", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "hf-audio-base-"));
-    const workDir = mkdtempSync(join(tmpdir(), "hf-audio-work-"));
-    tempDirs.push(baseDir, workDir);
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
 
     mkdirSync(join(baseDir, ".media"), { recursive: true });
     writeFileSync(join(baseDir, ".media", "tone.wav"), "stub");
 
     const result = await processCompositionAudio(
-      [
-        {
-          id: "tone",
-          src: "/.media/tone.wav",
-          start: 0,
-          end: 1,
-          mediaStart: 0,
-          layer: 0,
-          volume: 1,
-          type: "audio",
-        },
-      ],
+      [makeAudioElement({ id: "tone", src: "/.media/tone.wav", end: 1 })],
       baseDir,
       workDir,
       join(baseDir, "out.m4a"),
@@ -795,6 +719,206 @@ describe("processCompositionAudio", () => {
     expect(result.success).toBe(true);
     expect(result.error).toBeUndefined();
     expect(runFfmpegMock.mock.calls[0]?.[0]).toContain(join(baseDir, ".media", "tone.wav"));
+  });
+});
+
+describe("processCompositionAudio VST chain application", () => {
+  const tempDirs: string[] = [];
+
+  afterEach(() => {
+    delete process.env.HF_VST_HOST_CMD;
+    delete process.env.HF_TEST_PIDFILE;
+    delete process.env.HF_TEST_SENTINEL;
+    runFfmpegMock.mockClear();
+    capturedFilterScripts.length = 0;
+    for (const dir of tempDirs.splice(0)) {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  /** Writes a stub dry `music.wav` + empty `chain.json` into `baseDir` — the
+   *  fixture every test below needs before pointing `HF_VST_HOST_CMD` at its
+   *  own fake sidecar behavior. */
+  function writeMusicChainFixture(baseDir: string): void {
+    writeFileSync(join(baseDir, "music.wav"), "stub");
+    writeFileSync(join(baseDir, "chain.json"), "{}");
+  }
+
+  it("applies the chain via the sidecar before the volume-envelope bake, with no errors", async () => {
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
+
+    writeMusicChainFixture(baseDir);
+    process.env.HF_VST_HOST_CMD = makeFakeSidecar(
+      workDir,
+      `
+out=""
+prev=""
+for a in "$@"; do
+  if [ "$prev" = "--output" ]; then out="$a"; fi
+  prev="$a"
+done
+echo processed > "$out"
+`,
+    );
+
+    const result = await processCompositionAudio(
+      [makeAudioElement({ id: "music", src: "music.wav", vstChain: "chain.json" })],
+      baseDir,
+      workDir,
+      join(baseDir, "out.m4a"),
+      2,
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  it("hard-fails the track (never falls back to unprocessed audio) and names the missing plugin", async () => {
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
+
+    writeMusicChainFixture(baseDir);
+    process.env.HF_VST_HOST_CMD = makeFakeSidecar(
+      workDir,
+      `echo "PLUGIN_MISSING FabFilter Pro-Q 3" >&2; exit 3`,
+    );
+
+    // A hard failure must actually block a successful-looking render, not
+    // just leave an error string somewhere on an otherwise-`success: true`
+    // result — assert the call rejects (never resolves with `success: true`
+    // and the track silently dropped).
+    await expect(
+      processCompositionAudio(
+        [makeAudioElement({ id: "music", src: "music.wav", vstChain: "chain.json" })],
+        baseDir,
+        workDir,
+        join(baseDir, "out.m4a"),
+        2,
+      ),
+    ).rejects.toThrow('for track "music": plugin "FabFilter Pro-Q 3" is not installed');
+  });
+
+  it("hard-fails when the referenced VST chain file doesn't exist on disk", async () => {
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
+
+    writeFileSync(join(baseDir, "music.wav"), "stub");
+
+    // Same requirement as above: the missing chain file must reject the call
+    // (naming the track and the missing file), not degrade to a "successful"
+    // mix with the track quietly dropped.
+    await expect(
+      processCompositionAudio(
+        [makeAudioElement({ id: "music", src: "music.wav", vstChain: "does-not-exist.json" })],
+        baseDir,
+        workDir,
+        join(baseDir, "out.m4a"),
+        2,
+      ),
+    ).rejects.toThrow('VST chain file not found for track "music"');
+  });
+
+  it("kills a sibling's still-running VST sidecar when another track's chain hard-fails", async () => {
+    const { baseDir, workDir } = setupTempDirs(tempDirs);
+    // Separate from workDir on purpose: workDir is deleted by
+    // processCompositionAudio's `finally` block the moment the call rejects,
+    // so a sentinel/pid file written there would disappear regardless of
+    // whether the sidecar was actually killed — that would make this test
+    // pass even without the fix. Writing to an independent control dir keeps
+    // the assertions about the sidecar's own lifecycle.
+    const controlDir = mkdtempSync(join(tmpdir(), "hf-audio-control-"));
+    tempDirs.push(controlDir);
+
+    writeFileSync(join(baseDir, "music-slow.wav"), "stub");
+    writeFileSync(join(baseDir, "music-fail.wav"), "stub");
+    writeFileSync(join(baseDir, "chain-slow.json"), "{}");
+    writeFileSync(join(baseDir, "chain-fail.json"), "{}");
+
+    const pidFile = join(controlDir, "slow.pid");
+    const sentinelFile = join(controlDir, "slow.done");
+    process.env.HF_TEST_PIDFILE = pidFile;
+    process.env.HF_TEST_SENTINEL = sentinelFile;
+    // Branches on the `--chain` filename: the "fail" track exits 3 (missing
+    // plugin) immediately; the "slow" track records its own pid, sleeps
+    // (simulating a slow bounce/convolution reverb), then — only if it ran to
+    // completion uninterrupted — writes a sentinel and its output.
+    process.env.HF_VST_HOST_CMD = makeFakeSidecar(
+      workDir,
+      `
+chain=""
+out=""
+prev=""
+for a in "$@"; do
+  if [ "$prev" = "--chain" ]; then chain="$a"; fi
+  if [ "$prev" = "--output" ]; then out="$a"; fi
+  prev="$a"
+done
+case "$chain" in
+  *fail*)
+    echo "PLUGIN_MISSING FabFilter Pro-Q 3" >&2
+    exit 3
+    ;;
+  *)
+    echo $$ > "$HF_TEST_PIDFILE"
+    sleep 1.2
+    echo done > "$HF_TEST_SENTINEL"
+    echo processed > "$out"
+    ;;
+esac
+`,
+    );
+
+    const startedAt = Date.now();
+    await expect(
+      processCompositionAudio(
+        [
+          makeAudioElement({
+            id: "musicSlow",
+            src: "music-slow.wav",
+            end: 1,
+            vstChain: "chain-slow.json",
+          }),
+          makeAudioElement({
+            id: "musicFail",
+            src: "music-fail.wav",
+            end: 1,
+            vstChain: "chain-fail.json",
+          }),
+        ],
+        baseDir,
+        workDir,
+        join(baseDir, "out.m4a"),
+        1,
+      ),
+    ).rejects.toThrow(/plugin "FabFilter Pro-Q 3" is not installed/);
+
+    // Rejects promptly on the failing sibling — it must not wait out the
+    // slow sibling's full sleep.
+    expect(Date.now() - startedAt).toBeLessThan(1000);
+
+    // The slow sidecar had actually started (recorded its own pid) before
+    // the rejection tore things down.
+    await waitFor(() => existsSync(pidFile), 500);
+    const pid = Number(readFileSync(pidFile, "utf8").trim());
+    expect(Number.isFinite(pid)).toBe(true);
+
+    // The fix under test: once the sibling's VstChainProcessingError rejects
+    // processCompositionAudio, the still-running slow sidecar must actually
+    // be terminated, not left running unmanaged.
+    await waitFor(() => {
+      try {
+        process.kill(pid, 0);
+        return false; // still alive
+      } catch {
+        return true; // ESRCH — process is gone
+      }
+    }, 1500);
+    expect(() => process.kill(pid, 0)).toThrow();
+
+    // Let the sidecar's full sleep duration elapse; the sentinel — written
+    // only on an uninterrupted run — must never appear, proving the process
+    // was killed rather than merely racing the assertions above.
+    const remaining = 1500 - (Date.now() - startedAt);
+    if (remaining > 0) await new Promise((r) => setTimeout(r, remaining));
+    expect(existsSync(sentinelFile)).toBe(false);
   });
 });
 
@@ -842,6 +966,20 @@ describe("parseAudioElements — relative data-start resolution", () => {
     const track = parseAudioElements(html).find((e) => e.id === "v1-audio");
     expect(track).toBeDefined();
     expect(track!.start).toBe(4);
+  });
+});
+
+describe("parseAudioElements data-vst-chain", () => {
+  it("captures the chain path when present", () => {
+    const html = `<audio id="music" src="assets/bgm.mp3" data-start="0" data-end="10" data-vst-chain="fx/music.vstchain.json"></audio>`;
+    const [el] = parseAudioElements(html);
+    expect(el.vstChain).toBe("fx/music.vstchain.json");
+  });
+
+  it("leaves vstChain undefined when absent", () => {
+    const html = `<audio id="music" src="assets/bgm.mp3" data-start="0" data-end="10"></audio>`;
+    const [el] = parseAudioElements(html);
+    expect(el.vstChain).toBeUndefined();
   });
 });
 

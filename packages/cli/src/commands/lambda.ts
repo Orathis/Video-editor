@@ -9,13 +9,39 @@ import { failCommand } from "../utils/commandResult.js";
  * lives in `@hyperframes/aws-lambda/sdk`.
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { defineCommand } from "citty";
 import type { DistributedFormat } from "@hyperframes/aws-lambda/sdk";
 import { type CanvasResolution } from "@hyperframes/core";
+import { parseAudioElements } from "@hyperframes/engine";
 import { parseOutputResolutionFlag } from "../utils/parseOutputResolution.js";
 import type { Example } from "./_examples.js";
 import { c } from "../ui/colors.js";
 import { readAllowedCompositionFpsFromDir } from "../utils/compositionFps.js";
+
+/**
+ * Lambda has no VST plugin host, so a composition whose audio depends on a
+ * plugin chain would render silently wrong (dry signal, no carve). Fail before
+ * the upload instead of shipping an untreated mix.
+ */
+function rejectVstChains(projectDir: string, usageContext: string): void {
+  let compositionHtml: string;
+  try {
+    compositionHtml = readFileSync(join(projectDir, "index.html"), "utf-8");
+  } catch {
+    // Composition file missing or unreadable — let the render path report it.
+    return;
+  }
+  const vstTracks = parseAudioElements(compositionHtml).filter((el) => el.vstChain);
+  if (vstTracks.length === 0) return;
+  console.error(
+    `${usageContext} Lambda rendering does not support VST audio chains (plugins cannot run in Lambda).\n` +
+      `Tracks with VST chains: ${vstTracks.map((t) => t.id).join(", ")}.\n` +
+      `Render locally with: hyperframes render`,
+  );
+  failCommand();
+}
 
 export const examples: Example[] = [
   ["Deploy the Lambda render stack to AWS", "hyperframes lambda deploy"],
@@ -304,6 +330,7 @@ export default defineCommand({
           console.error(`[lambda render] --fps must be 24, 30, or 60; got ${fpsRaw}.`);
           failCommand();
         }
+        rejectVstChains(projectDir, "[lambda render]");
         const { runRender } = await import("./lambda/render.js");
         const renderResolution = parseOutputResolution(args["output-resolution"]);
         await runRender({
@@ -361,6 +388,7 @@ export default defineCommand({
           console.error(`[lambda render-batch] --fps must be 24, 30, or 60; got ${fpsRaw}.`);
           failCommand();
         }
+        rejectVstChains(projectDir, "[lambda render-batch]");
         const { runRenderBatch } = await import("./lambda/render-batch.js");
         const batchResolution = parseOutputResolution(args["output-resolution"]);
         await runRenderBatch({

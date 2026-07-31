@@ -23,8 +23,23 @@ import type {
   MixResult,
 } from "./audioMixer.types.js";
 import { applyVolumeEnvelopeToWav } from "./audioVolumeEnvelope.js";
+import { applyVstChainToWav } from "./vstBounce.js";
 
 export type { AudioElement, MixResult } from "./audioMixer.types.js";
+
+/**
+ * Thrown when applying a track's VST plugin chain fails — missing plugin,
+ * missing chain file, sidecar crash. Distinct from the soft per-element
+ * failures collected into `failures`: a soft failure degrades one track, a
+ * VST failure never does — the per-element catch below rethrows it so the
+ * whole mix fails loudly rather than silently shipping the dry signal.
+ */
+class VstChainProcessingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "VstChainProcessingError";
+  }
+}
 
 function clampVolume(volume: number): number {
   if (!Number.isFinite(volume)) return 1;
@@ -338,6 +353,7 @@ export function parseAudioElements(html: string): AudioElement[] {
     const mediaStartAttr = el.getAttribute("data-media-start");
     const layerAttr = el.getAttribute("data-layer");
     const volumeAttr = el.getAttribute("data-volume");
+    const vstChain = el.getAttribute("data-vst-chain");
     return {
       id,
       src: el.getAttribute("src") as string,
@@ -346,6 +362,7 @@ export function parseAudioElements(html: string): AudioElement[] {
       mediaStart: mediaStartAttr ? parseFloat(mediaStartAttr) : 0,
       layer: layerAttr ? parseInt(layerAttr) : 0,
       volume: volumeAttr ? parseFloat(volumeAttr) : 1.0,
+      ...(vstChain ? { vstChain } : {}),
       type,
     };
   };
@@ -689,163 +706,224 @@ export async function processCompositionAudio(
 
   if (!existsSync(workDir)) mkdirSync(workDir, { recursive: true });
 
-  await Promise.all(
-    elements.map(async (element) => {
-      if (signal?.aborted) {
-        failures.push({
-          stage: "cancelled",
-          reason: "cancelled",
-          owner: "user",
-          retryable: false,
-          elementId: element.id,
-          detail: boundedDetail(`Cancelled audio element ${element.id}`),
-        });
-        return;
-      }
-      try {
-        let srcPath = element.src;
-        if (!isHttpUrl(srcPath)) {
-          // Same browser-vs-filesystem path semantics as videos — see
-          // resolveProjectRelativeSrc in videoFrameExtractor for the full why.
-          srcPath = resolveProjectRelativeSrc(element.src, baseDir, compiledDir);
-        }
+  // Every element's async work (extract / prepare / VST-bounce) races
+  // concurrently below via Promise.all, which rejects as soon as the FIRST
+  // element's chain rejects (a VstChainProcessingError) — it does NOT wait for
+  // siblings still in flight. Without this controller a sibling's VST sidecar
+  // subprocess keeps running unmanaged after workDir is deleted out from under
+  // it. This internal signal is threaded into every element's chain and
+  // aborted the moment Promise.all rejects, so in-flight siblings get a chance
+  // to kill their subprocess first. It also aborts when the caller's own
+  // `signal` fires, preserving external-cancellation behavior.
+  const internalController = new AbortController();
+  const effectiveSignal = internalController.signal;
+  if (signal) {
+    if (signal.aborted) internalController.abort();
+    else signal.addEventListener("abort", () => internalController.abort(), { once: true });
+  }
 
-        if (isHttpUrl(srcPath)) {
-          try {
-            srcPath = await downloadToTemp(srcPath, workDir);
-          } catch (err: unknown) {
-            failures.push(
-              downloadFailure(err instanceof Error ? err.message : String(err), element.id),
-            );
-            return;
-          }
-        }
-
-        if (!existsSync(srcPath)) {
+  try {
+    await Promise.all(
+      elements.map(async (element) => {
+        if (effectiveSignal.aborted) {
           failures.push({
-            stage: "source",
-            reason: "source_not_found",
+            stage: "cancelled",
+            reason: "cancelled",
             owner: "user",
             retryable: false,
             elementId: element.id,
-            detail: boundedDetail(`Source not found for audio element ${element.id}`),
+            detail: boundedDetail(`Cancelled audio element ${element.id}`),
           });
           return;
         }
+        try {
+          let srcPath = element.src;
+          if (!isHttpUrl(srcPath)) {
+            // Same browser-vs-filesystem path semantics as videos — see
+            // resolveProjectRelativeSrc in videoFrameExtractor for the full why.
+            srcPath = resolveProjectRelativeSrc(element.src, baseDir, compiledDir);
+          }
 
-        // Fallback: if no duration was specified, probe the actual file
-        if (element.end - element.start <= 0) {
-          let metadata;
-          try {
-            metadata = await extractAudioMetadata(srcPath);
-          } catch (err: unknown) {
-            failures.push(
-              probeFailure(err instanceof Error ? err.message : String(err), element.id),
-            );
+          if (isHttpUrl(srcPath)) {
+            try {
+              srcPath = await downloadToTemp(srcPath, workDir);
+            } catch (err: unknown) {
+              failures.push(
+                downloadFailure(err instanceof Error ? err.message : String(err), element.id),
+              );
+              return;
+            }
+          }
+
+          if (!existsSync(srcPath)) {
+            failures.push({
+              stage: "source",
+              reason: "source_not_found",
+              owner: "user",
+              retryable: false,
+              elementId: element.id,
+              detail: boundedDetail(`Source not found for audio element ${element.id}`),
+            });
             return;
           }
-          const effectiveDuration = metadata.durationSeconds - element.mediaStart;
-          element.end =
-            element.start + (effectiveDuration > 0 ? effectiveDuration : metadata.durationSeconds);
-        }
 
-        let audioSrcPath = srcPath;
-        if (element.type === "video") {
-          const extractedPath = join(workDir, `${element.id}-extracted.wav`);
-          const extractResult = await extractAudioFromVideo(
-            srcPath,
-            extractedPath,
-            {
-              startTime: element.mediaStart,
-              duration: element.end - element.start,
-            },
-            signal,
-            config,
-          );
-          if (!extractResult.success) {
-            failures.push(
-              extractResult.failure
-                ? { ...extractResult.failure, elementId: element.id }
-                : {
-                    stage: "extract",
-                    reason: "ffmpeg_failed",
-                    owner: "system",
-                    retryable: false,
-                    elementId: element.id,
-                    detail: boundedDetail(`Audio extract failed for element ${element.id}`),
-                  },
-            );
-            return;
+          // Fallback: if no duration was specified, probe the actual file
+          if (element.end - element.start <= 0) {
+            let metadata;
+            try {
+              metadata = await extractAudioMetadata(srcPath);
+            } catch (err: unknown) {
+              failures.push(
+                probeFailure(err instanceof Error ? err.message : String(err), element.id),
+              );
+              return;
+            }
+            const effectiveDuration = metadata.durationSeconds - element.mediaStart;
+            element.end =
+              element.start +
+              (effectiveDuration > 0 ? effectiveDuration : metadata.durationSeconds);
           }
-          audioSrcPath = extractedPath;
-        } else {
-          const trimmedPath = join(workDir, `${element.id}-trimmed.wav`);
-          const prepResult = await prepareAudioTrack(
-            srcPath,
-            trimmedPath,
-            element.mediaStart,
-            element.end - element.start,
-            signal,
-            config,
-          );
-          if (!prepResult.success) {
-            failures.push(
-              prepResult.failure
-                ? { ...prepResult.failure, elementId: element.id }
-                : {
-                    stage: "prepare",
-                    reason: "ffmpeg_failed",
-                    owner: "system",
-                    retryable: false,
-                    elementId: element.id,
-                    detail: boundedDetail(`Audio prepare failed for element ${element.id}`),
-                  },
-            );
-            return;
-          }
-          audioSrcPath = trimmedPath;
-        }
 
-        // Primary volume-automation path: bake the envelope into the PCM samples
-        // (sample-accurate, no keyframe ceiling). If the WAV isn't the expected
-        // 16-bit PCM, fall back to the ffmpeg expression path by leaving the
-        // keyframes on the track for buildVolumeExpression to handle.
-        let bakedEnvelope = false;
-        if (element.volumeKeyframes && element.volumeKeyframes.length > 0) {
-          bakedEnvelope = applyVolumeEnvelopeToWav(
-            audioSrcPath,
-            element.volumeKeyframes,
-            element.start,
-            element.volume ?? 1.0,
-          );
+          let audioSrcPath = srcPath;
+          if (element.type === "video") {
+            const extractedPath = join(workDir, `${element.id}-extracted.wav`);
+            const extractResult = await extractAudioFromVideo(
+              srcPath,
+              extractedPath,
+              {
+                startTime: element.mediaStart,
+                duration: element.end - element.start,
+              },
+              effectiveSignal,
+              config,
+            );
+            if (!extractResult.success) {
+              failures.push(
+                extractResult.failure
+                  ? { ...extractResult.failure, elementId: element.id }
+                  : {
+                      stage: "extract",
+                      reason: "ffmpeg_failed",
+                      owner: "system",
+                      retryable: false,
+                      elementId: element.id,
+                      detail: boundedDetail(`Audio extract failed for element ${element.id}`),
+                    },
+              );
+              return;
+            }
+            audioSrcPath = extractedPath;
+          } else {
+            const trimmedPath = join(workDir, `${element.id}-trimmed.wav`);
+            const prepResult = await prepareAudioTrack(
+              srcPath,
+              trimmedPath,
+              element.mediaStart,
+              element.end - element.start,
+              effectiveSignal,
+              config,
+            );
+            if (!prepResult.success) {
+              failures.push(
+                prepResult.failure
+                  ? { ...prepResult.failure, elementId: element.id }
+                  : {
+                      stage: "prepare",
+                      reason: "ffmpeg_failed",
+                      owner: "system",
+                      retryable: false,
+                      elementId: element.id,
+                      detail: boundedDetail(`Audio prepare failed for element ${element.id}`),
+                    },
+              );
+              return;
+            }
+            audioSrcPath = trimmedPath;
+          }
+
+          // Apply the track's VST plugin chain (if any) to the dry, trimmed WAV
+          // before volume automation is baked in — plugins should see the raw
+          // signal, and the envelope should be applied to their output. A missing
+          // plugin or sidecar failure is a hard failure for this track: never
+          // silently fall back to unprocessed audio.
+          if (element.vstChain) {
+            const chainAbsPath = resolveProjectRelativeSrc(element.vstChain, baseDir, compiledDir);
+            if (!existsSync(chainAbsPath)) {
+              throw new VstChainProcessingError(
+                `VST chain file not found for track "${element.id}": ${element.vstChain}`,
+              );
+            }
+            try {
+              audioSrcPath = await applyVstChainToWav(
+                audioSrcPath,
+                chainAbsPath,
+                workDir,
+                element.id,
+                { signal: effectiveSignal },
+              );
+            } catch (err: unknown) {
+              throw new VstChainProcessingError(err instanceof Error ? err.message : String(err));
+            }
+          }
+
+          // Primary volume-automation path: bake the envelope into the PCM samples
+          // (sample-accurate, no keyframe ceiling). If the WAV isn't the expected
+          // 16-bit PCM, fall back to the ffmpeg expression path by leaving the
+          // keyframes on the track for buildVolumeExpression to handle.
+          let bakedEnvelope = false;
+          if (element.volumeKeyframes && element.volumeKeyframes.length > 0) {
+            bakedEnvelope = applyVolumeEnvelopeToWav(
+              audioSrcPath,
+              element.volumeKeyframes,
+              element.start,
+              element.volume ?? 1.0,
+            );
+          }
+          tracks.push({
+            id: element.id,
+            srcPath: audioSrcPath,
+            start: element.start,
+            end: element.end,
+            mediaStart: element.mediaStart,
+            duration: element.end - element.start,
+            // Gain is already in the samples when baked, so mix at unity.
+            volume: bakedEnvelope ? 1.0 : (element.volume ?? 1.0),
+            volumeKeyframes: bakedEnvelope ? undefined : element.volumeKeyframes,
+          });
+        } catch (err: unknown) {
+          // A VST failure is fatal for the whole call — rethrow so it escapes
+          // this element's promise, rejects the Promise.all, and propagates out
+          // of processCompositionAudio. Every other failure mode (missing source,
+          // download failure, extract/prepare failure) keeps degrading
+          // gracefully: recorded as a failure, track dropped, siblings continue.
+          if (err instanceof VstChainProcessingError) throw err;
+          failures.push({
+            stage: "internal",
+            reason: "internal",
+            owner: "system",
+            retryable: false,
+            elementId: element.id,
+            detail: boundedDetail(
+              `Audio processing failed for element ${element.id}: ${
+                err instanceof Error ? err.message : String(err)
+              }`,
+            ),
+          });
         }
-        tracks.push({
-          id: element.id,
-          srcPath: audioSrcPath,
-          start: element.start,
-          end: element.end,
-          mediaStart: element.mediaStart,
-          duration: element.end - element.start,
-          // Gain is already in the samples when baked, so mix at unity.
-          volume: bakedEnvelope ? 1.0 : (element.volume ?? 1.0),
-          volumeKeyframes: bakedEnvelope ? undefined : element.volumeKeyframes,
-        });
-      } catch (err: unknown) {
-        failures.push({
-          stage: "internal",
-          reason: "internal",
-          owner: "system",
-          retryable: false,
-          elementId: element.id,
-          detail: boundedDetail(
-            `Audio processing failed for element ${element.id}: ${
-              err instanceof Error ? err.message : String(err)
-            }`,
-          ),
-        });
-      }
-    }),
-  );
+      }),
+    );
+  } catch (err) {
+    // Rejected early on a sibling's VstChainProcessingError, without waiting
+    // for other in-flight elements — abort them now so their subprocess (e.g. a
+    // VST sidecar) can see the signal and stop before workDir is removed.
+    internalController.abort();
+    try {
+      rmSync(workDir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+    throw err;
+  }
 
   // Never turn a per-track preparation failure into a successful partial mix.
   // The producer only surfaces audio failures when `success` is false; mixing
