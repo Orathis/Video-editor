@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Catalog retrieval, round two</title>
+<style>
+ body { background:#0a0b0d; color:#ece7de; font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+        margin:0; padding:3rem clamp(1rem,5vw,4rem); }
+ h1 { font-size:1.6rem; font-weight:400; margin:0 0 0.4rem; }
+ p.sub { color:#8b8578; margin:0 0 2.5rem; }
+ table { border-collapse:collapse; width:100%; max-width:70rem; margin:0 0 2.5rem; }
+ caption { text-align:left; color:#d8ff3e; font-size:0.78rem; letter-spacing:0.14em;
+            text-transform:uppercase; padding-bottom:0.6rem; }
+ th,td { text-align:left; padding:0.5rem 0.9rem 0.5rem 0; border-bottom:1px solid #23272f; }
+ th { color:#8b8578; font-weight:400; font-size:0.8rem; }
+</style></head><body>
+<h1>Catalog retrieval, round two</h1>
+<p class="sub">2043 runs scored over 227 briefs.
+Cached input 41.1% of 6943091 prompt tokens.
+Mountable and fit are separate numbers and are never combined.</p>
+<table><caption>Per cell</caption><thead><tr><th>cell</th><th>n</th><th>mountable</th><th>fit</th><th>pass rate</th><th>empty rate</th><th>gold shown</th><th>fit when shown</th></tr></thead><tbody><tr><td>a</td><td>227</td><td>0.0081</td><td>0.1843</td><td>0.3128</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>b</td><td>227</td><td>1.0</td><td>0.6792</td><td>0.7885</td><td>0.0</td><td>1.0</td><td>0.6792</td></tr><tr><td>c@10</td><td>227</td><td>0.9471</td><td>0.2386</td><td>0.2599</td><td>0.0529</td><td>0.2819</td><td>0.8464</td></tr><tr><td>c@20</td><td>227</td><td>0.9868</td><td>0.3172</td><td>0.3524</td><td>0.0132</td><td>0.3744</td><td>0.8471</td></tr><tr><td>c@5</td><td>227</td><td>0.8943</td><td>0.1997</td><td>0.2159</td><td>0.1057</td><td>0.2291</td><td>0.8718</td></tr><tr><td>d@10</td><td>227</td><td>0.9471</td><td>0.3069</td><td>0.3348</td><td>0.0529</td><td>0.3833</td><td>0.8008</td></tr><tr><td>d@20</td><td>227</td><td>0.9868</td><td>0.3752</td><td>0.4141</td><td>0.0132</td><td>0.4846</td><td>0.7743</td></tr><tr><td>d@5</td><td>227</td><td>0.8899</td><td>0.2327</td><td>0.2555</td><td>0.1101</td><td>0.2819</td><td>0.8255</td></tr><tr><td>h@10</td><td>227</td><td>0.9604</td><td>0.3532</td><td>0.3965</td><td>0.0396</td><td>0.4317</td><td>0.818</td></tr></tbody></table>
+<p class="sub">Gold shown is how often the right move was in the list the run could see, so
+the gap between fit and fit when shown is the share of the loss retrieval owns rather than
+the model. It reads 0 for the no catalog cell, which shows nothing.</p>
+<table><caption>What each cell costs</caption><thead><tr><th>cell</th><th>input tokens</th><th>of which cached</th><th>output tokens</th><th>fit</th><th>USD per 1000 runs</th><th>fit per dollar</th></tr></thead><tbody><tr><td>a</td><td>237</td><td>0</td><td>813</td><td>0.1843</td><td>6.45</td><td>28.6</td></tr><tr><td>b</td><td>23725</td><td>12569</td><td>822</td><td>0.6792</td><td>24.79</td><td>27.4</td></tr><tr><td>c@10</td><td>844</td><td>0</td><td>744</td><td>0.2386</td><td>6.85</td><td>34.8</td></tr><tr><td>c@20</td><td>1481</td><td>0</td><td>701</td><td>0.3172</td><td>7.48</td><td>42.4</td></tr><tr><td>c@5</td><td>538</td><td>0</td><td>651</td><td>0.1997</td><td>5.69</td><td>35.1</td></tr><tr><td>d@10</td><td>876</td><td>0</td><td>748</td><td>0.3069</td><td>6.92</td><td>44.3</td></tr><tr><td>d@20</td><td>1466</td><td>0</td><td>710</td><td>0.3752</td><td>7.52</td><td>49.9</td></tr><tr><td>d@5</td><td>566</td><td>0</td><td>683</td><td>0.2327</td><td>5.97</td><td>39.0</td></tr><tr><td>h@10</td><td>853</td><td>0</td><td>747</td><td>0.3532</td><td>6.88</td><td>51.3</td></tr></tbody></table>
+<p class="sub">Input tokens are per run and include every retry. Fit per dollar is the
+efficiency read: the cell with the best fit and the cell with the best fit per dollar are
+not the same cell, and which one you want depends on how often you call it.</p>
+<table><caption>Same briefs, short list against full shelf</caption><thead><tr><th>cell</th><th>n</th><th>cell fit</th><th>full shelf fit</th><th>difference</th></tr></thead><tbody><tr><td>c@10</td><td>64</td><td>0.8464</td><td>0.7865</td><td>0.0599</td></tr><tr><td>c@20</td><td>85</td><td>0.8471</td><td>0.7902</td><td>0.0569</td></tr><tr><td>c@5</td><td>52</td><td>0.8718</td><td>0.7885</td><td>0.0833</td></tr><tr><td>d@10</td><td>87</td><td>0.8008</td><td>0.7471</td><td>0.0537</td></tr><tr><td>d@20</td><td>110</td><td>0.7743</td><td>0.7349</td><td>0.0394</td></tr><tr><td>d@5</td><td>64</td><td>0.8255</td><td>0.7787</td><td>0.0468</td></tr><tr><td>h@10</td><td>98</td><td>0.818</td><td>0.7347</td><td>0.0833</td></tr></tbody></table>
+<p class="sub">Fit when shown compares different brief sets, because the briefs a short list
+finds are the easy ones. This table holds the briefs fixed and is the only fair read of
+whether a short list beats the whole shelf.</p>
+<table><caption>Per stratum</caption><thead><tr><th>stratum</th><th>n</th><th>mountable</th><th>fit</th><th>pass rate</th></tr></thead><tbody><tr><td>block</td><td>477</td><td>0.8532</td><td>0.2558</td><td>0.3061</td></tr><tr><td>component</td><td>720</td><td>0.8396</td><td>0.238</td><td>0.2792</td></tr><tr><td>component+primitive</td><td>378</td><td>0.8342</td><td>0.3545</td><td>0.4074</td></tr><tr><td>primitive</td><td>468</td><td>0.8611</td><td>0.4872</td><td>0.5449</td></tr></tbody></table>
+<table><caption>Failures, first 12</caption><thead><tr><th>brief</th><th>cell</th><th>fit</th><th>why</th></tr></thead><tbody><tr><td>001</td><td>a</td><td>0.0</td><td>picked known-wrong chevron-pill-card-morph; named 3 moves for 1 needed</td></tr><tr><td>001</td><td>c@5</td><td>0.0</td><td>named 3 moves for 1 needed</td></tr><tr><td>001</td><td>c@10</td><td>0.0</td><td>named 3 moves for 1 needed</td></tr><tr><td>001</td><td>c@20</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>001</td><td>d@5</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>001</td><td>d@10</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>001</td><td>d@20</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>001</td><td>h@10</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>002</td><td>a</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>002</td><td>c@5</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>002</td><td>c@10</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr><tr><td>002</td><td>c@20</td><td>0.0</td><td>picked shelf moves, none of them the gold answer</td></tr></tbody></table>
+</body></html>
