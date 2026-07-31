@@ -523,18 +523,39 @@ class CellSelectionTests(unittest.TestCase):
         self.assertEqual((("h", 10), ("d", 20)), run2.parse_cells("h@10,d@20"))
         self.assertEqual((("a", None), ("b", None)), run2.parse_cells("a, b"))
 
-    def test_a_cell_outside_the_grid_stops_the_run_rather_than_being_dropped(self):
+    def test_an_unknown_condition_stops_the_run_rather_than_being_dropped(self):
         # Silently dropping it would run fewer cells than asked for and report
         # the result as if it were the selection.
-        for spec in ("z@99", "c@7", "h@10,nope"):
+        for spec in ("z@99", "h@10,nope"):
             with self.subTest(spec=spec), self.assertRaises(SystemExit) as caught:
                 run2.parse_cells(spec)
-            self.assertIn("unknown cell", str(caught.exception))
+            self.assertIn("unknown condition", str(caught.exception))
+
+    def test_the_confirmation_can_be_asked_for_the_k_the_sweep_chose(self):
+        # Round 2 sampled k = 5, 10, 20 and the round 3 sweep looks past 20, so
+        # a whitelist of the three sampled values would let stage 1 select a list
+        # length that stage 2 could never confirm. k is checked for arity here,
+        # not for membership in what an earlier round happened to run.
+        self.assertEqual((("h", 70), ("d", 70)), run2.parse_cells("h@70,d@70"))
+        self.assertEqual((("c", 424),), run2.parse_cells("c@424"))
 
     def test_a_malformed_k_is_named_rather_than_coerced(self):
+        for spec in ("c@many", "c@0", "c@-3"):
+            with self.subTest(spec=spec), self.assertRaises(SystemExit) as caught:
+                run2.parse_cells(spec)
+            self.assertIn("k must be a positive integer", str(caught.exception))
+
+    def test_k_arity_is_enforced_in_both_directions(self):
+        # a shows no catalog and b shows the whole shelf, so neither has a list
+        # to truncate. "b@10" is someone believing they narrowed the full shelf
+        # cell, and it would have quietly run the most expensive cell in the grid.
         with self.assertRaises(SystemExit) as caught:
-            run2.parse_cells("c@many")
-        self.assertIn("k must be a positive integer", str(caught.exception))
+            run2.parse_cells("b@10")
+        self.assertIn("takes no k", str(caught.exception))
+        # And the reverse: "h" alone would build a short list with no length.
+        with self.assertRaises(SystemExit) as caught:
+            run2.parse_cells("h")
+        self.assertIn("needs a k", str(caught.exception))
 
     def test_a_selection_of_only_separators_is_an_error_not_the_whole_grid(self):
         # ",," is a typo, and answering it with all nine cells would spend the

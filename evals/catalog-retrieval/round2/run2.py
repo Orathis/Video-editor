@@ -379,26 +379,39 @@ def parse_cells(spec):
     so the only reachable run was all nine cells. That is not a confirmation, it
     is a second full grid, and at wave 1 size it costs about five times what the
     rule asks for.
+
+    k is validated for arity, not against the three values CELLS happens to list.
+    Choosing k is stage 1's entire job, and the round was designed to look past
+    the k = 5, 10, 20 that round 2 sampled, so a whitelist of those three would
+    let the sweep name a list length the confirmation could never be asked for.
+    The condition letter is still checked, because that is a typo, and so is the
+    arity, because a and b build no short list and have no k to take.
     """
     if not spec:
         return CELLS
+    conditions = {condition for condition, _ in CELLS}
+    takes_k = {condition for condition, k in CELLS if k is not None}
     chosen = []
     for token in spec.split(","):
         token = token.strip()
         if not token:
             continue
         condition, _, k = token.partition("@")
+        if condition not in conditions:
+            raise SystemExit(
+                f"cell {token!r}: unknown condition {condition!r}, "
+                f"pick from {sorted(conditions)}"
+            )
         if not k:
+            if condition in takes_k:
+                raise SystemExit(f"cell {token!r}: condition {condition!r} needs a k")
             chosen.append((condition, None))
             continue
-        if not k.isdigit():
+        if condition not in takes_k:
+            raise SystemExit(f"cell {token!r}: condition {condition!r} takes no k")
+        if not k.isdigit() or int(k) < 1:
             raise SystemExit(f"cell {token!r}: k must be a positive integer")
         chosen.append((condition, int(k)))
-    unknown = [cell for cell in chosen if cell not in CELLS]
-    if unknown:
-        raise SystemExit(
-            f"unknown cell(s) {unknown}: pick from {[c for c in CELLS]}"
-        )
     if not chosen:
         raise SystemExit(f"EVAL_CELLS={spec!r} selected no cells")
     return tuple(chosen)
