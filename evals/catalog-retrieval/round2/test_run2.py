@@ -474,6 +474,50 @@ class RunnerTests(unittest.TestCase):
             run2.RUNS_IN_FLIGHT * 2, len(run2.load_checkpoint(self.checkpoint))
         )
 
+    def test_another_models_spend_does_not_count_against_this_runs_ceiling(self):
+        # Round 4 fills one checkpoint with two models in sequence, so the file
+        # a model B pass reads already holds every dollar model A spent. Counted
+        # together they stopped model B before its first call: $64.82 of model A
+        # against a $60 model B row. The model is part of a cell's identity in
+        # _record_key, and the ceiling has to be keyed the same way or it is not
+        # measuring the run it guards.
+        usage = {
+            "prompt_tokens": 100_000,
+            "completion_tokens": 50_000,
+            "cached_tokens": 0,
+            "total_tokens": 150_000,
+        }
+        other = "gpt-5.6-luna"
+        self.assertNotEqual(provider.model_id(other), provider.model_id(run2.MODEL))
+        run2._append_checkpoint(
+            self.checkpoint,
+            {
+                "brief": "99",
+                "condition": "b",
+                "k": None,
+                "model": provider.model_id(other),
+                "picks": [],
+                "attempts": [{"usage": usage}],
+            },
+        )
+        spent_by_the_other_model = run2.usage_cost(usage, other)
+        self.assertGreater(spent_by_the_other_model, 0.0)
+
+        with mock.patch.object(
+            provider, "chat", return_value=canned_chat()
+        ) as chat:
+            result = self._run(
+                {"01": "alpha"},
+                (("b", None),),
+                max_usd=spent_by_the_other_model / 2,
+            )
+
+        # The other model's row is over this ceiling on its own, so a run that
+        # counted it would have stopped here with nothing bought.
+        self.assertIsNone(result["stop_reason"])
+        self.assertEqual(1, chat.call_count)
+        self.assertEqual(1, result["new_runs"])
+
     def test_the_kill_file_still_stops_a_concurrent_run(self):
         # Same rule as the ceiling: read once before each batch is dispatched,
         # and once the file is there nothing further goes out. The batch that

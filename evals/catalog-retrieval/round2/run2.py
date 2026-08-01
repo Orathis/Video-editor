@@ -288,7 +288,17 @@ def run_grid(
     completed = {
         key for record in records if (key := _record_key(record)) is not None
     }
-    total_usd = sum(_record_cost(record, model) for record in records)
+    # Only this model's rows count against this run's ceiling. Round 4 fills one
+    # checkpoint with two models in sequence, so a total taken over every row
+    # would hand model B a bill it did not run up: model A's $64.82 already sat
+    # in the file and stopped model B's $60 pass before its first call. The model
+    # is part of a cell's identity in _record_key for the same reason, and a
+    # ceiling that is not keyed the same way is not measuring the run it guards.
+    total_usd = sum(
+        _record_cost(record, model)
+        for record in records
+        if record.get("model", provider.model_id(model)) == provider.model_id(model)
+    )
     new_runs = 0
     stop_reason = None
 
