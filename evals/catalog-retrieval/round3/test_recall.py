@@ -114,6 +114,56 @@ class EquivalenceTests(unittest.TestCase):
             recall.recall("lexical", self.briefs, self.gold, self.entries, oversized),
         )
 
+    def test_a_two_target_brief_hits_on_either_move_and_misses_on_neither(self):
+        # The round 4 fix for round 3's pruning bias. A beat two near twins
+        # answer equally well used to be removed from the corpus, which took
+        # out exactly the cases where retrieval is hardest. Scored, it is a hit
+        # when the retriever shows either answer.
+        entries = {"alpha": "alpha", "beta": "beta", "gamma": "gamma"}
+        briefs = {"001": "alpha"}
+        gold = {"001": {"best": ["alpha", "beta"], "bad": ["gamma"]}}
+        for shown_names, expected in (
+            (["alpha"], True),
+            (["beta"], True),
+            (["alpha", "beta"], True),
+            (["gamma"], False),
+            ([], False),
+        ):
+            with self.subTest(shown=shown_names), mock.patch.object(
+                recall, "shown", lambda *_a, _names=shown_names, **_k: _names
+            ):
+                flags = recall.shown_flags("lexical", briefs, gold, entries, 3)
+                self.assertEqual({"001": expected}, flags)
+
+    def test_a_single_target_brief_is_scored_exactly_as_round_three_scored_it(self):
+        # Same three lists, one acceptable move. Showing the twin is now a miss,
+        # which is what makes the two-target case above a real change rather
+        # than a blanket loosening.
+        entries = {"alpha": "alpha", "beta": "beta"}
+        briefs = {"001": "alpha"}
+        gold = {"001": {"best": ["alpha"], "bad": ["beta"]}}
+        for shown_names, expected in ((["alpha"], True), (["beta"], False)):
+            with self.subTest(shown=shown_names), mock.patch.object(
+                recall, "shown", lambda *_a, **_k: shown_names
+            ):
+                self.assertEqual(
+                    {"001": expected},
+                    recall.shown_flags("lexical", briefs, gold, entries, 2),
+                )
+
+    def test_a_move_listed_as_both_acceptable_and_known_wrong_is_refused(self):
+        # Scoring it both ways would make the known-wrong-pick rate depend on
+        # which loop read the record first.
+        entries = {"alpha": "alpha"}
+        with self.assertRaisesRegex(ValueError, "both acceptable and known-wrong"):
+            recall.shown_flags(
+                "lexical",
+                {"001": "alpha"},
+                {"001": {"best": ["alpha"], "bad": ["alpha"]}},
+                entries,
+                1,
+            )
+
     def test_empty_corpus_and_empty_gold_do_not_divide_by_zero(self):
         self.assertEqual(0.0, recall.recall("lexical", {}, {}, self.entries, 10))
         self.assertEqual(0.0, recall.recall("lexical", self.briefs, {}, self.entries, 10))

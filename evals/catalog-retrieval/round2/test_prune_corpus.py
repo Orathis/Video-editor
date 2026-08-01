@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Checks for the corpus prune. Run with: python3 test_prune_corpus.py"""
 
+import json
 import os
 import shutil
 import sys
@@ -155,6 +156,60 @@ def test_a_half_moved_pair_stops():
             assert "no brief/gold pair" in str(error), error
         else:
             raise AssertionError("a brief with no gold was moved anyway")
+    finally:
+        shutil.rmtree(root)
+
+
+def _gold_dir(records):
+    root = tempfile.mkdtemp()
+    gold = os.path.join(root, "gold")
+    os.makedirs(gold)
+    for brief_id, entry in records.items():
+        with open(os.path.join(gold, f"{brief_id}.json"), "w") as fh:
+            json.dump(entry, fh)
+    return root, gold
+
+
+def test_a_near_twin_majority_merges_instead_of_leaving_the_corpus():
+    # The round 3 bias, fixed at its root. 001's committee landed on beta, a
+    # move the constructor did not name and did not rule out, so beta joins the
+    # acceptable set and the brief stays scorable.
+    root, gold = _gold_dir({"001": {"best": ["alpha"], "bad": ["zeta"]}})
+    try:
+        plan, excluded = prune_corpus.merge_plan(AUDIT, gold)
+        assert plan == {"001": "beta"}, plan
+        assert excluded == [], excluded
+
+        assert prune_corpus.merge(plan, gold) == ["001"], "nothing merged"
+        with open(os.path.join(gold, "001.json")) as fh:
+            entry = json.load(fh)
+        # Constructed target first, so the per-stratum rows keep reading it.
+        assert entry["best"] == ["alpha", "beta"], entry
+        # Idempotent: a resumed session can call it without checking state.
+        assert prune_corpus.merge(plan, gold) == [], "merged twice"
+    finally:
+        shutil.rmtree(root)
+
+
+def test_a_split_majority_still_leaves_the_corpus():
+    text = AUDIT.replace("Committee majority: beta", "Committee majority: no majority")
+    root, gold = _gold_dir({"001": {"best": ["alpha"], "bad": []}})
+    try:
+        plan, excluded = prune_corpus.merge_plan(text, gold)
+        assert plan == {}, plan
+        assert excluded == ["001"], excluded
+    finally:
+        shutil.rmtree(root)
+
+
+def test_a_majority_the_constructor_ruled_out_leaves_rather_than_merging():
+    # Merging would write a record listing beta as both the answer and the
+    # trap, which gate2.acceptable refuses to read.
+    root, gold = _gold_dir({"001": {"best": ["alpha"], "bad": ["beta"]}})
+    try:
+        plan, excluded = prune_corpus.merge_plan(AUDIT, gold)
+        assert plan == {}, plan
+        assert excluded == ["001"], excluded
     finally:
         shutil.rmtree(root)
 

@@ -16,9 +16,16 @@ survive that argument, and both need the model to actually run:
                           to recall: a run can have the answer on its list, pick
                           it, and still pick a known-wrong move beside it.
 
-Scoring is gate2's, unchanged, so no model judges a model here either. Every
-rate carries an interval clustered by target move, for the same reason the sweep
-does: briefs written for one move are correlated.
+Scoring is gate2's, unchanged, so no model judges a model here either. Both
+quantities are read against the whole acceptable set: fit through gate2's own
+f1 over that set, and the known-wrong-pick rate through gate2's `bad`, which
+cannot overlap the acceptable set because gate2.acceptable refuses a record
+where it does. That refusal is what keeps this metric from ever counting an
+acceptable move as wrong.
+
+Every rate carries an interval clustered by the acceptable set, for the same
+reason the sweep does: briefs answered by the same move, or by the same pair of
+near twins, are correlated.
 """
 
 import argparse
@@ -59,7 +66,12 @@ METRICS = (
 
 
 def confirm(records, gold, shelf, vectors=None):
-    """Per cell rates, each clustered by the brief's target move."""
+    """Per cell rates, each clustered by the brief's acceptable set.
+
+    The key is `row["move"]`, which build_report2 takes from gate2.cluster_key,
+    so two briefs answered by the same near-twin pair count as one cluster here
+    and in the sweep alike.
+    """
     rows = build_report2.score_all(records, gold, shelf, vectors=vectors)
     groups = collections.defaultdict(list)
     for row in rows:

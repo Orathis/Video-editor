@@ -82,14 +82,19 @@ def score_all(records, gold, shelf, vectors=None, kinds=None):
             vectors=vectors,
             pick_vectors=record.get("pick_vectors"),
         )
-        best = gold[brief]["best"]
+        best = gate2.acceptable(gold[brief], brief)
         shown = record.get("shown") or []
         result["cell"] = cell_key(record)
-        result["stratum"] = kinds.get(best[0], "unknown") if best else "unknown"
+        # The stratum stays the constructed target, which gold lists first. A
+        # near twin merged in beside it answers the same beat and would land in
+        # the same shelf group anyway, so re-deriving it from the whole set
+        # would move nothing except round 3's published per-stratum rows.
+        result["stratum"] = kinds.get(best[0], "unknown")
         # The cluster key for every interval. It comes from gold rather than
         # from the brief id because briefs written for the same target move are
-        # correlated, and a brief with no gold move clusters only with itself.
-        result["move"] = best[0] if best else brief
+        # correlated, and briefs answered by the same near-twin family are
+        # correlated in the same way, so they share one key.
+        result["move"] = gate2.cluster_key(gold[brief], brief)
         result["empty"] = not picks
         # Whether the right move was even in the list the run could see. Without
         # this a low fit reads as "the model chose badly" when the real story is

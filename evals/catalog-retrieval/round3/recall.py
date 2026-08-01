@@ -20,6 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROUND2 = os.path.join(os.path.dirname(HERE), "round2")
 sys.path.insert(0, ROUND2)
 
+import gate2  # noqa: E402
 import harness2  # noqa: E402
 
 # From harness2, so the sweep reads whatever corpus the generator and the
@@ -64,7 +65,12 @@ def shown(arm, brief_id, text, entries, k):
 
 
 def shown_flags(arm, briefs, gold, entries, k):
-    """Per brief, was a gold best move on the shown list.
+    """Per brief, was an acceptable move on the shown list.
+
+    Gold is a set, so a hit is any acceptable move being shown. A brief whose
+    beat has two right answers is answered by either of them, and showing both
+    is not twice as right: the model only has to be handed one move it can
+    mount. With a single-element set this is round 3's test unchanged.
 
     Keyed only by briefs that still have gold. A brief whose gold was pruned
     away cannot be scored, and counting it as a miss would report recall over a
@@ -74,7 +80,7 @@ def shown_flags(arm, briefs, gold, entries, k):
     for brief_id, text in briefs.items():
         if brief_id not in gold:
             continue
-        best = gold[brief_id]["best"]
+        best = gate2.acceptable(gold[brief_id], brief_id)
         flags[brief_id] = bool(set(best) & set(shown(arm, brief_id, text, entries, k)))
     return flags
 
