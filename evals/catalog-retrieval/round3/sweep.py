@@ -37,6 +37,12 @@ REQUIRED_RULE_KEYS = (
     "max_waves",
     "exploratory_tier_can_win",
 )
+# Round 4 pre-registers a band width; round 3's rule file predates it. So the
+# key is read when a rule file carries it, and its absence leaves round 3's
+# branch exactly as it was, because a requirement nobody pre-registered cannot
+# start deciding a round that already ran. Present and unreadable is a different
+# state from absent and is refused rather than quietly ignored.
+BAND_KEY = "min_separated_band"
 
 
 def parse_rule(path=RULE_FILE):
@@ -54,6 +60,14 @@ def parse_rule(path=RULE_FILE):
         if missing:
             raise SystemExit(
                 "{0} parameter block is missing {1}".format(path, ", ".join(missing))
+            )
+        band = rule.get(BAND_KEY)
+        if band is not None and (
+            isinstance(band, bool) or not isinstance(band, int) or band < 1
+        ):
+            raise SystemExit(
+                "{0} asks for a band of {1!r}. The band width is a count of list "
+                "lengths, so it has to be a whole number of at least 1".format(path, band)
             )
         if rule["confidence"] != stats.CONFIDENCE:
             # stats.py's t table is a 95 percent table. Honouring another level
@@ -470,6 +484,78 @@ def family_runs(across, swept):
     return runs
 
 
+def separated_bands(across, swept):
+    """Every contiguous run of list lengths over which the rule separates.
+
+    Width is counted in list lengths off the swept grid rather than in k, because
+    the grid is what was measured: k=10 to k=150 on a grid that steps by 10 is 15
+    list lengths, not 141, and a sweep that skipped half of them would be a
+    narrower band wearing the same endpoints.
+
+    A band is keyed on the family the rule ships, which is the thing the rule
+    decides. Round 3 is the reason it cannot be keyed on the arm label: its
+    separated band runs k=10 to k=150 and ships hybrid at all 15 list lengths
+    while the leading fusion weight changes four times inside it, so an arm-keyed
+    band would split the band the published verdict reports as one. A change of
+    family, or a k where the leader stops separating, does end the run.
+    """
+    bands = []
+    for run in family_runs(across, swept):
+        if run["branch"] != "separated":
+            continue
+        bands.append(
+            {
+                "family": run["family"],
+                "lo": run["lo"],
+                "hi": run["hi"],
+                "width": sum(
+                    1 for result in across if run["lo"] <= result["k"] <= run["hi"]
+                ),
+                "arms": sorted(
+                    {
+                        result["outcome"]["ship"]
+                        for result in across
+                        if run["lo"] <= result["k"] <= run["hi"]
+                    }
+                ),
+            }
+        )
+    return bands
+
+
+def band_test(across, swept, rule):
+    """Does the leader separate over a band as wide as the rule pre-registered.
+
+    Three separate fields, because collapsing them loses the thing the test was
+    added for. `band` is the contiguous run that carries the outcome, `width` is
+    how many list lengths it holds, and `clears` is the verdict against the
+    pre-registered number. A single separated k is not a band, and two disjoint
+    runs are not one band either: they are reported side by side and the round
+    passes only when one of them clears the requirement on its own, because
+    adding two short runs together would claim a stability across k that the ks
+    between them contradict.
+
+    Returns None when the rule file carries no band requirement, which is how
+    round 3's rule file reads. That round pre-registered no band, so this test
+    has no verdict to offer about it and says so rather than inventing one.
+    """
+    required = rule.get(BAND_KEY)
+    if required is None:
+        return None
+    bands = separated_bands(across, swept)
+    # On equal width the earlier band wins, since the shorter list is the only
+    # one defensible on token cost and being the minimum it cannot have been
+    # chosen to flatter an arm. It is the same tiebreak the ranking already uses.
+    widest = max(bands, key=lambda band: (band["width"], -band["lo"]), default=None)
+    return {
+        "required": required,
+        "bands": bands,
+        "band": widest,
+        "width": widest["width"] if widest else 0,
+        "clears": bool(widest) and widest["width"] >= required,
+    }
+
+
 def operating_point(swept, family, tokens_per_k, tokens_per_recall, shelf_size):
     """Which arm of a family to run, and at what list length.
 
@@ -506,6 +592,26 @@ def converged(swept, ks, tolerance=0.01):
     last = max(ks)
     rates = [arm["curve"][last] for arm in swept.values()]
     return max(rates) - min(rates) <= tolerance
+
+
+def convergence_point(swept, ks, tolerance=0.01):
+    """The shortest list length from which the arms stay within tolerance.
+
+    `converged` answers whether the arms have met by the end of the sweep. This
+    answers where, which is the number the round reports, and it is read from the
+    longest k backwards so that one early crossing on the way up is not mistaken
+    for the point they meet and never part again. Returns None when there is
+    nothing to converge, or when the arms are still apart at the longest k.
+    """
+    if len(swept) < 2:
+        return None
+    point = None
+    for k in sorted(ks, reverse=True):
+        rates = [arm["curve"][k] for arm in swept.values() if k in arm["curve"]]
+        if len(rates) < 2 or max(rates) - min(rates) > tolerance:
+            break
+        point = k
+    return point
 
 
 def _print_curves(swept, unavailable, ks):
@@ -565,6 +671,37 @@ def _print_knees(swept, ks, tokens, price):
         "prices: {0:.1f} input tokens per unit k (fitted to round 2 cost rows), "
         "{1:.0f} tokens per unit recall (full shelf cell b)".format(slope, price)
     )
+
+
+def _print_band(band):
+    """The band test, or nothing at all when the rule file pre-registered none."""
+    if band is None:
+        return
+    print(
+        "\nband stability, the rule asks for {0} contiguous list lengths".format(
+            band["required"]
+        )
+    )
+    if not band["bands"]:
+        print("  no comparable k separated, so there is no band to measure")
+    for run in band["bands"]:
+        print(
+            "  {0} separates over k={1} to k={2}, {3} list lengths, leader {4}".format(
+                run["family"], run["lo"], run["hi"], run["width"], "/".join(run["arms"])
+            )
+        )
+    print(
+        "  widest single band {0} of {1} required: {2}".format(
+            band["width"],
+            band["required"],
+            "clears" if band["clears"] else "does not clear",
+        )
+    )
+    if len(band["bands"]) > 1:
+        print(
+            "  disjoint bands are not added together: the ks between them did not "
+            "separate, so their widths are not one run of stability"
+        )
 
 
 def main(argv=None):
@@ -683,9 +820,16 @@ def main(argv=None):
                 followup["arm"], followup["over"], followup["margin"]["mean"],
                 stats.format_interval(followup["margin"]), followup["note"],
             ))
+    _print_band(band_test(across, swept, rule))
     if converged(swept, ks):
+        point = convergence_point(swept, ks)
         print(
-            "arms converge at k={0}: the open question is what k, not which arm".format(max(ks))
+            "arms converge at k={0}: the open question is what k, not which arm{1}".format(
+                max(ks),
+                ". They are already within a hundredth of each other from k={0}".format(point)
+                if point is not None and point != max(ks)
+                else "",
+            )
         )
     return 0
 

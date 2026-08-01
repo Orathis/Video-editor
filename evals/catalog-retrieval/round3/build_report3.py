@@ -33,6 +33,7 @@ import sweep  # noqa: E402
 
 import harness2  # noqa: E402  recall puts the round two directory on the path
 
+TITLE = "Catalog retrieval, round three"
 REPORT = os.path.join(HERE, "report3.html")
 SUMMARY = os.path.join(HERE, "summary3.json")
 CONFIRMATION = os.path.join(HERE, "confirm3.json")
@@ -91,7 +92,10 @@ def interval(flags, clusters):
     """The clustered interval for one set of per brief hit flags.
 
     Sorting the ids keeps the interval reproducible when the flags arrive from a
-    dict, and the cluster key is the target move, never the brief.
+    dict, and the cluster key is the sorted tuple of the acceptable set, never
+    the brief. Two briefs answered by the same near twin family therefore share
+    one cluster, and a single-target record clusters on its one move, which is
+    round 3's key wearing a tuple.
     """
     ids = sorted(flags)
     return stats.clustered_mean([flags[i] for i in ids], [clusters[i] for i in ids])
@@ -427,8 +431,15 @@ def confirmation_sections(confirmation):
     return sections
 
 
-def render(summary, confirmation=None):
-    """The report. Every table ships an interval column, without exception."""
+def render(summary, confirmation=None, leading_sections=(), title=TITLE):
+    """The report. Every table ships an interval column, without exception.
+
+    A later round renders the same page with its own heading and its own
+    sections in front of these ones. Both arguments default to round three's, so
+    round three's report is byte for byte what it was before they existed: this
+    file is a published artifact and has to keep regenerating unchanged from its
+    own corpus.
+    """
     ranking = [
         [
             place,
@@ -635,10 +646,13 @@ def render(summary, confirmation=None):
             )
         )
     sections.extend(confirmation_sections(confirmation))
+    # In front, not appended: a round whose headline is the band test would bury
+    # it under six tables of the round it inherited.
+    sections = list(leading_sections) + sections
 
     return """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<title>Catalog retrieval, round three</title>
+<title>{title}</title>
 <style>
  body {{ background:#0a0b0d; color:#ece7de; font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
         margin:0; padding:3rem clamp(1rem,5vw,4rem); }}
@@ -651,7 +665,7 @@ def render(summary, confirmation=None):
  th,td {{ text-align:left; padding:0.5rem 0.9rem 0.5rem 0; border-bottom:1px solid #23272f; }}
  th {{ color:#8b8578; font-weight:400; font-size:0.8rem; }}
 </style></head><body>
-<h1>Catalog retrieval, round three</h1>
+<h1>{title}</h1>
 <p class="sub">{briefs} briefs over {clusters} target moves, swept offline against a shelf of
 {shelf} entries. No model call and no spend produced any number on this page: recall is decided
 by the retriever before a token is bought.</p>
@@ -664,6 +678,7 @@ recommendation is a larger catalog, not a larger corpus.</p>
 {sections}
 </body></html>
 """.format(
+        title=html.escape(title),
         briefs=summary["briefs"],
         clusters=summary["clusters"],
         shelf=summary["shelf_size"],

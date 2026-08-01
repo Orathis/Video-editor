@@ -582,6 +582,283 @@ class ConvergenceTests(unittest.TestCase):
         self.assertFalse(sweep.converged({"lexical": {"curve": {80: 0.7}}}, (80,)))
 
 
+class ConvergencePointTests(unittest.TestCase):
+    """Where the arms meet, which is a different question from whether they did."""
+
+    def test_the_point_is_the_shortest_k_from_which_they_never_part_again(self):
+        swept = {
+            "lexical": {"curve": {5: 0.2, 10: 0.5, 20: 0.90, 40: 0.99, 80: 1.0}},
+            "semantic": {"curve": {5: 0.6, 10: 0.9, 20: 0.905, 40: 0.995, 80: 1.0}},
+        }
+        self.assertEqual(20, sweep.convergence_point(swept, (5, 10, 20, 40, 80)))
+
+    def test_one_early_crossing_is_not_the_point_they_converge(self):
+        # The arms touch at k=10 and part again at k=20. Reading forwards would
+        # call k=10 the convergence point and report the arms as settled over a
+        # stretch where they are still separable.
+        swept = {
+            "lexical": {"curve": {5: 0.2, 10: 0.50, 20: 0.60, 40: 0.99}},
+            "semantic": {"curve": {5: 0.6, 10: 0.505, 20: 0.90, 40: 0.995}},
+        }
+        self.assertEqual(40, sweep.convergence_point(swept, (5, 10, 20, 40)))
+
+    def test_arms_still_apart_at_the_longest_k_have_no_convergence_point(self):
+        swept = {
+            "lexical": {"curve": {5: 0.2, 80: 0.60}},
+            "semantic": {"curve": {5: 0.3, 80: 0.90}},
+        }
+        self.assertIsNone(sweep.convergence_point(swept, (5, 80)))
+
+    def test_one_arm_alone_converges_with_nothing(self):
+        self.assertIsNone(sweep.convergence_point({"lexical": {"curve": {80: 0.7}}}, (80,)))
+
+
+def reading(k, branch, ship):
+    """One k's worth of decide_across_ks output, shaped by hand.
+
+    The band test reads only the k, the branch and the shipped arm, so a fixture
+    carrying those three is the whole input rather than a stand-in for it.
+    """
+    return {"k": k, "outcome": {"branch": branch, "ship": ship}}
+
+
+def swept_families(*labels):
+    """The family lookup the band test needs, keyed the way the sweep keys it."""
+    return {label: {"family": label.split("@")[0]} for label in labels}
+
+
+ROUND4_RULE = os.path.join(
+    os.path.dirname(sweep.HERE), "round4", "DECISION-RULE.md"
+)
+
+
+class BandRuleTests(unittest.TestCase):
+    """The band width is read from the rule file, and only when it is written there."""
+
+    def test_the_round_four_rule_file_carries_the_pre_registered_band_width(self):
+        self.assertEqual(5, sweep.parse_rule(ROUND4_RULE)[sweep.BAND_KEY])
+
+    def test_round_threes_rule_file_carries_no_band_and_is_still_read(self):
+        # Round 3 pre-registered no band, so its file must keep parsing and must
+        # not acquire a requirement it never committed to.
+        rule = sweep.parse_rule()
+        self.assertNotIn(sweep.BAND_KEY, rule)
+        self.assertEqual(["lexical", "semantic", "hybrid"], rule["decision_tier"])
+        self.assertEqual(5, rule["max_waves"])
+
+    def test_a_rule_with_no_band_has_no_band_verdict_rather_than_a_passing_one(self):
+        across = [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30)]
+        swept = swept_families("hybrid@w=0.5")
+        self.assertIsNone(sweep.band_test(across, swept, sweep.parse_rule()))
+
+    def test_a_band_width_that_is_not_a_count_of_list_lengths_is_refused(self):
+        for bad in ('"min_separated_band": 0', '"min_separated_band": "5"',
+                    '"min_separated_band": 5.5', '"min_separated_band": true'):
+            with self.subTest(value=bad):
+                with self.assertRaises(SystemExit):
+                    sweep.parse_rule(self.edited(ROUND4_RULE, '"min_separated_band": 5', bad))
+
+    def edited(self, source, old, new):
+        with open(source, encoding="utf-8") as fh:
+            text = fh.read()
+        self.assertIn(old, text)
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        path = Path(directory.name) / "DECISION-RULE.md"
+        path.write_text(text.replace(old, new), encoding="utf-8")
+        return str(path)
+
+
+class BandTests(unittest.TestCase):
+    """A separation at one lucky k is not the same result as a stable band."""
+
+    def setUp(self):
+        self.rule = sweep.parse_rule(ROUND4_RULE)
+        self.required = self.rule[sweep.BAND_KEY]
+        self.assertEqual(5, self.required)
+
+    def band(self, across, swept=None):
+        return sweep.band_test(
+            across, swept or swept_families("hybrid@w=0.5", "hybrid@w=0.7"), self.rule
+        )
+
+    def test_a_separation_at_one_isolated_k_fails_the_band_test(self):
+        across = [
+            reading(5, "tie", "lexical"),
+            reading(10, "separated", "hybrid@w=0.5"),
+            reading(20, "tie", "lexical"),
+            reading(30, "tie", "lexical"),
+        ]
+        band = self.band(across, swept_families("hybrid@w=0.5", "lexical"))
+        self.assertEqual(1, band["width"])
+        self.assertFalse(band["clears"])
+        self.assertEqual(1, len(band["bands"]))
+        self.assertEqual((10, 10), (band["band"]["lo"], band["band"]["hi"]))
+
+    def test_a_contiguous_run_at_the_requirement_passes(self):
+        across = [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30, 40, 50)]
+        band = self.band(across)
+        self.assertEqual(5, band["width"])
+        self.assertTrue(band["clears"])
+        self.assertEqual("hybrid", band["band"]["family"])
+
+    def test_one_list_length_short_of_the_requirement_fails(self):
+        across = [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30, 40)]
+        band = self.band(across)
+        self.assertEqual(4, band["width"])
+        self.assertFalse(band["clears"])
+
+    def test_width_counts_list_lengths_and_not_the_distance_in_k(self):
+        # k=10 to k=150 on a grid that steps by 10 is 15 list lengths. Reporting
+        # the span in k would call the same band 141 wide and clear any
+        # requirement by arithmetic rather than by measurement.
+        across = [reading(k, "separated", "hybrid@w=0.5") for k in range(10, 160, 10)]
+        band = self.band(across)
+        self.assertEqual(15, band["width"])
+        self.assertEqual((10, 150), (band["band"]["lo"], band["band"]["hi"]))
+
+    def test_two_disjoint_short_runs_are_both_reported_and_neither_passes(self):
+        # Three plus three is not six. The list lengths between them did not
+        # separate, and summing the runs would claim a stability across k that
+        # those list lengths contradict.
+        across = (
+            [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30)]
+            + [reading(k, "tie", "lexical") for k in (40, 50)]
+            + [reading(k, "separated", "hybrid@w=0.5") for k in (60, 70, 80)]
+        )
+        band = self.band(across, swept_families("hybrid@w=0.5", "lexical"))
+        self.assertEqual(2, len(band["bands"]))
+        self.assertEqual([3, 3], [run["width"] for run in band["bands"]])
+        self.assertEqual(3, band["width"])
+        self.assertFalse(band["clears"])
+
+    def test_two_disjoint_runs_pass_when_one_of_them_clears_on_its_own(self):
+        across = (
+            [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30)]
+            + [reading(40, "tie", "lexical")]
+            + [reading(k, "separated", "hybrid@w=0.5") for k in (50, 60, 70, 80, 90)]
+        )
+        band = self.band(across, swept_families("hybrid@w=0.5", "lexical"))
+        self.assertEqual([3, 5], [run["width"] for run in band["bands"]])
+        self.assertTrue(band["clears"])
+        # The verdict is carried by the run that cleared, not by the first one.
+        self.assertEqual((50, 90), (band["band"]["lo"], band["band"]["hi"]))
+
+    def test_a_family_changing_mid_run_is_two_bands_and_not_one(self):
+        across = (
+            [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30)]
+            + [reading(k, "separated", "semantic") for k in (40, 50, 60, 70, 80)]
+        )
+        band = self.band(across, swept_families("hybrid@w=0.5", "semantic"))
+        self.assertEqual(["hybrid", "semantic"], [run["family"] for run in band["bands"]])
+        self.assertEqual([3, 5], [run["width"] for run in band["bands"]])
+        self.assertEqual("semantic", band["band"]["family"])
+
+    def test_a_leading_arm_changing_inside_one_family_stays_one_band(self):
+        # The judgement call this band logic rests on, kept where it can be
+        # argued with. Round 3's own separated band runs k=10 to k=150 and ships
+        # hybrid at all 15 list lengths while the leading fusion weight changes
+        # four times inside it, so keying the band on the arm label would split
+        # the band the published verdict reports as one. The band is keyed on the
+        # family, which is what the rule decides, and the arms that led inside it
+        # are reported rather than hidden.
+        across = [
+            reading(10, "separated", "hybrid@w=0.7"),
+            reading(20, "separated", "hybrid@w=0.5"),
+            reading(30, "separated", "hybrid@w=0.5"),
+            reading(40, "separated", "hybrid@w=0.3"),
+            reading(50, "separated", "hybrid@w=0.5"),
+        ]
+        band = self.band(
+            across, swept_families("hybrid@w=0.3", "hybrid@w=0.5", "hybrid@w=0.7")
+        )
+        self.assertEqual(1, len(band["bands"]))
+        self.assertEqual(5, band["width"])
+        self.assertTrue(band["clears"])
+        self.assertEqual(
+            ["hybrid@w=0.3", "hybrid@w=0.5", "hybrid@w=0.7"], band["band"]["arms"]
+        )
+
+    def test_a_sweep_that_never_separates_reports_no_band_at_all(self):
+        across = [reading(k, "tie", "lexical") for k in (10, 20, 30, 40, 50, 60)]
+        band = self.band(across, swept_families("lexical"))
+        self.assertEqual([], band["bands"])
+        self.assertIsNone(band["band"])
+        self.assertEqual(0, band["width"])
+        self.assertFalse(band["clears"])
+
+    def test_the_requirement_comes_from_the_file_and_not_from_this_code(self):
+        across = [reading(k, "separated", "hybrid@w=0.5") for k in (10, 20, 30, 40, 50)]
+        edited = sweep.parse_rule(
+            BandRuleTests.edited(
+                self, ROUND4_RULE, '"min_separated_band": 5', '"min_separated_band": 6'
+            )
+        )
+        # Same sweep, same code, different file: proof the width is read.
+        swept = swept_families("hybrid@w=0.5")
+        self.assertTrue(sweep.band_test(across, swept, self.rule)["clears"])
+        self.assertFalse(sweep.band_test(across, swept, edited)["clears"])
+        self.assertEqual(6, sweep.band_test(across, swept, edited)["required"])
+
+
+class Round3BandReproductionTests(unittest.TestCase):
+    """The band logic, run over round 3's own committed per k rule readings.
+
+    The band cannot be checked against round 3's corpus directly on a fresh
+    checkout, because two of the three arms need the 24MB vector file that is
+    deliberately not committed. What is committed is summary3.json, which carries
+    what the rule said at all 44 list lengths, so the band is measured over the
+    real readings that produced VERDICT.md rather than over a synthetic curve.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        with open(os.path.join(sweep.HERE, "summary3.json"), encoding="utf-8") as fh:
+            cls.summary = json.load(fh)
+        cls.across = [
+            reading(row["k"], row["branch"], row["ship"])
+            for row in cls.summary["across_ks"]
+        ]
+        cls.swept = swept_families(
+            *{row["ship"] for row in cls.summary["across_ks"] if row["ship"]}
+        )
+
+    def test_the_committed_readings_are_the_forty_four_the_verdict_was_written_from(self):
+        self.assertEqual(44, len(self.across))
+        self.assertEqual(5, self.across[0]["k"])
+        self.assertEqual(423, self.across[-1]["k"])
+
+    def test_the_bands_agree_with_the_family_runs_the_report_already_published(self):
+        self.assertEqual(
+            self.summary["family_runs"], sweep.family_runs(self.across, self.swept)
+        )
+
+    def test_round_three_separates_over_fifteen_contiguous_list_lengths(self):
+        # VERDICT.md: k=10 to k=150 separates and ships hybrid at all 15, k=5 and
+        # k=160 to k=423 tie.
+        band = sweep.band_test(self.across, self.swept, sweep.parse_rule(ROUND4_RULE))
+        self.assertEqual(1, len(band["bands"]))
+        self.assertEqual("hybrid", band["band"]["family"])
+        self.assertEqual((10, 150), (band["band"]["lo"], band["band"]["hi"]))
+        self.assertEqual(15, band["width"])
+        self.assertTrue(band["clears"])
+
+    def test_the_leading_arm_really_does_change_inside_that_band(self):
+        # Not a hypothetical: this is why the band is keyed on the family. An
+        # arm-keyed band over the same readings is 6 list lengths wide, not 15.
+        inside = [
+            row["ship"] for row in self.summary["across_ks"] if 10 <= row["k"] <= 150
+        ]
+        self.assertEqual(
+            ["hybrid@w=0.3", "hybrid@w=0.5", "hybrid@w=0.7"], sorted(set(inside))
+        )
+        longest, current = 1, 1
+        for previous, ship in zip(inside, inside[1:]):
+            current = current + 1 if ship == previous else 1
+            longest = max(longest, current)
+        self.assertEqual(6, longest)
+
+
 class Round3ReproductionTests(unittest.TestCase):
     """Round 3's published numbers, regenerated from round 3's committed corpus.
 
