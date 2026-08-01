@@ -63,6 +63,21 @@ PRICE_TABLE = {
         "cached": 0.30,
         "output": 15.00,
     },
+    # The family that actually runs as model B, read from the model's own page,
+    # developers.openai.com/api/docs/models/gpt-5.6-luna, on 2026-08-01. The
+    # page presents these as standard list prices and marks none of them
+    # promotional or introductory, so this is the list price the gate should
+    # read. Two published surcharges are deliberately not modelled here, and
+    # both err in the safe direction for this grid: a prompt over 272K tokens
+    # is billed at 2x input and 1.5x output for the whole request, which the
+    # 424-entry shelf does not approach, and a cache WRITE is billed at 1.25x
+    # the uncached input rate, which nothing here asks for. If either ever
+    # becomes reachable, price it before running, not after.
+    "gpt-5.6-luna": {
+        "input": 0.20,
+        "cached": 0.02,
+        "output": 1.20,
+    },
 }
 
 CACHE_STORAGE_USD_PER_MTOK_HOUR = 1.00
@@ -304,14 +319,35 @@ def run_grid(
     }
 
 
+# Why the output figure measured on CHAT_MODEL is or is not conservative when
+# it is carried over to another family. Said out loud rather than left to the
+# reader, and said per family rather than once, because the reasons are
+# opposite: one of these families is not asked to think and the other one
+# thinks whether or not it is asked. A single sentence covering both would be
+# false for one of them, which in a spend banner is worse than saying nothing.
+CARRIED_OUTPUT_NOTE = {
+    "anthropic": (
+        "This model is not asked to think, so the same figure is carried over "
+        "as an over-estimate, not as a measurement of it."
+    ),
+    "openai": (
+        "This model reports reasoning tokens of its own and bills them as "
+        "output, so the same figure is carried over as an estimate and NOT as "
+        "an upper bound on what this model will spend on thinking. Replace it "
+        "with a measured number once the first cell has landed."
+    ),
+}
+
+
 def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
     _prices(model)
+    family = provider.model_family(model)
     rows = []
     emit("DRY RUN: zero network calls and no key required.")
-    # Named because the same grid is projected once per model and the two
+    # Named because the same grid is projected once per model and the
     # projections are not interchangeable: the families are priced differently
     # and the reader is approving one of them, not an average.
-    emit(f"Model: {model} ({provider.model_family(model)} rates).")
+    emit(f"Model: {model} ({family} rates).")
     emit(
         "Estimated input tokens use characters divided by 4.0; "
         "this heuristic is NOT a real tokenizer count."
@@ -324,16 +360,27 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
         "measured; thinking is billed as output and ran 489 to 1104 tokens per "
         "run across the nine cells while the visible answer was 47 to 84."
     )
-    if provider.model_family(model) != "vertex":
-        # Said out loud rather than left to the reader, because the sentence
-        # above reports a measurement taken on the other family. Carrying it
-        # over is the conservative direction, and a projection that quietly
-        # reused another model's observation as its own would not be.
+    if family != "vertex":
+        # A projection that quietly reused another model's observation as its
+        # own would not be honest about where its number came from, so it says.
         emit(
-            "That output measurement was taken on "
-            f"{provider.CHAT_MODEL}. This model is not asked to think, so the "
-            "same figure is carried over as an over-estimate, not as a "
-            "measurement of it."
+            f"That output measurement was taken on {provider.CHAT_MODEL}. "
+            + CARRIED_OUTPUT_NOTE[family]
+        )
+    if family == "openai":
+        # Printed as a named confound rather than buried in the provider, since
+        # this banner is where a reader approves what the round is about to buy,
+        # and what they are approving here is a cell that is not a clean twin of
+        # its model A counterpart.
+        emit(
+            "CONFOUND, read before approving: this family rejects temperature 0 "
+            "with HTTP 400 and samples only at its default of 1, while rounds 2 "
+            "and 3 ran every paid cell at temperature 0. A cell run on this "
+            "model therefore differs from its model A twin in TWO variables, "
+            "the model and the sampling temperature, so the round 4 rule's "
+            "one-variable property does not hold across the two families and "
+            "the verdict must say so rather than reporting a clean "
+            "reproduction."
         )
     emit("Cached tokens are projected as 0 because no requests are made.")
     emit("")

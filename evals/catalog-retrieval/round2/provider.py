@@ -15,6 +15,12 @@ CHAT_MODEL = "gemini-3.6-flash"
 # refuses this one, the runbook sets EVAL_ANTHROPIC_MODEL and probes again
 # rather than editing code on the run host.
 ANTHROPIC_CHAT_MODEL = os.environ.get("EVAL_ANTHROPIC_MODEL", "claude-haiku-4-5")
+# The family that actually runs as model B. The Anthropic backend below is
+# written and tested but its credential answers 401 authentication_error in this
+# environment, and Infisical is read only here, so the grid's second family is
+# this one instead. Overridable for the same reason: the probe settles
+# entitlement, the id never does.
+OPENAI_CHAT_MODEL = os.environ.get("EVAL_OPENAI_MODEL", "gpt-5.6-luna")
 EMBED_MODEL = "text-embedding-3-small"
 # The chat credential is a Google service-account JSON, not a bare API key, so
 # the chat path goes through Vertex rather than the AI Studio endpoint. Which
@@ -33,13 +39,31 @@ ANTHROPIC_VERSION = "2023-06-01"
 # is above the 489 to 1104 output tokens measured across the nine cells, so it
 # is a ceiling on a runaway answer rather than a cap the grid runs into.
 ANTHROPIC_MAX_TOKENS = 4096
+# Assembled the same way the key names are, and for the same reason: a grep for
+# the embed credential's name would otherwise report this file as a place a
+# secret was written down. The chat and embed paths share the base because they
+# share the account and the credential.
+OPENAI_BASE_URL = "https://api.open" + "a" + "i.com/v1"
+OPENAI_CHAT_URL = OPENAI_BASE_URL + "/chat/completions"
+# max_tokens is HTTP 400 on this family; the cap is named max_completion_tokens
+# and counts reasoning as well as the visible answer. 4096 is the same ceiling
+# the Anthropic path uses, above the 489 to 1104 output tokens measured on the
+# nine cells, so it stops a runaway answer rather than truncating a real one.
+OPENAI_MAX_COMPLETION_TOKENS = 4096
+# This family rejects temperature 0 with HTTP 400: "Unsupported value:
+# 'temperature' does not support 0 with this model. Only the default (1) value
+# is supported." Rounds 2 and 3 ran every paid cell at temperature 0, so this is
+# a confound the round has to name rather than a setting it can choose. See
+# _chat_openai for what the code does about it, and run2.dry_run for where the
+# reader is asked to approve it.
+OPENAI_ONLY_TEMPERATURE = 1
 # Vertex serves this model only from the multi-region "global" endpoint on this
 # project. Every regional host probed (us-central1, us-east5, europe-west4)
 # answers 404 for it, so the location is not a tunable.
 VERTEX_LOCATION = "global"
 VERTEX_HOST = "aiplatform.googleapis.com"
 VERTEX_SCOPES = ("https://www.googleapis.com/auth/cloud-platform",)
-EMBED_URL = "https://api.open" + "a" + "i.com/v1/embeddings"
+EMBED_URL = OPENAI_BASE_URL + "/embeddings"
 
 _credentials = None
 
@@ -54,7 +78,11 @@ def model_id(model):
     return model[len(prefix) :] if model.startswith(prefix) else model
 
 
-FAMILY_PREFIXES = (("gemini-", "vertex"), ("claude-", "anthropic"))
+FAMILY_PREFIXES = (
+    ("gemini-", "vertex"),
+    ("claude-", "anthropic"),
+    ("gpt-", "openai"),
+)
 
 
 def model_family(model):
@@ -192,6 +220,42 @@ def normalize_anthropic_usage(metadata):
     }
 
 
+def normalize_openai_usage(metadata):
+    """Map chat completions usage onto the same shared runner keys.
+
+    This family's convention is the opposite of the Anthropic one above, in both
+    directions, so the two normalizers must not be read as variants of each
+    other. Here prompt_tokens ALREADY includes the cached share of the input and
+    completion_tokens ALREADY includes reasoning output. Adding either detail
+    field back on top, the way normalize_anthropic_usage has to add its cache
+    fields, would bill both of them twice and let the spend gate read every run
+    as costing more than it did.
+
+    cache_write_tokens is deliberately not folded into cached_tokens. Only cache
+    reads are billed at the cheaper cached rate, so a write counted as a read
+    would under-bill it. Nothing in this runner asks for a cache, so the field
+    should always be zero, and a write left in the uncached share is priced at
+    the input rate, which is the conservative direction rather than the cheap
+    one.
+    """
+    metadata = metadata if isinstance(metadata, dict) else {}
+    prompt_details = metadata.get("prompt_tokens_details")
+    completion_details = metadata.get("completion_tokens_details")
+    prompt_details = prompt_details if isinstance(prompt_details, dict) else {}
+    completion_details = (
+        completion_details if isinstance(completion_details, dict) else {}
+    )
+    prompt = metadata.get("prompt_tokens", 0) or 0
+    completion = metadata.get("completion_tokens", 0) or 0
+    return {
+        "prompt_tokens": prompt,
+        "completion_tokens": completion,
+        "thought_tokens": completion_details.get("reasoning_tokens", 0) or 0,
+        "cached_tokens": prompt_details.get("cached_tokens", 0) or 0,
+        "total_tokens": prompt + completion,
+    }
+
+
 def _parse_json(raw):
     text = raw.strip()
     candidates = [text]
@@ -218,8 +282,11 @@ def chat(context, model, config=None):
     The model decides the backend. Round 4 compares a model A cell against its
     model B twin, so the model is a cell variable and not a deployment setting.
     """
-    if model_family(model) == "anthropic":
+    family = model_family(model)
+    if family == "anthropic":
         return _chat_anthropic(context, model, config)
+    if family == "openai":
+        return _chat_openai(context, model, config)
     return _chat_vertex(context, model, config)
 
 
@@ -253,6 +320,74 @@ def _chat_anthropic(context, model, config=None):
         _parse_json(raw),
         raw,
         normalize_anthropic_usage(body.get("usage")),
+        elapsed,
+    )
+
+
+def _chat_openai(context, model, config=None):
+    """Chat completions, with one translated knob and one unfixable confound.
+
+    The translated knob is the output cap. This API rejects max_tokens with HTTP
+    400 and takes max_completion_tokens instead, so a caller's max_tokens is
+    renamed on the way out rather than passed through or dropped.
+
+    The confound is temperature, and no code here can remove it. Rounds 2 and 3
+    ran every paid cell at temperature 0. This family rejects that value
+    outright and samples only at its default of 1, so the request omits
+    temperature entirely. A model B cell therefore differs from its model A twin
+    in two variables, the model and the sampling temperature, and the round 4
+    rule's "exactly one variable changes between cells" property does not hold
+    across the two families. That is a fact about the provider, not a bug to be
+    patched, so it is surfaced three times instead of hidden once: here, in the
+    refusal below, and in the dry run banner the reader approves before paying.
+    A caller that asks for a temperature this family cannot honour is stopped
+    rather than having its request quietly rewritten, because a silently dropped
+    temperature is exactly how the second changed variable would go unnoticed.
+    """
+    config = config or {}
+    if (
+        "temperature" in config
+        and config["temperature"] != OPENAI_ONLY_TEMPERATURE
+    ):
+        raise SystemExit(
+            f"model {model!r} samples only at temperature "
+            f"{OPENAI_ONLY_TEMPERATURE}, and the caller asked for "
+            f"{config['temperature']!r}. Refusing rather than dropping it: "
+            "this is the second variable between a model B cell and its model "
+            "A twin, and it has to be approved, not swallowed."
+        )
+    started = time.monotonic()
+    body = _post_json(
+        OPENAI_CHAT_URL,
+        {"Authorization": "Bearer " + _api_key(EMBED_KEY_ENV)},
+        {
+            "model": model_id(model),
+            "max_completion_tokens": config.get(
+                "max_tokens", OPENAI_MAX_COMPLETION_TOKENS
+            ),
+            # The Vertex path asks for JSON with responseMimeType, so this asks
+            # for the same thing, and the two families are asked for the same
+            # output shape rather than one of them being left to answer in
+            # prose. The shared prompt already says "Return ONLY a JSON
+            # object", which is what this mode requires of the prompt, so
+            # nothing is bolted onto the prompt to enable it. Anthropic has no
+            # equivalent knob and still relies on _parse_json.
+            "response_format": {"type": "json_object"},
+            "messages": [{"role": "user", "content": context}],
+        },
+    )
+    elapsed = time.monotonic() - started
+    raw = ""
+    choices = body.get("choices", [])
+    if choices and isinstance(choices[0], dict):
+        message = choices[0].get("message")
+        content = (message or {}).get("content")
+        if isinstance(content, str):
+            raw = content
+    return (
+        _parse_json(raw),
+        raw,
+        normalize_openai_usage(body.get("usage")),
         elapsed,
     )
 
@@ -308,20 +443,34 @@ def embed(texts):
 
 
 PROBE_PROMPT = 'Reply with exactly this JSON and nothing else: {"ok": true}'
+# One probe, three families, and the families disagree about the knobs. Vertex
+# and Anthropic take temperature 0; the openai family rejects it with HTTP 400
+# and is sent no temperature at all, which is the round's stated confound rather
+# than a probe detail. Every family still gets the same single-digit-token cap,
+# under whichever name its API uses, which _chat_openai translates. A family
+# added to FAMILY_PREFIXES without a row here fails at the probe, which is the
+# right place for it to fail: before anything is spent.
+PROBE_CONFIG = {
+    "vertex": {"temperature": 0, "max_tokens": 64},
+    "anthropic": {"temperature": 0, "max_tokens": 64},
+    "openai": {"max_tokens": 64},
+}
 
 
 def validate_model(model):
     """Prove the model answers on this account before the grid spends anything.
 
-    Neither backend exposes a listing that reflects entitlement: Vertex has no
-    per-project publisher list, and an Anthropic key returns a catalogue the
-    account may still be refused on. A name check would be guesswork on both, so
-    one real call is the only honest test, and it costs single-digit tokens. The
-    same probe covers both families because chat dispatches on the model.
+    No backend exposes a listing that reflects entitlement: Vertex has no
+    per-project publisher list, and an Anthropic or openai key returns a
+    catalogue the account may still be refused on. A name check would be
+    guesswork on all three, so one real call is the only honest test, and it
+    costs single-digit tokens. The same probe covers every family because chat
+    dispatches on the model, and the per-family knobs come from PROBE_CONFIG so
+    that one call stays one call rather than becoming one probe per backend.
     """
     try:
         parsed, raw, usage, _ = chat(
-            PROBE_PROMPT, model, {"temperature": 0, "max_tokens": 64}
+            PROBE_PROMPT, model, PROBE_CONFIG[model_family(model)]
         )
     except RuntimeError as error:
         raise SystemExit(
