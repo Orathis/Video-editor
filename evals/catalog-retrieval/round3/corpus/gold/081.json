@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-clear-light"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-clear-dark", "code-snippet-apple-terminal-grass"],
+  "why_best": "A bright, translucent workspace establishes instant technical credibility while maintaining an airy, high-end visual tone suitable for a polished product showcase.",
+  "why_bad": "Dropping in a heavy, dark console or a static graphics card would feel dense and disrupt the crisp, elevated aesthetic of the broader visual story.",
+  "trap": "The main risk is letting the interface render as completely opaque, which makes the element feel like a crude popup rather than an integrated layer of the scene."
+}

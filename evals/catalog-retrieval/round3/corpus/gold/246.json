@@ -1,0 +1,8 @@
+{
+  "best": ["oversized-cursor"],
+  "acceptable": [],
+  "bad": ["touch-indicator", "cursor-glyph-trail"],
+  "why_best": "Exaggerating the actor's scale transforms a routine interface interaction into an unmissable instructional focal point.",
+  "why_bad": "A subtle, standard UI highlight would fail to command attention across a wide desktop viewport within a tight three-second window.",
+  "trap": "Lingering too long on the target after activation dulls the impact when the state change should take center stage."
+}

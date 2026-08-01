@@ -1,0 +1,8 @@
+{
+  "best": ["code-terminal-run"],
+  "acceptable": [],
+  "bad": ["typed-prompt", "icon-morph-beat"],
+  "why_best": "Simulating real-time input followed by structured response builds operational credibility far better than static displays or sudden visual cuts.",
+  "why_bad": "Instantly revealing all text simultaneously destroys the sense of active execution and turns a live process into an unengaging static graphic.",
+  "trap": "A near-miss will accidentally strip semantic color formatting during the reveal sequence, causing text nodes to temporarily lose visual hierarchy."
+}

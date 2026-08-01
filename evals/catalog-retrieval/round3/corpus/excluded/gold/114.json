@@ -1,0 +1,8 @@
+{
+  "best": ["context-menu"],
+  "acceptable": [],
+  "bad": ["dropdown-menu", "command-menu-item"],
+  "why_best": "This immediate, anchored spatial reveal mirrors high-efficiency developer workflows where overlay UI must appear instantly at the cursor without disorienting the eye.",
+  "why_bad": "A slow, sweeping entrance or playful bouncing transition feels sluggish and disrespectful in a high-density utility tool.",
+  "trap": "Focusing too much on decorative entrance transitions while missing the micro-alignment between the visual trigger point and the active state indicator."
+}

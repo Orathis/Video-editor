@@ -1,0 +1,8 @@
+{
+  "best": ["us-map-flow"],
+  "acceptable": [],
+  "bad": ["us-map-bubble", "us-map-hex"],
+  "why_best": "It visually unifies geographically separated points into a cohesive story of scale and movement within a quick four-second consumer moment.",
+  "why_bad": "Static callout pins or abrupt pop-up markers would sever the spatial narrative, feeling like a fragmented checklist rather than a thriving system.",
+  "trap": "A near-miss will clutter the layout with overlapping pathways at uniform brightness, hiding the underlying geography beneath a chaotic tangle."
+}

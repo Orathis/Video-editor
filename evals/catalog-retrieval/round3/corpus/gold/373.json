@@ -1,0 +1,8 @@
+{
+  "best": ["touch-indicator"],
+  "acceptable": [],
+  "bad": ["gesture-tap", "swipe-rail"],
+  "why_best": "It cleanly bridges the gap between invisible input and interface response, making visual walkthroughs instantly readable.",
+  "why_bad": "Relying on abrupt interface state shifts without showing the point of origin leaves the audience guessing what triggered the change.",
+  "trap": "A near-miss will linger on screen after the target UI responds, making the system feel sluggish rather than immediate."
+}

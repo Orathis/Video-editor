@@ -1,0 +1,8 @@
+{
+  "best": ["pagination"],
+  "acceptable": [],
+  "bad": ["breadcrumb", "menubar"],
+  "why_best": "This approach translates functional step-by-step navigation into an engaging tactile milestone that reinforces user agency.",
+  "why_bad": "A fluid continuous visual stream would erode the clear sense of discrete progress and lower the perceived precision of the interface.",
+  "trap": "Over-animating the surrounding indicators so they draw attention away from the active marker's subtle depth shift."
+}

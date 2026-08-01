@@ -1,0 +1,8 @@
+{
+  "best": ["browser-device-stage"],
+  "acceptable": [],
+  "bad": ["ui-focus-zoom", "device-frame-stage"],
+  "why_best": "Placing the UI inside a familiar structural shell establishes immediate contextual trust and lets the viewer focus entirely on what the product actually does.",
+  "why_bad": "Floating bare interface elements across an open canvas creates abstract ambiguity, forcing the audience to figure out where they are instead of what they are seeing.",
+  "trap": "Rushing the static pause before content transforms will disorient viewers, preventing them from registering the initial software state."
+}

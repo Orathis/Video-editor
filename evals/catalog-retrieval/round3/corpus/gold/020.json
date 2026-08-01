@@ -1,0 +1,8 @@
+{
+  "best": ["badge-pop"],
+  "acceptable": [],
+  "bad": ["number-pop-in", "micro-transitions"],
+  "why_best": "This dynamic accent creates an irresistible visual anchor within a crowded data environment while preserving the professional weight of the platform.",
+  "why_bad": "A static appearance or standard cross-fade would fail to break the viewer's gaze away from central metrics, rendering critical alert updates completely invisible.",
+  "trap": "A common failure point is allowing the initial expansion to feel overly playful or exaggerated, which undermines the authoritative tone of executive software."
+}

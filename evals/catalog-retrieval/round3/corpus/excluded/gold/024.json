@@ -1,0 +1,8 @@
+{
+  "best": ["before-after-wipe"],
+  "acceptable": [],
+  "bad": ["comparison-split", "iris-reveal"],
+  "why_best": "It grounds abstract technical improvements in a tangible, simultaneous contrast that instantly proves efficiency.",
+  "why_bad": "Dissolving between the two views would eliminate the shared spatial anchor, making subtle structural enhancements difficult to detect.",
+  "trap": "A near-miss will let the partition travel completely off-screen, denying the viewer a persistent dual-state frame to analyze."
+}

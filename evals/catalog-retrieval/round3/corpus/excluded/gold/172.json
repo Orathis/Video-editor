@@ -1,0 +1,8 @@
+{
+  "best": ["inline-highlight"],
+  "acceptable": [],
+  "bad": ["caption-highlight", "caption-parallax-layers"],
+  "why_best": "Directing focus straight to key terminology reinforces viewer retention while maintaining an uninterrupted reading pace.",
+  "why_bad": "A full-screen flash or disruptive layout shift would break the audience's train of thought and destroy the typographic hierarchy.",
+  "trap": "A sloppy execution will render the accent color over the text layer rather than tucking it safely beneath the letterforms."
+}

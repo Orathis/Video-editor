@@ -1,0 +1,8 @@
+{
+  "best": ["grain-field"],
+  "acceptable": [],
+  "bad": ["aurora-drift", "drift-hold"],
+  "why_best": "This approach gives the interface a warm, high-end physical presence while keeping foreground visual hierarchy completely pristine.",
+  "why_bad": "Introducing high-contrast visual sweeps or abrupt directional shifts would shatter the quiet background context and compete directly with primary actions.",
+  "trap": "A common mistake is tuning the backdrop movement too aggressively, turning an ambient anchor into a buzzing visual distraction."
+}

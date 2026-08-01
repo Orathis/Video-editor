@@ -1,0 +1,8 @@
+{
+  "best": ["depth-rack-focus"],
+  "acceptable": [],
+  "bad": ["focus-rack", "focus-swap"],
+  "why_best": "Steering optical clarity across dynamic spatial planes creates a tangible physical depth that effortlessly directs developer attention to the critical metric.",
+  "why_bad": "A standard graphic wipe or flat opacity fade destroys the illusion of three-dimensional space, turning an immersive optical moment into a generic presentation slide.",
+  "trap": "A near-miss will stall the continuous forward camera motion when the visual transfer completes, killing the scene's spatial momentum before the beat finishes."
+}

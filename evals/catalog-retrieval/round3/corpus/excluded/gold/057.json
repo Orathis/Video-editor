@@ -1,0 +1,8 @@
+{
+  "best": ["card-resize"],
+  "acceptable": [],
+  "bad": ["tilt-card", "menu-morph"],
+  "why_best": "This structural evolution preserves spatial context while gracefully reallocating screen real estate for maximum narrative impact.",
+  "why_bad": "A hard jump cut or abrupt overlay breaks the viewer's visual momentum and cheapens the premium feel of the showcase.",
+  "trap": "Failing to synchronize internal content reveals with the outer boundary's movement will cause awkward layout clipping or spatial floating."
+}

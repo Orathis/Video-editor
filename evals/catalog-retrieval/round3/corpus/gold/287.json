@@ -1,0 +1,8 @@
+{
+  "best": ["scan-band"],
+  "acceptable": [],
+  "bad": ["svg-mask-reveal", "text-shimmer"],
+  "why_best": "It injects tactical broadcast urgency into static branding while keeping the core message completely legible.",
+  "why_bad": "A destructive glitch or full transition would compromise editorial clarity and reduce visual authority.",
+  "trap": "Allowing the color fringe to linger across the text after the transient wave has exited will make the graphic appear corrupted rather than broadcast-ready."
+}

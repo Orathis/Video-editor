@@ -1,0 +1,8 @@
+{
+  "best": ["toast"],
+  "acceptable": [],
+  "bad": ["dropdown-menu", "badge"],
+  "why_best": "This approach provides immediate feedback on background tasks while respecting the user's visual field and workflow velocity.",
+  "why_bad": "Modal overlays or heavy full-screen state changes force an unnecessary context switch for a routine confirmation.",
+  "trap": "Failing to align the entrance direction with the trigger location breaks the physical logic of where the confirmation originated."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["focus-swap"],
+  "acceptable": [],
+  "bad": ["comparison-split", "multi-device-splay"],
+  "why_best": "Retaining both visual elements ensures the viewer never loses the comparative baseline of the news story while clear hierarchy is established.",
+  "why_bad": "Abruptly cutting away or sliding elements off-screen breaks the split comparison and forces the audience to recall missing information.",
+  "trap": "A near-miss will over-obscure the secondary element, turning a subtle context holder into an illegible smudge."
+}

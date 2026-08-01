@@ -1,0 +1,8 @@
+{
+  "best": ["scroll-area"],
+  "acceptable": [],
+  "bad": ["separator", "tabs"],
+  "why_best": "This restrained presentation preserves screen real estate while seamlessly exposing deep data sets under active operator inspection.",
+  "why_bad": "Unfolding the entire collection at once destroys the surrounding dashboard structure and overloads the viewer's cognitive focus.",
+  "trap": "A near-miss will let the edge depth marker lag behind or detach from the internal vertical movement, breaking the perception of a single tactile mechanism."
+}

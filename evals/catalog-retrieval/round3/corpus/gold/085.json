@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-novel"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-silver-aerogel", "code-snippet-apple-terminal-grass"],
+  "why_best": "It humanizes technical logic for everyday users by dressing high-tech execution in the approachable visual language of classic literature.",
+  "why_bad": "A stark black, neon-lit hacker matrix aesthetic would alienate a broader consumer audience and undercut the thoughtful, literary tone.",
+  "trap": "A common mistake is accelerating the text reveal so fast that it feels like a glitchy data dump rather than a measured, human thought process."
+}

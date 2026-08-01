@@ -1,0 +1,8 @@
+{
+  "best": ["svg-mask-reveal"],
+  "acceptable": [],
+  "bad": ["scan-band", "stagger-cascade"],
+  "why_best": "Using the brand's custom lettering as the exclusive viewport grounds the promotional media directly inside our visual identity.",
+  "why_bad": "A generic full-frame wipe or simple fade disconnects the media showcase from our core typography, diluting the hero messaging.",
+  "trap": "Setting the leading edge of the light beam too hard, which turns an organic typographic unlock into a cheap digital cut."
+}

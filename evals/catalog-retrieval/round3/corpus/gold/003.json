@@ -1,0 +1,8 @@
+{
+  "best": ["ai-prompt-flow"],
+  "acceptable": [],
+  "bad": ["signup-flow", "onboarding-stepper-flow"],
+  "why_best": "This narrative structure mirrors the user's emotional journey from spark to finished asset, driving home the product's speed and polish.",
+  "why_bad": "A uniform wipe or simple fade treats every element as equal, robbing the moment of its peak transformation high point.",
+  "trap": "Rushing the intermediate choices so fast that the viewer misses how the inputs directly shape the final outcome."
+}

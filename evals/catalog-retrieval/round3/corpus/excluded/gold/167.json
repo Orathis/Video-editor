@@ -1,0 +1,8 @@
+{
+  "best": ["icon-swap"],
+  "acceptable": [],
+  "bad": ["text-state-swap", "micro-scale-fade"],
+  "why_best": "It delivers an authoritative visual confirmation of state changes while maintaining the seamless flow of broadcast graphics.",
+  "why_bad": "Using a full-frame spatial shift or abrupt hard visual cut would fracture viewer attention and disrupt the news graphic's polish.",
+  "trap": "A subtle mistake would allow both symbolic elements to occupy the same focal layer simultaneously, creating an unreadable overlay mess during the handoff."
+}

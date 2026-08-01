@@ -1,0 +1,8 @@
+{
+  "best": ["whiteboard-ink"],
+  "acceptable": [],
+  "bad": ["marker-highlight", "svg-line-draw-loader"],
+  "why_best": "Progressive visual construction mirrors organic problem-solving, making abstract enterprise concepts feel grounded and easy to digest.",
+  "why_bad": "A static instantaneous pop-in lacks narrative momentum and fails to guide the viewer's eyes through the logical steps of the framework.",
+  "trap": "Allowing the trailing actor to desynchronize from the leading edge of the vector path breaks the illusion of deliberate creation."
+}

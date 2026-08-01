@@ -1,0 +1,8 @@
+{
+  "best": ["code-diff"],
+  "acceptable": [],
+  "bad": ["code-diff-wipe", "code-accordion"],
+  "why_best": "This motion gives technical audiences an immediate, intuitive visual signal of dynamic iteration and revision.",
+  "why_bad": "Instantly swapping the entire text block forces the viewer to manually audit the scene, breaking narrative momentum.",
+  "trap": "A sloppy implementation will snap the surrounding layout instantly instead of letting the vertical flow fluidly adjust to the change."
+}

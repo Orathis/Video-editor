@@ -1,0 +1,8 @@
+{
+  "best": ["sticky-mock-swap"],
+  "acceptable": [],
+  "bad": ["offset-path-traveler", "tracing-beam"],
+  "why_best": "Holding the interface stationary while content evolves keeps complex enterprise capabilities legible and deeply cohesive.",
+  "why_bad": "Allowing the entire view to continuously slide or jump creates cognitive fatigue and obscures the product's visual stability.",
+  "trap": "Failing to tightly synchronize the moment the UI transforms with the entry of the new narrative label will break the sense of intentionality."
+}

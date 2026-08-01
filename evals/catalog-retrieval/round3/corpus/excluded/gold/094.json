@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-flight"],
+  "acceptable": [],
+  "bad": ["glass-code-block", "code-accordion"],
+  "why_best": "Demonstrating the incremental assembly of modular components directly mirrors the satisfying experience of building complex tools from simple primitives.",
+  "why_bad": "Revealing the final composition all at once strips away the feeling of craftsmanship and structural logic.",
+  "trap": "A near-miss will blur the temporal separation between incoming pieces, resulting in a chaotic visual pileup rather than a controlled, readable sequence."
+}

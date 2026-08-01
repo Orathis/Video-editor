@@ -1,0 +1,8 @@
+{
+  "best": ["chart-story"],
+  "acceptable": [],
+  "bad": ["count-up", "decline-chart"],
+  "why_best": "Systematically unfolding the evidence before spotlighting the lead metric turns raw information into an undeniable visual argument.",
+  "why_bad": "Directly jumping to the final highlighted figure without establishing the supporting context makes the metric feel unverified and jarring.",
+  "trap": "Drawing premature emphasis to the primary hero figure before the supporting structural elements have fully landed."
+}

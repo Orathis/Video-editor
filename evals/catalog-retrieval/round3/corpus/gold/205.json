@@ -1,0 +1,8 @@
+{
+  "best": ["lt-color-block"],
+  "acceptable": [],
+  "bad": ["lt-bold-block", "lt-side-rule"],
+  "why_best": "This approach gives immediate typographic contrast and modern flair to fast-paced creator content without cluttering the main footage.",
+  "why_bad": "A slow fade or subtle dissolve would drag down the episode's energetic pacing and feel too corporate for this platform.",
+  "trap": "A weak attempt will let the graphic settle too rigidly rather than giving it that snappy, slightly elastic personality on arrival."
+}

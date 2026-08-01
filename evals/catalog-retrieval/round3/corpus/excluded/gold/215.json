@@ -1,0 +1,8 @@
+{
+  "best": ["mask-reveal-up"],
+  "acceptable": [],
+  "bad": ["masked-slide-reveal", "typewriter"],
+  "why_best": "It delivers dense headline copy in a disciplined sequence that commands viewer trust during a fast-paced news segment.",
+  "why_bad": "Allowing full paragraphs to suddenly pop into view or float freely undermines the broadcast's sense of structured editorial control.",
+  "trap": "Over-expanding the delay between lines or letting copy bleed beyond its cropped boundary will ruin the sharp broadcast aesthetic."
+}

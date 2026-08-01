@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-dark-plus"],
+  "acceptable": [],
+  "bad": ["code-snippet-dark-2026", "code-snippet-dark-modern"],
+  "why_best": "Anchoring the message in a recognizable, real-world development setup gains instant trust with an engineering audience.",
+  "why_bad": "Replacing the authentic tool environment with abstract vector graphics eliminates the visceral connection viewers have with their daily workflow.",
+  "trap": "Stripping away the surrounding interface panels risks making the setup look like a basic text block rather than a complete, professional environment."
+}

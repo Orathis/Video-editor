@@ -1,0 +1,8 @@
+{
+  "best": ["textarea"],
+  "acceptable": [],
+  "bad": ["input", "switch"],
+  "why_best": "This subtle elevation prioritizes content creation while demonstrating how the input boundary elegantly adapts to multi-line thought without distracting the user.",
+  "why_bad": "A high-energy full-screen transition or dramatic camera swoop would disrupt the intimate, functional nature of drafting a routine message.",
+  "trap": "Over-animating the surrounding dashboard elements instead of letting the input canvas itself quietly command attention."
+}

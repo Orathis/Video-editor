@@ -1,0 +1,8 @@
+{
+  "best": ["vector-editor-rig"],
+  "acceptable": [],
+  "bad": ["device-frame-stage", "store-badge-lockup"],
+  "why_best": "A sustained, focused posture gives the viewer ample time to appreciate the intricate digital drafting process without distracting camera motion.",
+  "why_bad": "Hyperactive cuts or rapid camera sweeps would undermine the calm, meticulous technical clarity required for a broadcast news graphic.",
+  "trap": "A near-miss would allow the focal UI accents to blur into the background dark canvas instead of cleanly directing the audience's eye to the active node points."
+}

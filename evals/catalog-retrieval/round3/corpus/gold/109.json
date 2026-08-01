@@ -1,0 +1,8 @@
+{
+  "best": ["command-menu-item"],
+  "acceptable": [],
+  "bad": ["context-menu", "dropdown-menu-item"],
+  "why_best": "It delivers instantaneous visual confirmation while preserving the quiet, focused posture required for rapid key-driven interactions.",
+  "why_bad": "Introducing elastic bounces or drawn-out color blooms creates annoying visual clutter during rapid-fire navigational sequences.",
+  "trap": "Failing to tune the active background contrast perfectly, which causes the faint keycap icons to lose clarity when highlighted."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["modal-morph"],
+  "acceptable": [],
+  "bad": ["morph-swap", "count-up"],
+  "why_best": "Unfolding a summary tile directly into a primary workspace maintains context while shifting focus seamlessly.",
+  "why_bad": "Abrupt cuts or disconnected pop-ups shatter spatial continuity and disorient an operator monitoring complex data.",
+  "trap": "A sloppy execution will allow internal labels to stretch or warp during the spatial growth, exposing the visual trick."
+}

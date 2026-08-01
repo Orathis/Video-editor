@@ -1,0 +1,8 @@
+{
+  "best": ["shader-displacement-panel"],
+  "acceptable": [],
+  "bad": ["stagger-lattice", "keyframe-scrub-stack"],
+  "why_best": "This high-end optical refraction creates a tactile sense of depth that commands authority in a dense news feed.",
+  "why_bad": "A simple linear slide or cross-dissolve feels cheap and unanchored, stripping the editorial package of its premium broadcast quality.",
+  "trap": "Pushing the surface warping too far risks making the content unreadable or looking like a cheap glitch filter instead of a refined lens effect."
+}

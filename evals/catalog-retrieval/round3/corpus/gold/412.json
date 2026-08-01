@@ -1,0 +1,8 @@
+{
+  "best": ["vox-annotate"],
+  "acceptable": [],
+  "bad": ["scramble-reveal", "text-shimmer"],
+  "why_best": "It weaves primary typography and supporting commentary into a unified editorial gesture that directs focus without breaking reading flow.",
+  "why_bad": "Using a disruptive full-screen cut or aggressive pop-in graphic would sever the viewer from the primary statement and ruin analytical momentum.",
+  "trap": "Failing to choreograph the primary highlight and the upward connecting stroke as one continuous visual action, making them look like disconnected layers."
+}

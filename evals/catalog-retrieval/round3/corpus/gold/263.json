@@ -1,0 +1,8 @@
+{
+  "best": ["pill-row-collapse"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "caption-clip-wipe"],
+  "why_best": "It visually dramatizes the narrowing of focus from a multi-stage workflow down to its foundational root element.",
+  "why_bad": "Fading or wiping the entire sequence simultaneously treats all stages as identical, losing the visual argument that one specific phase drives the whole system.",
+  "trap": "A careless execution would allow individual letterforms to be sliced mid-character during the reveal rather than cleanly stepping character by character."
+}

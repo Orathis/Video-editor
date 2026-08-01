@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-magnetic"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-portal"],
+  "why_best": "Binding disparate information elements toward a unified focal point instantly clarifies complex data for a fast-moving news audience.",
+  "why_bad": "Allowing elements to drift outward or float passively dissolves focal clarity and weakens the urgency required for a broadcast environment.",
+  "trap": "A weak execution will make the visual convergence feel bouncy or elastic instead of authoritative and deliberate."
+}

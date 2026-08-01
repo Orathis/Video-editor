@@ -1,0 +1,8 @@
+{
+  "best": ["spring-scale-in"],
+  "acceptable": [],
+  "bad": ["staggered-fade-up", "scale-down-fade"],
+  "why_best": "An elastic, physical entrance injects visual personality into a technical interface while effortlessly anchoring the viewer's attention.",
+  "why_bad": "A simple crossfade or rigid linear translation feels sterile and fails to create the tactile punch this moment demands.",
+  "trap": "Exaggerating the visual rebound too much makes the text feel unstable and distracts from immediate legibility."
+}

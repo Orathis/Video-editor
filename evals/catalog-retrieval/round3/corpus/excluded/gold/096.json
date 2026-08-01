@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-high-contrast-light"],
+  "acceptable": [],
+  "bad": ["code-snippet-high-contrast", "code-snippet-light-plus"],
+  "why_best": "It instantly establishes technical authenticity and hyper-focused craft by embedding the audience inside a live, high-clarity development moment.",
+  "why_bad": "A moody, low-contrast aesthetic or passive fade-in removes the crisp urgency and tactile sense of active authoring.",
+  "trap": "Treating the framing interface as static background noise rather than part of the living, high-contrast command hub."
+}

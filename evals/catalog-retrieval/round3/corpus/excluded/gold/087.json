@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-pro"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-homebrew", "code-snippet-apple-terminal-grass"],
+  "why_best": "This deliberate, real-time buildup establishes immediate credibility with technical audiences by grounding the narrative in the familiar cadence of actual work.",
+  "why_bad": "A flashy, instant reveal of pre-rendered graphics would feel superficial and lose the authentic sense of craftsmanship this audience respects.",
+  "trap": "A close failure would be letting the visual pace feel artificially static, missing the subtle human rhythm that makes the live entry compelling."
+}

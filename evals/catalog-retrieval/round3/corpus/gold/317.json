@@ -1,0 +1,8 @@
+{
+  "best": ["spain-map"],
+  "acceptable": [],
+  "bad": ["us-map", "world-map"],
+  "why_best": "Sequential regional shading creates a rhythmic visual pace that gives broadcast viewers time to digest spatial distribution before the full picture settles.",
+  "why_bad": "A sudden static flash of all regions at once overwhelms viewers with dense information, stripping away the newsroom's narrative build.",
+  "trap": "Failing to synchronize the scale indicator's entrance with the final territory leaves the reference key feeling disconnected from the spatial data."
+}

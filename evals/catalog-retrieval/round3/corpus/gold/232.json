@@ -1,0 +1,8 @@
+{
+  "best": ["navigation-menu"],
+  "acceptable": [],
+  "bad": ["popover", "dropdown-menu"],
+  "why_best": "Anchoring complex functional choices directly to their visual source maintains spatial continuity and protects the user's creative focus.",
+  "why_bad": "Launching a detached modal overlay disrupts spatial hierarchy and forces the user to re-orient themselves away from their working canvas.",
+  "trap": "Allowing the originating trigger to shift or wobble during the panel's reveal destroys the illusion of tactile stability."
+}

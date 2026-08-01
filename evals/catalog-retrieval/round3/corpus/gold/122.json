@@ -1,0 +1,8 @@
+{
+  "best": ["dashboard-populate"],
+  "acceptable": [],
+  "bad": ["animated-line-chart", "drag-and-drop-flow"],
+  "why_best": "This approach respects enterprise decision-makers by establishing visual scaffolding first, preventing cognitive overload when complex analytical layers lock into place.",
+  "why_bad": "Instantly slamming dense analytics onto the screen creates visual shock and forces the user to manually reconstruct the visual context.",
+  "trap": "A common mistake is treating all layout regions with uniform timing, which reduces the sequence to a generic page refresh rather than an intelligent system initialization."
+}

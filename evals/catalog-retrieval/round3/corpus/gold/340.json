@@ -1,0 +1,8 @@
+{
+  "best": ["svg-stroke-trace"],
+  "acceptable": [],
+  "bad": ["ascii-trail-reveal", "pull-back-reveal"],
+  "why_best": "Constructing the emblem out of its own outline establishes an authoritative sense of precision that matches a high-end authoring environment.",
+  "why_bad": "A simple dissolve or sudden entrance makes the graphic feel like a static asset rather than an artifact crafted with deliberate intent.",
+  "trap": "Resolving the outer boundary too abruptly before the interior solidifies breaks the illusion of a single continuous gesture."
+}

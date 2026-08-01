@@ -1,0 +1,8 @@
+{
+  "best": ["pull-to-refresh"],
+  "acceptable": [],
+  "bad": ["touch-indicator", "rubber-band-bumper"],
+  "why_best": "This motion provides immediate tactile feedback, making the act of fetching updates feel natural, intentional, and grounded in touch physics.",
+  "why_bad": "Inserting a static overlay or immediate pop-up indicator severs direct connection between the user's touch and the feed's physical reaction.",
+  "trap": "A near-miss would fail to hold the layout offset open while fetching, causing the loading graphics to snap back prematurely before the update completes."
+}

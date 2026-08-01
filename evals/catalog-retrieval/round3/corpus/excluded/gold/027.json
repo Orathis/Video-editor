@@ -1,0 +1,8 @@
+{
+  "best": ["blur-in"],
+  "acceptable": [],
+  "bad": ["remocn-ui", "registry"],
+  "why_best": "This approach builds anticipation and prestige by making the message feel like a monumental visual realization rather than mere visual noise.",
+  "why_bad": "A sharp slide-in or instant hard cut would feel jarringly utilitarian, destroying the sophisticated, cinematic mood required for a flagship announcement.",
+  "trap": "Allowing the optical diffusion to completely obscure the letterforms for too long, causing the reader to struggle with legibility during the opening moments."
+}

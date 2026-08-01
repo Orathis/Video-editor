@@ -1,0 +1,8 @@
+{
+  "best": ["caliper-caption-rail"],
+  "acceptable": [],
+  "bad": ["plan-room-audit", "chevron-pill-card-morph"],
+  "why_best": "Fusing the dynamic reveal into an edge-aligned anchor establishes copy as a physical attribute of the hardware.",
+  "why_bad": "Treating the text as an independent floating graphic disconnects the measurement readout from the physical product, destroying the impression of engineered precision.",
+  "trap": "A sloppy execution will allow visible daylight between the finished typography and the phone edge, making the text look like a loose diagram annotation."
+}

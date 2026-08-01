@@ -1,0 +1,8 @@
+{
+  "best": ["press-ripple"],
+  "acceptable": [],
+  "bad": ["halftone-dissolve", "oversized-cursor"],
+  "why_best": "It grants enterprise workflows a grounded, physical resonance that turns a standard system choice into a memorable moment of impact.",
+  "why_bad": "A simple color swap or instantaneous switch feels hollow and fails to draw the eye to the key visual turning point.",
+  "trap": "Restoring the element to its resting state upon the pointer's departure undoes the narrative weight of the confirmed action."
+}

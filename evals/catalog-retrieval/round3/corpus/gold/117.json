@@ -1,0 +1,8 @@
+{
+  "best": ["cta-close"],
+  "acceptable": [],
+  "bad": ["cta-lockup", "logo-brand-close"],
+  "why_best": "It creates an emphatic, distraction-free resolution that translates narrative momentum directly into audience response.",
+  "why_bad": "A continuous floating or drifting layout would undermine the visual authority needed at the final conversion moment.",
+  "trap": "A subtle mistake would be letting the interactable element bounce repeatedly instead of settling instantly on its final resting spot."
+}

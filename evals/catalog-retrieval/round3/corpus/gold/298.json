@@ -1,0 +1,8 @@
+{
+  "best": ["settings-toggle-flow"],
+  "acceptable": [],
+  "bad": ["onboarding-stepper-flow", "checkout-flow"],
+  "why_best": "This rhythm gives users clear visual confirmation of their adjustments while maintaining the focus required in a professional workspace.",
+  "why_bad": "An overly dramatic or bouncy movement would feel childish and erode trust during precise configuration tasks.",
+  "trap": "A near-miss will linger too long on the transition phase, making the control feel sluggish rather than snappy."
+}

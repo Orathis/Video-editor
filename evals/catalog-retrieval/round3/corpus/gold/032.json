@@ -1,0 +1,8 @@
+{
+  "best": ["browser-flow"],
+  "acceptable": [],
+  "bad": ["ecosystem-constellation", "terminal-to-browser-deploy"],
+  "why_best": "A continuous framed sequence maintains spatial context while showcasing smooth workflow progression in a single cohesive narrative.",
+  "why_bad": "Abrupt cuts between disparate interface views would shatter visual continuity and obscure the platform's intuitive user journey.",
+  "trap": "Allowing the visual pacing to stutter during phase transitions, which breaks the impression of a frictionless enterprise experience."
+}

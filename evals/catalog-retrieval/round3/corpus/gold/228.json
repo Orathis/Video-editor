@@ -1,0 +1,8 @@
+{
+  "best": ["multi-device-splay"],
+  "acceptable": [],
+  "bad": ["device-frame-stage", "push-in"],
+  "why_best": "Unfolding the entire hardware lineup at once clearly illustrates cross-platform responsiveness and parity in a single cohesive gesture.",
+  "why_bad": "Sequentially sliding each screen in from off-camera feels like a tedious carousel rather than an instant impression of a complete ecosystem.",
+  "trap": "Allowing the individual canvas frames to overlap or crowd each other at rest ruins the sense of tailored precision and spatial balance."
+}

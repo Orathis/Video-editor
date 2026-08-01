@@ -1,0 +1,8 @@
+{
+  "best": ["tabs"],
+  "acceptable": [],
+  "bad": ["toggle-group", "navigation-menu"],
+  "why_best": "This approach maintains visual continuity while immediately signaling a shift in context without jarring the user.",
+  "why_bad": "A jarring full-screen transition or abrupt fade would disrupt spatial awareness and make simple category switching feel overly heavy.",
+  "trap": "Making the active highlight mark overly dramatic or thick, which risks visually overpowering the label text it sits beneath."
+}

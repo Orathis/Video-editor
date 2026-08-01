@@ -1,0 +1,8 @@
+{
+  "best": ["strikethrough-replace"],
+  "acceptable": [],
+  "bad": ["typewriter", "line-by-line-slide"],
+  "why_best": "Holding both the legacy value and its explicit cancellation in the frame gives engineers an immediate visual diff that reinforces software updates without cognitive overhead.",
+  "why_bad": "An instantaneous swap or jump-cut erases historical context, leaving users confused about what specific element actually changed.",
+  "trap": "A subtle failure occurs if the invalidation gesture finishes after the new content begins to arrive, confusing the sequence of cause and effect."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["stepper"],
+  "acceptable": [],
+  "bad": ["progress-steps", "slider"],
+  "why_best": "Staging a clear, sequential path provides instant spatial orientation while reinforcing visual accomplishment with every forward motion.",
+  "why_bad": "A chaotic modal transition or jarring screen swap would sever context and leave the viewer feeling lost in the process.",
+  "trap": "Fading out past waypoints completely instead of keeping them visually grounded as completed benchmarks."
+}

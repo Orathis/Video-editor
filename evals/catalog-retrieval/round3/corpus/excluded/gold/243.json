@@ -1,0 +1,8 @@
+{
+  "best": ["orbital-feature-path"],
+  "acceptable": [],
+  "bad": ["arc-motion-path", "bezier-callout-route"],
+  "why_best": "It demonstrates how multiple supporting capabilities continuously illuminate the primary product without cluttering a narrow vertical portrait.",
+  "why_bad": "A static grid layout or flat sequential list would make the platform feel like a disjointed spec sheet rather than an integrated, fluid ecosystem.",
+  "trap": "Allowing the surrounding elements to obscure or intersect the central core, which breaks the illusion of spatial depth and confuses visual hierarchy."
+}

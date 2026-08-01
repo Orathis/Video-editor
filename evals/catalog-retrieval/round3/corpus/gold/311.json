@@ -1,0 +1,8 @@
+{
+  "best": ["skeleton-reveal"],
+  "acceptable": [],
+  "bad": ["panel-reveal", "number-pop-in"],
+  "why_best": "It maintains viewing focus during data acquisition while setting an authoritative visual rhythm for time-sensitive reporting.",
+  "why_bad": "An abrupt directional wipe or immediate hard cut would feel chaotic and unverified, breaking the broadcast's trusted, deliberate pacing.",
+  "trap": "An unsatisfactory execution will linger too long on static placeholder geometry without indicating active data ingestion, making the display feel frozen rather than live."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["calendar"],
+  "acceptable": [],
+  "bad": ["collapsible", "typewriter"],
+  "why_best": "A structured, deliberate arrival establishes immediate editorial credibility while guiding the audience straight to the critical timestamp.",
+  "why_bad": "A playful bounce or dramatic 3D flip would undermine the serious journalistic tone required for broadcast reporting.",
+  "trap": "A subtle mistake would be letting the active highlight float above the layout rather than feeling distinctly pressed into the structural frame."
+}

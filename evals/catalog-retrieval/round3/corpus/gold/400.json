@@ -1,0 +1,8 @@
+{
+  "best": ["variable-font-flex"],
+  "acceptable": [],
+  "bad": ["variable-axis-type", "line-swap"],
+  "why_best": "Expanding typographic density within a locked bounding area gives the text immense gravitas without disrupting the frame's structural balance.",
+  "why_bad": "Uniformly scaling the entire phrase creates an intrusive zoom effect that breaches layout margins and feels uncontrolled.",
+  "trap": "A sloppy execution will allow the outer boundaries of the text box to jitter or shift during the transformation, breaking the illusion of grounded structural weight."
+}

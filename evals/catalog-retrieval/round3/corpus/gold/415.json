@@ -1,0 +1,8 @@
+{
+  "best": ["whip-pan-cut"],
+  "acceptable": [],
+  "bad": ["before-after-wipe", "iris-reveal"],
+  "why_best": "A sudden kinetic sweep maintains momentum across distinct moments, keeping the user energized and engaged during abrupt contextual jumps.",
+  "why_bad": "A soft cross-fade or simple hard cut would deflate the visual rhythm and feel sluggish within a lively interface.",
+  "trap": "Failing to perfectly synchronize the visual momentum across the seam will shatter the illusion of a single continuous sweep."
+}

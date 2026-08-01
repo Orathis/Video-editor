@@ -1,0 +1,8 @@
+{
+  "best": ["chevron-pill-card-morph"],
+  "acceptable": [],
+  "bad": ["caliper-caption-rail", "button-group"],
+  "why_best": "Evolving a single container maintains continuous visual focus and reinforces that the checkout interface is the direct outcome of the user's query.",
+  "why_bad": "Cutting or cross-fading between distinct elements destroys spatial awareness and creates a jarring context switch right at the moment of purchase.",
+  "trap": "Completing the horizontal expansion before initiating the vertical blooming reduces a fluid multidimensional transformation into two robotic sequential steps."
+}

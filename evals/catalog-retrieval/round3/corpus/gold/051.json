@@ -1,0 +1,8 @@
+{
+  "best": ["caption-parallax-layers"],
+  "acceptable": [],
+  "bad": ["caption-matrix-decode", "caption-gradient-fill"],
+  "why_best": "It seamlessly bridges live-action talent with graphics to give the promo a high-end cinematic feel.",
+  "why_bad": "A simple flat overlay isolates the message from the scene, resulting in a cheap and static presentation.",
+  "trap": "A near-miss will obscure the presenter's key features or distort the lettering so aggressively that the copy becomes unreadable."
+}

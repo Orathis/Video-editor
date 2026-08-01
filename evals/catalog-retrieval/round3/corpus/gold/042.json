@@ -1,0 +1,8 @@
+{
+  "best": ["caption-editorial-emphasis"],
+  "acceptable": [],
+  "bad": ["caption-weight-shift", "caption-particle-burst"],
+  "why_best": "It injects unmistakable visual hierarchy and prestige into dense informational copy without disrupting the pacing.",
+  "why_bad": "A uniform text layout fails to signal priority, leaving the viewer to scan endlessly without a clear focal point.",
+  "trap": "Failing to establish a sharp, intentional distinction between background copy and highlighted terms will make the sequence look unformatted rather than deliberate."
+}

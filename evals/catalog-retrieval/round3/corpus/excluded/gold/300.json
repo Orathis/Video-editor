@@ -1,0 +1,8 @@
+{
+  "best": ["shared-axis-y"],
+  "acceptable": [],
+  "bad": ["shared-axis-z", "per-word-crossfade"],
+  "why_best": "It preserves the visual anchor of the text line while providing a clean, high-precision signal that live data has been updated.",
+  "why_bad": "A horizontal slide would break the natural reading path of surrounding static text, making a subtle data refresh feel like a disorienting screen change.",
+  "trap": "A weak implementation lets the exiting and entering text overlap or drift off-center, ruining the sharp alignment essential for a developer tool."
+}

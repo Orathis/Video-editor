@@ -1,0 +1,8 @@
+{
+  "best": ["text-stagger"],
+  "acceptable": [],
+  "bad": ["page-slide", "text-state-swap"],
+  "why_best": "This rhythm creates a natural reading cadence while maintaining the high-energy polish expected from modern vertical news broadcasting.",
+  "why_bad": "Dropping the entire block onto the screen all at once flattens the visual hierarchy and causes viewers to skip reading the full message.",
+  "trap": "A near-miss will let the highlight pulse travel so aggressively that it renders the typography unreadable during the core narrative beat."
+}

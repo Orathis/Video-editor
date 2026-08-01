@@ -1,0 +1,8 @@
+{
+  "best": ["onboarding-stepper-flow"],
+  "acceptable": [],
+  "bad": ["signup-flow", "ai-prompt-flow"],
+  "why_best": "This approach builds user confidence by celebrating incremental progress while maintaining a clear, frictionless path ahead.",
+  "why_bad": "Abruptly switching scenes or popping content instantly into view creates cognitive friction and breaks the viewer's sense of continuity.",
+  "trap": "A subtle misstep would be over-emphasizing the completion state so heavily that it delays revealing the upcoming objective."
+}

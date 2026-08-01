@@ -1,0 +1,8 @@
+{
+  "best": ["code-diff-wipe"],
+  "acceptable": [],
+  "bad": ["frosted-glass-wipe", "directional-wipe"],
+  "why_best": "It visually communicates iteration and dynamic renewal in a way that resonates instantly with an audience accustomed to modern mobile application updates.",
+  "why_bad": "A simple cross-dissolve or basic geometric slide would feel generic and miss the chance to reinforce the theme of active, intelligent platform evolution.",
+  "trap": "Allowing the color contrast between added and deleted elements to become overly chaotic will clutter the narrow vertical viewport instead of conveying a clean system refresh."
+}

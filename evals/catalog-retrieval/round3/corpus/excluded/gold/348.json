@@ -1,0 +1,8 @@
+{
+  "best": ["terminal-simulator"],
+  "acceptable": [],
+  "bad": ["glass-code-block", "code-accordion"],
+  "why_best": "This approach builds instant trust with a technical audience by mirroring authentic workspace interactions rather than relying on abstract visuals.",
+  "why_bad": "Opting for stylized graphic motion or generic abstract cards would undermine the product's utility and disconnect it from a developer's real workflow.",
+  "trap": "A common mistake is letting the feed scroll so aggressively that it turns into unreadable motion blur, losing the sense of structured progress."
+}

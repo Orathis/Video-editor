@@ -1,0 +1,8 @@
+{
+  "best": ["button-group"],
+  "acceptable": [],
+  "bad": ["native-select", "toggle"],
+  "why_best": "It grounds rapid decision-making within a tight interface footprint by giving immediate visual clarity to active modes.",
+  "why_bad": "Isolating these choices across disparate visual locations would disrupt the artist's focus and clutter the surrounding workspace.",
+  "trap": "A near-miss would allow the active indicator to feel squishy or lag behind the user's intent instead of locking crisp into place."
+}

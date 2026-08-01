@@ -1,0 +1,8 @@
+{
+  "best": ["lt-accent-underline"],
+  "acceptable": [],
+  "bad": ["lt-side-rule", "lt-mask-reveal"],
+  "why_best": "This approach maintains visual transparency over live-action video while cleanly structuring hierarchical subject information.",
+  "why_bad": "Dropping a heavy, solid background block into the lower frame obstructs crucial subject detail and creates unnecessary visual clutter.",
+  "trap": "A sloppy execution will neglect contrast treatment, letting bright footage highlights wash out the unbacked text."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["flowchart"],
+  "acceptable": [],
+  "bad": ["flowchart-vertical", "data-flow-pipes"],
+  "why_best": "This progressive unfolding captures the authentic rhythm of problem-solving while keeping a consumer audience engaged through every dynamic branch.",
+  "why_bad": "A static reveal or rigid full-board pop-in strips away the narrative momentum and leaves the viewer feeling overwhelmed by dense visual data.",
+  "trap": "Failing to synchronize the textual revision with the visual connection, making the edit feel like a glitch rather than an intentional step in the thought process."
+}

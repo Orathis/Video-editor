@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-red-sands"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-ocean", "code-snippet-apple-terminal-solid-colors"],
+  "why_best": "Exposing the process through a live sequential reveal gives technical work an organic visual pulse suited to a modern creative tool.",
+  "why_bad": "Presenting all content simultaneously turns an engaging moment of creation into a static block that fails to hold attention.",
+  "trap": "Accelerating the reveal too drastically collapses the human rhythm, making the input feel like an automated glitch."
+}

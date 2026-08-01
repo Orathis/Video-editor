@@ -1,0 +1,8 @@
+{
+  "best": ["persona-card-fan"],
+  "acceptable": [],
+  "bad": ["orbit-ring-camera", "receipt-card"],
+  "why_best": "It cleanly accumulates an expanding set of options within a strictly constrained area, highlighting the newest arrival while keeping prior choices visible.",
+  "why_bad": "Pushing items across in a horizontal line or sliding them off-screen loses immediate context and risks invading the speaker's space.",
+  "trap": "A weak attempt will artificially dim receded layers with dark tint overlays instead of relying on scale contrast and drop shadows to signal depth."
+}

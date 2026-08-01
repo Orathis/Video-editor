@@ -1,0 +1,8 @@
+{
+  "best": ["match-cut"],
+  "acceptable": [],
+  "bad": ["grade-split-reveal", "marker-highlight"],
+  "why_best": "Anchoring a total interface transformation around a persistent focal geometry maintains visual momentum and keeps the user grounded.",
+  "why_bad": "Sliding or cross-fading full screens across each other introduces unnecessary visual clutter and detaches the user from their focal point.",
+  "trap": "Slightly misaligning the spatial position or scale of the shared element across the instantaneous shift, which destroys the illusion of continuous motion."
+}

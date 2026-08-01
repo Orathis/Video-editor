@@ -1,0 +1,8 @@
+{
+  "best": ["overwhelm-surround"],
+  "acceptable": [],
+  "bad": ["radial-surround", "notification-pileup"],
+  "why_best": "This motion translates the emotional weight of cognitive overload into a clear, visual squeeze that immediately grabs attention.",
+  "why_bad": "A simple linear fade or static list assembly lacks the aggressive urgency needed to make the viewer feel genuinely stressed by the noise.",
+  "trap": "Allowing the incoming elements to completely cover or obscure the central focal point, destroying the necessary contrast between stillness and chaos."
+}

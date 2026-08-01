@@ -1,0 +1,8 @@
+{
+  "best": ["world-map"],
+  "acceptable": [],
+  "bad": ["spain-map", "us-map"],
+  "why_best": "Sequential territorial lighting establishes an engaging rhythm that transforms complex spatial datasets into a story of global impact.",
+  "why_bad": "Displaying every data-shaded region simultaneously deprives the viewer of narrative pacing and collapses the feeling of dynamic exploration.",
+  "trap": "A weak attempt will allow floating hover callouts to obscure the spinning planetary thumbnail or breach the tight vertical margins."
+}

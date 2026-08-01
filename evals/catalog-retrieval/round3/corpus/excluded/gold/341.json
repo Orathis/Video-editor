@@ -1,0 +1,8 @@
+{
+  "best": ["swipe-rail"],
+  "acceptable": [],
+  "bad": ["gesture-tap", "touch-indicator"],
+  "why_best": "This fluid visual travel gives broadcast audiences an intuitive sense of live, browsable content while maintaining strict editorial clarity.",
+  "why_bad": "A hard cut or full-screen wipe would sever the spatial relationship between consecutive story panels and destroy the sensation of an active data feed.",
+  "trap": "A near-miss would blur the distinction between the active pulling cue and the weighted drift of the news panels behind it."
+}

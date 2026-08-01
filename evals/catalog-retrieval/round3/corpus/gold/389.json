@@ -1,0 +1,8 @@
+{
+  "best": ["trust-strip"],
+  "acceptable": [],
+  "bad": ["logo-brand-close", "count-up"],
+  "why_best": "This restrained, sequential appearance builds quiet institutional credibility while respecting the sober editorial tone of a news graphic.",
+  "why_bad": "Dynamic spatial pushes or lively sliding entrances would disrupt the editorial gravitas and make the frame feel like a hyperactive commercial.",
+  "trap": "Allowing the elements to drift or re-adjust after emerging destroys the vital sense of absolute static stability."
+}

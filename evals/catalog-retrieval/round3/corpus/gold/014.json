@@ -1,0 +1,8 @@
+{
+  "best": ["aurora-drift"],
+  "acceptable": [],
+  "bad": ["grain-field", "drift-hold"],
+  "why_best": "This gentle, cyclical background motion establishes an active yet non-distracting environment essential for high-focus analytical work.",
+  "why_bad": "Introducing abrupt transitions or focal point animations would pull critical attention away from data visualization and fatigue the operator.",
+  "trap": "A flawed implementation would create a noticeable visual seam at the cycle's reset point or allow bright hotspots to compromise text legibility."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["radial-surround"],
+  "acceptable": [],
+  "bad": ["overwhelm-surround", "decline-chart"],
+  "why_best": "It visually dramatizes the mounting pressure on a static hero asset without losing the audience's anchor point in a vertical format.",
+  "why_bad": "Pushing the camera straight into the core card would obscure the incoming systemic pressures entirely and undermine the sense of overwhelming encirclement.",
+  "trap": "A common mistake is allowing the central hero item to drift or scale during the tightening sequence, which destroys the claustrophobic contrast between the frozen middle and the collapsing perimeter."
+}

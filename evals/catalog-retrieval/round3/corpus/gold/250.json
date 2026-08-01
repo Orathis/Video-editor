@@ -1,0 +1,8 @@
+{
+  "best": ["pan-stations"],
+  "acceptable": [],
+  "bad": ["push-in", "camera-scan-gate"],
+  "why_best": "A structured, rhythmic sweep across the frame builds a cohesive mental map while honoring individual focal points.",
+  "why_bad": "Jumping abruptly between disjointed framing angles would shatter the spatial context and make the software feel chaotic.",
+  "trap": "Failing to let the view come to a complete, balanced freeze at each stop will ruin the rhythm and induce visual fatigue."
+}

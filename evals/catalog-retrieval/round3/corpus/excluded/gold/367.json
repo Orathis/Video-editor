@@ -1,0 +1,8 @@
+{
+  "best": ["toggle"],
+  "acceptable": [],
+  "bad": ["button", "button-group"],
+  "why_best": "This instant, tactile shift gives the user immediate visual confirmation of an active feature state without requiring secondary messaging.",
+  "why_bad": "A purely flat color swap would feel lifeless and uncommunicative, failing to provide the satisfying physical feedback modern consumer applications demand.",
+  "trap": "A near-miss will overshoot the resting state change, making the physical depression feel like a springy error bounce rather than a deliberate state commit."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-shader-dissolve"],
+  "acceptable": [],
+  "bad": ["domain-warp-dissolve", "chromatic-radial-split"],
+  "why_best": "This approach mirrors the raw feeling of live algorithmic execution, grounding technical content in a dynamic aesthetic that instantly respects the viewer's expertise.",
+  "why_bad": "A standard slide or basic wipe treats the script like passive media, robbing the moment of its computational energy and visual authority.",
+  "trap": "A near-miss will linger on the visual distortion too long, rendering the underlying syntax unreadable right when the audience is trying to parse it."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["ascii-render-pass"],
+  "acceptable": [],
+  "bad": ["ordered-dither-pass", "particle-image-reveal"],
+  "why_best": "This progressive refinement from abstract glyphs to high-density clarity establishes a compelling investigative authority suited for analytical visual storytelling.",
+  "why_bad": "A standard crossfade or instant photographic reveal lacks the deliberate computational narrative required to frame complex data acquisition.",
+  "trap": "A common misstep is keeping the initial abstraction so chaotic or the final state so distorted that the core visual narrative fails to remain legible."
+}

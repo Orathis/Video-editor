@@ -1,0 +1,8 @@
+{
+  "best": ["top-down-letters"],
+  "acceptable": [],
+  "bad": ["scale-down-fade", "short-slide-down"],
+  "why_best": "The crisp, staggered entry delivers strong visual structure and technical discipline ideal for utility-first software.",
+  "why_bad": "A smooth, floating transition would make the interface feel overly decorative and lacking in architectural weight.",
+  "trap": "A near-miss will introduce optical motion trails during entry, muddying the clean, razor-sharp geometry."
+}

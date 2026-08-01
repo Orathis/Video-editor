@@ -1,0 +1,8 @@
+{
+  "best": ["kinetic-type-swap"],
+  "acceptable": [],
+  "bad": ["ticker-takeover", "line-swap"],
+  "why_best": "Anchoring the context while tumbling through possibilities builds natural curiosity without breaking the viewer's reading flow.",
+  "why_bad": "Wiping the entire message for every iteration introduces unnecessary visual noise that distracts from the core conceptual transformation.",
+  "trap": "Neglecting to lock the container layout to accommodate the broadest iteration will make the static text jitter wildly during updates."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["parallax-device-dive"],
+  "acceptable": [],
+  "bad": ["push-in", "type-match-cut"],
+  "why_best": "This approach creates an uninterrupted spatial bridge between physical hardware context and deep software functionality.",
+  "why_bad": "A simple cross-dissolve or abrupt cut between the product chassis and the digital workspace destroys the tactile sense of dimensional momentum.",
+  "trap": "A near-miss will treat the front glass as a flat opacity fade rather than a dimensional threshold, collapsing the illusion of entering the physical display."
+}

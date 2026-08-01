@@ -1,0 +1,8 @@
+{
+  "best": ["focus-blur-resolve"],
+  "acceptable": [],
+  "bad": ["blur-out-up", "typewriter"],
+  "why_best": "This elegant emergence and dissipation establishes an elevated, cinematic tone that commands authority while maintaining visual sophistication.",
+  "why_bad": "A sudden hard cut or aggressive directional wipe would break the contemplative, high-end atmosphere and feel unnecessarily harsh for a brand showcase.",
+  "trap": "A weak execution will dwell in the unreadable state for too long or snap too abruptly into sharpness, ruining the gradual visual progression."
+}

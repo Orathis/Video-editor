@@ -1,0 +1,8 @@
+{
+  "best": ["flowchart-vertical"],
+  "acceptable": [],
+  "bad": ["flowchart", "data-flow-pipes"],
+  "why_best": "This approach visually manifests systematic problem-solving while reassuring stakeholders that enterprise logic remains flexible and continuously refined.",
+  "why_bad": "A static visual summary would fail to communicate the live intelligence and adaptive reasoning driving the system.",
+  "trap": "Allowing the real-time text revision to feel like a system error rather than a confident, intentional optimization."
+}

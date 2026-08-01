@@ -1,0 +1,8 @@
+{
+  "best": ["lt-bold-block"],
+  "acceptable": [],
+  "bad": ["lt-color-block", "lt-stack-bars"],
+  "why_best": "This approach commands immediate viewer attention in vertical feeds while giving the speaker authoritative editorial weight.",
+  "why_bad": "A slow, elegant fade-in would feel soft and drift past mobile audiences who demand instant clarity.",
+  "trap": "A near-miss will let the accent details overpower the main subject's name rather than instantly subordinate to it."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["reddit-post"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "Introducing community sentiment via a sleek floating UI module grounds the narrative in authentic user feedback without slowing down visual momentum.",
+  "why_bad": "Blasting full-screen static text or a generic testimonial block breaks the dynamic video pacing and feels like an intrusive advertisement rather than native content.",
+  "trap": "Failing to synchronize the numerical counter dynamic with the element's settling motion, making the community engagement feel static rather than alive."
+}

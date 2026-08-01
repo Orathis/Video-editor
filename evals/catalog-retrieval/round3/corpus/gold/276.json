@@ -1,0 +1,8 @@
+{
+  "best": ["receipt-card"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "marker-highlight"],
+  "why_best": "This approach combines dynamic physical placement with crisp, immediate editorial clarity to pinpoint crucial evidence without disrupting viewer reading flow.",
+  "why_bad": "Employing a progressive left-to-right brush stroke or animated wipe drags out the reveal and creates an unnecessary mechanical distraction.",
+  "trap": "A near-miss will animate the emphasis as a sweeping horizontal progression rather than shifting the complete target block simultaneously."
+}

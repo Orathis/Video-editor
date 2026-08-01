@@ -1,0 +1,8 @@
+{
+  "best": ["particle-image-reveal"],
+  "acceptable": [],
+  "bad": ["ascii-trail-reveal", "pull-back-reveal"],
+  "why_best": "Constructing the visual through a brief moment of organic assembly elevates a standard reveal into a high-touch cinematic event.",
+  "why_bad": "Using a simple hard cut or plain mechanical slide would feel abrupt and sacrifice the premium sense of craft.",
+  "trap": "A near-miss will leave lingering speckles over the hero subject after the move completes instead of settling into total clarity."
+}

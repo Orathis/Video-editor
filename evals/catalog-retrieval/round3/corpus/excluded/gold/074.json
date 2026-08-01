@@ -1,0 +1,8 @@
+{
+  "best": ["code-highlight"],
+  "acceptable": [],
+  "bad": ["code-scroll", "glass-code-block"],
+  "why_best": "Isolating a key element while preserving visual context gives decision-makers immediate clarity without stripping away the surrounding structural information.",
+  "why_bad": "A jarring camera punch-in or abrupt cut would disrupt the viewer's mental map of the interface and introduce unnecessary visual fatigue.",
+  "trap": "An imperfect execution will push the surrounding environment into total darkness, erasing the contextual frame that makes the focal point meaningful."
+}

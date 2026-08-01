@@ -1,0 +1,8 @@
+{
+  "best": ["pull-back-reveal"],
+  "acceptable": [],
+  "bad": ["push-in", "svg-stroke-trace"],
+  "why_best": "Widening the scope from a single micro-datum to the macro dashboard creates an instant insight that re-anchors the viewer's understanding of the tool.",
+  "why_bad": "A hard transition or step-by-step fade would break the narrative continuity, treating the context as separate information rather than the organic environment of the hero figure.",
+  "trap": "Exposing the surrounding structure too early spoils the narrative payload before the focal metric can establish its initial weight."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["thread-message-stack"],
+  "acceptable": [],
+  "bad": ["rank-list-settle", "browser-flow"],
+  "why_best": "This rhythmic visual cadence turns a plain dialog exchange into a compelling narrative engine perfectly tailored for mobile viewing.",
+  "why_bad": "Fading in the entire block at once kills the dramatic tension and removes the tactile excitement of watching a live exchange unfold.",
+  "trap": "A near-miss will soften the entry with an opacity transition rather than letting each new element snap into existence instantly."
+}

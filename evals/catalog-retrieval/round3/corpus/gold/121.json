@@ -1,0 +1,8 @@
+{
+  "best": ["cut-the-curve"],
+  "acceptable": [],
+  "bad": ["whip-pan-cut", "type-match-cut"],
+  "why_best": "This approach creates a high-impact visual bridge that maintains relentless narrative momentum while swapping distinct subjects.",
+  "why_bad": "A slow cross-dissolve or static layout change would destroy the visual energy and make the transition feel sluggish and disconnected.",
+  "trap": "A near-miss would fail to match the trajectory or velocity at the point of exchange, resulting in a jarring visual hitch rather than a fluid transfer of force."
+}

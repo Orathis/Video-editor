@@ -1,0 +1,8 @@
+{
+  "best": ["us-map-hex"],
+  "acceptable": [],
+  "bad": ["us-map", "us-map-bubble"],
+  "why_best": "Standardizing every territory into identical geometric visual units guarantees that small eastern territories carry the exact same decision-making weight as expansive western ones.",
+  "why_bad": "Rendering traditional organic borders causes tiny key markets to vanish visually while empty landmasses dominate the vertical screen.",
+  "trap": "A near-miss will drift the geometric cells out of their fixed spatial alignment during the entry sequence, breaking the clean structure required for executive reporting."
+}

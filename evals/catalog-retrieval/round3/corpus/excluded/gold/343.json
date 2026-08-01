@@ -1,0 +1,8 @@
+{
+  "best": ["switch"],
+  "acceptable": [],
+  "bad": ["slider", "toggle"],
+  "why_best": "It delivers immediate visual reassurance and unambiguous status clarity without breaking the flow of interaction.",
+  "why_bad": "Using a slow dissolve or subtle gradient morph creates friction by forcing the viewer to hesitate and re-verify their action.",
+  "trap": "A near-miss would over-animate the moving element with an exaggerated elastic bounce, making an essential control feel ungrounded."
+}

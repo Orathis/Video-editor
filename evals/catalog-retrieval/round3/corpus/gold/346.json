@@ -1,0 +1,8 @@
+{
+  "best": ["tabs-slide-indicator"],
+  "acceptable": [],
+  "bad": ["page-slide", "panel-reveal"],
+  "why_best": "A continuous tracking motion preserves the user's spatial memory as they rapidly switch context across complex editing panels.",
+  "why_bad": "Abrupt instantaneous cuts between active states break focus and make a premium UI feel disjointed and unrefined.",
+  "trap": "A near-miss will let the active element stretch or lag behind the target location, making the visual engine feel sluggish instead of crisp."
+}

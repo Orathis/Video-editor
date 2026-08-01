@@ -1,0 +1,8 @@
+{
+  "best": ["soft-blur-in"],
+  "acceptable": [],
+  "bad": ["focus-blur-resolve", "typewriter"],
+  "why_best": "This approach subtly draws the viewer's eye to high-priority messaging while maintaining a sophisticated, non-intrusive editorial atmosphere.",
+  "why_bad": "A sudden visual pop or rigid mechanical wipe would feel jarring and cheapen the refined aesthetic of the interface.",
+  "trap": "A near-miss will linger too long in the unreadable phase, making the text feel frustratingly obscure rather than smoothly emerging."
+}

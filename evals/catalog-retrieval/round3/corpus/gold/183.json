@@ -1,0 +1,8 @@
+{
+  "best": ["kinetic-center-build"],
+  "acceptable": [],
+  "bad": ["short-slide-right", "staggered-fade-up"],
+  "why_best": "Constructing the headline progressively along the visual axis ensures complete mobile retention while building cumulative emotional weight behind the brand promise.",
+  "why_bad": "A passive full-screen text reveal or sweeping paragraph transition loses immediate thumb-stopping tension and fails to command central attention on handheld devices.",
+  "trap": "Settling the text with a soft blur or visual overshoot rather than establishing absolute visual stability the instant the final word hits."
+}

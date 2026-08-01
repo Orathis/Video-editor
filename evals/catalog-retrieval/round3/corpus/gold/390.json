@@ -1,0 +1,8 @@
+{
+  "best": ["type-match-cut"],
+  "acceptable": [],
+  "bad": ["rubber-band-bumper", "headline-slam"],
+  "why_best": "It establishes immediate visual harmony by framing the text as a physical doorway into the upcoming interface.",
+  "why_bad": "A simple overlay or dissolve would feel disjointed, breaking the illusion of a singular, evolving workspace.",
+  "trap": "A flawed execution will allow the incoming view to scale up before the line parts, ruining the impression that the image emerges directly from the typography."
+}

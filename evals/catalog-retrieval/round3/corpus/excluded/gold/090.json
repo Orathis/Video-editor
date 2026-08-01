@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-solid-colors"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-ocean", "code-snippet-apple-terminal-basic"],
+  "why_best": "Simulating active command execution creates immediate authenticity for a technical audience by honoring the rhythm of live interaction.",
+  "why_bad": "Fading in the entire block at once reads like a static slide deck, stripping away the visceral feeling of software in motion.",
+  "trap": "A near-miss will introduce distracting glowing trails or artificial visual chrome that breaks the clean, minimalist look of a native interface."
+}

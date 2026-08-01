@@ -1,0 +1,8 @@
+{
+  "best": ["glass-code-block"],
+  "acceptable": [],
+  "bad": ["code-accordion", "terminal-simulator"],
+  "why_best": "This approach subtly directs user focus to active background processing without disrupting surrounding analytical telemetry.",
+  "why_bad": "A heavy opaque element with aggressive bounce entrances would feel distracting and compromise the clean executive aesthetic.",
+  "trap": "A subtle failure mode is making the diagnostic light sweep too bright or wide, turning a refined status check into an distracting sci-fi laser."
+}

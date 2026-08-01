@@ -1,0 +1,8 @@
+{
+  "best": ["masked-slide-reveal"],
+  "acceptable": [],
+  "bad": ["staggered-fade-up", "short-slide-right"],
+  "why_best": "Staggering the text's arrival along a sharp horizontal threshold gives technical viewers an immediate sense of structured order and mechanical clarity.",
+  "why_bad": "A standard opacity fade across the entire block would lack physical presence and feel visually passive for a utility-focused product.",
+  "trap": "Allowing letter stems to show even a single pixel below the baseline boundary before their entrance will ruin the spatial illusion."
+}

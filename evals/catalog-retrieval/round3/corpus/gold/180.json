@@ -1,0 +1,8 @@
+{
+  "best": ["item"],
+  "acceptable": [],
+  "bad": ["select-item", "registry"],
+  "why_best": "A perimeter-first highlight cleanly separates the target row in a crowded workspace without muddying critical surrounding data.",
+  "why_bad": "A heavy surface wash or aggressive scaling shift would visually overwhelm the interface and disrupt the power user's scanning cadence.",
+  "trap": "A minor misalignment in text baseline or icon alignment during the transition will break the rigid layout grid."
+}

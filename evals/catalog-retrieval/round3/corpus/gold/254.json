@@ -1,0 +1,8 @@
+{
+  "best": ["parallax-zoom"],
+  "acceptable": [],
+  "bad": ["parallax-unzoom", "device-mockup-zoom"],
+  "why_best": "It creates a decisive focus pull that elevates a primary operational metric while preserving spatial continuity across the workspace.",
+  "why_bad": "An abrupt hard cut or static pop-over breaks the user's mental map and lacks the prestige required for high-level monitoring tools.",
+  "trap": "A near-miss would displace the surrounding interface elements too rapidly, making a deliberate focus shift feel like an aggressive spatial collision."
+}

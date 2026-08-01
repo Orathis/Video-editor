@@ -1,0 +1,8 @@
+{
+  "best": ["skeleton"],
+  "acceptable": [],
+  "bad": ["skeleton-block", "chart"],
+  "why_best": "Using quiet, solid structural blocks builds anticipation while keeping the audience focused on the upcoming content's exact layout footprint.",
+  "why_bad": "Adding high-contrast light sweeps across the screen would feel noisy and distract from the sleek, premium presentation style.",
+  "trap": "Allowing the placeholder blocks to dissolve asynchronously instead of executing a unified handoff into the live interface."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["input"],
+  "acceptable": [],
+  "bad": ["native-select", "caret"],
+  "why_best": "This cadence anchors dense graphic information vertically while delivering the authoritative feel of an active newsroom control panel.",
+  "why_bad": "Instantly flashing the complete interface onto the screen without a staged rollout destroys the illusion of an active live terminal.",
+  "trap": "A common mistake is drawing equal visual weight to the supporting explanatory text, which distracts from the core data insertion beat."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["cta-lockup"],
+  "acceptable": [],
+  "bad": ["cta-close", "store-badge-lockup"],
+  "why_best": "A staged, hierarchical reveal gives maximum punch to the primary message while ensuring the point of interaction remains unmissable.",
+  "why_bad": "An abrupt or simultaneous splash of elements creates visual noise that distracts from the core prompt.",
+  "trap": "Failing to treat the final frozen state as an active, confident destination for the viewer's gaze."
+}

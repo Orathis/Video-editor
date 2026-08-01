@@ -1,0 +1,8 @@
+{
+  "best": ["progress-steps"],
+  "acceptable": [],
+  "bad": ["stepper", "separator"],
+  "why_best": "It delivers immediate editorial clarity within a compact square frame, letting viewers instantly digest complex multi-phase reporting.",
+  "why_bad": "A continuous fluid pan or sprawling horizontal layout would obscure the boundaries between distinct narrative phases and clutter the tight display area.",
+  "trap": "Failing to visually isolate the active focal point from archived facts will flatten the narrative tension and confuse the viewer."
+}

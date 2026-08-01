@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-liquid-glass"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-portal"],
+  "why_best": "This approach bridges digital precision with organic visual warmth, instantly setting an elevated, premium tone for a sophisticated creation environment.",
+  "why_bad": "A sharp geometric cut or flat opacity fade would feel cold and robotic, failing to inspire the user's artistic confidence.",
+  "trap": "Allowing the distortion to become muddy or obscure the core visual balance during the peak of the transformation."
+}

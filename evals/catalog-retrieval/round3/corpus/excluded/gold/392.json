@@ -1,0 +1,8 @@
+{
+  "best": ["typewriter"],
+  "acceptable": [],
+  "bad": ["strikethrough-replace", "mask-reveal-up"],
+  "why_best": "This dynamic reveals the system's thought process as it happens, instilling deep confidence in the real-time accuracy of the underlying data.",
+  "why_bad": "A passive opacity dissolve or static pop-in treats high-value telemetry like a cached document, stripping away the sense of immediate, live backend activity.",
+  "trap": "Allowing the leading focal marker to lose its strict synchronization with the emerging text, which instantly destroys the illusion of automated line execution."
+}

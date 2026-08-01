@@ -1,0 +1,8 @@
+{
+  "best": ["slider"],
+  "acceptable": [],
+  "bad": ["switch", "radio"],
+  "why_best": "A fluid horizontal sweep best illustrates the dynamic relationship between user intent, visual feedback, and live data binding.",
+  "why_bad": "Using discrete jump-cuts between positions strips away the sense of continuous control and tactile software responsiveness.",
+  "trap": "A subtle failure occurs if the numerical counter lags even slightly behind the moving grab-point during the scrub."
+}

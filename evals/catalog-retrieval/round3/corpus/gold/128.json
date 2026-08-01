@@ -1,0 +1,8 @@
+{
+  "best": ["device-mockup-zoom"],
+  "acceptable": [],
+  "bad": ["hero-device-assemble", "browser-flow"],
+  "why_best": "It creates a sense of spatial depth that transforms flat enterprise metrics into an immersive, high-end product showcase.",
+  "why_bad": "A static crossfade or simple horizontal slide flattens the software hierarchy and loses the tactile feel of pushing into a live system.",
+  "trap": "Allowing the contextual background layers to separate too aggressively, which destroys the cohesion of the screen space."
+}

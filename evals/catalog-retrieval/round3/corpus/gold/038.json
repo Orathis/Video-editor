@@ -1,0 +1,8 @@
+{
+  "best": ["camera-scan-gate"],
+  "acceptable": [],
+  "bad": ["toggle-flip", "gesture-tap"],
+  "why_best": "It visually bridges the physical capture of real-world assets with immediate digital validation in an executive-ready portrait display.",
+  "why_bad": "A static progress indicator or standard page slide would fail to convey the active optical precision required for high-stakes inventory management.",
+  "trap": "A weaker execution will linger excessively on the success state rather than snapping immediately into the downstream enterprise interface."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["particle-text-dissolve"],
+  "acceptable": [],
+  "bad": ["pill-row-collapse", "glyph-ring-assemble"],
+  "why_best": "This approach gives key typography an elemental, magical quality that elevates routine interface messaging into a memorable event.",
+  "why_bad": "A simple opacity transition or geometric wipe would feel flat and uninspired, failing to match the sophisticated tone of a creative tool.",
+  "trap": "A common mistake is letting the visual noise randomize on every playback, destroying the consistent, crafted precision required for a professional interface."
+}

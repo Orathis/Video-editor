@@ -1,0 +1,8 @@
+{
+  "best": ["native-notification-pop"],
+  "acceptable": [],
+  "bad": ["offset-path-traveler", "soft-blob-touch"],
+  "why_best": "This approach injects immediate, real-time urgency and OS-level realism into the scene without breaking the viewer's focus on the main data landscape.",
+  "why_bad": "A full-screen modal or intrusive panel swap would completely shatter the illusion of a live ambient monitor and force a jarring break in telemetry continuity.",
+  "trap": "A near-miss will feel like a generic web toast element rather than a pixel-perfect, platform-native system signal with tactile physical credibility."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["data-flow-pipes"],
+  "acceptable": [],
+  "bad": ["ecosystem-constellation", "animated-line-chart"],
+  "why_best": "It visually proves active systemic communication and background synchronization without burdening the user with complex telemetry.",
+  "why_bad": "Using simple static connectors or disembodied fading flashes would make the workspace feel rigid and disconnected.",
+  "trap": "Over-emphasizing the glowing travelers while letting the overarching layout of the connections dissolve into invisibility."
+}

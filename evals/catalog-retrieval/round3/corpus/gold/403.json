@@ -1,0 +1,8 @@
+{
+  "best": ["version-plate-type"],
+  "acceptable": [],
+  "bad": ["glyph-ring-assemble", "match-cut"],
+  "why_best": "This approach pairs tactile print-making energy with digital layout controls to give simple dynamic copy cuts an urgent, highly stylised rhythm.",
+  "why_bad": "A standard three-dimensional camera movement would ruin the beat because scaling both axes proportionally removes the graphic tension created by squishing text horizontally and vertically on independent passes.",
+  "trap": "Treating the scale changes like a uniform camera lens push rather than distorting the letterforms across isolated horizontal and vertical axes."
+}

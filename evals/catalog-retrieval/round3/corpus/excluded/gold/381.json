@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-distortion"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "transitions-push"],
+  "why_best": "It injects a high-impact, surreal kinetic charge that keeps audience attention locked during high-tempo promotional cuts.",
+  "why_bad": "Relying on a standard hard edit or soft dissolve would feel flat and fail to match the aggressive, forward-leaning tone of this campaign.",
+  "trap": "A near-miss would over-extend the visual artifacts past the visual pivot, muddying the incoming scene instead of cleanly delivering the eye to the new focal point."
+}

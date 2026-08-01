@@ -1,0 +1,8 @@
+{
+  "best": ["ui-focus-zoom"],
+  "acceptable": [],
+  "bad": ["browser-device-stage", "notification-stack"],
+  "why_best": "It guides the user from macro context to micro interaction without breaking spatial continuity or visual momentum.",
+  "why_bad": "A hard cut directly to the detail panel disorients the creator by severing the spatial relationship with the surrounding canvas.",
+  "trap": "Arriving at the target coordinate without bringing the ambient accent highlight up in perfect sync, leaving the focal point feeling ungrounded."
+}

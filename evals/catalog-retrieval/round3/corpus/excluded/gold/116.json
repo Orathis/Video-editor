@@ -1,0 +1,8 @@
+{
+  "best": ["cross-warp-morph"],
+  "acceptable": [],
+  "bad": ["domain-warp-dissolve", "transitions-distortion"],
+  "why_best": "This organic visual melt seamlessly bridges two drastically different dashboard layouts without breaking executive spatial focus during a major state change.",
+  "why_bad": "A hard cut or simple directional slide would make the transition feel abrupt and cheapen the visual weight of a deep data recalculation.",
+  "trap": "A near-miss will turn the distortion into a chaotic, video-game-like ripple instead of maintaining clean, purposeful structure during the melt."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["input-group"],
+  "acceptable": [],
+  "bad": ["input", "native-select"],
+  "why_best": "Unifying these functional segments into a single coordinated entry instantly conveys that the contextual tag, entry field, and execution button operate as one cohesive tool.",
+  "why_bad": "Animating each sub-element with independent staggered reveals fragments the layout and makes a simple interactive control feel overly complex.",
+  "trap": "Failing to lock the internal section dividers to the primary frame during the entrance, which ruins the impression of a single seamless component."
+}

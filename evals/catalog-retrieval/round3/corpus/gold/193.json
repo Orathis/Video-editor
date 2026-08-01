@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-notification"],
+  "acceptable": [],
+  "bad": ["liquid-glass-context-menu", "liquid-glass-widgets"],
+  "why_best": "This visual atmosphere balances immersive aesthetic delight with immediate text legibility, ideal for a modern consumer interface.",
+  "why_bad": "A stark flat panel or sudden high-contrast pop-up would disrupt the spatial depth and feel overly abrasive.",
+  "trap": "Failing to tune the background diffusion, rendering the primary text illegible against the vibrant colors beneath."
+}

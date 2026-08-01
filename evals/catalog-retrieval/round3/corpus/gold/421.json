@@ -1,0 +1,8 @@
+{
+  "best": ["x-post"],
+  "acceptable": [],
+  "bad": ["reddit-post", "tiktok-follow"],
+  "why_best": "It instantly legitimizes a focal point by pairing an authentic statement with real-time social proof.",
+  "why_bad": "Forcing a heavy full-screen transition here would disrupt the lightweight, fast-paced rhythm expected from a modern application.",
+  "trap": "Revealing the community feedback tallies before the main statement is readable destroys the intended visual hierarchy."
+}

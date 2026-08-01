@@ -1,0 +1,8 @@
+{
+  "best": ["matrix-decode"],
+  "acceptable": [],
+  "bad": ["line-by-line-slide", "short-slide-right"],
+  "why_best": "This visual beat anchors complex analytical feeds by simulating the exact moment raw telemetry converts into verified, human-readable structure.",
+  "why_bad": "A standard opacity fade would feel static and fail to communicate the impression of active, background data processing.",
+  "trap": "The primary risk is letting the preliminary glyph noise feel too arcade-like rather than looking like dense, enterprise-grade system diagnostics."
+}

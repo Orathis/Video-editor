@@ -1,0 +1,8 @@
+{
+  "best": ["shared-axis-z"],
+  "acceptable": [],
+  "bad": ["shared-axis-y", "scale-down-fade"],
+  "why_best": "Pushing straight into the content hierarchy preserves visual orientation while clearly signaling a move into deeper detail.",
+  "why_bad": "A lateral sliding sweep would imply equal lateral navigation between peers rather than diving down into a subordinate detail view.",
+  "trap": "Scaling the outgoing content without maintaining proper focal center alignment will make the view feel like it is warping sideways rather than plunging directly forward."
+}

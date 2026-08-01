@@ -1,0 +1,8 @@
+{
+  "best": ["z-punch-through"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "focus-rack"],
+  "why_best": "Moving the camera physically into spatial depth creates an irresistible forward momentum that immediately grabs mobile scrollers and pulls them into the pitch.",
+  "why_bad": "A flat two-dimensional scale or simple crossfade feels like a generic presentation slide, instantly breaking the illusion of an immersive environment.",
+  "trap": "Waiting for the outer frame to completely vanish before introducing the incoming layer leaves a beat of dead space that kills the energy."
+}

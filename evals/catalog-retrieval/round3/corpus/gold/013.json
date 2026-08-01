@@ -1,0 +1,8 @@
+{
+  "best": ["aspect-ratio"],
+  "acceptable": [],
+  "bad": ["native-select", "label"],
+  "why_best": "Locking down explicit proportional boundaries gives incoming media an elevated, gallery-like poise while preserving layout stability.",
+  "why_bad": "Allowing media to scale without fixed bounds causes jarring layout recalculations and destroys visual discipline.",
+  "trap": "A near-miss will render the technical corner indicator with too much contrast, turning a subtle context note into unwanted visual noise."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-light-plus"],
+  "acceptable": [],
+  "bad": ["code-snippet-light-2026", "code-snippet-solarized-light"],
+  "why_best": "A clean, familiar editing space immediately grounds the product in a developer's daily workflow while highlighting effortless content creation.",
+  "why_bad": "Abstract graphics or overly cinematic transitions would obscure the actual user experience and alienate technical decision-makers.",
+  "trap": "Falling into a static screenshot aesthetic by losing the subtle, living rhythm of active text entry."
+}

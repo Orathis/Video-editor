@@ -1,0 +1,8 @@
+{
+  "best": ["drift-hold"],
+  "acceptable": [],
+  "bad": ["aurora-drift", "push-in"],
+  "why_best": "This subtle, continuous presence keeps high-priority metrics feeling active and trustworthy during idle monitoring without pulling visual focus away from surrounding alerts.",
+  "why_bad": "A sudden pop or hard entrance transition would break the calm analytical state required for dashboard observation by falsely signaling an immediate critical status change.",
+  "trap": "A common mistake is allowing the movement to abruptly snap or hitch at the cycle seam, exposing the technical repetition to the user."
+}

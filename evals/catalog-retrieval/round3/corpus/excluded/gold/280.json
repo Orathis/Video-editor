@@ -1,0 +1,8 @@
+{
+  "best": ["resizable"],
+  "acceptable": [],
+  "bad": ["chat-to-preview-layout", "separator"],
+  "why_best": "This movement demonstrates spatial adaptability in a professional environment, showing how the interface surrenders screen real estate to where the user's attention is actually focused.",
+  "why_bad": "Abruptly snapping between preset layouts or hiding panels entirely destroys the visual continuity of the user's mental map.",
+  "trap": "A subtle mistake would be letting both sides shift independently instead of maintaining a rigid, shared boundary during the spatial rebalancing."
+}

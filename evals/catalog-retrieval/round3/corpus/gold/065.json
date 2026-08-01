@@ -1,0 +1,8 @@
+{
+  "best": ["checkout-flow"],
+  "acceptable": [],
+  "bad": ["signup-flow", "ai-prompt-flow"],
+  "why_best": "A structured, top-to-bottom editorial cadence ensures the broadcast audience absorbs the pricing breakdown before reaching the final commitment callout.",
+  "why_bad": "A chaotic or flashy reveal would erode viewer trust and make the financial information feel deceptive or hard to scan.",
+  "trap": "Failing to align the visual weight of the final total with the primary action button will cause the viewer's eye to linger endlessly in the mid-section."
+}

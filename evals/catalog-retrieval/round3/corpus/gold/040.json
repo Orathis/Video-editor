@@ -1,0 +1,8 @@
+{
+  "best": ["caption-camera-follow"],
+  "acceptable": [],
+  "bad": ["kinetic-type-swap", "glyph-ring-assemble"],
+  "why_best": "Expanding the viewport continuously preserves visual balance while emphasizing the cumulative impact of the full message.",
+  "why_bad": "A locked frame would force earlier phrases to dissolve or crowd out fresh delivery, severing the narrative continuity.",
+  "trap": "Scaling down the newest entry rather than pulling back the overall observer position will destroy the uniform weight of each incoming element."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-visual-studio-dark"],
+  "acceptable": [],
+  "bad": ["code-snippet-visual-studio-light", "code-snippet-dark-plus"],
+  "why_best": "Anchoring the visual in a dark, professional editing canvas establishes immediate authenticity for a developer-centric audience.",
+  "why_bad": "Opting for high-level motion graphics or stylized pseudo-interfaces would shatter credibility and feel artificial.",
+  "trap": "Rushing the rhythm of the text appearance makes the generation look fake rather than human or intelligent."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["instagram-follow"],
+  "acceptable": [],
+  "bad": ["tiktok-follow", "x-post"],
+  "why_best": "It visually models the user conversion journey in real time, giving viewers an irresistible psychological cue to mirror the interaction on their own devices.",
+  "why_bad": "A static visual graphic or a full-screen intrusion would derail the main content's pace without offering the viewer the satisfying visual feedback of a completed interaction.",
+  "trap": "Rushing the post-interaction confirmation state, which robs the audience of seeing the visual reward of the completed action."
+}

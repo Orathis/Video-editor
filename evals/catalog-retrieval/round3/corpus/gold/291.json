@@ -1,0 +1,8 @@
+{
+  "best": ["scroll-camera-story"],
+  "acceptable": [],
+  "bad": ["parallax-device-dive", "ui-focus-zoom"],
+  "why_best": "This sweeping vertical progression creates an engaging sense of scale and momentum while ensuring the audience arrives naturally at the ultimate value proposition.",
+  "why_bad": "A static step-by-step presentation or flat abrupt cuts would destroy the feeling of a unified spatial journey and fail to build anticipation.",
+  "trap": "A near-miss will snap the final position into place too abruptly rather than letting the motion smoothly dissipate into an anchored hold."
+}

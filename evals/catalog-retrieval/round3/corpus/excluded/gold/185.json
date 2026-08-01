@@ -1,0 +1,8 @@
+{
+  "best": ["label"],
+  "acceptable": [],
+  "bad": ["registry", "native-select"],
+  "why_best": "A restrained visual anchor establishes immediate visual clarity and broadcast authority without competing with dynamic on-screen graphics.",
+  "why_bad": "An overly kinetic or flash-heavy entry would undermine the serious tone required for news reporting and clutter the visual hierarchy.",
+  "trap": "A careless execution will make the minor status tag visually louder than the actual primary descriptor text."
+}

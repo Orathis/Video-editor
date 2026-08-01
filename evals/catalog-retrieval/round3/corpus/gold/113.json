@@ -1,0 +1,8 @@
+{
+  "best": ["constellation-hub"],
+  "acceptable": [],
+  "bad": ["locked-nucleus-orbit", "svg-stroke-trace"],
+  "why_best": "It turns a complex topic into an organized, step-by-step editorial graphic that grounds every new idea back to the core premise.",
+  "why_bad": "Displaying all peripheral points simultaneously creates visual noise that disrupts the news narrative's pacing.",
+  "trap": "Cutting the scene too quickly after the final link connects, denying the audience time to parse the completed map."
+}

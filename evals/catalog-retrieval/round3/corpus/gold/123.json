@@ -1,0 +1,8 @@
+{
+  "best": ["data-chart"],
+  "acceptable": [],
+  "bad": ["animated-bar-chart", "animated-line-chart"],
+  "why_best": "Constructing the story piece by piece holds high-value viewer attention and transforms dense metrics into an irresistible narrative.",
+  "why_bad": "Flashing every element onto the screen at once destroys the dramatic hierarchy and leads to immediate visual overload.",
+  "trap": "Rushing the final numerical callouts will make the core business thesis illegible before the sequence concludes."
+}

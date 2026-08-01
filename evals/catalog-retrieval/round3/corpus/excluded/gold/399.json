@@ -1,0 +1,8 @@
+{
+  "best": ["variable-axis-type"],
+  "acceptable": [],
+  "bad": ["variable-font-flex", "beat-accent"],
+  "why_best": "It creates an undeniable focal point by reshaping the character proportions while keeping the overall layout completely anchored.",
+  "why_bad": "Bouncing or scaling the text block across the screen creates unwanted kinetic noise that distracts from the message's core meaning.",
+  "trap": "A near-miss will let the tracking or baseline shift during the swell, breaking the grounded stability of the lockup."
+}

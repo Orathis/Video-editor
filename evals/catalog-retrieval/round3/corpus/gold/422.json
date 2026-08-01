@@ -1,0 +1,8 @@
+{
+  "best": ["yt-lower-third"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "It establishes presenter authority and a clear engagement prompt while keeping the core analytical canvas entirely readable.",
+  "why_bad": "A centered modal or aggressive pop-up would shatter the dashboard flow and feel overly invasive to a professional audience.",
+  "trap": "A near-miss will obscure critical bottom-edge metrics by failing to precisely calibrate the badge's vertical clearance."
+}

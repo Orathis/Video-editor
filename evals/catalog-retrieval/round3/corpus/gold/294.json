@@ -1,0 +1,8 @@
+{
+  "best": ["segmentation-flood"],
+  "acceptable": [],
+  "bad": ["telemetry-hud", "particle-image-reveal"],
+  "why_best": "This approach instantly conveys high-throughput neural classification without obscuring the underlying interface.",
+  "why_bad": "A soft cross-dissolve or organic fade would feel like decorative media playback rather than live, deterministic hardware processing.",
+  "trap": "A weak execution would let the visual overlays drift or fade smoothly instead of snapping precisely along quantized visual boundaries."
+}

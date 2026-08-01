@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-shatter"],
+  "acceptable": [],
+  "bad": ["vfx-portal", "vfx-magnetic"],
+  "why_best": "This violent structural rupture provides an unmistakable visual punctuation mark that instantly resets user focus during major state changes.",
+  "why_bad": "A subtle fade or standard slide transition would entirely fail to deliver the dramatic shock needed for this turning point.",
+  "trap": "Allowing the flying micro-elements to linger too long will clutter the viewport and obscure the incoming visual hierarchy."
+}

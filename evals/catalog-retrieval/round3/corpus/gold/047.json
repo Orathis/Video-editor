@@ -1,0 +1,8 @@
+{
+  "best": ["caption-kinetic-slam"],
+  "acceptable": [],
+  "bad": ["caption-pill-karaoke", "caption-gradient-fill"],
+  "why_best": "Isolating core concepts into forceful, rhythmic visual impacts gives editorial statements maximum gravitas and guarantees zero viewer distraction.",
+  "why_bad": "A gentle, continuous scroll or subtle fade would completely undermine the urgent, high-stakes nature of a critical broadcast update.",
+  "trap": "A near-miss will allow the visual weight to drift or linger between arrivals, diluting the sharp, authoritative cadence required for high-impact coverage."
+}

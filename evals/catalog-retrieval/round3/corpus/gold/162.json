@@ -1,0 +1,8 @@
+{
+  "best": ["halftone-dissolve"],
+  "acceptable": [],
+  "bad": ["transitions-dissolve", "transitions-radial"],
+  "why_best": "This approach gives a sharp, technical tool a tactile editorial identity while ensuring the incoming context arrives with visual impact.",
+  "why_bad": "A generic linear wipe or standard opacity blend would render the shift forgettable and muddy the sharp UI hierarchy.",
+  "trap": "A near-miss will let the aperture edges blur into a soft gradient instead of holding crisp, punchy vector bounds as they expand."
+}

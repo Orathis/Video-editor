@@ -1,0 +1,8 @@
+{
+  "best": ["hover-card"],
+  "acceptable": [],
+  "bad": ["tooltip", "popover"],
+  "why_best": "This subtle, location-anchored overlay introduces essential context exactly where focus rests, preserving scene flow while elevating visual sophistication.",
+  "why_bad": "An abrupt modal takeover or centered pop-up breaks the visual narrative and demands unnecessary user effort.",
+  "trap": "A near-miss will expand the surface from the geometric center of the frame rather than blooming directly from the precise point of engagement."
+}

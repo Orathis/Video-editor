@@ -1,0 +1,8 @@
+{
+  "best": ["count-up"],
+  "acceptable": [],
+  "bad": ["chart-story", "icon-morph-beat"],
+  "why_best": "Demonstrating the progression in real time builds narrative anticipation and makes the terminal metric feel earned rather than arbitrary.",
+  "why_bad": "Flashing the final figure onto the screen instantly flatlines the energy and robs the milestone of its emotional impact.",
+  "trap": "Overcooking the final landing emphasis will make the interface feel like a loud game show rather than a crisp product experience."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["toggle-group"],
+  "acceptable": [],
+  "bad": ["toggle", "radio"],
+  "why_best": "It conveys seamless state changes through fluid physical feedback, giving the interface a premium, tangible feel.",
+  "why_bad": "A sharp instant swap or simple crossfade eliminates the tactile continuity needed to signal physical depth and spatial orientation.",
+  "trap": "A flawed execution will fail to visually sink the active highlight into its track, making it feel like a flat float rather than a fitted mechanical piece."
+}

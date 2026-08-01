@@ -1,0 +1,8 @@
+{
+  "best": ["cinematic-zoom"],
+  "acceptable": [],
+  "bad": ["light-leak", "transitions-scale"],
+  "why_best": "This aggressive thrust creates an immediate sense of scale and momentum essential for capturing fast-moving digital audiences.",
+  "why_bad": "A standard linear cross-fade would drain all energy out of the promotional beat and invite viewers to keep scrolling.",
+  "trap": "A near-miss will smear the central subject so heavily during the peak motion that the visual focus becomes entirely unreadable before arrival."
+}

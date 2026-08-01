@@ -1,0 +1,8 @@
+{
+  "best": ["command-menu"],
+  "acceptable": [],
+  "bad": ["dropdown-menu", "context-menu"],
+  "why_best": "This crisp spotlight aligns perfectly with the high-velocity, keyboard-first workflow expected in technical environments.",
+  "why_bad": "A playful or playful spatial transition would disrupt the sense of immediate, professional responsiveness.",
+  "trap": "A misdirected attempt will soften the activation marker's color shift, making the interface feel sluggish instead of instantaneous."
+}

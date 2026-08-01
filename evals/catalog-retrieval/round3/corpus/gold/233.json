@@ -1,0 +1,8 @@
+{
+  "best": ["news-ticker"],
+  "acceptable": [],
+  "bad": ["lower-third-bild", "yt-lower-third"],
+  "why_best": "This approach anchors vertical video with high-density visual context while preserving the primary upper region for live focal content.",
+  "why_bad": "A full-screen graphic transition or static text block would destroy the sense of live immediacy and choke the narrow vertical framing.",
+  "trap": "Expanding the element's vertical footprint too far upward will intrude upon the subject's framing, turning a sleek info band into a suffocating visual obstruction."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["ui-3d-reveal"],
+  "acceptable": [],
+  "bad": ["transitions-radial", "transitions-3d"],
+  "why_best": "Introducing spatial depth transforms flat digital layouts into a high-impact, tangible showcase fit for modern product marketing.",
+  "why_bad": "A standard flat slide or fade makes the visual feel ordinary and fails to capture high-production excitement in a promo context.",
+  "trap": "A weak execution over-rotates the visual plane, turning an elegant structural introduction into an unreadable distortion."
+}

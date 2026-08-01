@@ -1,0 +1,8 @@
+{
+  "best": ["rubber-band-bumper"],
+  "acceptable": [],
+  "bad": ["type-match-cut", "page-slide"],
+  "why_best": "It creates a visceral build-up of kinetic energy that turns a routine spatial shift into an engaging narrative event.",
+  "why_bad": "A standard linear wipe or fade would rob the presentation of physical weight, leaving the visual transition feeling flat and uninspired.",
+  "trap": "Releasing the build-up too quickly without holding at peak strain, which destroys the illusion of stored physical force."
+}

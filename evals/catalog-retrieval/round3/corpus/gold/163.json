@@ -1,0 +1,8 @@
+{
+  "best": ["headline-slam"],
+  "acceptable": [],
+  "bad": ["char-slam-explode", "titlecard-calm"],
+  "why_best": "It creates an uncompromising moment of high narrative stakes that forces high-volume vertical scrollers to freeze and read.",
+  "why_bad": "A soft fade or slow float would fail to establish the critical hierarchy needed for an urgent consumer feed moment.",
+  "trap": "Allowing the visual recoil after the impact to last too long will make the moment feel elastic and cheap rather than dense and decisive."
+}

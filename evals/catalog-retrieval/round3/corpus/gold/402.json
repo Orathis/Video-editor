@@ -1,0 +1,8 @@
+{
+  "best": ["velocity-throw-snap"],
+  "acceptable": [],
+  "bad": ["swipe-rail", "screen-flow-carousel"],
+  "why_best": "It communicates high-capacity throughput in an instant while using momentum recovery to anchor absolute focus on the spotlighted element.",
+  "why_bad": "A standard linear glide or uniform transition would make the interface feel passive and uninspired for a technical audience.",
+  "trap": "Omitting the subtle physical rebound during the final lock makes the resting state feel rigid rather than responsive."
+}

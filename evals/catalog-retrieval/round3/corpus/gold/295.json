@@ -1,0 +1,8 @@
+{
+  "best": ["select"],
+  "acceptable": [],
+  "bad": ["combobox", "dropdown-menu"],
+  "why_best": "Expanding spatial awareness directly from the user's point of contact keeps the mental model grounded and effortless.",
+  "why_bad": "Detaching the list from its activation source or sliding it in from a distant screen edge shatters the user's focus and feels disjointed.",
+  "trap": "A subtle misstep would be failing to anchor the expansion origin to the exact point of trigger, causing the list to pop from a static center instead."
+}

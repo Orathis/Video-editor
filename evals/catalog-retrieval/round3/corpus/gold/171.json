@@ -1,0 +1,8 @@
+{
+  "best": ["ink-bleed-reveal"],
+  "acceptable": [],
+  "bad": ["particle-image-reveal", "ascii-trail-reveal"],
+  "why_best": "This approach builds anticipation through organic tension before rewarding the viewer with absolute geometric clarity.",
+  "why_bad": "A standard digital wipe or mechanical slide would feel sterile and cheap, failing to establish the premium tactile weight this campaign demands.",
+  "trap": "A weak execution will make the paper background feel detached rather than allowing the final mark to look naturally soaked into the physical fiber."
+}

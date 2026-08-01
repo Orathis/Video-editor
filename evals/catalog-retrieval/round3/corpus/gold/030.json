@@ -1,0 +1,8 @@
+{
+  "best": ["breadcrumb"],
+  "acceptable": [],
+  "bad": ["pagination", "cursor"],
+  "why_best": "This restrained sequence provides instant situational awareness within a dense interface without disrupting the user's focus on primary tasks.",
+  "why_bad": "A flashy, theatrical entrance would distract from the technical workspace and feel overly dramatic for a basic structural indicator.",
+  "trap": "Making the intermediate hierarchy steps too prominent or bright will destroy the focus on the current workspace destination."
+}

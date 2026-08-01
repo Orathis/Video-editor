@@ -1,0 +1,8 @@
+{
+  "best": ["dialog"],
+  "acceptable": [],
+  "bad": ["alert-dialog", "sheet"],
+  "why_best": "This approach establishes an immediate visual hierarchy for critical choices while keeping the user grounded in the broader context.",
+  "why_bad": "Sweeping full-screen transitions or abrupt pop-in cuts would feel overly aggressive and break the refined, premium cadence of the piece.",
+  "trap": "A near-miss will desynchronize the darkening of the surrounding environment from the steady arrival of the primary container."
+}

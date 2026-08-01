@@ -1,0 +1,8 @@
+{
+  "best": ["star-rating-fill"],
+  "acceptable": [],
+  "bad": ["conic-progress-ring", "logo-wall"],
+  "why_best": "It transforms a numeric review into an immediately recognizable proof point that reinforces editorial credibility.",
+  "why_bad": "Fading in individual icons one by one creates disjointed visual noise rather than illustrating a unified, continuous scale of judgment.",
+  "trap": "A poor implementation will snap the trailing symbol to a full shape instead of cleanly truncating it to honor the precise decimal value."
+}

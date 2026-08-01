@@ -1,0 +1,8 @@
+{
+  "best": ["code-particle-assemble"],
+  "acceptable": [],
+  "bad": ["code-3d-extrude", "code-snippet-flight"],
+  "why_best": "It mirrors the feeling of creation within a modern software workspace, visually transforming chaotic ideas into crisp, operational structure.",
+  "why_bad": "A simple standard fade or static line-by-line slide would feel banal, completely stripping the sequence of its sense of underlying power and technical energy.",
+  "trap": "A near-miss will let the arriving embers remain slightly blurred or misaligned at the end, ruining the critical contrast between wild dynamic motion and crisp, legible typography."
+}

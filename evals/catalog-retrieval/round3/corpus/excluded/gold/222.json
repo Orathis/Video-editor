@@ -1,0 +1,8 @@
+{
+  "best": ["micro-scale-fade"],
+  "acceptable": [],
+  "bad": ["icon-swap", "scale-down-fade"],
+  "why_best": "This subtle spatial breathing provides clear feedback without disrupting the dense visual hierarchy required by technical users.",
+  "why_bad": "A dramatic entrance or sweeping layout shift would shatter the user's focus and make the interface feel sluggish and overly theatrical.",
+  "trap": "The biggest pitfall is letting the visual transformation linger long enough to feel like a decorative event rather than an instant, functional confirmation."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["input-feedback"],
+  "acceptable": [],
+  "bad": ["page-slide", "text-state-swap"],
+  "why_best": "It creates an intuitive physical dialog that keeps the user locked into a fluid entry flow without forcing them to parse explicit error text.",
+  "why_bad": "Relying on a static warning banner or slow color change delays operator comprehension and grinds high-speed interaction to a halt.",
+  "trap": "Over-dramatizing the visual refusal response, which turns a helpful physical nudge into a jarring distraction."
+}

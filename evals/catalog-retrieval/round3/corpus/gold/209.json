@@ -1,0 +1,8 @@
+{
+  "best": ["lt-side-rule"],
+  "acceptable": [],
+  "bad": ["lt-accent-underline", "lt-color-block"],
+  "why_best": "It grounds speaker credentials with news-room precision while maintaining total visual transparency over live action.",
+  "why_bad": "Heavy opaque backing banners would choke a tight square composition and distract from the subject's face.",
+  "trap": "Failing to maintain distinct typographic weight between the primary identity line and the secondary designation line."
+}

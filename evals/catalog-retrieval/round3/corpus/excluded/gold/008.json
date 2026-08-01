@@ -1,0 +1,8 @@
+{
+  "best": ["app-showcase"],
+  "acceptable": [],
+  "bad": ["browser-flow", "ecosystem-constellation"],
+  "why_best": "This multi-layered spatial arrangement maximizes vertical real estate while effortlessly signaling a feature-rich platform ecosystem in a single glance.",
+  "why_bad": "A flat lateral transition would mask the breadth of the architecture and feel like an ordinary consumer presentation rather than an enterprise-grade visual.",
+  "trap": "A common mistake is allowing peripheral surfaces to overlap the primary hero focal point, obscuring critical telemetry during the turn."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["ascii-trail-reveal"],
+  "acceptable": [],
+  "bad": ["svg-stroke-trace", "particle-image-reveal"],
+  "why_best": "It elegantly translates raw terminal noise into structured visual clarity while maintaining a developer-centric aesthetic.",
+  "why_bad": "A simple geometric wipe or curtain slide would feel like a generic video editor template rather than a dynamic system process.",
+  "trap": "Clearing the background symbols too fast erases the tactile sense of a moving path carving through dense data."
+}

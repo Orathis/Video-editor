@@ -1,0 +1,8 @@
+{
+  "best": ["ecosystem-constellation"],
+  "acceptable": [],
+  "bad": ["browser-flow", "landing-code-showcase"],
+  "why_best": "This movement visually proves that distinct tools are far more valuable when brought together under one seamless roof.",
+  "why_bad": "Displaying these elements in a static side-by-side array flattens their relationship and loses the magic of active synergy.",
+  "trap": "Drawing the interconnecting pathways before the elements establish their rhythmic alignment creates visual noise instead of a clear moment of discovery."
+}

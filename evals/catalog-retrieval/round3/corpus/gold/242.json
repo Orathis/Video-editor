@@ -1,0 +1,8 @@
+{
+  "best": ["orbit-ring-camera"],
+  "acceptable": [],
+  "bad": ["persona-card-fan", "plan-room-audit"],
+  "why_best": "This motion bridges granular real-time tracking with high-level architectural context, giving operators an instant sense of structural hierarchy without breaking continuity.",
+  "why_bad": "A flat, two-dimensional scaling transition or abrupt jump cut would strip away the physical sense of depth, flattening a complex operational network into static graphics.",
+  "trap": "A near-miss will let contextual text labels flip alignment or tilt with the background geometry as the view expands, ruining screen legibility."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-context-menu"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-widgets"],
+  "why_best": "This treatment preserves full backdrop luminosity while creating a sleek, instantly readable zone for high-density information.",
+  "why_bad": "Dropping a hard-edged opaque box onto the scene destroys the atmospheric depth and feels overly crude for a modern broadcast.",
+  "trap": "A near-miss will over-saturate the overlay's diffusion, turning the dynamic refractor into a flat, lifeless slab."
+}

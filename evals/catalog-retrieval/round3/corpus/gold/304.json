@@ -1,0 +1,8 @@
+{
+  "best": ["short-slide-down"],
+  "acceptable": [],
+  "bad": ["short-slide-right", "staggered-fade-up"],
+  "why_best": "This approach gives incoming text a grounded sense of priority while seamlessly updating the layout hierarchy without breaking viewer focus.",
+  "why_bad": "Fading or popping elements directly in place would lack tactile weight and fail to communicate how fresh information redefines the spatial arrangement.",
+  "trap": "A common mistake would be letting the displaced content bounce or overshoot excessively, destroying the refined, locked finish required for a professional workspace interface."
+}

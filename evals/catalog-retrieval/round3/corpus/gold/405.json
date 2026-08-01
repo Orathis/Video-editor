@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-liquid-background"],
+  "acceptable": [],
+  "bad": ["vfx-liquid-glass", "vfx-shatter"],
+  "why_best": "It injects a rich, sensory elegance into the composition while maintaining pristine visual priority for the foreground narrative.",
+  "why_bad": "A flat canvas or rigid geometric motion would strip away the emotional depth and make the brand experience feel sterile.",
+  "trap": "Overpowering the foreground copy with harsh contrast or violent distortion, turning an elegant ambient foundation into distracting visual noise."
+}

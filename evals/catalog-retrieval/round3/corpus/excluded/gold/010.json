@@ -1,0 +1,8 @@
+{
+  "best": ["arc-motion-path"],
+  "acceptable": [],
+  "bad": ["bezier-callout-route", "orbital-feature-path"],
+  "why_best": "This dynamic visual journey creates a seamless narrative link across the widescreen format while keeping the label continuously aligned with its momentum.",
+  "why_bad": "A stiff linear slide would feel sterile and abrupt, severing the natural flow between visual focal points.",
+  "trap": "A near-miss will successfully follow the curved flightline but keep the subject locked at a fixed angle, breaking the illusion of organic navigation."
+}

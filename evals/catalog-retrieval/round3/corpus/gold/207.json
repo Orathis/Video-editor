@@ -1,0 +1,8 @@
+{
+  "best": ["lt-kicker-name"],
+  "acceptable": [],
+  "bad": ["lt-mask-reveal", "lt-dark-card"],
+  "why_best": "This visual hierarchy grounds the subject's identity seamlessly over live action without needing a heavy background container.",
+  "why_bad": "Overlaying a massive full-bleed background shape would choke the camera composition and sever the viewer's connection with the speaker.",
+  "trap": "A careless execution will reveal the supporting descriptor at the exact same scale and timing as the primary name, destroying the visual hierarchy."
+}

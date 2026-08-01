@@ -1,0 +1,8 @@
+{
+  "best": ["x-followers-overview"],
+  "acceptable": [],
+  "bad": ["x-follow-card", "x-post"],
+  "why_best": "Anchoring the primary metric before surfacing sub-demographics creates a clear narrative arc of scale followed by specificity.",
+  "why_bad": "Flooding the display with every metric simultaneously destroys visual priority and turns an impressive milestone into chaotic noise.",
+  "trap": "Staggering the secondary tags too slowly makes the interface feel sluggish rather than high-performance."
+}

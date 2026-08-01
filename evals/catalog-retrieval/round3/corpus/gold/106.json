@@ -1,0 +1,8 @@
+{
+  "best": ["collapsible"],
+  "acceptable": [],
+  "bad": ["carousel", "accordion"],
+  "why_best": "This spatial reveal protects visual hierarchy in dense creative software by revealing complex options only on demand without altering the global context.",
+  "why_bad": "An abrupt instantly-appearing popover would obscure surrounding visual references and break the user's flow within a precision-driven layout.",
+  "trap": "A near-miss will cause neighboring layout elements to jump or clip awkwardly during the height change instead of flowing smoothly alongside the container."
+}

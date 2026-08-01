@@ -1,0 +1,8 @@
+{
+  "best": ["notification-pileup"],
+  "acceptable": [],
+  "bad": ["gesture-tap", "overwhelm-surround"],
+  "why_best": "Compounding the visual weight with increasing speed instantly creates the intended psychological friction.",
+  "why_bad": "A gentle, predictable fade-in would make the incoming data feel organized and tranquil rather than overwhelming.",
+  "trap": "Allowing uniform timing between arrivals breaks the sensation of a runaway exponential wave."
+}

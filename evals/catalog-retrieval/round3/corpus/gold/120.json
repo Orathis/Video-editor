@@ -1,0 +1,8 @@
+{
+  "best": ["cursor-glyph-trail"],
+  "acceptable": [],
+  "bad": ["oversized-cursor", "offset-path-traveler"],
+  "why_best": "Leaving lingering typographical markers turns transient motion into an inspectable, quantified path ideal for a developer visualizer.",
+  "why_bad": "A continuous fluid ribbon or generic motion blur would hide discrete speed shifts and feel like a decorative effect rather than an analytical tool.",
+  "trap": "Softening the character dissolution into a muddy fade instead of keeping the individual dynamic markers razor-sharp until they vanish."
+}

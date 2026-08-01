@@ -1,0 +1,8 @@
+{
+  "best": ["rgb-glitch-text"],
+  "acceptable": [],
+  "bad": ["typewriter", "strikethrough-replace"],
+  "why_best": "It introduces an energetic, high-stakes broadcast texture without sacrificing the headline's editorial clarity over the eight-second run.",
+  "why_bad": "A smooth, gradual fade or standard wipe would feel overly polished and fail to convey the sense of an urgent, unscripted news flash.",
+  "trap": "The fatal mistake is letting the color separation linger too long, turning a sharp editorial accent into an illegible visual mess."
+}

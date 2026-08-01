@@ -1,0 +1,8 @@
+{
+  "best": ["frosted-glass-wipe"],
+  "acceptable": [],
+  "bad": ["code-diff-wipe", "directional-wipe"],
+  "why_best": "This tactile diffusion gives the user a moment to reset their focus while maintaining spatial continuity across complex dashboard context switches.",
+  "why_bad": "A standard hard cut or simple opacity cross-fade feels abrasive and destroys the illusion of physical depth in the workspace.",
+  "trap": "A near-miss will treat the diffusing veil as a static flat filter overlay rather than an active, light-refracting layer traveling cleanly across the depth plane."
+}

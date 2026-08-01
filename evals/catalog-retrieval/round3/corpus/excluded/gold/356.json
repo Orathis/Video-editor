@@ -1,0 +1,8 @@
+{
+  "best": ["texture-mask-text"],
+  "acceptable": [],
+  "bad": ["shimmer-sweep", "svg-mask-reveal"],
+  "why_best": "Embedding organic tactile visual depth directly within typography elevates high-level metrics without requiring extra screen real estate.",
+  "why_bad": "Relying on standard drop shadows or bright neon glows would cheapen the dashboard's professional aesthetic and distract from core data points.",
+  "trap": "A misstep would be exaggerating the visual contrast inside the characters to the point where letter shapes lose their legibility."
+}

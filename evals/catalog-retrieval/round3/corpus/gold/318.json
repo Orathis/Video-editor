@@ -1,0 +1,8 @@
+{
+  "best": ["spatial-push"],
+  "acceptable": [],
+  "bad": ["directional-wipe", "zoom-through-transition"],
+  "why_best": "It visually preserves context and hierarchy by placing past state in dimensional alignment behind the present.",
+  "why_bad": "A simple lateral swipe or crossfade strips away the structural depth, making modal elevation changes feel flat and detached.",
+  "trap": "A near-miss will treat the departing plane as purely decorative, obscuring its content too quickly or scaling it down until it loses legibility before the transition finishes."
+}

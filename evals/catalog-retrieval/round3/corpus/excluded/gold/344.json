@@ -1,0 +1,8 @@
+{
+  "best": ["table"],
+  "acceptable": [],
+  "bad": ["input-otp", "accordion"],
+  "why_best": "This approach builds immediate confidence by presenting dense operational metrics in a calm, instantly readable hierarchy.",
+  "why_bad": "A dramatic or playful entrance would shatter the authoritative tone required for critical enterprise monitoring.",
+  "trap": "Over-animating individual data cells will distract from the cohesive structure and make the system feel unstable."
+}

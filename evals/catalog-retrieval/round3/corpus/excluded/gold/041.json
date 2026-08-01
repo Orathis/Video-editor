@@ -1,0 +1,8 @@
+{
+  "best": ["caption-clip-wipe"],
+  "acceptable": [],
+  "bad": ["caption-pill-karaoke", "caption-matrix-decode"],
+  "why_best": "This progressive directional unveil reinforces newsroom authority by matching text delivery directly to the rhythm of live speech.",
+  "why_bad": "A full-block fade or sudden pop-in loses the dynamic cadence of breaking news, making the graphic feel static and disconnected from the voiceover.",
+  "trap": "A near-miss will feather or blur the leading edge of the transition, rendering the text unfocused rather than razor-sharp as it appears."
+}

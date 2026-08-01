@@ -1,0 +1,8 @@
+{
+  "best": ["telemetry-hud"],
+  "acceptable": [],
+  "bad": ["segmentation-flood", "offset-path-traveler"],
+  "why_best": "This clinical overlay grounds the segment in verified data, lending instant editorial credibility without obscuring the focus.",
+  "why_bad": "Dynamic camera movement or kinetic subject shifting would undermine the calm, objective authority required for an analytical broadcast segment.",
+  "trap": "A near-miss would allow the central asset to drift or scale, destroying the rigid anchor required for an authentic diagnostic readout."
+}

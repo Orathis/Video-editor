@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-man-page"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-grass", "code-snippet-apple-terminal-basic"],
+  "why_best": "Grounding the feature inside a classic documentation console builds instant trust with technical buyers who value function over flashy visual effects.",
+  "why_bad": "A sleek, glassmorphic UI overlay with heavy drop shadows would alienate senior developers by feeling like a marketing gimmick rather than a genuine working environment.",
+  "trap": "Rushing the text reveal into an instantaneous block paste destroys the organic cadence that signals a live, thoughtful command line session."
+}

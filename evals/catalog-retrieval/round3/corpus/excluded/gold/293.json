@@ -1,0 +1,8 @@
+{
+  "best": ["sdf-iris"],
+  "acceptable": [],
+  "bad": ["glitch", "transitions-radial"],
+  "why_best": "This center-out expansion establishes immediate editorial priority on a single key figure before opening into the complete visual story.",
+  "why_bad": "A lateral directional slide would feel like a mundane slide deck change, stripping away the investigative spotlight effect required for this moment.",
+  "trap": "A near-miss would expand the visual boundary too rapidly, sacrificing the dramatic build-up of focus before the scene clears."
+}

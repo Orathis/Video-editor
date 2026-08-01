@@ -1,0 +1,8 @@
+{
+  "best": ["testimonial-proof-card"],
+  "acceptable": [],
+  "bad": ["testimonial-card", "line-swap"],
+  "why_best": "Controlled delivery ensures the viewer actually reads and absorbs the endorsement, guiding their focus directly to the central proof point.",
+  "why_bad": "Dumping all visual elements on screen simultaneously forces the eye to wander and dilutes the credibility of the message.",
+  "trap": "Firing the accent stroke while the main statement is still revealing spoils the visual cadence and pulls focus too early."
+}

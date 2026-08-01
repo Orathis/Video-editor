@@ -1,0 +1,8 @@
+{
+  "best": ["morph-swap"],
+  "acceptable": [],
+  "bad": ["iris-reveal", "before-after-wipe"],
+  "why_best": "Evolving the narrative anchor directly in place maintains maximum engagement while emphasizing that the new state is the direct evolution of the old.",
+  "why_bad": "Sweeping elements offscreen or cutting away forces the audience to re-orient their focus, breaking the conceptual link between cause and effect.",
+  "trap": "A subtle misalignment between the focal centers of the outgoing and incoming content will create a jarring jump that destroys the illusion of continuous identity."
+}

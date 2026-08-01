@@ -1,0 +1,8 @@
+{
+  "best": ["button"],
+  "acceptable": [],
+  "bad": ["toggle", "button-group"],
+  "why_best": "This visual sequence anchors the mobile narrative by clearly bridging viewer intent with positive visual confirmation.",
+  "why_bad": "A static jump directly to final confirmation strips away the satisfying sensation of cause and effect required for high-conversion marketing.",
+  "trap": "Failing to give the mid-sequence processing phase enough presence, making the visual resolution feel abrupt rather than earned."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-dark-2026"],
+  "acceptable": [],
+  "bad": ["code-snippet-dark-plus", "code-snippet-dark-modern"],
+  "why_best": "It grounds the product's technical sophistication in a familiar, modern creation ritual that instantly resonates with builders.",
+  "why_bad": "A static screen capture or abstract graphic would lose the tactile energy of live development and fail to build authenticity.",
+  "trap": "A subtle misstep would be over-scaling the surrounding chrome, which steals focus from the active text unfolding at the center."
+}

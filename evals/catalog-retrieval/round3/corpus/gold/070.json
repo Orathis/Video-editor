@@ -1,0 +1,8 @@
+{
+  "best": ["code-3d-extrude"],
+  "acceptable": [],
+  "bad": ["code-particle-assemble", "code-scroll"],
+  "why_best": "Giving tactile weight and depth to logic panels signals high visual fidelity, transforming abstract engineering into a crafted hero artifact.",
+  "why_bad": "A simple flat fade or standard slide treats technical material like generic body text, stripping away the visual prestige required for a showcase moment.",
+  "trap": "Leaving the focal surface at an awkward oblique angle rather than resolving into a perfectly flush view will destroy readability and compromise utility."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["dropdown-menu-item"],
+  "acceptable": [],
+  "bad": ["command-menu-item", "dropdown-menu"],
+  "why_best": "This sequence demonstrates the exact rhythm of user confidence, validating every micro-interaction with crisp, immediate feedback.",
+  "why_bad": "Over-animating these state changes with bouncy transforms or playful slides would destroy the impression of a high-speed professional tool.",
+  "trap": "A near-miss will make the locked state look like a broken rendering error rather than an intentionally subdued, unavailable control."
+}

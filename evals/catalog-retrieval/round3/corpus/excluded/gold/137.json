@@ -1,0 +1,8 @@
+{
+  "best": ["dynamic-grid"],
+  "acceptable": [],
+  "bad": ["number-wheel", "decline-chart"],
+  "why_best": "It grounds live quantitative commentary in an active, structured framework that reinforces technical credibility.",
+  "why_bad": "Using a static backdrop makes the broadcast feel dead on arrival, whereas chaotic illustrative movement distracts from the editorial focus.",
+  "trap": "Over-indexing on high-contrast intersections that draw the viewer's eye away from essential foreground lower-thirds."
+}

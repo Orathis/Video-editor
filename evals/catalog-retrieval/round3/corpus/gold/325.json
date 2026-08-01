@@ -1,0 +1,8 @@
+{
+  "best": ["spring-stack-shuffle"],
+  "acceptable": [],
+  "bad": ["notification-stack", "offset-path-traveler"],
+  "why_best": "Preserving existing kinetic energy across rapid inputs visually demonstrates an ultra-responsive, modern application surface.",
+  "why_bad": "Blocking or resetting motion mid-sequence makes the system feel rigid, programmatic, and unresponsive to user pace.",
+  "trap": "A near-miss will discard the active velocity during mid-flight redirection, resulting in a subtle but jarring snap in trajectory."
+}

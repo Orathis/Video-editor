@@ -1,0 +1,8 @@
+{
+  "best": ["perspective-marquee"],
+  "acceptable": [],
+  "bad": ["slot-machine-roll", "shared-axis-z"],
+  "why_best": "Anchoring the text along a receding spatial axis establishes a sleek, monumental sense of scale that turns routine social proof into a high-end visual anchor.",
+  "why_bad": "A standard horizontal side-scroll across a flat plane would feel like a cheap website banner, stripping away the cinematic grandeur this moment demands.",
+  "trap": "Reducing the receding foreshortening too much will collapse the spatial illusion into an awkward, squished tilt rather than an infinite horizon."
+}

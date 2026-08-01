@@ -1,0 +1,8 @@
+{
+  "best": ["stitched-text-draw"],
+  "acceptable": [],
+  "bad": ["scramble-reveal", "variable-font-flex"],
+  "why_best": "Building the letterforms through tactile, path-based construction instantly establishes an aura of artisanal heritage and human touch.",
+  "why_bad": "A standard geometric fade or slick digital wipe would render the message sterile and corporate, erasing any sense of material craft.",
+  "trap": "Over-smoothing the emerging strokes so they look like a continuous ribbon rather than discrete, tensioned punctures with physical character."
+}

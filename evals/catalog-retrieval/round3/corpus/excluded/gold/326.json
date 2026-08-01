@@ -1,0 +1,8 @@
+{
+  "best": ["stagger-cascade"],
+  "acceptable": [],
+  "bad": ["svg-mask-reveal", "logo-wall"],
+  "why_best": "This disciplined, rhythmic build instantly communicates scale and systematic structure without flooding the user's focus all at once.",
+  "why_bad": "Dropping every module onto the screen in a single abrupt instant creates visual noise and feels like a crude rendering artifact.",
+  "trap": "A near-miss will introduce irregular spacing between panel arrivals, breaking the perception of automated precision."
+}

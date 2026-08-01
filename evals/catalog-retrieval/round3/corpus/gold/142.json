@@ -1,0 +1,8 @@
+{
+  "best": ["fade-through"],
+  "acceptable": [],
+  "bad": ["zoom-through-transition", "frosted-glass-wipe"],
+  "why_best": "This approach provides a necessary mental palate cleanser that cleanly divides two major thematic states without jarring the user.",
+  "why_bad": "An immediate spatial slide or kinetic sweep would force a chaotic collision between two unrelated creative environments.",
+  "trap": "A subtle mistake would be introducing the incoming canvas before the outgoing scene has fully resolved into the neutral resting state."
+}

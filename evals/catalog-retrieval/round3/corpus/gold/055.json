@@ -1,0 +1,8 @@
+{
+  "best": ["caption-weight-shift"],
+  "acceptable": [],
+  "bad": ["caption-editorial-emphasis", "caption-kinetic-slam"],
+  "why_best": "This subtle hierarchy adjustment keeps the viewer oriented within multi-line copy without demanding disruptive layout recalculations or screen real estate changes.",
+  "why_bad": "Introducing high-contrast color pops or abrupt positional jumps would shatter the minimalist consumer app aesthetic and distract from the primary content.",
+  "trap": "A flawed execution will allow character widths to expand during the focus change, causing annoying text reflows across neighboring lines."
+}

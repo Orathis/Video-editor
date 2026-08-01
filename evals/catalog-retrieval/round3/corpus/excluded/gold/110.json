@@ -1,0 +1,8 @@
+{
+  "best": ["comparison-split"],
+  "acceptable": [],
+  "bad": ["before-after-wipe", "focus-swap"],
+  "why_best": "This spatial contrast lets stakeholders immediately measure the value of the platform upgrade without losing track of where they started.",
+  "why_bad": "Hard cuts or sequential cross-fades would force the viewer to rely on memory rather than perceiving the direct visual impact side by side.",
+  "trap": "Sweeping entirely off the screen instead of settling on a dual view destroys the immediate visual context."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["checkbox"],
+  "acceptable": [],
+  "bad": ["toggle", "radio"],
+  "why_best": "This crisp, responsive shift gives professional creators instant physical confidence that a setting is locked in without interrupting their workflow.",
+  "why_bad": "A slow, decorative fade or lingering animation would drag down the rhythm of the interface and make the tool feel sluggish.",
+  "trap": "Over-exaggerating the spring back, which turns a subtle utility micro-interaction into an annoying, toy-like distraction."
+}

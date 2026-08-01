@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-solarized-light"],
+  "acceptable": [],
+  "bad": ["code-snippet-light-plus", "code-snippet-light-2026"],
+  "why_best": "This presentation anchors complex technical claims in tangible visual proof while maintaining a clear, highly legible broadcast aesthetic.",
+  "why_bad": "A jarring, high-contrast dark aesthetic or aggressive dynamic zoom would transform authentic software craftsmanship into a generic sci-fi visual distraction.",
+  "trap": "A near-miss will rush the rhythm of the text generation, sacrificing the visual cadence of deliberate human authorship."
+}

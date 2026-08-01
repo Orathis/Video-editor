@@ -1,0 +1,8 @@
+{
+  "best": ["lt-mask-reveal"],
+  "acceptable": [],
+  "bad": ["lt-kicker-name", "lt-accent-underline"],
+  "why_best": "It establishes bold editorial presence instantly while keeping full visual focus on the speaker's expressions in a vertical frame.",
+  "why_bad": "Slapping a full solid banner across a portrait frame smothers the speaker's framing and feels like outdated television news rather than a sleek contemporary stream.",
+  "trap": "A near-miss will time the secondary descriptor to appear simultaneously with the primary title, ruining the hierarchical rhythm of the introduction."
+}

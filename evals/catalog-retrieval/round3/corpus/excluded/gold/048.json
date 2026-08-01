@@ -1,0 +1,8 @@
+{
+  "best": ["caption-matrix-decode"],
+  "acceptable": [],
+  "bad": ["caption-gradient-fill", "caption-clip-wipe"],
+  "why_best": "This approach instantly communicates a sense of live computational processing while maintaining strict functional clarity once resolved.",
+  "why_bad": "A standard clean fade or instantaneous pop would feel sterile and completely miss the raw, low-level system diagnostic theme.",
+  "trap": "A slight misstep would keep the final legibility phase too short, sacrificing utility for visual flair."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["us-map"],
+  "acceptable": [],
+  "bad": ["spain-map", "us-map-bubble"],
+  "why_best": "Unfolding regional data sequentially transforms a dense geographic metric into an easily digestible spatial narrative.",
+  "why_bad": "Dropping every territorial boundary onto the screen simultaneously creates immediate cognitive overload and obscures spatial trends.",
+  "trap": "A near-miss will pop the numeric callouts into place before their corresponding landmasses have fully rendered their data fills."
+}

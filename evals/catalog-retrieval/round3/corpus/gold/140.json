@@ -1,0 +1,8 @@
+{
+  "best": ["empty"],
+  "acceptable": [],
+  "bad": ["alert", "tooltip"],
+  "why_best": "This approach builds confidence by turning a lack of data into a clean, purposeful staging area for future work.",
+  "why_bad": "A chaotic or overly flashy entrance would panic the user into thinking an error occurred rather than a normal fresh start.",
+  "trap": "A near-miss will make the primary interactive element feel too aggressive or visually dominant, ruining the serene, balanced composition of the open layout."
+}

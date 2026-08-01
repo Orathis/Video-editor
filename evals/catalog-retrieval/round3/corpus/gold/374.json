@@ -1,0 +1,8 @@
+{
+  "best": ["tracing-beam"],
+  "acceptable": [],
+  "bad": ["offset-path-traveler", "sticky-mock-swap"],
+  "why_best": "A continuous visual connector naturally maps out sequential dependencies across complex analytical tools while keeping the visual frame completely stable.",
+  "why_bad": "Revealing all modules simultaneously or jumping between them abruptly overwhelms the viewer and fails to convey workflow progression.",
+  "trap": "A careless execution will illuminate a visual section slightly before the leading light actually arrives, destroying the cause-and-effect physical metaphor."
+}

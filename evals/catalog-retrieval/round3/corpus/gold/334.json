@@ -1,0 +1,8 @@
+{
+  "best": ["stop-motion-cadence"],
+  "acceptable": [],
+  "bad": ["typed-prompt", "code-terminal-run"],
+  "why_best": "It grounds abstract graphics in an authentic physical realm, giving the visual showcase an immediate, human-crafted charm.",
+  "why_bad": "A completely uninterrupted, hyper-smooth vector movement would strip away the physical soul and leave the scene feeling clinical.",
+  "trap": "Allowing the subtle edge instability to freeze entirely during motionless holds, breaking the visual illusion of physical capture."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["state-chip-rail"],
+  "acceptable": [],
+  "bad": ["z-punch-through", "pill-row-collapse"],
+  "why_best": "This progression provides immediate visual clarity for multi-step developer operations by transforming abstract process lifecycle events into a clear linear narrative.",
+  "why_bad": "An abrupt full-screen layout swap or chaotic dashboard refresh would sever the viewer's mental model of continuity during critical execution transitions.",
+  "trap": "Failing to subtly desaturate previously completed milestones will cause them to compete visually with the currently active focal point."
+}

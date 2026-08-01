@@ -1,0 +1,8 @@
+{
+  "best": ["text-state-swap"],
+  "acceptable": [],
+  "bad": ["icon-swap", "page-slide"],
+  "why_best": "This subtle vertical handover smoothly communicates an updated metric while maintaining the operator's exact point of focus.",
+  "why_bad": "Swinging the content in horizontally or snapping it instantly creates visual friction that disrupts rapid code auditing.",
+  "trap": "Failing to completely clear the lingering ghost of the prior reading before the new one settles makes the interface feel laggy and unreadable."
+}

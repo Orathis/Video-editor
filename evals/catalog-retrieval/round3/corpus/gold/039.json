@@ -1,0 +1,8 @@
+{
+  "best": ["caption-blend-difference"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-basic", "code-snippet-apple-terminal-grass"],
+  "why_best": "This technique preserves perfect typographic readability while giving the graphic a sleek, contemporary edge.",
+  "why_bad": "Placing a static dark container behind the text would obscure the kinetic artwork and deaden the energy of the square frame.",
+  "trap": "A sloppy execution will shift the color of the entire word at once instead of carving the division directly through the individual character strokes."
+}

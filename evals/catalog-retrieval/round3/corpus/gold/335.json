@@ -1,0 +1,8 @@
+{
+  "best": ["store-badge-lockup"],
+  "acceptable": [],
+  "bad": ["cta-lockup", "cta-close"],
+  "why_best": "Presenting both primary mobile platforms with identical visual priority reassures every viewer that the experience is immediately accessible on their phone.",
+  "why_bad": "Directing viewers to a generic website URL creates unnecessary friction and ignores the mobile-first nature of the campaign's closing prompt.",
+  "trap": "A near-miss will allow one platform button to visually overpower the other, compromising the neutral authority of the broadcast aesthetic."
+}

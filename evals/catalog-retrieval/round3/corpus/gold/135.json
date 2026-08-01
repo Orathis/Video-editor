@@ -1,0 +1,8 @@
+{
+  "best": ["dropdown-menu"],
+  "acceptable": [],
+  "bad": ["context-menu", "command-menu"],
+  "why_best": "Deploying choices directly from the touchpoint preserves spatial logic while a high-contrast accent provides unambiguous feedback.",
+  "why_bad": "Fading in a detached floating card disconnects the visual response from the user's focus point.",
+  "trap": "A poor execution will expand the choice box symmetrically from its own center rather than anchored to its launch origin."
+}

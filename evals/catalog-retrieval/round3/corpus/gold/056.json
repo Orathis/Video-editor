@@ -1,0 +1,8 @@
+{
+  "best": ["card"],
+  "acceptable": [],
+  "bad": ["hover-card", "badge"],
+  "why_best": "A restrained, luminous entrance respects the dense information environment while providing a clear hierarchy for immediate decision-making.",
+  "why_bad": "An aggressive, playful pop-in or jarring shadow shift would disrupt the professional composure required for critical monitoring workflows.",
+  "trap": "A near-miss would blur the temporal staging between the container's appearance and the highlighting of its call-to-action, causing visual clutter."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["alert"],
+  "acceptable": [],
+  "bad": ["tooltip", "popover"],
+  "why_best": "This approach instantly shifts viewer priority to critical system feedback while preserving the disciplined tone of a professional utility.",
+  "why_bad": "A playful or overly elastic entrance would undermine the gravity of a system-level warning and break visual trust.",
+  "trap": "A near-miss will linger too long on decorative reveal transitions rather than prioritizing immediate, legibility-first layout settling."
+}

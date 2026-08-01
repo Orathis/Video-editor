@@ -1,0 +1,8 @@
+{
+  "best": ["menubar"],
+  "acceptable": [],
+  "bad": ["pagination", "radio"],
+  "why_best": "This restrained tactile response grounds the editing environment without pulling focus away from the main canvas.",
+  "why_bad": "Flamboyant, bouncy UI transitions would shatter the professional tone required for high-focus software tools.",
+  "trap": "Over-animating the state transition indicator, making it feel sluggish rather than snappy and firm."
+}

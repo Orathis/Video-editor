@@ -1,0 +1,8 @@
+{
+  "best": ["locked-nucleus-orbit"],
+  "acceptable": [],
+  "bad": ["scramble-reveal", "constellation-hub"],
+  "why_best": "This visual approach establishes clear visual hierarchy and structural intent, making complex multi-part dynamic marks feel grounded and deliberate.",
+  "why_bad": "A linear wipe or simple directional fade would collapse the sense of spatial interplay and make the system feel flat rather than interconnected.",
+  "trap": "Failing to keep the core element completely steady while the outer pieces settle will destroy the illusion of an immovable anchor."
+}

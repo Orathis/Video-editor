@@ -1,0 +1,8 @@
+{
+  "best": ["physical-exit"],
+  "acceptable": [],
+  "bad": ["swipe-rail", "drift-hold"],
+  "why_best": "Grounding the dismissal in tangible inertia gives the creator an unmistakable, satisfying sense of completion for that task.",
+  "why_bad": "A gentle opacity fade would make the element feel ghostly and hesitant, weakening the definitive visual reset needed in a creative suite.",
+  "trap": "Allowing the element to shrink or stall before reaching the margin rather than letting its trajectory carry fully past the viewport border."
+}

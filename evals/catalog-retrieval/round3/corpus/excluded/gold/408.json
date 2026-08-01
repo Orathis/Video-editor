@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-portal"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-magnetic"],
+  "why_best": "This approach immediately signals a bridge between high-level application logic and raw GPU rendering without disrupting the user's technical workflow.",
+  "why_bad": "A standard cross-dissolve or slide transition would flatten the illusion of architectural depth, treating complex visual engines as mere static images.",
+  "trap": "A near-miss will blur the perimeter edge, losing the distinct boundary where the flat control surface ends and the deep rendering canvas begins."
+}

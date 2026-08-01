@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-widgets"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-context-menu"],
+  "why_best": "Layering crisp data surfaces over a subtle, fluid depth field visually communicates dynamic enterprise health while keeping key metrics effortlessly legible.",
+  "why_bad": "A flat, static grid layout would make the data feel cold, overwhelming, and disconnected from the live, evolving nature of the business.",
+  "trap": "Over-blurring or over-saturating the backdrop will wash out the numerical hierarchy and compromise executive readability."
+}

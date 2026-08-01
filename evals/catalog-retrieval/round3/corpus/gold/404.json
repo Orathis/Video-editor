@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-iphone-device"],
+  "acceptable": [],
+  "bad": ["macos-tahoe-liquid-glass", "ios26-liquid-glass"],
+  "why_best": "Grounding dynamic digital metrics within tangible, high-end physical form factors instantly elevates brand prestige for an executive audience.",
+  "why_bad": "A flat 2D screencast would look utilitarian and lack the cinematic weight needed to impress enterprise decision-makers.",
+  "trap": "Over-indexing on dramatic hardware angles at the expense of keeping the active screen data readable will dilute the core message."
+}

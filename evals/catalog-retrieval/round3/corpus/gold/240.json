@@ -1,0 +1,8 @@
+{
+  "best": ["offset-path-traveler"],
+  "acceptable": [],
+  "bad": ["tracing-beam", "icon-morph-beat"],
+  "why_best": "Guiding the viewer's eye along an organic trajectory with directional alignment visually communicates structured system flow without relying on static diagrams.",
+  "why_bad": "A linear point-to-point snap or rigid axis-aligned jump would feel disjointed and fail to convey the continuous nature of the data pipeline.",
+  "trap": "A common mistake is letting the focal element maintain a fixed orientation rather than continuously steering into the curve of the journey."
+}

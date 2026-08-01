@@ -1,0 +1,8 @@
+{
+  "best": ["code-scroll"],
+  "acceptable": [],
+  "bad": ["code-highlight", "code-3d-extrude"],
+  "why_best": "It preserves environmental context while seamlessly directing viewer attention to the crucial focal point.",
+  "why_bad": "Instantly cutting to an isolated snippet strips away the authentic atmosphere and disorients the audience.",
+  "trap": "Failing to sufficiently dim the peripheral lines will leave the audience hunting for where to look."
+}

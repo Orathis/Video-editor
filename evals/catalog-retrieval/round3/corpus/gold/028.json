@@ -1,0 +1,8 @@
+{
+  "best": ["blur-out-up"],
+  "acceptable": [],
+  "bad": ["masked-slide-reveal", "staggered-fade-up"],
+  "why_best": "This vertical dissipation gives editorial copy a delicate, thoughtful sign-off that feels weightless and unhurried.",
+  "why_bad": "Dropping the text downward or snapping it off abruptly would create unwanted gravity and interrupt the serene pacing.",
+  "trap": "A near-miss will lose sharpness too early while the typography is still static, rendering the message illegible before it even begins to lift."
+}

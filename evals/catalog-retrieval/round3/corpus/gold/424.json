@@ -1,0 +1,8 @@
+{
+  "best": ["zoom-through-transition"],
+  "acceptable": [],
+  "bad": ["frosted-glass-wipe", "code-diff-wipe"],
+  "why_best": "Plunging straight into the focal subject creates an unbroken spatial logic that keeps the creator engaged without jarring context switches.",
+  "why_bad": "A standard lateral wipe or cross-dissolve flattens the depth, breaking the illusion that the creator is diving into the asset itself.",
+  "trap": "A near-miss will overshoot the focal alignment mid-dive, causing the viewport to drift off-center before the target content fully takes over."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["scroll-feed"],
+  "acceptable": [],
+  "bad": ["swipe-rail", "headline-slam"],
+  "why_best": "It instantly captures the high-energy, overwhelming nature of scanning endless media streams in modern creative platforms.",
+  "why_bad": "A slow, methodical slide would kill the sense of creative urgency and make the workspace feel static or abandoned.",
+  "trap": "A near-miss would make the vertical movement so jarringly fast that the placeholder shapes blur into an unreadable visual smear rather than distinct rhythmic beats."
+}

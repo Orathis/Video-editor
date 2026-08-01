@@ -1,0 +1,8 @@
+{
+  "best": ["bezier-callout-route"],
+  "acceptable": [],
+  "bad": ["arc-motion-path", "orbital-feature-path"],
+  "why_best": "This dynamic curved trajectory keeps the eye engaged while highlighting multi-point relationships across the display.",
+  "why_bad": "A rigid, straight-line translation would feel clinical and obscure the underlying map detail.",
+  "trap": "A near-miss will let the floating labels drift independently instead of feeling tightly tethered to their underlying markers as they traverse the scene."
+}

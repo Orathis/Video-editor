@@ -1,0 +1,8 @@
+{
+  "best": ["field"],
+  "acceptable": [],
+  "bad": ["radio", "checkbox"],
+  "why_best": "This approach cleanly stacks critical visual metadata while maintaining the rapid comprehension required in vertical broadcast graphics.",
+  "why_bad": "A simultaneous or uncontrolled appearance of all elements would undermine the editorial authority and clutter the vertical frame.",
+  "trap": "A subtle misstep would be letting the lower explanatory caption anchor itself before the main entry container establishes its boundary."
+}

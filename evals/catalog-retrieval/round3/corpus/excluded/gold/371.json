@@ -1,0 +1,8 @@
+{
+  "best": ["tooltip"],
+  "acceptable": [],
+  "bad": ["hover-card", "popover"],
+  "why_best": "Erupting smoothly from the exact point of reference creates an instant cognitive link between the primary news graphic and its underlying data.",
+  "why_bad": "A generic centered modal or static sidebar would sever the spatial relationship and force unnecessary eye movement across the broadcast display.",
+  "trap": "A near-miss will mistakenly scale the card from its geometric center rather than expanding outward from the precise trigger coordinates."
+}

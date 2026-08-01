@@ -1,0 +1,8 @@
+{
+  "best": ["motion-blur"],
+  "acceptable": [],
+  "bad": ["morph-text", "ui-3d-reveal"],
+  "why_best": "Dynamic directional softness creates an immediate sense of live urgency while keeping static text sharp and authoritative.",
+  "why_bad": "A uniform static haze or sharp rigid shift feels either broken or unnaturally clinical for high-speed broadcast graphics.",
+  "trap": "Allowing the visual streak to linger after the graphic stops completely undermines the precision required for news presentation."
+}

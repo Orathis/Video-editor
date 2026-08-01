@@ -1,0 +1,8 @@
+{
+  "best": ["carousel"],
+  "acceptable": [],
+  "bad": ["collapsible", "radio"],
+  "why_best": "This controlled progression maintains editorial urgency while giving equal visual weight to each distinct piece of reporting.",
+  "why_bad": "A spatial cross-dissolve or free-form drift would undermine the authoritative tone, making critical news updates feel passive or ambiguous.",
+  "trap": "A near-miss will overshoot the focal alignment during the lateral arrival, causing the text headers to stutter rather than lock crisply into place."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["lt-clean-bar"],
+  "acceptable": [],
+  "bad": ["lt-soft-pill", "lt-dark-card"],
+  "why_best": "A swift, edge-aligned graphic entry establishes credibility immediately without obscuring critical screen real estate.",
+  "why_bad": "Playful, expressive bounces or decorative flourishes would clash with the stark, utility-first atmosphere of a technical demonstration.",
+  "trap": "A weak implementation will linger past its visual utility, cluttering the compact square frame and distracting from the code on screen."
+}

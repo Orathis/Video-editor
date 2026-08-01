@@ -1,0 +1,8 @@
+{
+  "best": ["avatar-group-hover"],
+  "acceptable": [],
+  "bad": ["text-state-swap", "tilt-card"],
+  "why_best": "It establishes clear spatial hierarchy across a multi-figure broadcast graphic while preserving the visual unity of the panel.",
+  "why_bad": "Isolating a single panel member with a rigid, disconnected popup breaks the shared context and feels disjointed in a live news layout.",
+  "trap": "A near-miss would treat each neighboring element with uniform displacement rather than a decaying ripple, losing the fluid cohesion of the group."
+}

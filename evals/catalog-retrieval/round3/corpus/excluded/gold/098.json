@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-light-modern"],
+  "acceptable": [],
+  "bad": ["code-snippet-light-plus", "code-snippet-light-2026"],
+  "why_best": "Presenting live text creation inside a familiar, polished workspace instantly anchors our narrative in authentic technical execution.",
+  "why_bad": "Relying on abstract floating graphics or generic static screenshots would feel disconnected and fail to convey the dynamic rhythm of actual engineering.",
+  "trap": "A common misstep is overwhelming the viewer with chaotic scrolling or unstyled plain text instead of maintaining a clean, structured visual hierarchy."
+}

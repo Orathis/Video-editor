@@ -1,0 +1,8 @@
+{
+  "best": ["spring-pop"],
+  "acceptable": [],
+  "bad": ["beat-accent", "spring-scale-in"],
+  "why_best": "This snappy arrival instantly captures scrolling eyes while maintaining a sleek, modern editorial feel suited for vertical news feeds.",
+  "why_bad": "A gradual dissolve or linear entry would feel lifeless and fail to signal breaking urgency in a fast-paced news context.",
+  "trap": "Exaggerating the rebound effect will make the graphic feel like a playful child's app rather than an authoritative news update."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["testimonial-card"],
+  "acceptable": [],
+  "bad": ["testimonial-proof-card", "avatar-cloud"],
+  "why_best": "Grounding human validation directly within the interface builds quiet authority without interrupting the user's focus.",
+  "why_bad": "Slamming the entire message onto the screen at once creates visual clutter and reads like an obnoxious ad banner rather than a genuine endorsement.",
+  "trap": "Pacing the text disclosure too quickly, forcing the viewer to rush through the message rather than letting the sentiment land naturally."
+}

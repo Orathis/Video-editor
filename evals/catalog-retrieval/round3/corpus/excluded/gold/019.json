@@ -1,0 +1,8 @@
+{
+  "best": ["badge"],
+  "acceptable": [],
+  "bad": ["toast", "spinner"],
+  "why_best": "It grounds state changes in a controlled, elegant pulse that feels deeply integrated into the interface hierarchy.",
+  "why_bad": "A loud, exaggerated entrance would breach the refined dark aesthetic and draw unnecessary attention away from primary content.",
+  "trap": "Over-animating the color swap will make a routine feedback marker feel sluggish and unpolished."
+}

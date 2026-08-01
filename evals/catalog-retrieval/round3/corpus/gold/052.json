@@ -1,0 +1,8 @@
+{
+  "best": ["caption-particle-burst"],
+  "acceptable": [],
+  "bad": ["caption-neon-glow", "caption-editorial-emphasis"],
+  "why_best": "It transforms routine text reading into an energetic spectacle that rewards audience attention precisely when important ideas drop.",
+  "why_bad": "A subtle fade or simple color shift would feel too sterile and fail to match the high-octane enthusiasm required for a creative tool showcase.",
+  "trap": "A weak implementation will obscure the lettering with persistent visual noise instead of firing a fast, punchy accent that clears immediately."
+}

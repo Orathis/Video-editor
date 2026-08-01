@@ -1,0 +1,8 @@
+{
+  "best": ["registry"],
+  "acceptable": [],
+  "bad": ["remocn-ui", "label"],
+  "why_best": "This approach reinforces the disciplined authority and high-information density demanded by elite administrative software.",
+  "why_bad": "A playful or floaty presentation style would undermine the perceived stability and technical reliability of the underlying infrastructure.",
+  "trap": "Introducing subtle bounce or playful physics dynamics on the list elements, which instantly breaks the serious tone required for control planes."
+}

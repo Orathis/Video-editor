@@ -1,0 +1,8 @@
+{
+  "best": ["cursor"],
+  "acceptable": [],
+  "bad": ["input-group", "button-group"],
+  "why_best": "This approach builds narrative clarity by explicitly bridging the gap between user intention and interface responsiveness in a high-density broadcast format.",
+  "why_bad": "An instantaneous cut or static highlight deprives the viewer of spatial orientation, making the sequence feel disjointed and unguided.",
+  "trap": "A near-miss will obscure the contextual label before the viewer has finished digesting the focal action, breaking the editorial pacing."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["caption-highlight"],
+  "acceptable": [],
+  "bad": ["caption-pill-karaoke", "caption-clip-wipe"],
+  "why_best": "It anchors the viewer's attention directly to the spoken rhythm, maximizing narrative retention on high-velocity platforms.",
+  "why_bad": "A static overlay or passive text treatment fails to create the urgent cadence needed to hold modern, fast-scrolling audiences.",
+  "trap": "A near-miss will let the color fill spill past the text boundary or linger too long after the spoken audio moves forward."
+}

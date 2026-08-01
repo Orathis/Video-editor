@@ -1,0 +1,8 @@
+{
+  "best": ["light-leak"],
+  "acceptable": [],
+  "bad": ["cinematic-zoom", "glitch"],
+  "why_best": "It imbues the app experience with a warm, analog soul that makes content state changes feel like cinematic memory shifts rather than rigid interface redraws.",
+  "why_bad": "A hard wipe or geometric slide would feel cold, sterile, and jarringly utilitarian in a context meant to evoke rich visual storytelling.",
+  "trap": "Making the warmth feel like an artificial hard-edged graphic overlay instead of a soft, atmospheric bleed that truly integrates with the underlying imagery."
+}

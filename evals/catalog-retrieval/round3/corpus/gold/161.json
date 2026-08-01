@@ -1,0 +1,8 @@
+{
+  "best": ["grid-pixelate-wipe"],
+  "acceptable": [],
+  "bad": ["transitions-blur", "transitions-dissolve"],
+  "why_best": "The structured mosaic breakdown provides a crisp, high-tech rhythm that fits the authoritative newsroom register while comfortably filling the extended eight-second pause.",
+  "why_bad": "A simple organic blur or cinematic cross-dissolve would feel too soft and narrative-driven, undermining the sharp, data-dense tone of a modern news broadcast.",
+  "trap": "A near-miss would clear all the digital blocks simultaneously, turning a dynamic broadcast transition into a flat, artificial graphic overlay."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["panel-reveal"],
+  "acceptable": [],
+  "bad": ["skeleton-reveal", "card-resize"],
+  "why_best": "This approach provides a polished, structured stage for secondary broadcast graphics, granting vital news details room to breathe and establish immediate credibility.",
+  "why_bad": "Instantly popping text onto the screen without preparing its visual container creates a visually harsh, unrefined look that shatters newsroom authority.",
+  "trap": "A near-miss will leak internal text and graphics onto the frame before the underlying canvas has fully established its boundaries."
+}

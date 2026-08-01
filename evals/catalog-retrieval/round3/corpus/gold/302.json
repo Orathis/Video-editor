@@ -1,0 +1,8 @@
+{
+  "best": ["sheet"],
+  "acceptable": [],
+  "bad": ["dialog", "alert-dialog"],
+  "why_best": "It introduces deep auxiliary controls cleanly while preserving the operator's situational awareness of the main dashboard.",
+  "why_bad": "Abruptly jumping to a center pop-up or a total screen replacement disrupts visual continuity and severs the workflow.",
+  "trap": "A near-miss will allow the incoming canvas to overshoot or bounce upon settling, making a serious enterprise utility feel trivial."
+}

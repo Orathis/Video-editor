@@ -1,0 +1,8 @@
+{
+  "best": ["native-select"],
+  "acceptable": [],
+  "bad": ["button-group", "select-item"],
+  "why_best": "This concise focus moment establishes technical rigor and visual authority while respecting the minimalism of essential controls.",
+  "why_bad": "Over-dramatizing the visual shift with elaborate menu expansions or cinematic swoops would undercut the quiet efficiency of a foundational interface element.",
+  "trap": "A near-miss will fail to punch the activation outline sharply enough, making the shift in state feel accidental rather than deliberate."
+}

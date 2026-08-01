@@ -1,0 +1,8 @@
+{
+  "best": ["kbd"],
+  "acceptable": [],
+  "bad": ["spatial-push", "spring-scale-in"],
+  "why_best": "Emphasizing weight and physical resistance anchors abstract commands into a deeply satisfying, intuitive human interaction.",
+  "why_bad": "Relying on a glowing flash or floaty scale effect destroys the illusion of hardware precision and feels cheap.",
+  "trap": "Allowing the downward plunge to linger too long, which turns a crisp tactile engagement into a squishy bounce."
+}

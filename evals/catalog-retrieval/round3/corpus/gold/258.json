@@ -1,0 +1,8 @@
+{
+  "best": ["per-word-crossfade"],
+  "acceptable": [],
+  "bad": ["shared-axis-y", "staggered-fade-up"],
+  "why_best": "This approach gives the technical statement a steady, authoritative tempo that respects the audience's reading speed.",
+  "why_bad": "A sudden full-frame appearance or high-energy bounce would feel chaotic and distract from the clarity required in a developer showcase.",
+  "trap": "A common mistake is letting adjacent text elements pop in too aggressively or feel desynchronized, breaking the serene cadence."
+}

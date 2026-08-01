@@ -1,0 +1,8 @@
+{
+  "best": ["code-accordion"],
+  "acceptable": [],
+  "bad": ["glass-code-block", "terminal-simulator"],
+  "why_best": "Progressive disclosure maintains structural context while preventing cognitive overload when analyzing dense logic.",
+  "why_bad": "Hard cuts or total screen transitions break the viewer's spatial mental model of how the entire system connects.",
+  "trap": "A near-miss will let inactive elements collapse so harshly that the vertical layout jumps jarringly, pulling eyes away from the emphasized text."
+}

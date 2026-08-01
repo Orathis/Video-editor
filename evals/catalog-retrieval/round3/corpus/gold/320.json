@@ -1,0 +1,8 @@
+{
+  "best": ["split-tilt-cards"],
+  "acceptable": [],
+  "bad": ["before-after-wipe", "pull-back-reveal"],
+  "why_best": "Symmetrical entry paired with a slight angled depth immediately establishes an unbiased direct comparison between two competing data sets.",
+  "why_bad": "A sequential vertical stack would imply hierarchy or chronological order where neutral side-by-side analysis is required.",
+  "trap": "A near-miss would sync the resting floating rhythm, making the paired panels feel rigid and frozen rather than independently live."
+}

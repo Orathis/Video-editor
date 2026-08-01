@@ -1,0 +1,8 @@
+{
+  "best": ["ios26-liquid-glass"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-context-menu"],
+  "why_best": "It seamlessly merges interface design with physical light simulation, turning routine system alerts into a tactile visual showcase.",
+  "why_bad": "Using a standard two-dimensional sliding graphic would flatten the scene and undermine the impression of depth and custom material properties.",
+  "trap": "Missing the subtle optical refraction beneath the falling alert cards, leaving them looking like transparent stickers instead of volumetric fluid surfaces."
+}

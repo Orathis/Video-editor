@@ -1,0 +1,8 @@
+{
+  "best": ["micro-transitions"],
+  "acceptable": [],
+  "bad": ["badge-pop", "input-feedback"],
+  "why_best": "Chaining these subtle state changes establishes a polished, high-end consumer feel that reassures users without slowing down their journey.",
+  "why_bad": "Relying on abrupt cuts or instant state swaps strips away the app's premium craft and makes touch feedback feel harsh and mechanical.",
+  "trap": "Over-exaggerating the settling physics will make the interface feel sluggish and toy-like rather than crisp and intentional."
+}

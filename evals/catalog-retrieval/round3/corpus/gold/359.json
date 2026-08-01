@@ -1,0 +1,8 @@
+{
+  "best": ["three-orbiting-cards"],
+  "acceptable": [],
+  "bad": ["three-particle-ribbon", "shader-displacement-panel"],
+  "why_best": "This multi-faceted visual cycle provides equal editorial weight to three distinct pillars of the narrative while maintaining a dynamic rhythm suitable for a square social news feed.",
+  "why_bad": "A linear flat slide transition would sever the visual relationship between the three facts and make the broadcast feel like a static slideshow.",
+  "trap": "Failing to keep the primary information plane aligned with the viewer during its feature window, causing text to drift out of focus before it can be comfortably read."
+}

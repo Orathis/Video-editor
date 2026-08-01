@@ -1,0 +1,8 @@
+{
+  "best": ["code-typing"],
+  "acceptable": [],
+  "bad": ["ui-3d-reveal", "caret"],
+  "why_best": "It directly speaks to a technical audience by simulating the authentic rhythm of software being authored in real time.",
+  "why_bad": "Instantly dumping a completed block of text onto the screen removes all visual narrative and misses the opportunity to build anticipation.",
+  "trap": "Allowing the active leading-edge marker to desynchronize or drift away from the freshest piece of text as new elements render."
+}

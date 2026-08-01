@@ -1,0 +1,8 @@
+{
+  "best": ["echo-trail"],
+  "acceptable": [],
+  "bad": ["cursor-glyph-trail", "offset-path-traveler"],
+  "why_best": "This approach renders the element's entire kinetic history legible at a glance without obscuring the final layout structure.",
+  "why_bad": "A standard point-to-point glide provides no context on velocity or path curvature, forcing the audience to rewatch the clip to evaluate motion.",
+  "trap": "Failing to cleanly fold the lingering historical silhouettes back into the main shape at the moment of impact, leaving visual clutter."
+}

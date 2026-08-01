@@ -1,0 +1,8 @@
+{
+  "best": ["vfx-text-cursor"],
+  "acceptable": [],
+  "bad": ["vfx-shatter", "vfx-portal"],
+  "why_best": "It commands absolute focus by framing character emergence as a real-time, high-priority system transmission.",
+  "why_bad": "A generic fade or hard cut lacks the kinetic precision needed to signal a crucial platform update.",
+  "trap": "Over-cranking the edge dispersion to the point where the text loses crisp corporate legibility."
+}

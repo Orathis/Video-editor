@@ -1,0 +1,8 @@
+{
+  "best": ["iris-reveal"],
+  "acceptable": [],
+  "bad": ["before-after-wipe", "whip-pan-cut"],
+  "why_best": "Expanding outward from a singular point of interest instantly anchors editorial focus on a square layout while signaling a decisive shift in news state.",
+  "why_bad": "A uniform side-to-side sweep feels generic and dilutes the punch of a targeted graphic breakthrough.",
+  "trap": "Failing to desaturate the outgoing shot as the fresh frame takes over destroys the editorial hierarchy between past context and current news."
+}

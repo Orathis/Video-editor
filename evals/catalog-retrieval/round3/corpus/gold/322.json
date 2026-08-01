@@ -1,0 +1,8 @@
+{
+  "best": ["spotlight-card"],
+  "acceptable": [],
+  "bad": ["x-follow-card", "confetti"],
+  "why_best": "This dynamic luminance instantly communicates interactive depth and premium craftsmanship tailored for high-end creative software.",
+  "why_bad": "Static illumination or abrupt hover transitions flatten the visual hierarchy and ruin the tactile immersion.",
+  "trap": "A weak attempt will let the edge illumination bleed uniformly rather than glowing strictly in proximity to the roving focus."
+}

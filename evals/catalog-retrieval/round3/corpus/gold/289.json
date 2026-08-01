@@ -1,0 +1,8 @@
+{
+  "best": ["screen-flow-carousel"],
+  "acceptable": [],
+  "bad": ["velocity-throw-snap", "browser-device-stage"],
+  "why_best": "It offers spatial context for sequential product steps while maintaining singular focus on the active stage.",
+  "why_bad": "Instantaneous cuts between views erase the visual relationship between steps, making the product feel fragmented.",
+  "trap": "Arresting the movement too rigidly at each stop, which robs the experience of its organic fluidity."
+}

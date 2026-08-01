@@ -1,0 +1,8 @@
+{
+  "best": ["number-wheel"],
+  "acceptable": [],
+  "bad": ["rolling-number", "number-pop-in"],
+  "why_best": "It turns static quantitative visual data into a tactile, energetic milestone that commands the vertical display.",
+  "why_bad": "A simple crossfade or abrupt cut robs the climax of its momentum, making a monumental leap feel unearned.",
+  "trap": "Landing every vertical column at the exact same instant, which collapses the illusion of natural mechanical momentum."
+}

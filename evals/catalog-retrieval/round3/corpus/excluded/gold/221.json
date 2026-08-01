@@ -1,0 +1,8 @@
+{
+  "best": ["mesh-gradient-bg"],
+  "acceptable": [],
+  "bad": ["skeleton", "spotlight-card"],
+  "why_best": "This continuous ambient evolution provides constant visual freshness and depth while keeping the foreground graphics instantly readable.",
+  "why_bad": "A hard geometric transition or abrupt lighting shift would slice through the broadcast frame and draw critical attention away from live news data.",
+  "trap": "A subtle mistake would be cranking up the color contrast or movement speed, turning a smooth broadcast atmospheric backdrop into a distracting pulsing party light."
+}

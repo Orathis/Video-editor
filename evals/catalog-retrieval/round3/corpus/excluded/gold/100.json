@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-monokai"],
+  "acceptable": [],
+  "bad": ["code-snippet-light-plus", "code-snippet-light-2026"],
+  "why_best": "It grounds the tool's utility in an authentic, high-concentration workflow where thought instantly becomes visible action.",
+  "why_bad": "A static snapshot or abrupt full-block reveal would strip away human pacing and render the dynamic process sterile.",
+  "trap": "A near-miss will draw attention to the surrounding interface framing rather than the steady visual heartbeat of creation at the focal point."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["morph-text"],
+  "acceptable": [],
+  "bad": ["motion-blur", "blur-in"],
+  "why_best": "It reinforces the pitch of endless flexibility by rendering language as an endlessly malleable material.",
+  "why_bad": "Using a hard cut or a basic cross-dissolve breaks the visual momentum and makes the sequence feel like a disjointed presentation.",
+  "trap": "Focusing too much on the heavy blur stage will render the letterforms unreadable for too long, breaking the legibility of the core message."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-light-2026"],
+  "acceptable": [],
+  "bad": ["code-snippet-light-plus", "code-snippet-solarized-light"],
+  "why_best": "This approach translates complex technical logic into a relatable human rhythm of step-by-step construction.",
+  "why_bad": "Dropping a static block of completed syntax instantly loses the sense of active creation and visual energy.",
+  "trap": "A weak execution will rush the pacing, turning a thoughtful moment of construction into an unreadable visual blur."
+}

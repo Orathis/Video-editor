@@ -1,0 +1,8 @@
+{
+  "best": ["lt-dark-card"],
+  "acceptable": [],
+  "bad": ["lt-clean-bar", "lt-kicker-name"],
+  "why_best": "A deep, opaque foundation ensures instant legibility for key executive credentials over high-exposure footage without cluttering the primary subject.",
+  "why_bad": "An ethereal or ungrounded light visual treatment would collapse into high-luminance video plates and compromise critical identity text.",
+  "trap": "A near-miss will treat the secondary vector highlight as a theatrical focal point rather than a swift, subtle visual anchor."
+}

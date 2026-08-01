@@ -1,0 +1,8 @@
+{
+  "best": ["accordion"],
+  "acceptable": [],
+  "bad": ["collapsible", "item"],
+  "why_best": "This spatial reflow creates immediate visual clarity by keeping the layout lean until extra context is explicitly invited.",
+  "why_bad": "Instantly popping hidden elements into existence causes unnecessary visual shock and destroys the polished visual continuity.",
+  "trap": "A minor latency in how neighboring content shifts away will ruin the perception of crisp physical structure."
+}

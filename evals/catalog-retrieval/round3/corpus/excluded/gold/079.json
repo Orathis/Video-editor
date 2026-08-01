@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-basic"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-grass", "code-snippet-apple-terminal-ocean"],
+  "why_best": "A rhythmic sequential reveal grounds the viewer in a believable workflow while keeping the focus squarely on the content being generated.",
+  "why_bad": "Instantly revealing the entire block of text destroys the sense of real-time creation and feels static rather than active.",
+  "trap": "A near-miss would add overly stylized glowing effects or heavy window framing that distracts from the clean visual purity."
+}

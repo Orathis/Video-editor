@@ -1,0 +1,8 @@
+{
+  "best": ["macos-notification"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "It establishes immediate real-time reactivity while preserving the viewer's visual focus on the primary dashboard metrics.",
+  "why_bad": "A heavy modal takeover or centered pop-up would disrupt the narrative rhythm and feel overly aggressive for a secondary status update.",
+  "trap": "Failing to establish a clear hierarchy between the source emblem and the message text, which risks making the signal feel like generic desktop noise."
+}

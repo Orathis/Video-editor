@@ -1,0 +1,8 @@
+{
+  "best": ["caption-glitch-rgb"],
+  "acceptable": [],
+  "bad": ["chromatic-radial-split", "caption-pill-karaoke"],
+  "why_best": "It visually communicates high-frequency system activity and live telemetry while keeping the corporate layout entirely intact.",
+  "why_bad": "A gentle, graceful fade-in would make the metrics feel pre-rendered and historic rather than dynamically calculated in real time.",
+  "trap": "Pushing the visual displacement too far and rendering the underlying text unreadable during the brief disruption."
+}

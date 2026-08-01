@@ -1,0 +1,8 @@
+{
+  "best": ["sidebar"],
+  "acceptable": [],
+  "bad": ["typewriter", "dropdown-menu"],
+  "why_best": "It establishes immediate spatial orientation and visual order without startling the user or cluttering the workspace.",
+  "why_bad": "A flashy, elastic overlay would feel chaotic and unsuited for a tool designed for sustained analytical work.",
+  "trap": "Slipping into an overlapping floating card aesthetic would break the unified single-surface architecture of the tool."
+}

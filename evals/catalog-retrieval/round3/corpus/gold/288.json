@@ -1,0 +1,8 @@
+{
+  "best": ["scramble-reveal"],
+  "acceptable": [],
+  "bad": ["matrix-decode", "locked-nucleus-orbit"],
+  "why_best": "This visual approach instills a disciplined, high-tech cadence that matches the serious functionality of a developer utility.",
+  "why_bad": "A soft-focus fade or fluid organic entrance would make the interface look like a consumer presentation tool rather than a precise code instrument.",
+  "trap": "A near-miss would let the chaotic phase feel purely random or resolve out of order, destroying the impression of a systematic line processing sequence."
+}

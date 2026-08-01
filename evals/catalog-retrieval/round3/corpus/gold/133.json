@@ -1,0 +1,8 @@
+{
+  "best": ["drawer"],
+  "acceptable": [],
+  "bad": ["sheet", "popover"],
+  "why_best": "This approach maintains active context while effortlessly introducing dense secondary operations in a mobile-first orientation.",
+  "why_bad": "A full-screen wipe or jarring center pop-over destroys the viewer's spatial mental model and feels visually aggressive in a portrait consumer interface.",
+  "trap": "Failing to subtly dim the underlying canvas makes the new operational layer feel disconnected rather than visually stacked."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["select-item"],
+  "acceptable": [],
+  "bad": ["combobox", "native-select"],
+  "why_best": "This precise visual focal shift rapidly clarifies active choices while maintaining the high-density layout's professional clarity.",
+  "why_bad": "A playful or overly elastic entrance would disrupt the authoritative tone required for high-stakes operational environments.",
+  "trap": "The biggest mistake would be over-emphasizing unavailable elements, causing them to draw equal visual weight to the primary active choice."
+}

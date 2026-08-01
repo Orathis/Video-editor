@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-other"],
+  "acceptable": [],
+  "bad": ["transitions-scale", "transitions-push"],
+  "why_best": "This approach captures user curiosity through clever visual storytelling without sacrificing functional clarity.",
+  "why_bad": "A rigid or utilitarian scene switch would flatten the user's emotional engagement and feel out of place in a dynamic interface showcase.",
+  "trap": "The common pitfall is over-indexing on visual complexity, letting pure eye candy obscure the clean transfer of focus from one moment to the next."
+}

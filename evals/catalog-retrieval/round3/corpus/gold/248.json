@@ -1,0 +1,8 @@
+{
+  "best": ["page-slide"],
+  "acceptable": [],
+  "bad": ["text-state-swap", "tabs-slide-indicator"],
+  "why_best": "A linear directional progression clearly communicates a transition between parent context and child detail within a restricted vertical layout.",
+  "why_bad": "Instantly swapping screens without spatial continuity disorients the operator and obscures the contextual hierarchy between datasets.",
+  "trap": "Letting the incoming view overlap or obscure the departing layout prematurely, creating visual clutter across data-dense cards."
+}

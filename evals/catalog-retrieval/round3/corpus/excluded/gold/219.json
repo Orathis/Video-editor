@@ -1,0 +1,8 @@
+{
+  "best": ["menu-morph"],
+  "acceptable": [],
+  "bad": ["card-resize", "page-slide"],
+  "why_best": "This dynamic reshaping visually reinforces functional evolution within a single hero frame without cluttering the canvas.",
+  "why_bad": "A hard jump cut or opacity fade would break visual continuity and cheapen the premium feel of the interface.",
+  "trap": "A weak attempt will let the stroke weights or line alignments jitter mid-way, ruining the illusion of a single continuous element."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["us-map-bubble"],
+  "acceptable": [],
+  "bad": ["us-map-flow", "us-map"],
+  "why_best": "It immediately clarifies how localized system metrics correlate with overarching national network geography in a single visual sweep.",
+  "why_bad": "Relying on a static dense bar chart or plain table strips away essential geographic context and masks the visual story of regional interconnectedness.",
+  "trap": "Overcrowding smaller regional nodes or letting data tags obscure the underlying geographic boundaries, destroying spatial legibility."
+}

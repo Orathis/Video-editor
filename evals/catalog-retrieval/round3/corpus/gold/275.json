@@ -1,0 +1,8 @@
+{
+  "best": ["rank-list-settle"],
+  "acceptable": [],
+  "bad": ["thread-message-stack", "persona-card-fan"],
+  "why_best": "Spatial illumination ties contrast directly to physical position, delivering an instantaneous and authoritative verdict the exact moment motion ceases.",
+  "why_bad": "Relying on a separate color fade after stopping feels like an afterthought, undermining the broadcast immediacy and making the result feel artificially delayed.",
+  "trap": "A near-miss will accidentally trigger a timed color transition instead of deriving the brightness strictly from the target zone's fixed coordinates."
+}

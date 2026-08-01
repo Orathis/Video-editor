@@ -1,0 +1,8 @@
+{
+  "best": ["per-character-rise"],
+  "acceptable": [],
+  "bad": ["typewriter", "staggered-fade-up"],
+  "why_best": "It constructs authoritative editorial copy with rhythmic urgency, drawing the viewer's focus to breaking details in a clean news broadcast format.",
+  "why_bad": "A uniform block fade or instant visual pop feels entirely static, failing to signal an important shift in the news narrative.",
+  "trap": "Stretching the sequential entry too far dilutes editorial urgency and makes critical headline text difficult to digest quickly."
+}

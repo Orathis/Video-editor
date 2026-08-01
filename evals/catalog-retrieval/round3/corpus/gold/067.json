@@ -1,0 +1,8 @@
+{
+  "best": ["chromatic-aberration-wipe"],
+  "acceptable": [],
+  "bad": ["chromatic-radial-split", "directional-wipe"],
+  "why_best": "It injects a high-octane visual pop that turns an abrupt visual swap into a seamless, high-energy milestone.",
+  "why_bad": "A slow, gentle fade or a plain static cut would drop the visual momentum and feel out of place in a snappy consumer experience.",
+  "trap": "Allowing the color-separation fringing to linger beyond the moment of peak speed, which turns a crisp dynamic highlight into persistent visual clutter."
+}

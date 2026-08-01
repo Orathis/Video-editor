@@ -1,0 +1,8 @@
+{
+  "best": ["caption-emoji-pop"],
+  "acceptable": [],
+  "bad": ["caption-gradient-fill", "caption-matrix-decode"],
+  "why_best": "This dynamic arrival instantly draws the eye to key narrative beats in feed-based vertical media without obscuring the underlying footage.",
+  "why_bad": "A slow fade or subtle slide lacks the required kinetic energy to stop thumbs from scrolling past in a fast-paced social feed.",
+  "trap": "A near-miss will over-distort the accompanying icon during the lateral arrival, making the visual symbol unreadable."
+}

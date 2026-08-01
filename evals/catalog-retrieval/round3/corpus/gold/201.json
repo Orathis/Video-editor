@@ -1,0 +1,8 @@
+{
+  "best": ["lower-third-bild"],
+  "acceptable": [],
+  "bad": ["news-ticker", "lt-clean-bar"],
+  "why_best": "This high-contrast graphic framing instantly converts standard interview footage into an urgent, high-stakes editorial declaration.",
+  "why_bad": "A delicate, slow-dissolving text layer would lack the commercial weight and immediate visual impact necessary for high-energy promotional cuts.",
+  "trap": "A weak implementation will leave excess padding around the typography, ruining the razor-tight, custom-fitted block aesthetic."
+}

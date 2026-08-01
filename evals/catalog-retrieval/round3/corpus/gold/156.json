@@ -1,0 +1,8 @@
+{
+  "best": ["grade-split-reveal"],
+  "acceptable": [],
+  "bad": ["particle-text-dissolve", "match-cut"],
+  "why_best": "Pausing mid-frame directly highlights the dramatic contrast between initial input and finished polish, offering unmistakable visual evidence of the engine's capabilities.",
+  "why_bad": "A simple soft fade or instant swap masks the boundary of the transformation, robbing the user of a direct side-by-side evaluation.",
+  "trap": "Rushing through the central hold converts a deliberate proof-of-performance moment into a generic screen transition."
+}

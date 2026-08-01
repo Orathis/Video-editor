@@ -1,0 +1,8 @@
+{
+  "best": ["input-otp"],
+  "acceptable": [],
+  "bad": ["input-group", "progress"],
+  "why_best": "This restrained, cadence-driven presentation reinforces enterprise trust by prioritizing clarity and steady momentum during security validation.",
+  "why_bad": "An overly energetic or decorative transition would erode the professional seriousness required for high-stakes administrative access.",
+  "trap": "A near-miss execution will fail to distinctly emphasize the exact point of focus, leaving the user uncertain of where their next entry will land."
+}

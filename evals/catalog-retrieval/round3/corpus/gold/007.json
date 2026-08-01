@@ -1,0 +1,8 @@
+{
+  "best": ["animated-line-chart"],
+  "acceptable": [],
+  "bad": ["animated-bar-chart", "data-flow-pipes"],
+  "why_best": "Tracing the entire trajectory before landing on the culmination transforms raw metrics into an engaging narrative of progress.",
+  "why_bad": "Dropping the complete visual onto the screen all at once strips away the sense of historical context and emotional momentum.",
+  "trap": "A near-miss will treat the final destination like just another point along the route instead of giving it the visual weight and landing beat it deserves."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["gesture-tap"],
+  "acceptable": [],
+  "bad": ["touch-indicator", "swipe-rail"],
+  "why_best": "It directly illustrates the fundamental feedback loop between user input and dynamic UI state changes in an intuitive format.",
+  "why_bad": "Relying on an unprompted visual transition without an explicit input trigger removes the clear cause-and-effect relationship required to teach interface behavior.",
+  "trap": "Updating the visual text or highlight color before the touch point physically separates from the control destroys the illusion of real-time responsiveness."
+}

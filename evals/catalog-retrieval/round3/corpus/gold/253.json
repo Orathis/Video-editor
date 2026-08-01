@@ -1,0 +1,8 @@
+{
+  "best": ["parallax-unzoom"],
+  "acceptable": [],
+  "bad": ["parallax-zoom", "device-mockup-zoom"],
+  "why_best": "It preserves spatial continuity so the audience instinctively understands how a detailed spotlight relates to the surrounding gallery.",
+  "why_bad": "An abrupt hard cut or flat dissolve severs the physical connection between the spotlighted story and the broader library.",
+  "trap": "Moving the surrounding cards in rigid lockstep rather than staggered depth planes will make the transition feel flat and synthetic."
+}

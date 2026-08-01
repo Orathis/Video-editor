@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-silver-aerogel"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-basic", "code-snippet-apple-terminal-ocean"],
+  "why_best": "Revealing complex logic sequentially mimics a live technical event, instilling a sense of immediacy and journalistic rigor.",
+  "why_bad": "Instantly flashing the entire block of technical text on screen turns a dynamic event into a dry, overwhelming static slide.",
+  "trap": "Setting an unvarying, mechanical tempo that feels like a linear visual wipe rather than a living, cadence-driven system output."
+}

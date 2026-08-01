@@ -1,0 +1,8 @@
+{
+  "best": ["beat-pulse-background"],
+  "acceptable": [],
+  "bad": ["beat-accent", "aurora-drift"],
+  "why_best": "Subtly animating the environment on audio markers provides ambient pacing feedback without disrupting focus on foreground creative tools.",
+  "why_bad": "Using aggressive foreground overlays or sudden hard flashes would visually overwhelm the editor and break dynamic focus.",
+  "trap": "A misstep would be allowing the visual surge to decay too slowly, creating an unnerving delay that lags behind the audio cues."
+}

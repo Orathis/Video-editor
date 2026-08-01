@@ -1,0 +1,8 @@
+{
+  "best": ["multiplayer-cursors"],
+  "acceptable": [],
+  "bad": ["aurora-drift", "conic-progress-ring"],
+  "why_best": "Gathering distinct visual identities into a central focus instantly communicates real-time co-presence without cluttering the primary canvas.",
+  "why_bad": "Static avatar badges or sudden snap appearances fail to convey the fluid spatial awareness needed to make remote teamwork feel truly alive.",
+  "trap": "A subtle mistake would be letting the floating identity tags overlap or collide at the center, destroying the legibility of individual participants."
+}

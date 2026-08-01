@@ -1,0 +1,8 @@
+{
+  "best": ["short-slide-right"],
+  "acceptable": [],
+  "bad": ["line-by-line-slide", "masked-slide-reveal"],
+  "why_best": "A progressive horizontal entry aligns perfectly with the natural scanning habits of a news audience while introducing key terms in sync with spoken commentary.",
+  "why_bad": "Dropping the entire text block vertically or snapping it instantly onto the screen creates a chaotic visual jolt that distracts from the newsroom anchor.",
+  "trap": "A flawed execution will drag out the horizontal travel distance, making the graphic feel sluggish rather than sharp and broadcast-ready."
+}

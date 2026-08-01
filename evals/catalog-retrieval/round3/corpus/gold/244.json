@@ -1,0 +1,8 @@
+{
+  "best": ["ordered-dither-pass"],
+  "acceptable": [],
+  "bad": ["ascii-render-pass", "particle-image-reveal"],
+  "why_best": "It establishes a distinct artistic signature while bridging canvas states with a tactile grit perfect for a creative tool.",
+  "why_bad": "A standard smooth cross-dissolve or Gaussian blur would feel sterile and generic, stripping the workspace of its crafted personality.",
+  "trap": "Allowing the texture pattern to drift or bleed dynamically across space instead of holding a rigid geometric grid during the reveal."
+}

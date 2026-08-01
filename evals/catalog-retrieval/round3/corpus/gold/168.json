@@ -1,0 +1,8 @@
+{
+  "best": ["image-expand-to-fullscreen"],
+  "acceptable": [],
+  "bad": ["directional-wipe", "zoom-through-transition"],
+  "why_best": "It establishes an unbroken thread of spatial continuity while shifting the audience from contextual browsing to total immersion.",
+  "why_bad": "A lateral slide or abrupt jump cut destroys the relationship between the anchor and its destination, jarring the viewer's spatial awareness.",
+  "trap": "Misaligning the original bounds of the starting element with the final viewport geometry will cause a visible optical hitch during the camera's advance."
+}

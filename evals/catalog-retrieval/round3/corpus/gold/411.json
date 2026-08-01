@@ -1,0 +1,8 @@
+{
+  "best": ["vignette"],
+  "acceptable": [],
+  "bad": ["mesh-gradient-bg", "shimmer-sweep"],
+  "why_best": "It effortlessly anchors attention onto the core hero element while preserving overall composition context.",
+  "why_bad": "Using aggressive letterboxing or sudden zoom shifts would disrupt the smooth narrative flow and feel unnecessarily jarring.",
+  "trap": "Pushing the peripheral falloff too hard transforms a subtle focus tool into a moody, claustrophobic atmosphere."
+}

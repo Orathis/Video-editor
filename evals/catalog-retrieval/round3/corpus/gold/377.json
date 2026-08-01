@@ -1,0 +1,8 @@
+{
+  "best": ["transitions-blur"],
+  "acceptable": [],
+  "bad": ["transitions-grid", "transitions-light"],
+  "why_best": "This approach creates an authoritative yet fluid bridge between distinct news topics, keeping the viewer visually engaged during content shifts.",
+  "why_bad": "Hard cuts or mechanical sliding panels would feel either too abrupt for thematic transitions or too reminiscent of generic presentation slides.",
+  "trap": "A common misstep is letting the loss of visual definition linger too long, which makes the broadcast feel defective rather than intentionally dynamic."
+}

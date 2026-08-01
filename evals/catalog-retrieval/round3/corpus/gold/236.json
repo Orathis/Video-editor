@@ -1,0 +1,8 @@
+{
+  "best": ["notification-stack"],
+  "acceptable": [],
+  "bad": ["spring-stack-shuffle", "offset-path-traveler"],
+  "why_best": "This approach instantly communicates priority and system vitality while preserving important background history.",
+  "why_bad": "A frantic layout reorder or abrupt overlay would create visual noise and disrupt the calm, executive control room feel.",
+  "trap": "Treating all incoming items with uniform luminance, which destroys the clear visual hierarchy between the primary alert and historical context."
+}

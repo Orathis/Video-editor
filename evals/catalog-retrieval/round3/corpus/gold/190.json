@@ -1,0 +1,8 @@
+{
+  "best": ["line-swap"],
+  "acceptable": [],
+  "bad": ["beat-pulse-background", "beat-accent"],
+  "why_best": "This sudden textual trade-off creates a crisp editorial conviction that forces the audience to re-evaluate the statement in place.",
+  "why_bad": "A gradual cross-fade or full-screen wipe would feel sluggish and erode the sharp punch required for highlighting a crisp feature pivot.",
+  "trap": "A common mistake is letting the decorative underline draw before the replacement phrase has fully settled into position."
+}

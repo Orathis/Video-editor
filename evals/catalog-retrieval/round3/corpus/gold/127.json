@@ -1,0 +1,8 @@
+{
+  "best": ["device-frame-stage"],
+  "acceptable": [],
+  "bad": ["multi-device-splay", "browser-device-stage"],
+  "why_best": "Anchoring abstract user flows inside a physical housing elevates digital features into a premium product experience that feels ready for consumer hands.",
+  "why_bad": "Popping a raw 2D screen capture straight onto the canvas deprives the feature of tangible context and feels like an unpolished presentation slide.",
+  "trap": "A flawed attempt will lock the dynamic element rigid after its entry, breaking the illusion of a weightless, tangible showcase."
+}

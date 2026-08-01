@@ -1,0 +1,8 @@
+{
+  "best": ["light-sweep-pass"],
+  "acceptable": [],
+  "bad": ["ordered-dither-pass", "before-after-wipe"],
+  "why_best": "This subtle specular reaction establishes an atmosphere of high-end craftsmanship without moving a single data point on a dense dashboard.",
+  "why_bad": "Physically sliding or bouncing UI elements into place would create unnecessary visual noise, cluttering the reader's attention during critical data assessment.",
+  "trap": "A careless execution will slide a detached semi-transparent overlay across the scene rather than ensuring every embedded surface element recalculates its specular highlights synchronously with the beam."
+}

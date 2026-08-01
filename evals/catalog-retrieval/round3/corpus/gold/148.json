@@ -1,0 +1,8 @@
+{
+  "best": ["focus-rack"],
+  "acceptable": [],
+  "bad": ["depth-rack-focus", "focus-swap"],
+  "why_best": "This sequence transfers narrative priority smoothly without breaking spatial context or requiring a disruptive scene transition.",
+  "why_bad": "A sudden cut or lateral slide would shatter the sense of three-dimensional space and disconnect the relationship between the two key subjects.",
+  "trap": "Failing to fully soften and push back the initial visual element leaves the narrative hierarchy ambiguous at the end of the transfer."
+}

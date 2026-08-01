@@ -1,0 +1,8 @@
+{
+  "best": ["separator"],
+  "acceptable": [],
+  "bad": ["stepper", "progress-steps"],
+  "why_best": "Introducing a hairline boundary subtly creates visual hierarchy and grounds the narrative space without distracting from primary messaging.",
+  "why_bad": "Blasting heavy, blocky container shapes onto the screen would overwhelm the layout and destroy the spatial elegance needed for a clean visual hierarchy.",
+  "trap": "A near-miss will let the trace bleed across the entire canvas instantly instead of pacing its journey alongside the unfolding layout."
+}

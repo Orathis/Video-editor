@@ -1,0 +1,8 @@
+{
+  "best": ["avatar-cloud"],
+  "acceptable": [],
+  "bad": ["logo-wall", "testimonial-card"],
+  "why_best": "Surrounding a core statement with a living web of distinct participants instantly communicates widespread adoption without overwhelming the viewer.",
+  "why_bad": "A rigid grid of static logos would feel transactional and lifeless, failing to evoke the organic energy of a real community.",
+  "trap": "A weak execution will cluster the elements too tightly around the center, suffocating the core message instead of letting the surrounding field feel vast and airy."
+}

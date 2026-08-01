@@ -1,0 +1,8 @@
+{
+  "best": ["caption-neon-accent"],
+  "acceptable": [],
+  "bad": ["caption-neon-glow", "caption-pill-karaoke"],
+  "why_best": "This approach brings immediate visual hype and tactile energy to static text while maintaining perfect legibility for fast-paced consumer feeds.",
+  "why_bad": "A slow, muted fade would kill the energetic momentum required for modern social feeds and cause the viewer to swipe away.",
+  "trap": "Over-amplifying the jitter or color bleeding to the point where the written message becomes unreadable."
+}

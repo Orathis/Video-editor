@@ -1,0 +1,8 @@
+{
+  "best": ["staggered-fade-up"],
+  "acceptable": [],
+  "bad": ["masked-slide-reveal", "line-by-line-slide"],
+  "why_best": "This approach builds narrative momentum by guiding the audience to digest the message in clear, digestible beats.",
+  "why_bad": "Dropping the entire block of text onto the screen simultaneously flattens the message and causes visual fatigue.",
+  "trap": "A near-miss will displace the elements too aggressively, making the reveal feel mechanical rather than graceful."
+}

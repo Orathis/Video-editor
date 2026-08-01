@@ -1,0 +1,8 @@
+{
+  "best": ["liquid-glass-media-controls"],
+  "acceptable": [],
+  "bad": ["liquid-glass-notification", "liquid-glass-context-menu"],
+  "why_best": "This sequence perfectly demonstrates high-performance visual layer blending by contrasting fluid background shaders with crisp, tactile interface surfaces.",
+  "why_bad": "A conventional flat fade or hard cut would obscure the underlying rendering capabilities and make the interface feel disconnected from its environment.",
+  "trap": "The key risk is losing refraction clarity during the expansion, turning the translucent panels into muddy, opaque blocks that hide the backdrop."
+}

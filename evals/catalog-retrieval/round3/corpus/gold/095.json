@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-high-contrast"],
+  "acceptable": [],
+  "bad": ["code-snippet-high-contrast-light", "code-snippet-monokai"],
+  "why_best": "This presentation delivers immediate authoritative clout by embedding raw digital execution inside a recognizable, high-clarity professional interface.",
+  "why_bad": "Relying on floating motion graphics or stylized code abstraction would compromise the segment's journalistic authenticity.",
+  "trap": "Smoothing over the sharp UI dividers or dimming the active work area, which neutralizes the commanding graphic clarity needed for broadcast."
+}

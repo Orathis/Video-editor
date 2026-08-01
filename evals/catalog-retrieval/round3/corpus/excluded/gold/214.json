@@ -1,0 +1,8 @@
+{
+  "best": ["marker-highlight"],
+  "acceptable": [],
+  "bad": ["receipt-card", "whiteboard-ink"],
+  "why_best": "This approach introduces human editorial intent at the exact moment the phrase needs its core concept elevated.",
+  "why_bad": "Revealing both the statement and its visual emphasis simultaneously flattens the visual hierarchy and deprives the audience of reading the context first.",
+  "trap": "A common mistake is initiating the secondary callout before the copy has fully settled, creating visual chaos as the viewer tries to read moving text and moving lines at once."
+}

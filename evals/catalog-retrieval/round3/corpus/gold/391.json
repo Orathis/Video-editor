@@ -1,0 +1,8 @@
+{
+  "best": ["typed-prompt"],
+  "acceptable": [],
+  "bad": ["code-terminal-run", "offset-path-traveler"],
+  "why_best": "Simulating organic human input bridges the gap between the audience and the interface, establishing an authentic feeling of real-time communication.",
+  "why_bad": "Instantly dumping the full phrase onto the visual plane destroys the narrative momentum and robs the interface of its conversational warmth.",
+  "trap": "A common mistake is executing the self-correction phase at the exact same rhythm as the initial entry, missing the decisive cadence of a true mistake."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["spotify-card"],
+  "acceptable": [],
+  "bad": ["x-post", "tiktok-follow"],
+  "why_best": "This presentation transforms a simple listening state into an active visual touchpoint that keeps viewers connected to the soundtrack.",
+  "why_bad": "Relying on a full-bleed visualizer or static lower-third text would clutter the screen and diminish the polished commercial tone.",
+  "trap": "Sizing the widget too aggressively, which turns an elegant floating accent into an intrusive obstacle for background media."
+}

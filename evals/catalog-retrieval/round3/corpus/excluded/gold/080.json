@@ -1,0 +1,8 @@
+{
+  "best": ["code-snippet-apple-terminal-clear-dark"],
+  "acceptable": [],
+  "bad": ["code-snippet-apple-terminal-clear-light", "code-snippet-apple-terminal-silver-aerogel"],
+  "why_best": "Unfolding syntax sequentially creates natural narrative momentum while grounding the product in real engineering execution.",
+  "why_bad": "Instantly pasting the full text block renders the experience static and fails to convey active work or technical craftsmanship.",
+  "trap": "A common pitfall is making the character reveal speed unrealistically uniform, losing the human pacing of an actual developer at work."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["toggle-flip"],
+  "acceptable": [],
+  "bad": ["camera-scan-gate", "gesture-tap"],
+  "why_best": "Infusing physical weight into a state change builds deep user confidence when altering critical enterprise parameters.",
+  "why_bad": "A flat, instantaneous visual jump would make a high-level system decision look like a graphic glitch or accidental touch.",
+  "trap": "An exaggerated rubber-band recoil will ruin the moment by turning a refined corporate tool into a playful mobile game."
+}

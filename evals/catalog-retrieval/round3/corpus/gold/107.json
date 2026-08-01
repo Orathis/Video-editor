@@ -1,0 +1,8 @@
+{
+  "best": ["combobox"],
+  "acceptable": [],
+  "bad": ["select-item", "select"],
+  "why_best": "A methodical filter-and-lock cadence matches the precise, analytical tone required for a high-density news graphic.",
+  "why_bad": "Whimsical, elastic bounces or unanchored floating panels would dismantle the professional credibility of a live graphic package.",
+  "trap": "Allowing the contextual panel to decouple visually from the main input line during reveal breaks the illusion of a unified UI surface."
+}

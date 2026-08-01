@@ -1,0 +1,8 @@
+{
+  "best": ["radio"],
+  "acceptable": [],
+  "bad": ["toggle-group", "field"],
+  "why_best": "A subtle, grounded shift in weight respects the authoring environment while providing unmistakable visual feedback.",
+  "why_bad": "An exaggerated, playful animation would feel out of place in a professional utility and create unwanted visual noise.",
+  "trap": "A near-miss would accidentally draw attention to the unselected items during the shift instead of keeping them perfectly stable."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["pricing-tier-focus"],
+  "acceptable": [],
+  "bad": ["drag-and-drop-flow", "infinite-bento-pan"],
+  "why_best": "It seamlessly redirects buyer intent toward the flagship offering by establishing an unmistakable visual hierarchy.",
+  "why_bad": "A static side-by-side presentation fails to create visual momentum or guide the user toward the intended decision point.",
+  "trap": "Over-suppressing the entry option until it becomes completely unreadable, rather than simply letting it yield gracefully to the main offer."
+}

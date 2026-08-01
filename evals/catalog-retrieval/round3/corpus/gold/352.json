@@ -1,0 +1,8 @@
+{
+  "best": ["text-shimmer"],
+  "acceptable": [],
+  "bad": ["push-in", "char-slam-explode"],
+  "why_best": "This subtle emphasis elevates visual quality and signals refined polish while keeping the canvas layout completely stable.",
+  "why_bad": "Scaling or bouncing the typography would feel childish and distract from the sleek, professional tone of the creative interface.",
+  "trap": "A poor implementation will leave a lingering ambient tint or loop indefinitely, ruining the restrained, single-moment impact."
+}

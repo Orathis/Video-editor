@@ -1,0 +1,8 @@
+{
+  "best": ["code-morph"],
+  "acceptable": [],
+  "bad": ["three-orbiting-cards", "code-snippet-flight"],
+  "why_best": "Holding onto shared visual anchors builds a narrative bridge that makes structural shifts instantly readable to a technical audience.",
+  "why_bad": "A hard wipe or instantaneous cut severs the visual continuity, forcing the audience to manually re-parse the entire block from scratch.",
+  "trap": "A common pitfall is letting unchanged elements crisscross chaotically across the screen, turning a purposeful evolution into an unreadable visual scramble."
+}

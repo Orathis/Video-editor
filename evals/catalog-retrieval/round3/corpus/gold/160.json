@@ -1,0 +1,8 @@
+{
+  "best": ["grid-card-assemble"],
+  "acceptable": [],
+  "bad": ["per-word-rise", "trust-strip"],
+  "why_best": "Building the layout sequentially creates a sense of systemic craftsmanship while guaranteeing each distinct offering gets its moment of clarity.",
+  "why_bad": "Throwing all elements onto the screen simultaneously buries the individual features under visual noise and strips the product of its modular story.",
+  "trap": "Failing to come to a hard, absolute rest at the end will undermine the professional precision of the software toolset."
+}

@@ -1,0 +1,8 @@
+{
+  "best": ["popover"],
+  "acceptable": [],
+  "bad": ["tooltip", "drawer"],
+  "why_best": "Anchoring the visual expansion to its source element reinforces spatial continuity and gives immediate feedback to the user's intent.",
+  "why_bad": "A jarring slide-in from the screen edge detaches the content from its trigger, confusing the immediate visual hierarchy.",
+  "trap": "Scaling the surface from its own center rather than expanding outward from the origin point that initiated the scene."
+}

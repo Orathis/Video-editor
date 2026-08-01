@@ -1,0 +1,8 @@
+{
+  "best": ["per-word-rise"],
+  "acceptable": [],
+  "bad": ["per-word-crossfade", "grid-card-assemble"],
+  "why_best": "A sequential rhythmic entrance mirrors natural speech, holding the audience's focus while preserving clarity in a compact frame.",
+  "why_bad": "Dropping the entire block of messaging instantly destroys the narrative build and overwhelms the visual hierarchy.",
+  "trap": "A near-miss will rush the step-by-step timing, degrading a deliberate presentation into a chaotic flutter."
+}
