@@ -6,6 +6,7 @@ import {
   createTexture,
   uploadTextureSource,
   renderShader,
+  manageContextLoss,
   DEFAULT_WIDTH,
   DEFAULT_HEIGHT,
   type AccentColors,
@@ -137,6 +138,23 @@ interface SnapshotCacheEntry {
   width: number;
   height: number;
   updatedAt: number;
+}
+
+/** Every GL object owned by one init() call — recreated as a unit on restore. */
+interface GlResources {
+  quadBuf: WebGLBuffer;
+  blendProg: WebGLProgram;
+  blendLoc: {
+    a: WebGLUniformLocation | null;
+    b: WebGLUniformLocation | null;
+    mix: WebGLUniformLocation | null;
+    pos: number;
+  };
+  /** Render targets holding the two motion-interpolated transition frames. */
+  fromTex: WebGLTexture;
+  toTex: WebGLTexture;
+  fromFbo: WebGLFramebuffer;
+  toFbo: WebGLFramebuffer;
 }
 
 interface SceneStyleState {
@@ -918,24 +936,6 @@ export function init(config: HyperShaderConfig): GsapTimeline {
     return fallback;
   }
 
-  const quadBuf = setupQuad(gl);
-
-  const programs = new Map<string, WebGLProgram>();
-  for (const t of transitions) {
-    // Strict undefined check — an explicit empty string from a vanilla-JS
-    // caller (the IIFE bundle is hand-loaded via <script> tags) should NOT
-    // be silently coerced into a CSS crossfade. The shader registry will
-    // throw a clear "unknown shader" error for it.
-    if (t.shader === undefined) continue;
-    if (!programs.has(t.shader)) {
-      try {
-        programs.set(t.shader, createProgram(gl, getFragSource(t.shader)));
-      } catch (e) {
-        console.error(`[HyperShader] Failed to compile "${t.shader}":`, e);
-      }
-    }
-  }
-
   const canvasEl = glCanvas;
   const previewCaptureFps = clampNumber(resolvePositiveNumber(config.previewCaptureFps, 30), 1, 60);
   const previewCaptureScale = resolvePlayerCaptureScale();
@@ -943,30 +943,80 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   const previewTextureWidth = Math.max(1, Math.round(compWidth * previewCaptureScale));
   const previewTextureHeight = Math.max(1, Math.round(compHeight * previewCaptureScale));
   const cachedTransitions: CachedTransition[] = [];
-  const blendProg = createProgramWithVertex(
-    gl,
-    NO_FLIP_VERT_SRC,
-    [
-      "precision mediump float;",
-      "varying vec2 v_uv;",
-      "uniform sampler2D u_a;",
-      "uniform sampler2D u_b;",
-      "uniform float u_mix;",
-      "void main(){",
-      "gl_FragColor=mix(texture2D(u_a,v_uv),texture2D(u_b,v_uv),u_mix);",
-      "}",
-    ].join(""),
-  );
-  const blendLoc = {
-    a: gl.getUniformLocation(blendProg, "u_a"),
-    b: gl.getUniformLocation(blendProg, "u_b"),
-    mix: gl.getUniformLocation(blendProg, "u_mix"),
-    pos: gl.getAttribLocation(blendProg, "a_pos"),
+
+  // Every GL object below dies with the context, so they are created and
+  // recreated as one unit — see the manageContextLoss() call near the end of
+  // init(). `programs` is a stable Map identity refilled in place because the
+  // transition-cache construction loop below reads it during init.
+  const programs = new Map<string, WebGLProgram>();
+  const createGlResources = (): GlResources => {
+    programs.clear();
+    for (const t of transitions) {
+      // Strict undefined check — an explicit empty string from a vanilla-JS
+      // caller (the IIFE bundle is hand-loaded via <script> tags) should NOT
+      // be silently coerced into a CSS crossfade. The shader registry will
+      // throw a clear "unknown shader" error for it.
+      if (t.shader === undefined) continue;
+      if (programs.has(t.shader)) continue;
+      try {
+        programs.set(t.shader, createProgram(gl, getFragSource(t.shader)));
+      } catch (e) {
+        console.error(`[HyperShader] Failed to compile "${t.shader}":`, e);
+      }
+    }
+    const blendProg = createProgramWithVertex(
+      gl,
+      NO_FLIP_VERT_SRC,
+      [
+        "precision mediump float;",
+        "varying vec2 v_uv;",
+        "uniform sampler2D u_a;",
+        "uniform sampler2D u_b;",
+        "uniform float u_mix;",
+        "void main(){",
+        "gl_FragColor=mix(texture2D(u_a,v_uv),texture2D(u_b,v_uv),u_mix);",
+        "}",
+      ].join(""),
+    );
+    const fromTex = createRenderTexture(gl, previewTextureWidth, previewTextureHeight);
+    const toTex = createRenderTexture(gl, previewTextureWidth, previewTextureHeight);
+    return {
+      quadBuf: setupQuad(gl),
+      blendProg,
+      blendLoc: {
+        a: gl.getUniformLocation(blendProg, "u_a"),
+        b: gl.getUniformLocation(blendProg, "u_b"),
+        mix: gl.getUniformLocation(blendProg, "u_mix"),
+        pos: gl.getAttribLocation(blendProg, "a_pos"),
+      },
+      fromTex,
+      toTex,
+      fromFbo: createFramebuffer(gl, fromTex),
+      toFbo: createFramebuffer(gl, toTex),
+    };
   };
-  const interpolatedFromTex = createRenderTexture(gl, previewTextureWidth, previewTextureHeight);
-  const interpolatedToTex = createRenderTexture(gl, previewTextureWidth, previewTextureHeight);
-  const interpolatedFromFbo = createFramebuffer(gl, interpolatedFromTex);
-  const interpolatedToFbo = createFramebuffer(gl, interpolatedToTex);
+  let glRes = createGlResources();
+  let contextLost = false;
+
+  const rebuildGlResources = (): void => {
+    glRes = createGlResources();
+    for (const cache of cachedTransitions) {
+      const shader = transitions[cache.index]?.shader;
+      if (shader !== undefined) cache.prog = programs.get(shader) ?? null;
+      // Deleting the old textures would be a no-op on a lost context, so the
+      // handles are just dropped; ensureTransitionTextures re-uploads them from
+      // the cached blobs (in memory, or re-read from IndexedDB). Bumping the
+      // generation makes any in-flight upload job abandon its dead textures.
+      cache.textureGeneration += 1;
+      cache.texturePromise = null;
+      cache.textureReady = false;
+      for (const frame of cache.frames) {
+        frame.fromTex = null;
+        frame.toTex = null;
+      }
+    }
+  };
+
   let loadingOverlay: SnapshotLoadingOverlay | null = null;
   const getLoadingOverlay = (): SnapshotLoadingOverlay | null => {
     if (loadingMode !== "internal") return null;
@@ -1064,17 +1114,17 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   ): void => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, target);
     gl.viewport(0, 0, previewTextureWidth, previewTextureHeight);
-    gl.useProgram(blendProg);
+    gl.useProgram(glRes.blendProg);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texA);
-    gl.uniform1i(blendLoc.a, 0);
+    gl.uniform1i(glRes.blendLoc.a, 0);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texB);
-    gl.uniform1i(blendLoc.b, 1);
-    gl.uniform1f(blendLoc.mix, mix);
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
-    gl.enableVertexAttribArray(blendLoc.pos);
-    gl.vertexAttribPointer(blendLoc.pos, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform1i(glRes.blendLoc.b, 1);
+    gl.uniform1f(glRes.blendLoc.mix, mix);
+    gl.bindBuffer(gl.ARRAY_BUFFER, glRes.quadBuf);
+    gl.enableVertexAttribArray(glRes.blendLoc.pos);
+    gl.vertexAttribPointer(glRes.blendLoc.pos, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, compWidth, compHeight);
@@ -1136,7 +1186,7 @@ export function init(config: HyperShaderConfig): GsapTimeline {
         currentTime < cache.time + cache.duration
       );
     });
-    if (upcoming) {
+    if (upcoming && !contextLost) {
       preloadTransitionTextures(upcoming);
     }
 
@@ -1160,7 +1210,10 @@ export function init(config: HyperShaderConfig): GsapTimeline {
     // fallback flag is the normal signal, but we also guard on prog to keep
     // the invariant even if some path momentarily resets fallback while prog
     // stays null (it can't be re-created — there is no shader to compile).
-    if (cache.fallback || cache.prog === null) {
+    // A lost context joins them: every program, buffer and texture below is
+    // dead until `webglcontextrestored`, so the DOM crossfade carries the
+    // transition instead of the shader.
+    if (cache.fallback || cache.prog === null || contextLost) {
       state.active = true;
       state.transitionIndex = activeIndex;
       state.prog = null;
@@ -1189,16 +1242,16 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       return;
     }
     paintScenePairState(cache.fromId, cache.toId, "1", "1");
-    renderTextureBlend(interpolatedFromFbo, frame.a.fromTex, frame.b.fromTex, frame.mix);
-    renderTextureBlend(interpolatedToFbo, frame.a.toTex, frame.b.toTex, frame.mix);
+    renderTextureBlend(glRes.fromFbo, frame.a.fromTex, frame.b.fromTex, frame.mix);
+    renderTextureBlend(glRes.toFbo, frame.a.toTex, frame.b.toTex, frame.mix);
 
     canvasEl.style.display = "block";
     renderShader(
       gl,
-      quadBuf,
+      glRes.quadBuf,
       prog,
-      interpolatedFromTex,
-      interpolatedToTex,
+      glRes.fromTex,
+      glRes.toTex,
       state.progress,
       accentColors,
       compWidth,
@@ -1732,6 +1785,9 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   };
 
   const ensureTransitionTextures = (cache: CachedTransition): Promise<boolean> => {
+    // Single choke point for texture GL work — everything that would upload to
+    // a dead context routes through here.
+    if (contextLost) return Promise.resolve(false);
     if (cache.fallback || cache.dirty || !cache.ready) return Promise.resolve(false);
     if (cache.textureReady) {
       markTextureAccess(cache);
@@ -2196,12 +2252,35 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   };
 
   const sceneEditObservers = observeSceneEdits();
+  const releaseGlContext = manageContextLoss(glCanvas, gl, {
+    onLost: () => {
+      contextLost = true;
+      canvasEl.style.display = "none";
+      // Repaint at the current playhead so the DOM crossfade takes over
+      // immediately instead of leaving the last shader frame frozen on screen.
+      tickShader();
+    },
+    onRestored: () => {
+      contextLost = false;
+      try {
+        rebuildGlResources();
+      } catch (e) {
+        contextLost = true;
+        console.warn("[HyperShader] WebGL context restore failed:", e);
+        return;
+      }
+      // tickShader re-requests textures for the active transition, so this both
+      // repaints and kicks the re-upload.
+      tickShader();
+    },
+  });
   window.addEventListener(
     "beforeunload",
     () => {
       for (const observer of sceneEditObservers) {
         observer.disconnect();
       }
+      releaseGlContext();
     },
     { once: true },
   );
