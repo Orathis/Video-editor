@@ -85,28 +85,101 @@ function nodesTouchMedia(nodes: NodeList): boolean {
   return false;
 }
 
-function invalidateMediaRegistryFor(records: MutationRecord[]): void {
-  for (const record of records) {
-    if (nodesTouchMedia(record.addedNodes) || nodesTouchMedia(record.removedNodes)) {
-      mediaRegistry = null;
-      return;
+function forEachMediaIn(nodes: NodeList, visit: (element: RuntimeMediaElement) => void): boolean {
+  let found = false;
+  for (const node of nodes) {
+    if (!(node instanceof Element)) continue;
+    if (node instanceof HTMLVideoElement || node instanceof HTMLAudioElement) {
+      found = true;
+      visit(node);
+    }
+    // Element-scoped, so it only walks the added subtree.
+    for (const nested of node.querySelectorAll("video, audio")) {
+      if (!(nested instanceof HTMLVideoElement || nested instanceof HTMLAudioElement)) continue;
+      found = true;
+      visit(nested);
     }
   }
+  return found;
+}
+
+/**
+ * Whether media is buffered up front instead of following the playhead. True
+ * for render capture, on both of the runtime's render signals: the producer
+ * file server's `RENDER_CAPTURE_MODE_SHIM` (set before any page script, so it
+ * is readable while the document is still parsing) and the export seek
+ * protocol's config (written by the render-mode body script). The renderer
+ * captures whatever the browser has decoded at the instant a frame is taken,
+ * so trading buffered bytes for a faster open there buys nothing and risks a
+ * silent or black export.
+ *
+ * `window.d.ts` declares both globals, but it is outside the package's main
+ * tsconfig program — hence the local shape rather than a bare property read.
+ */
+export function usesEagerMediaPreload(): boolean {
+  const win = window as Window & {
+    __HF_RENDER_CAPTURE_MODE?: boolean;
+    __HF_EXPORT_RENDER_SEEK_CONFIG?: unknown;
+  };
+  return Boolean(win.__HF_RENDER_CAPTURE_MODE || win.__HF_EXPORT_RENDER_SEEK_CONFIG);
+}
+
+/**
+ * Stop a freshly-parsed media element from fetching its source before the
+ * runtime has decided whether the playhead is anywhere near it. The runtime's
+ * neighbourhood policy (`init.ts`) raises it to `metadata` or `auto` once it
+ * can place the element against the current time.
+ *
+ * This has to happen as each element is parsed, not at init: `preload` set
+ * after `DOMContentLoaded` loses the race against the resource-selection task
+ * the parser already queued. Measured on the Studio runtime-cost fixture,
+ * deferring only at init left 30 of 56 elements already fetching; deferring
+ * here left 1.
+ */
+function deferParsedMediaPreload(element: RuntimeMediaElement): void {
+  if (usesEagerMediaPreload()) return;
+  // An authored `preload` or `autoplay` is an explicit instruction about this
+  // element's own buffering — overriding it would be the runtime deciding
+  // against the author rather than for the playhead.
+  if (element.hasAttribute("preload") || element.autoplay) return;
+  element.preload = "none";
+}
+
+function handleMediaMutations(records: MutationRecord[]): void {
+  let touched = false;
+  for (const record of records) {
+    if (forEachMediaIn(record.addedNodes, deferParsedMediaPreload)) touched = true;
+    if (!touched && nodesTouchMedia(record.removedNodes)) touched = true;
+  }
+  if (touched) mediaRegistry = null;
+}
+
+function ensureMediaRegistryObserver(): void {
+  if (mediaRegistryObserver || typeof MutationObserver !== "function") return;
+  mediaRegistryObserver = new MutationObserver(handleMediaMutations);
+  mediaRegistryObserver.observe(document, { childList: true, subtree: true });
+  mediaRegistry = null;
+}
+
+/**
+ * Start observing media at script-evaluation time, while the document is
+ * still parsing, so `deferParsedMediaPreload` sees each element before the
+ * browser acts on it. Called from the runtime entry, not from `init`, which
+ * runs at `DOMContentLoaded` — by then every element has already been parsed.
+ */
+export function installRuntimeMediaObserver(): void {
+  ensureMediaRegistryObserver();
 }
 
 function readMediaRegistry(): RuntimeMediaElement[] {
-  if (!mediaRegistryObserver && typeof MutationObserver === "function") {
-    mediaRegistryObserver = new MutationObserver(invalidateMediaRegistryFor);
-    mediaRegistryObserver.observe(document, { childList: true, subtree: true });
-    mediaRegistry = null;
-  }
+  ensureMediaRegistryObserver();
   if (mediaRegistryObserver) {
     // Drain synchronously rather than waiting for the observer's microtask:
     // the runtime injects a sub-composition and seeks in the same task, and a
     // registry that lagged by a microtask would render that seek without its
     // media. `takeRecords` is proportional to mutations since the last call —
     // zero during a scrub, where only inline styles change.
-    invalidateMediaRegistryFor(mediaRegistryObserver.takeRecords());
+    handleMediaMutations(mediaRegistryObserver.takeRecords());
   } else {
     // ponytail: no observer (non-DOM host), no cache — always re-query.
     mediaRegistry = null;

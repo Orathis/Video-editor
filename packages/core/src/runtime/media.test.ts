@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   hasMediaSyncStateForTest,
+  installRuntimeMediaObserver,
   readElementPlaybackRate,
   refreshRuntimeMediaCache,
   resolveRuntimeMediaClipDuration,
@@ -1300,5 +1301,67 @@ describe("runtime media registry", () => {
     expect(refreshRuntimeMediaCache().timedMediaEls).toHaveLength(1);
     el.remove();
     expect(refreshRuntimeMediaCache().timedMediaEls).toHaveLength(0);
+  });
+});
+
+describe("installRuntimeMediaObserver", () => {
+  const flushObserver = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+    delete window.__HF_RENDER_CAPTURE_MODE;
+  });
+
+  // The window that matters is between the parser inserting the element and
+  // the browser acting on it, which is the observer's microtask — setting
+  // preload any later has already lost the fetch.
+  it("defers a newly parsed media element before the browser fetches it", async () => {
+    installRuntimeMediaObserver();
+    const el = createAudio({ "data-start": "120", "data-duration": "2" });
+
+    await flushObserver();
+
+    expect(el.preload).toBe("none");
+  });
+
+  it("defers media inside an injected sub-composition subtree", async () => {
+    installRuntimeMediaObserver();
+    const host = document.createElement("div");
+    host.innerHTML = '<video data-start="90" data-duration="2"></video>';
+    document.body.appendChild(host);
+
+    await flushObserver();
+
+    expect(host.querySelector("video")?.preload).toBe("none");
+  });
+
+  it("leaves an authored preload alone", async () => {
+    installRuntimeMediaObserver();
+    const el = createAudio({ "data-start": "120", "data-duration": "2", preload: "auto" });
+
+    await flushObserver();
+
+    expect(el.preload).toBe("auto");
+  });
+
+  it("leaves an autoplay element alone", async () => {
+    installRuntimeMediaObserver();
+    const el = createAudio({ "data-start": "120", "data-duration": "2", autoplay: "" });
+
+    await flushObserver();
+
+    expect(el.preload).toBe("");
+  });
+
+  // Render capture screenshots whatever the browser has decoded, so it must
+  // keep fetching everything up front.
+  it("defers nothing in render capture mode", async () => {
+    window.__HF_RENDER_CAPTURE_MODE = true;
+    installRuntimeMediaObserver();
+    const el = createAudio({ "data-start": "120", "data-duration": "2" });
+
+    await flushObserver();
+
+    expect(el.preload).toBe("");
   });
 });
