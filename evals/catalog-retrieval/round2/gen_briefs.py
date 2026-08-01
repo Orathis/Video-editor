@@ -51,6 +51,37 @@ NEIGHBOR_SCORE_RATIO = 0.5
 # harness2.semantic_topk after the separately gated embed2.py vector build. The
 # corpus record and reporting contract stay unchanged when those vectors exist.
 
+NO_SHELF_OVERLAP = "distractor:no_shelf_overlap"
+SOFT_REJECTIONS = frozenset({NO_SHELF_OVERLAP})
+ACCEPT_STATUSES = ("accept", "accept-soft")
+
+
+def is_soft(reason):
+    """Say whether a rejection reason may be overridden by a last-resort accept.
+
+    Only no-shelf-overlap is soft, and only this predicate decides that, so the
+    distinction lives in one place rather than in string comparisons scattered
+    through the generator.
+
+    Measured on the first 128 moves of the 424-move wave: 109 accepted, 19
+    dropped, and all 19 drops carried this one reason. The dropped moves have a
+    median of 15 blurb tokens against 19 for the accepted ones, and six of the
+    19 are caption-family near twins. So the reason that fires is exactly the
+    reason that fires hardest on the terse entries and the near-twin families
+    this round exists to score fairly, which reintroduces at generation time the
+    corpus selection bias the round was built to remove.
+
+    The distractor gate exists to reject a brief that gives its answer away by
+    standing alone in its own score band. A brief with no overlap at all gives
+    nothing away: it is the hardest case on the shelf, and dropping it flatters
+    the lexical arm. Whether such a brief is actually on target is not
+    generation's call. The blind gold committee in validate_gold.py is the
+    arbiter, and an off-target brief surfaces there as contested or unplaceable,
+    visibly, instead of vanishing here.
+    """
+    return reason in SOFT_REJECTIONS
+
+
 STRATIFICATION_TOLERANCE = 10
 # This is the allowed number of moves left behind by the gates before the run
 # warns. It is not a backfill budget: replacing a dropped target would bias the
@@ -236,6 +267,10 @@ def load_attempts(path):
     Attempts are what allocation reads, so a move whose brief the gates
     rejected is not retried in a later wave. Accepted counts are what the
     shortfall is measured against, which is how the difference stays visible.
+
+    A soft acceptance counts as accepted because its brief is on disk and in the
+    corpus. Counting only the clean status would report those moves as a
+    shortfall the wave could still fill, and the wave never can.
     """
     attempts = Counter()
     accepted = Counter()
@@ -247,7 +282,7 @@ def load_attempts(path):
             continue
         row = json.loads(line)
         attempts[row["name"]] += 1
-        if row["status"] == "accept":
+        if row["status"] in ACCEPT_STATUSES:
             accepted[row["name"]] += 1
     return attempts, accepted
 
@@ -338,13 +373,39 @@ def validate_candidate(name, brief_text, entries):
     competitors, isolated = distractor_gate(brief_text, name, entries)
     if isolated:
         if competitors is None:
-            return "distractor:no_shelf_overlap"
+            return NO_SHELF_OVERLAP
         return f"distractor:{competitors}"
     return None
 
 
+def _candidate(parsed, brief, soft_reason=None):
+    """Shape one surviving candidate, clean or soft, naming the soft reason."""
+
+    def text(field):
+        value = parsed.get(field, "")
+        return value if isinstance(value, str) else ""
+
+    return {
+        "brief": brief,
+        "why_best": text("why_best"),
+        "why_bad": text("why_bad"),
+        "trap": text("trap"),
+        "soft_reason": soft_reason,
+    }
+
+
 def generate_move(name, source, entries, model, chat, max_attempts):
+    """Return the best candidate this move produced, or None if every reason was hard.
+
+    A soft rejection is still a rejection while attempts remain: an overlapping
+    brief is the better artifact, so the loop keeps asking for one. It is only
+    when the attempts run out that the last soft-rejected candidate is kept
+    rather than dropped, because the alternative is losing the move from the
+    corpus for being hard, and is_soft explains why that bias is the one thing
+    this round cannot afford. Every other reason still drops the move.
+    """
     rejections = []
+    soft = None
     prompt = PROMPT.format(source=source)
     for _ in range(max_attempts):
         parsed, _, _, _ = chat(
@@ -364,23 +425,11 @@ def generate_move(name, source, entries, model, chat, max_attempts):
         reason = validate_candidate(name, brief, entries)
         if reason is not None:
             rejections.append(reason)
+            if is_soft(reason):
+                soft = _candidate(parsed, brief, reason)
             continue
-        return (
-            {
-                "brief": brief,
-                "why_best": parsed.get("why_best", "")
-                if isinstance(parsed.get("why_best", ""), str)
-                else "",
-                "why_bad": parsed.get("why_bad", "")
-                if isinstance(parsed.get("why_bad", ""), str)
-                else "",
-                "trap": parsed.get("trap", "")
-                if isinstance(parsed.get("trap", ""), str)
-                else "",
-            },
-            rejections,
-        )
-    return None, rejections
+        return _candidate(parsed, brief), rejections
+    return soft, rejections
 
 
 def generate_corpus(
@@ -435,6 +484,7 @@ def generate_corpus(
             continue
 
         bad = nearest_confusable_neighbors(name, entries)
+        soft_reason = result["soft_reason"]
         brief_text = result["brief"]
         brief_path = briefs_dir / f"{brief_id}.md"
         brief_path.write_text(
@@ -453,6 +503,13 @@ def generate_corpus(
             "why_bad": result["why_bad"],
             "trap": result["trap"],
         }
+        if soft_reason is not None:
+            # The gold record is the artifact that survives to disk and that
+            # every later loop reads, so the marker rides there. It is written
+            # only for a soft acceptance, which keeps the clean records byte
+            # identical to what earlier waves produced and lets an audit report
+            # recall with and without these briefs by presence of the key.
+            gold["soft_reason"] = soft_reason
         (gold_dir / f"{brief_id}.json").write_text(
             json.dumps(gold, indent=2) + "\n",
             encoding="utf-8",
@@ -467,10 +524,18 @@ def generate_corpus(
                 "register": register,
                 "aspect": aspect,
                 "bad": bad,
+                "soft_reason": soft_reason,
             }
         )
-        record_attempt(attempts_log, name, "accept")
-        emit(f"ACCEPT {brief_id} {name} after {len(reasons) + 1} attempt(s)")
+        if soft_reason is None:
+            record_attempt(attempts_log, name, "accept")
+            emit(f"ACCEPT {brief_id} {name} after {len(reasons) + 1} attempt(s)")
+        else:
+            record_attempt(attempts_log, name, "accept-soft")
+            emit(
+                f"ACCEPT-SOFT {brief_id} {name}: {soft_reason} "
+                f"after {len(reasons)} attempt(s)"
+            )
 
     return {"accepted": accepted, "dropped": dropped}
 

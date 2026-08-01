@@ -20,6 +20,11 @@ PASSING_BRIEF = (
     "Group the subject into a singular beat. Shape a lucid cadence, then land "
     "decisively. Keep the moment purposeful, poised, and uncluttered."
 )
+# Shares no token with any real shelf blurb, which is what the soft rejection
+# fires on. Deliberately nonsense: the point is the empty intersection.
+NO_OVERLAP_BRIEF = (
+    "Zebras waltz through molten orchards while saffron kettles hum a lullaby."
+)
 
 
 def canned_response(brief_text, why_text="A clear purpose makes this fit."):
@@ -514,6 +519,222 @@ class BriefGeneratorTests(unittest.TestCase):
             {"temperature": briefs.BRIEF_TEMPERATURE},
             calls[0][1],
         )
+
+    def _scripted(self, responses):
+        """A chat callable that walks `responses`, repeating the last one."""
+        calls = []
+
+        def scripted(context, model, config=None):
+            calls.append(context)
+            return responses[min(len(calls) - 1, len(responses) - 1)]
+
+        return scripted
+
+    # A brief sharing no vocabulary with its own blurb gives its move away least
+    # of all, so refusing it removes the hardest moves from the corpus rather
+    # than the leakiest. Measured on the first 128 moves of the wave, all 19
+    # drops carried this one reason, and their blurbs run shorter than the
+    # accepted ones, a median of 15 tokens against 19. Generation therefore
+    # keeps the move and leaves the on-target question to the blind committee.
+    def test_a_move_rejected_only_softly_is_kept_and_marked(self):
+        name = "caption-camera-follow"
+        self.assertEqual(
+            briefs.NO_SHELF_OVERLAP,
+            briefs.validate_candidate(name, NO_OVERLAP_BRIEF, self.entries),
+        )
+        result, reasons = briefs.generate_move(
+            name,
+            "source",
+            self.entries,
+            "fixture-model",
+            self._scripted([canned_response(NO_OVERLAP_BRIEF)]),
+            briefs.GEN_MAX_ATTEMPTS,
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(NO_OVERLAP_BRIEF, result["brief"])
+        self.assertEqual(briefs.NO_SHELF_OVERLAP, result["soft_reason"])
+        self.assertEqual(
+            [briefs.NO_SHELF_OVERLAP] * briefs.GEN_MAX_ATTEMPTS,
+            reasons,
+        )
+
+    # Soft does not mean welcome. An overlapping brief is still the better
+    # artifact, so the loop keeps spending its attempts on one, and a clean
+    # candidate that arrives later wins over the soft one already in hand.
+    def test_a_clean_later_attempt_is_preferred_over_an_earlier_soft_one(self):
+        result, reasons = briefs.generate_move(
+            "caption-camera-follow",
+            "source",
+            self.entries,
+            "fixture-model",
+            self._scripted(
+                [
+                    canned_response(NO_OVERLAP_BRIEF),
+                    canned_response(PASSING_BRIEF),
+                ]
+            ),
+            briefs.GEN_MAX_ATTEMPTS,
+        )
+        self.assertEqual(PASSING_BRIEF, result["brief"])
+        self.assertIsNone(result["soft_reason"])
+        self.assertEqual([briefs.NO_SHELF_OVERLAP], reasons)
+
+    # Every other reason still drops the move, unchanged. A leaked name and a
+    # copied blurb are briefs that answer themselves, and a real isolation count
+    # means the brief has a band and stands nearly alone in it, which is the
+    # giveaway the distractor gate was built to catch.
+    def test_hard_rejections_still_drop_the_move(self):
+        synthetic_zero = {
+            "target": "orchid saffron",
+            "other-a": "harbor cobalt",
+            "other-b": "lantern quartz",
+        }
+        synthetic_one = {
+            "target": "orchid saffron",
+            "other-a": "orchid harbor",
+            "other-b": "lantern quartz",
+        }
+        isolating = "Orchid arrives with a poised and lucid finish."
+        cases = (
+            (
+                "name_leak",
+                "caption-camera-follow",
+                self.entries,
+                "Zebras waltz with caption camera follow through molten orchards.",
+            ),
+            (
+                "vocabulary",
+                "caliper-caption-rail",
+                self.entries,
+                self.entries["caliper-caption-rail"],
+            ),
+            ("distractor:0", "target", synthetic_zero, isolating),
+            ("distractor:1", "target", synthetic_one, isolating),
+        )
+        for label, name, entries, brief_text in cases:
+            with self.subTest(reason=label):
+                self.assertFalse(
+                    briefs.is_soft(
+                        briefs.validate_candidate(name, brief_text, entries)
+                    )
+                )
+                result, reasons = briefs.generate_move(
+                    name,
+                    "source",
+                    entries,
+                    "fixture-model",
+                    self._scripted([canned_response(brief_text)]),
+                    briefs.GEN_MAX_ATTEMPTS,
+                )
+                self.assertIsNone(result)
+                self.assertEqual(briefs.GEN_MAX_ATTEMPTS, len(reasons))
+                self.assertTrue(reasons[0].startswith(label.split(":")[0]), reasons)
+
+    # One candidate can trip both kinds of check at once, and the hard one
+    # decides: a brief that names its move is a giveaway whatever its overlap
+    # with the blurb is, so a run mixing the two still drops the move.
+    def test_a_candidate_failing_both_ways_drops_on_the_hard_reason(self):
+        name = "caption-camera-follow"
+        both = "Caption camera follow, said the zebra to the saffron kettle."
+        self.assertEqual(
+            briefs.NO_SHELF_OVERLAP,
+            briefs.validate_candidate(
+                name,
+                both.replace("Caption camera follow", "Molten orchards"),
+                self.entries,
+            ),
+        )
+        result, reasons = briefs.generate_move(
+            name,
+            "source",
+            self.entries,
+            "fixture-model",
+            self._scripted([canned_response(both)]),
+            briefs.GEN_MAX_ATTEMPTS,
+        )
+        self.assertIsNone(result)
+        self.assertEqual(["name_leak"] * briefs.GEN_MAX_ATTEMPTS, reasons)
+
+    # The soft path is a change to what the corpus contains, so it is never
+    # silent: the gold record on disk names the reason, the attempt log
+    # separates it from a clean acceptance, and the run line says so where a
+    # later count can read it back.
+    def test_a_soft_acceptance_is_visible_on_disk_in_the_log_and_in_the_line(self):
+        clean, soft = "caption-camera-follow", "depth-rack-focus"
+        lines = []
+
+        def by_move(context, model, config=None):
+            if soft.replace("-", " ") in context or soft in context:
+                return canned_response(NO_OVERLAP_BRIEF)
+            return canned_response(PASSING_BRIEF)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "attempts.jsonl"
+            result = briefs.generate_corpus(
+                self.entries,
+                self.catalog,
+                [(clean, "primitive"), (soft, "primitive")],
+                chat=by_move,
+                briefs_dir=root / "briefs",
+                gold_dir=root / "gold",
+                emit=lines.append,
+                attempts_log=log,
+            )
+            gold = {
+                path.stem: json.loads(path.read_text(encoding="utf-8"))
+                for path in (root / "gold").glob("*.json")
+            }
+            statuses = [
+                json.loads(line)["status"]
+                for line in log.read_text(encoding="utf-8").splitlines()
+            ]
+            spent, accepted = briefs.load_attempts(log)
+
+        self.assertEqual(2, len(result["accepted"]))
+        self.assertEqual(0, len(result["dropped"]))
+        self.assertNotIn("soft_reason", gold["001"])
+        self.assertEqual(briefs.NO_SHELF_OVERLAP, gold["002"]["soft_reason"])
+        self.assertEqual(["accept", "accept-soft"], statuses)
+        # Both briefs are on disk, so both count against the wave's shortfall.
+        self.assertEqual({clean: 1, soft: 1}, dict(accepted))
+        self.assertEqual({clean: 1, soft: 1}, dict(spent))
+        self.assertTrue(lines[0].startswith(f"ACCEPT 001 {clean}"), lines)
+        self.assertTrue(lines[1].startswith(f"ACCEPT-SOFT 002 {soft}"), lines)
+        self.assertIn(briefs.NO_SHELF_OVERLAP, lines[1])
+
+    # A drop still reads as a drop, so the three outcomes stay countable apart
+    # in one log rather than collapsing into accepted and everything else.
+    def test_the_attempt_log_separates_accept_accept_soft_and_drop(self):
+        name = "caption-camera-follow"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "attempts.jsonl"
+            for brief_text in (
+                PASSING_BRIEF,
+                NO_OVERLAP_BRIEF,
+                f"Use {name} for this beat.",
+            ):
+                briefs.generate_corpus(
+                    self.entries,
+                    self.catalog,
+                    [(name, "primitive")],
+                    chat=self._scripted([canned_response(brief_text)]),
+                    briefs_dir=root / "briefs",
+                    gold_dir=root / "gold",
+                    emit=lambda _: None,
+                    attempts_log=log,
+                    start_index=briefs.next_index(root / "briefs"),
+                )
+            statuses = [
+                json.loads(line)["status"]
+                for line in log.read_text(encoding="utf-8").splitlines()
+            ]
+            spent, accepted = briefs.load_attempts(log)
+
+        self.assertEqual(["accept", "accept-soft", "drop"], statuses)
+        self.assertEqual({name: 3}, dict(spent))
+        self.assertEqual({name: 2}, dict(accepted))
 
     def _priced_catalog(self, root):
         """A two move catalog whose sources are real files on disk."""
