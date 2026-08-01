@@ -600,7 +600,12 @@ def main(argv=None):
         "k", "leader", "runner-up", "margin", "95% interval", "branch"))
     for result in across:
         rows, outcome = result["rows"], result["outcome"]
-        runner = rows[1]["arm"] if len(rows) > 1 else "none"
+        # The arm the margin is actually against, which is the leader's first
+        # rival from another family, not whichever arm placed second. Printing
+        # the second row beside a margin measured against a different arm reads
+        # as a comparison that was never made.
+        rival = outcome.get("runner_up") or {}
+        runner = rival.get("arm", "none")
         margin = outcome.get("difference") or {}
         print("{0:>6}  {1:<16} {2:<16} {3:>+9.4f}  {4:>20}  {5}".format(
             result["k"], rows[0]["arm"], runner,

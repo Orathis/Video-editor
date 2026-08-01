@@ -248,6 +248,36 @@ class SingleClusterTests(unittest.TestCase):
         self.assertEqual(1, interval["clusters"])
 
 
+class RunnerUpLabelTests(unittest.TestCase):
+    """The arm named beside a margin is the arm the margin was measured against.
+
+    Step 2 compares the leader against its first rival from another family, so
+    when the leader's own family also takes second place, the second row and the
+    compared arm are different arms. Naming the second row beside the margin
+    reports a comparison that was never run.
+    """
+
+    def setUp(self):
+        self.summary = summarise(
+            (3,) * 8,
+            {
+                "hybrid-lead": arm(ALWAYS, "hybrid"),
+                "hybrid-second": arm(NEARLY_ALL, "hybrid"),
+                "lexical": arm(ONE_FEWER, "lexical"),
+            },
+        )
+
+    def test_the_second_row_is_the_leader_own_family_so_the_labels_can_diverge(self):
+        ranking = self.summary["ranking"]
+        self.assertEqual("hybrid-lead", ranking[0]["arm"])
+        self.assertEqual("hybrid-second", ranking[1]["arm"])
+
+    def test_every_k_names_the_compared_arm_not_the_second_row(self):
+        for row in self.summary["across_ks"]:
+            self.assertEqual("hybrid-lead", row["leader"], row)
+            self.assertEqual("lexical", row["runner_up"], row)
+
+
 class StopReasonTests(unittest.TestCase):
     """Scenario 4: three different verdicts, never reported as one."""
 

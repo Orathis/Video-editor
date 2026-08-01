@@ -252,7 +252,9 @@ def build_summary(
             {
                 "k": result["k"],
                 "leader": result["rows"][0]["arm"] if result["rows"] else None,
-                "runner_up": result["rows"][1]["arm"] if len(result["rows"]) > 1 else None,
+                # The arm the margin was measured against, which the rule takes
+                # from another family, not whichever arm placed second.
+                "runner_up": (result["outcome"].get("runner_up") or {}).get("arm"),
                 "branch": result["outcome"]["branch"],
                 "ship": result["outcome"]["ship"],
                 "margin": result["outcome"].get("difference"),
