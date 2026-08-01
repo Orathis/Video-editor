@@ -74,17 +74,54 @@ def confirm(records, gold, shelf, vectors=None):
     return out
 
 
+def paired(rows, cell, baseline):
+    """Each rate as a paired difference between two cells on the same briefs.
+
+    Two column means over two cells is not the comparison the rule is written
+    against, and here it would be actively misleading: the briefs a short list
+    answers at all are the easy ones, so an unpaired gap between cells carries
+    brief difficulty inside it. Differencing brief by brief holds difficulty
+    fixed, and the briefs only one cell ran are dropped rather than averaged
+    over, because a difference over a subset of the corpus is not a difference.
+    """
+    by_brief = {}
+    for row in rows:
+        by_brief.setdefault(row["brief"], {})[row["cell"]] = row
+    shared = sorted(
+        brief for brief, cells in by_brief.items() if cell in cells and baseline in cells
+    )
+    clusters = [by_brief[brief][cell]["move"] for brief in shared]
+    out = {"cell": cell, "against": baseline, "n": len(shared)}
+    for name, read in METRICS:
+        out[name] = stats.clustered_difference(
+            [read(by_brief[brief][cell]) for brief in shared],
+            [read(by_brief[brief][baseline]) for brief in shared],
+            clusters,
+        )
+    return out
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", default=CHECKPOINT)
     parser.add_argument("--gold", default=recall.GOLD)
     parser.add_argument("--out", default=os.path.join(HERE, "confirm3.json"))
+    parser.add_argument(
+        "--paired",
+        help="two cells as LEADER:BASELINE, differenced brief by brief",
+    )
     args = parser.parse_args(argv)
 
     records = run2.load_checkpoint(args.checkpoint)
     gold = gate2.load_gold(args.gold)
     shelf = harness2.load_shelf()
     cells = confirm(records, gold, shelf)
+    difference = None
+    if args.paired:
+        cell, baseline = args.paired.split(":", 1)
+        difference = paired(
+            build_report2.score_all(records, gold, shelf), cell, baseline
+        )
 
     for cell, summary in cells.items():
         print("cell {0}: n={1} over {2} moves".format(
@@ -95,8 +132,20 @@ def main(argv=None):
             print("  {0:<17} {1:.4f}  95% {2}".format(
                 name, interval["mean"], stats.format_interval(interval)
             ))
+    if difference:
+        print("paired {0} against {1}, n={2}".format(
+            difference["cell"], difference["against"], difference["n"]
+        ))
+        for name, _ in METRICS:
+            interval = difference[name]
+            print("  {0:<17} {1:+.4f}  95% {2}".format(
+                name, interval["mean"], stats.format_interval(interval)
+            ))
     with open(args.out, "w", encoding="utf-8") as fh:
-        json.dump(cells, fh, indent=2, sort_keys=True, allow_nan=False)
+        json.dump(
+            {"cells": cells, "paired": difference},
+            fh, indent=2, sort_keys=True, allow_nan=False,
+        )
     print("wrote {0}".format(args.out))
     return 0
 

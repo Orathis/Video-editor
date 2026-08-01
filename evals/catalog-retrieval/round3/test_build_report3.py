@@ -322,6 +322,66 @@ class KDependentTests(unittest.TestCase):
         )
 
 
+class ConfirmationSectionTests(unittest.TestCase):
+    """The paid half of the round is on the page, or its absence is.
+
+    Recall is free and refusal is not. A page that showed the free ranking and
+    silently omitted the paid stage would read as a finished round.
+    """
+
+    CONFIRMATION = {
+        "cells": {
+            "c@80": {
+                "n": 4,
+                "clusters": 2,
+                "refusal": {"mean": 0.25, "lo": 0.0, "hi": 0.6, "n_eff": 2.0},
+                "known_wrong_pick": {"mean": 0.5, "lo": 0.1, "hi": 0.9, "n_eff": 2.0},
+                "mountable": {"mean": 1.0, "lo": 1.0, "hi": 1.0, "n_eff": 2.0},
+                "fit": {"mean": 0.4, "lo": 0.2, "hi": 0.6, "n_eff": 2.0},
+                "pass_rate": {"mean": 0.5, "lo": 0.2, "hi": 0.8, "n_eff": 2.0},
+            },
+        },
+        "paired": {
+            "cell": "h@80",
+            "against": "c@80",
+            "n": 4,
+            # Contains zero, so it has not separated.
+            "refusal": {"mean": -0.25, "lo": -0.6, "hi": 0.1, "n_eff": 2.0},
+            "known_wrong_pick": {"mean": -0.5, "lo": -0.9, "hi": -0.1, "n_eff": 2.0},
+            "mountable": {"mean": 0.0, "lo": 0.0, "hi": 0.0, "n_eff": 2.0},
+            "fit": {"mean": 0.2, "lo": 0.05, "hi": 0.35, "n_eff": 2.0},
+            "pass_rate": {"mean": 0.25, "lo": 0.05, "hi": 0.45, "n_eff": 2.0},
+        },
+    }
+
+    def test_a_missing_confirmation_is_stated_rather_than_omitted(self):
+        page = build_report3.render(tied_summary())
+        self.assertIn("The paid confirmation has not run", page)
+        self.assertNotIn("Paid confirmation, paired brief by brief", page)
+
+    def test_a_separated_difference_and_a_tied_one_are_labelled_apart(self):
+        page = build_report3.render(tied_summary(), self.CONFIRMATION)
+        self.assertIn("Paid confirmation, what recall cannot see", page)
+        self.assertIn("Paid confirmation, paired brief by brief", page)
+        # Refusal spans zero and fit does not, so the column has to say both.
+        self.assertIn("-0.2500", page)
+        self.assertIn("+0.2000", page)
+        rows = page.split("<tr>")
+        refusal = next(r for r in rows if "refusal" in r and "-0.2500" in r)
+        fit = next(r for r in rows if ">fit<" in r and "+0.2000" in r)
+        self.assertIn("<td>no</td>", refusal)
+        self.assertIn("<td>yes</td>", fit)
+
+    def test_the_confirmation_never_collapses_mountable_and_fit(self):
+        page = build_report3.render(tied_summary(), self.CONFIRMATION)
+        for name in ("mountable", "fit", "refusal", "known wrong pick"):
+            self.assertIn(name, page)
+
+    def test_the_rendered_confirmation_carries_no_em_dash(self):
+        page = build_report3.render(tied_summary(), self.CONFIRMATION)
+        self.assertEqual(0, page.count(EmDashTests.EM_DASH))
+
+
 class RunnerUpLabelTests(unittest.TestCase):
     """The arm named beside a margin is the arm the margin was measured against.
 

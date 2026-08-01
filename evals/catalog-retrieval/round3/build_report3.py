@@ -26,6 +26,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import confirm3  # noqa: E402
 import recall  # noqa: E402
 import stats  # noqa: E402
 import sweep  # noqa: E402
@@ -34,6 +35,7 @@ import harness2  # noqa: E402  recall puts the round two directory on the path
 
 REPORT = os.path.join(HERE, "report3.html")
 SUMMARY = os.path.join(HERE, "summary3.json")
+CONFIRMATION = os.path.join(HERE, "confirm3.json")
 
 # The three ways the round can end, taken from the stopping rule in
 # DECISION-RULE.md, plus the honest fourth state for a round still in progress.
@@ -356,7 +358,76 @@ def _paragraph(text):
     return '<p class="sub">{0}</p>'.format(html.escape(text))
 
 
-def render(summary):
+def confirmation_sections(confirmation):
+    """The paid stage, rendered beside the free one or declared missing.
+
+    Recall is free and the two rates below are not, so a report that showed the
+    ranking and quietly left these out would read as a finished round. When the
+    confirmation has not run, that is stated rather than omitted.
+    """
+    if not confirmation:
+        return [
+            _paragraph(
+                "The paid confirmation has not run. Refusal and known-wrong picks are "
+                "the two quantities offline recall cannot see, so until it does, this "
+                "page is the free half of the round and not the whole of it."
+            )
+        ]
+    cells = confirmation["cells"]
+    metrics = [name for name, _ in confirm3.METRICS]
+    sections = [
+        _table(
+            "Paid confirmation, what recall cannot see",
+            ["cell", "n", "clusters"]
+            + [name.replace("_", " ") for name in metrics],
+            [
+                [cell, cells[cell]["n"], cells[cell]["clusters"]]
+                + [
+                    "{0:.4f} ({1})".format(
+                        cells[cell][name]["mean"],
+                        stats.format_interval(cells[cell][name]),
+                    )
+                    for name in metrics
+                ]
+                for cell in sorted(cells)
+            ],
+        ),
+        _paragraph(
+            "Refusing and naming a move the gold set marks as wrong are opposite "
+            "failures with opposite fixes, so they are counted apart and never summed. "
+            "Scoring is the same mechanical gate the earlier rounds used: no model "
+            "judges a model here either."
+        ),
+    ]
+    paired = confirmation.get("paired")
+    if paired:
+        sections.append(
+            _table(
+                "Paid confirmation, paired brief by brief",
+                ["quantity", "difference", "difference 95% ci", "separated"],
+                [
+                    [
+                        name.replace("_", " "),
+                        "{0:+.4f}".format(paired[name]["mean"]),
+                        stats.format_interval(paired[name]),
+                        "no" if paired[name]["lo"] <= 0 <= paired[name]["hi"] else "yes",
+                    ]
+                    for name in metrics
+                ],
+            )
+        )
+        sections.append(
+            _paragraph(
+                "{0} against {1} on the {2} briefs both cells ran, differenced per brief "
+                "so difficulty is held fixed. Exactly one thing differs between these "
+                "cells, the retriever, which is what makes the difference readable at "
+                "all.".format(paired["cell"], paired["against"], paired["n"])
+            )
+        )
+    return sections
+
+
+def render(summary, confirmation=None):
     """The report. Every table ships an interval column, without exception."""
     ranking = [
         [
@@ -563,6 +634,7 @@ def render(summary):
                 "question is what k, not which arm.".format(max(summary["ks"]))
             )
         )
+    sections.extend(confirmation_sections(confirmation))
 
     return """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -625,6 +697,11 @@ def main(argv=None):
         action="store_true",
         help="the spend ceiling fired, which is a different verdict from running out of waves",
     )
+    parser.add_argument(
+        "--confirmation",
+        default=CONFIRMATION,
+        help="the paid stage's output, rendered beside the free sweep when it exists",
+    )
     parser.add_argument("--report", default=REPORT)
     parser.add_argument("--summary", default=SUMMARY)
     args = parser.parse_args(argv)
@@ -657,8 +734,14 @@ def main(argv=None):
     )
     with open(args.summary, "w", encoding="utf-8") as fh:
         json.dump(jsonable(summary), fh, indent=2, sort_keys=True, allow_nan=False)
+    # Absent rather than empty when the paid stage has not run, which the report
+    # says out loud instead of rendering a blank table.
+    confirmation = None
+    if args.confirmation and os.path.exists(args.confirmation):
+        with open(args.confirmation, encoding="utf-8") as fh:
+            confirmation = json.load(fh)
     with open(args.report, "w", encoding="utf-8") as fh:
-        fh.write(render(summary))
+        fh.write(render(summary, confirmation))
 
     print("stop reason: {0}".format(summary["stop_reason"]))
     print("branch: {0}, ship: {1}".format(

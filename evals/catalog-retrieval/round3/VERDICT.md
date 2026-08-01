@@ -1,128 +1,223 @@
-# Round 3 verdict, pending
+# Round 3 verdict: the question was what k, not which arm
 
-**Status: pending. This document carries no round 3 result number, because none exists yet.**
+**Status: complete. The pre-registered rule does not name an arm, because the arm it ships
+depends on the list length it is read at. That outcome was written into the rule before any
+round 3 number existed, and it is what happened.**
 
-The paid confirmation stage has not run. Everything below that would need a round 3 measurement
-is written as an explicit gap with the file that will fill it, rather than as an estimate, a
-placeholder or a plausible-looking number. A verdict written before the data is a description of
-an expectation, not a finding.
+Everything below is measured. Round 2 numbers appear only as labelled context.
 
-Round 2 numbers appear here only as context and are labelled as such. They are not round 3
-results and must not be read as the ranking.
+## What this round decided
 
-## What this round decides
+Which catalog retrieval arm ships as the default for the frame workers: `lexical`, `semantic`,
+or `hybrid` at some fusion weight, each swept over list length k.
 
-Which catalog retrieval arm ships as the default for the frame workers: `lexical`, `semantic`, or
-`hybrid` at some fusion weight, each swept over list length k.
+Round 3's premise, established before any of this ran, is that the arm choice reduces entirely
+to **recall**. Round 2 measured that once the correct move is already on the shown list, every
+arm converts it into a good pick at the same rate, between 0.774 and 0.872 with no ordering by
+arm family. Recall is decided by the retriever before a token is bought, so the arm ranking cost
+nothing and the paid stage was reduced to the two quantities recall cannot see.
 
-Round 3's finding, established before any of this ran, is that the arm choice reduces entirely to
-**recall**. Round 2 measured that once the correct move is already on the shown list, every arm
-converts it into a good pick at the same rate, between 0.774 and 0.872 with no ordering by arm
-family. Nothing distinguishes the arms except whether the answer was on the list. Recall is
-decided by the retriever before a single token is bought, so the arm ranking costs nothing and
-the paid stage is reduced to the two quantities recall cannot see.
+That premise was verified rather than assumed. Rerunning `harness2.lexical_topk` offline
+reproduced round 2's paid grid exactly: 0 disagreements over 227 briefs at k=5, 10 and 20.
 
-## The pre-registered rule
+## The answer
 
-Written and committed in `DECISION-RULE.md` before any round 3 recall number existed, and read
-out of that file by `sweep.py` rather than transcribed into code, so editing the rule changes what
-the sweep decides.
+**The rule ships a different family depending on k.**
 
-1. **Rank on offline recall**, every interval clustered by target move rather than by brief.
-2. **If the leader clears the runner-up by more than the clustered 95 percent interval of the
-   paired difference, that arm ships.** Paired on the same briefs, not a difference of two column
-   means.
-3. **If they do not separate, stop buying data.** The tie breaks on operations, not on the larger
-   number: in favour of the arm that needs no embedding index and therefore cannot serve stale
-   vectors.
-4. **Then run the paid confirmation** on the top two arms only, for the two quantities recall
-   cannot see: the refusal rate, and the known-wrong-pick rate that drives the flat 0.5 fit
-   penalty. If the confirmation contradicts the recall ranking, that is reported as a
-   contradiction and is not used to reopen step 2.
+| list length    | what the rule says        | branch    |
+| -------------- | ------------------------- | --------- |
+| k=5            | lexical, on the tie break | tie       |
+| k=10 to k=150  | hybrid                    | separated |
+| k=160 to k=423 | lexical, on the tie break | tie       |
 
-The exploratory tier (a reranker, query expansion, anything new) is swept and reported but cannot
-win this decision. An exploratory arm that wins is recorded as a follow-up initiative with its
-measured margin.
+The arms converge completely at k=423, one below the shelf size, where every arm returns the
+whole shelf and every recall is 1.0000. They are already indistinguishable well before that:
+from k=260 upward, every paired difference between the leader and its nearest rival from another
+family is exactly 0.0000.
 
-## The three stop reasons
+So there is no single arm to ship, and naming one would be reporting a choice of list length as
+a choice of retriever. `DECISION-RULE.md` pre-registered this exact case: all arms draw from the
+same 424 entries, so at sufficient k they must converge, and the finding is then what k.
 
-The round stops at the first of three conditions, and they are three different verdicts. The
-report names which one fired; it never reports them as one.
+### Where the question is live, hybrid wins
 
-| stop reason       | what it means                                                  | how to read the ranking                                                 |
-| ----------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `separated`       | the leader cleared the runner-up under step 2                  | an arm won on measurement                                               |
-| `waves-exhausted` | all five waves of corpus growth completed without a separation | no arm won; the corpus ran out, and step 3 decides on operations        |
-| `ceiling-reached` | the spend ceiling fired before the arms separated              | no arm won; the budget ran out, and the ranking is what the data bought |
+Inside k=10 to k=150 the arms do separate, and hybrid separates. Read at k=10, the shortest list
+length at which the rule separates them, the ranking over 273 briefs and 273 target moves is:
 
-A fourth state, `still-running`, means none of the three has fired and the report is an interim
-read rather than a verdict. **That is the current state.**
+| place | arm          | family   | recall | 95% ci           | n eff |
+| ----- | ------------ | -------- | ------ | ---------------- | ----- |
+| 1     | hybrid@w=0.7 | hybrid   | 0.3810 | 0.3230 to 0.4389 | 273.0 |
+| 2     | hybrid@w=0.5 | hybrid   | 0.3663 | 0.3088 to 0.4238 | 273.0 |
+| 3     | semantic     | semantic | 0.3150 | 0.2596 to 0.3705 | 273.0 |
+| 4     | hybrid@w=0.3 | hybrid   | 0.3004 | 0.2456 to 0.3551 | 273.0 |
+| 5     | lexical      | lexical  | 0.2051 | 0.1569 to 0.2533 | 273.0 |
 
-**Which one fired: unknown.** No wave has completed and no round 3 sweep output is committed.
-`build_report3.py` computes the stop reason from the sweep outcome, the wave count and the ceiling
-flag, and prints it into `report3.html` and `summary3.json`.
+Paired against the leader, brief by brief, so difficulty is held fixed:
+
+| arm          | against      | difference | 95% ci             |
+| ------------ | ------------ | ---------- | ------------------ |
+| hybrid@w=0.5 | hybrid@w=0.7 | -0.0147    | -0.0580 to 0.0287  |
+| semantic     | hybrid@w=0.7 | -0.0659    | -0.1033 to -0.0285 |
+| hybrid@w=0.3 | hybrid@w=0.7 | -0.0806    | -0.1357 to -0.0255 |
+| lexical      | hybrid@w=0.7 | -0.1758    | -0.2378 to -0.1139 |
+
+k=10 is chosen mechanically, not for effect: among the list lengths that satisfy step 2, the
+shortest is the only one defensible on token cost, and being the minimum it cannot have been
+picked to widen a margin. Read at the longest comparable k instead, both tables are degenerate.
+
+The three hybrid weights do not separate from each other. `hybrid@w=0.5` sits inside
+`hybrid@w=0.7`'s interval, and `hybrid@w=0.3` leads at longer lists. The family separates; the
+weight does not.
+
+### Where a longer list stops paying for its tokens
+
+| arm          | knee at k | input tokens per run | recall | 95% ci           |
+| ------------ | --------- | -------------------- | ------ | ---------------- |
+| hybrid@w=0.3 | 90        | 5888                 | 0.9341 | 0.9044 to 0.9637 |
+| hybrid@w=0.5 | 60        | 3999                 | 0.8425 | 0.7990 to 0.8860 |
+| hybrid@w=0.7 | 70        | 4628                 | 0.8608 | 0.8195 to 0.9021 |
+| lexical      | 110       | 7148                 | 0.8571 | 0.8154 to 0.8989 |
+| semantic     | 70        | 4628                 | 0.7802 | 0.7308 to 0.8297 |
+
+The exchange rate is round 2's own: 63.0 input tokens per slot of k, fitted to its cost rows, and
+23725 tokens per unit of recall, taken from the full shelf cell.
+
+## The paid confirmation
+
+The two quantities recall cannot see, measured on the model, one variable between the cells: the
+retriever. Both cells at k=80, which sits inside the separated band. Condition `h` is
+`harness2.hybrid_topk`, proven identical to `sweep.weighted_hybrid(0.5)` with 0 disagreements
+over 273 briefs at k=5, 20, 80 and 120, so the paid arm is the arm the sweep ranked. Condition
+`c` is lexical.
+
+546 runs over 273 briefs, 3,143,883 tokens, **$7.02** against a $20 ceiling, **0 errors**.
+
+| cell           | refusal | known-wrong-pick | 95% ci           | mountable | fit    | pass rate |
+| -------------- | ------- | ---------------- | ---------------- | --------- | ------ | --------- |
+| h@80 (hybrid)  | 0.0000  | 0.1648           | 0.1205 to 0.2091 | 1.0000    | 0.6215 | 0.7179    |
+| c@80 (lexical) | 0.0000  | 0.1319           | 0.0915 to 0.1723 | 1.0000    | 0.5134 | 0.6007    |
+
+Paired brief by brief, hybrid against lexical:
+
+| quantity         | difference | 95% ci            | separated |
+| ---------------- | ---------- | ----------------- | --------- |
+| refusal          | +0.0000    | 0.0000 to 0.0000  | no        |
+| known-wrong-pick | +0.0330    | -0.0044 to 0.0703 | no        |
+| mountable        | +0.0000    | 0.0000 to 0.0000  | no        |
+| fit              | +0.1081    | 0.0550 to 0.1612  | yes       |
+| pass rate        | +0.1172    | 0.0575 to 0.1769  | yes       |
+
+**The confirmation does not contradict the recall ranking.** Hybrid is ahead on fit and on pass
+rate, and the interval on both excludes zero. Its known-wrong-pick rate is nominally higher, but
+that difference contains zero and is not a separation.
+
+Two things the confirmation settled that the sweep could not:
+
+- **Refusal is a short-list problem, not an arm problem.** At k=80 neither arm ever refused: 0
+  of 273 runs, in both cells. Round 2 measured 0.040 at hybrid k=10 and 0.110 at semantic k=5.
+  A list long enough to separate the arms is already long enough that refusal disappears.
+- **Every pick resolved to a real shelf move.** Mountable is 1.0000 in both cells, so the fit gap
+  is a choosing problem and not a naming problem.
+
+## What actually ships
+
+The rule names no arm, so this is a recommendation read off the measurements, not the rule
+shipping something. It is marked as such deliberately.
+
+**Ship hybrid, at a k inside the separated band, with the k chosen at the knee.** The cheapest
+defensible point is `hybrid@w=0.5` at k=60: 3999 input tokens per run for 0.8425 recall. If the
+extra tokens are affordable, `hybrid@w=0.3` at k=90 buys 0.9341 for 5888.
+
+Two things this recommendation is not:
+
+- It is **not** a claim that hybrid beats lexical at every list length. Outside k=10 to k=150 it
+  does not, and above k=160 the rule's own tie break prefers lexical, which needs no embedding
+  index and therefore cannot serve stale vectors.
+- It is **not** a claim that the fusion weight matters. The three weights never separated from
+  each other.
+
+If the operational cost of maintaining an embedding index is judged higher than the fit gap is
+worth, lexical at its own knee (k=110, 7148 tokens, 0.8571 recall) is a defensible ship, and the
+rule's tie break already points there. That is a cost decision, not a measurement decision, and
+the measurement does not make it.
+
+## Which stop reason fired
+
+**None of the three.** `separated`, `waves-exhausted` and `ceiling-reached` all assume the swept
+ks agree on an arm. They did not, so the report records a fourth outcome, `k-dependent`, and says
+what it means: the rule ships a different family depending on the list length it is read at, so
+the round ends on the question the rule pre-registered for this case. Growing the corpus cannot
+change it, because every arm draws from the same shelf and so they must converge at sufficient k.
+
+1 wave of 5 ran. The spend ceiling was not reached.
+
+## The caveat that matters most
+
+**The corpus that produced these numbers is easier than the corpus that was generated, and the
+briefs removed are exactly the ones where retrieval matters most.**
+
+363 briefs were generated. A blind committee, holding the whole shelf and reading each brief
+alone, reconstructed the brief's target move for 273 of them: **75.21% (273/363)**, below the
+95.00% floor. The 90 it could not reconstruct describe a beat that two near-twin moves answer
+equally well. Those briefs do not have one right answer and cannot score a retrieval arm fairly,
+so `prune_corpus.py` moved them, with their gold, into `corpus/excluded/`. Nothing was deleted
+and nothing was rewritten, so the drop is auditable and reversible.
+
+`GOLD-AUDIT.md` now reads 100.00% (273/273). **That is 100% by construction, not an independent
+pass**: it measures the corpus that was defined as the briefs the committee agreed on. Every
+recall number in this document should be read as an upper bound on the generated corpus.
+
+A drop correlated with the thing being measured can manufacture a ranking, so the finding was
+re-run on both halves of a blurb-length split, since near-twin moves skew toward thin blurbs. It
+survives in both:
+
+| half  | briefs | blurb chars | bands                                                               |
+| ----- | ------ | ----------- | ------------------------------------------------------------------- |
+| short | 136    | 65 to 202   | lexical at k=5, hybrid k=10 to 90, lexical k=100 to 423             |
+| long  | 137    | 203 to 557  | lexical at k=5, hybrid over k=10 to 20, 40, and 70 to 110, else tie |
+
+Both halves reproduce the same shape: a tie at the shortest list, a band where hybrid separates,
+a tie again at long lists, and convergence at k=423. The long half is choppier because half the
+briefs widen every interval, not because the ordering changed. Blurb length is a proxy for
+near-twinness and not the thing itself, so this reduces the concern rather than closing it.
 
 ## The ceiling this round is bounded by
 
 **The shelf holds 424 entries, so no corpus size ever buys more than 424 independent things to be
-right about.** Every arm draws from those same 424 entries. Growing the corpus adds briefs, and
-briefs written for the same target move are correlated, which is why every interval in this round
-is clustered by move and why the effective sample sits below the brief count. Round 2's own
-corpus makes the size of that gap concrete: 227 briefs covering 158 distinct target moves carried
-roughly 199 briefs' worth of independent information, not 227. More briefs per move buys less
-than it appears to.
+right about.** This round's corpus carries one brief per target move, so for once clustering costs
+nothing: 273 briefs over 273 moves gives an intra-cluster correlation of 0.0, a design effect of
+1.0, and an effective n of 273.0. Round 2's corpus makes the contrast concrete: 227 briefs over
+158 moves carried roughly 199 briefs' worth of information, not 227.
 
-The consequence is a hard resolution limit. **If the arms do not separate at 424 entries, the
-honest recommendation is a larger catalog, not a larger corpus.** More briefs against the same
-shelf cannot manufacture a distinction the shelf does not contain. Step 3 of the rule exists so
-that this case ends in a decision rather than in more spending, and the tie then goes to the arm
-that needs no embedding index.
+The convergence result is what that ceiling looks like from the inside. It is a result, not a
+failure: **if a distinction is wanted between arms at long list lengths, the fix is a larger
+catalog, not a larger corpus.** More briefs against the same 424 entries cannot manufacture a
+distinction the shelf does not contain.
 
-The related result, also a result and not a failure: all arms draw from the same 424 entries, so
-at sufficient k they must converge. If the sweep shows that, the finding is that the real question
-was **what k**, not which arm, and the report says so and names the point where token cost starts
-to outrun the recall gain.
+## What was fixed, and stayed fixed
 
-## What is missing, and what will fill it
-
-Nothing in this section is estimated. Each row names the artifact that produces the number.
-
-| missing number                                                    | which file produces it                                             |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------ |
-| recall per arm per k over the round 3 corpus                      | `report3.html` and `summary3.json`, built by `build_report3.py`    |
-| the clustered ranking and each arm's best k                       | `report3.html`, ranking table                                      |
-| the paired margin between leader and runner-up, with its interval | `report3.html`, paired table                                       |
-| whether step 2 separated, tied, or was not evaluable              | `report3.html`, rule outcome line, from `sweep.decide`             |
-| which arm ships                                                   | `report3.html`, rule outcome line                                  |
-| the knee, where a longer list stops paying for its tokens         | `report3.html`, knee table                                         |
-| which of the three stop reasons fired                             | `report3.html`, stop reason line                                   |
-| how many waves completed before the round stopped                 | the wave count passed to `build_report3.py`; no wave has completed |
-| the refusal rate per arm                                          | the paid confirmation stage, not yet run                           |
-| the known-wrong-pick rate per arm                                 | the paid confirmation stage, not yet run                           |
-| whether the confirmation contradicts the recall ranking           | this file, once both the sweep and the confirmation exist          |
-
-The two paid quantities are not a formality: round 2 measured refusal at 0.040 for hybrid at k=10
-and 0.110 for semantic at k=5. That is a round 2 number, quoted as the reason the stage exists,
-not as a round 3 result.
-
-## How to finish this document
-
-1. Run the offline sweep and build the report. Free, local, no model call:
-   `python3 build_report3.py --waves <completed waves>` (add `--ceiling-reached` only if the
-   spend ceiling actually fired).
-2. Read the stop reason, the ranking and the paired margin out of `report3.html` and write them
-   into the gaps above, replacing each "unknown" with the measured number and its interval.
-3. Run the paid confirmation on the top two arms only, then record the refusal rate and the
-   known-wrong-pick rate.
-4. If the confirmation contradicts the recall ranking, record it as a contradiction. Do not
-   quietly resolve it in either direction and do not reopen step 2.
-5. Change the status line at the top of this file from pending to the verdict, and state which of
-   the three stop reasons fired.
-
-## What is fixed and must not change while this is completed
-
-- `mountable` and `fit` stay separate numbers and are never collapsed into one score.
-- Scoring stays mechanical. No model judges a model.
+- `mountable` and `fit` are separate numbers and were never collapsed into one score.
+- Scoring stayed mechanical, in `gate2.py`, unchanged. No model judged a model.
 - Naming the whole shelf still scores 0.0.
-- Exactly one variable changes between cells in the paid confirmation.
-- The gate regressions carried forward from round 1 and round 2 keep passing.
+- Exactly one variable changed between the paid cells: the retriever, both at k=80.
+- The gate regressions carried forward from round 1 and round 2 still pass. 104 tests in this
+  round's directory, 0 failures.
+- The rule was read out of `DECISION-RULE.md` by `sweep.py` rather than transcribed into code,
+  and that file is a committed ancestor of every commit that produced a number here.
+
+## How to reproduce
+
+Free, offline, no model call and no spend:
+
+```
+EVAL_CORPUS_ROOT=<round3>/corpus python3 build_report3.py \
+  --ks 5,10,20,30,...,420,423 --waves 1
+```
+
+The paid confirmation, from its checkpoint, also with no new spend:
+
+```
+EVAL_CORPUS_ROOT=<round3>/corpus python3 confirm3.py --paired h@80:c@80
+```
+
+Outputs: `report3.html`, `summary3.json`, `confirm3.json`.

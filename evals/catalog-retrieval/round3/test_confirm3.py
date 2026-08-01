@@ -90,5 +90,46 @@ class ConfirmTests(unittest.TestCase):
         self.assertEqual(1, cells["h@10"]["n"])
 
 
+class PairedTests(unittest.TestCase):
+    """The two cells are compared brief by brief, never as two column means."""
+
+    def rows(self, records):
+        import build_report2
+
+        return build_report2.score_all(records, GOLD, SHELF)
+
+    def test_the_difference_is_taken_on_the_briefs_both_cells_ran(self):
+        # Cell h answers everything. Cell c answers everything except 004, and
+        # gets 003 wrong. Two column means would divide by different denominators
+        # and read the missing brief as a difference in quality.
+        records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
+        records += [record(b, "c", GOLD[b]["best"]) for b in ("001", "002")]
+        records += [record("003", "c", [GOLD["003"]["bad"][0]])]
+        difference = confirm3.paired(self.rows(records), "h@10", "c@10")
+
+        # Three shared briefs, and h names a known-wrong move on none of them
+        # while c names one on 003, so the difference is negative: the leader
+        # commits that failure a third of a brief less often than the baseline.
+        self.assertEqual(3, difference["n"])
+        self.assertEqual(-0.3333, difference["known_wrong_pick"]["mean"])
+        self.assertEqual(0.0, difference["refusal"]["mean"])
+
+    def test_two_cells_that_did_the_same_thing_differ_by_exactly_zero(self):
+        records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
+        records += [record(b, "c", GOLD[b]["best"]) for b in GOLD]
+        difference = confirm3.paired(self.rows(records), "h@10", "c@10")
+        for name, _ in confirm3.METRICS:
+            self.assertEqual(0.0, difference[name]["mean"], name)
+            self.assertEqual(0.0, difference[name]["lo"], name)
+            self.assertEqual(0.0, difference[name]["hi"], name)
+
+    def test_a_cell_that_never_ran_pairs_against_nothing(self):
+        # Silently returning a difference over zero briefs would report a
+        # comparison that was never made as one that came out even.
+        records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
+        difference = confirm3.paired(self.rows(records), "h@10", "c@10")
+        self.assertEqual(0, difference["n"])
+
+
 if __name__ == "__main__":
     unittest.main()
