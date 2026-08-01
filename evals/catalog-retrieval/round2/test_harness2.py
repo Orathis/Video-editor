@@ -375,9 +375,10 @@ class Embed2Tests(unittest.TestCase):
         import embed2
         import gen_briefs
         import prune_corpus
+        import run2
         import validate_gold
 
-        modules = (harness2, gen_briefs, validate_gold, prune_corpus, embed2)
+        modules = (harness2, gen_briefs, validate_gold, prune_corpus, embed2, run2)
         # What the root was before this test redirected it. Asserting it comes
         # back to HERE instead would only hold in a shell with no
         # EVAL_CORPUS_ROOT set, and every shell that actually runs the eval has
@@ -405,6 +406,12 @@ class Embed2Tests(unittest.TestCase):
                         # checkpoint next to the code instead of next to the
                         # corpus, so every round shared one resume file.
                         (validate_gold, "DEFAULT_COMMITTEE_CHECKPOINT"),
+                        # The grid runner escaped the same way, and cost more
+                        # for it: sharing one results file, a later round both
+                        # resumed on the earlier round's runs and inherited its
+                        # spend against the ceiling.
+                        (run2, "DEFAULT_CHECKPOINT"),
+                        (run2, "DEFAULT_KILL_FILE"),
                         (prune_corpus, "BRIEFS_DIR"),
                         (prune_corpus, "GOLD_DIR"),
                         (prune_corpus, "EXCLUDED_DIR"),

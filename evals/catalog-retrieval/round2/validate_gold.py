@@ -164,14 +164,52 @@ def warn_if_bound_widens(sample_rate, corpus_size, sample_size, emit):
     return warning
 
 
-def project_committee(briefs, gold_by_id, shelf, sample_rate=DEFAULT_SAMPLE_RATE, model=None):
-    """Price the committee from context lengths alone, before any call is made."""
+def judged_records(checkpoint_path, briefs):
+    """The checkpoint verdicts that still describe these exact briefs.
+
+    Resume on what the committee actually read, not on where it sat in the
+    corpus. A brief id is a position: regenerate a corpus and 001 is a different
+    brief that reuses the name. Keyed on the id alone, resume would hand those
+    verdicts to briefs no committee ever saw, silently, and the audit would
+    prune on them. A record with no digest predates this check and cannot prove
+    which brief it judged, so it is re-read rather than trusted.
+
+    One definition, because the projection and the run both have to mean the
+    same thing by "already judged". When they disagreed, the projection priced
+    every sampled brief as unread and a fully cached rerun was refused at the
+    ceiling for work that would have cost nothing.
+    """
+    judged = {}
+    for record in run2.load_checkpoint(checkpoint_path):
+        brief_id = record.get("brief_id")
+        if not isinstance(brief_id, str) or brief_id not in briefs:
+            continue
+        if record.get("brief_digest") != _brief_digest(briefs[brief_id]):
+            continue
+        judged[brief_id] = record
+    return judged
+
+
+def project_committee(
+    briefs,
+    gold_by_id,
+    shelf,
+    sample_rate=DEFAULT_SAMPLE_RATE,
+    model=None,
+    judged=(),
+):
+    """Price the committee from context lengths alone, before any call is made.
+
+    Briefs already judged at their current digest are priced at zero, because
+    resume will serve them from the checkpoint and never call for them.
+    """
     model = model or provider.CHAT_MODEL
     sampled = sampled_brief_ids(briefs, gold_by_id, shelf, sample_rate)
+    unread = [brief_id for brief_id in sampled if brief_id not in judged]
     chars = sum(
-        len(build_committee_context(briefs[brief_id], shelf)) for brief_id in sampled
+        len(build_committee_context(briefs[brief_id], shelf)) for brief_id in unread
     )
-    reads = len(sampled) * COMMITTEE_READERS
+    reads = len(unread) * COMMITTEE_READERS
     estimated_input = chars * COMMITTEE_READERS / run2.CHARS_PER_TOKEN
     assumed_output = reads * run2.ASSUMED_OUTPUT_TOKENS
     costs = run2.usage_cost_breakdown(
@@ -190,6 +228,9 @@ def project_committee(briefs, gold_by_id, shelf, sample_rate=DEFAULT_SAMPLE_RATE
         "readers": COMMITTEE_READERS,
         "sampled_briefs": len(sampled),
         "sampled_ids": sampled,
+        # What the projection is actually priced on. The sample is what gets
+        # scored; only the unread part of it gets bought.
+        "unread_briefs": len(unread),
         "reads": reads,
         "chars": chars * COMMITTEE_READERS,
         "estimated_input_tokens": estimated_input,
@@ -212,9 +253,16 @@ def committee_dry_run(
     model=None,
     max_usd=DEFAULT_MAX_USD,
     emit=print,
+    checkpoint_path=None,
 ):
     """Print the committee projection. Makes no call and needs no key."""
-    projection = project_committee(briefs, gold_by_id, shelf, sample_rate, model)
+    checkpoint_path = checkpoint_path or os.environ.get(
+        "EVAL_COMMITTEE_CHECKPOINT", DEFAULT_COMMITTEE_CHECKPOINT
+    )
+    judged = judged_records(checkpoint_path, briefs)
+    projection = project_committee(
+        briefs, gold_by_id, shelf, sample_rate, model, judged
+    )
     emit("DRY RUN: zero network calls and no key required.")
     emit(
         "Estimated input tokens use characters divided by "
@@ -231,7 +279,8 @@ def committee_dry_run(
         f"{projection['corpus_size']} briefs = {projection['sampled_briefs']} sampled"
     )
     emit(
-        f"Reads: {projection['sampled_briefs']} sampled x "
+        f"Reads: {projection['unread_briefs']} unread of "
+        f"{projection['sampled_briefs']} sampled x "
         f"{projection['readers']} readers = {projection['reads']}"
     )
     emit(
@@ -317,30 +366,19 @@ def evaluate_corpus(
             )
 
     model = model or provider.CHAT_MODEL
-    projection = project_committee(briefs, gold_by_id, shelf, sample_rate, model)
+    checkpoint_path = checkpoint_path or os.environ.get(
+        "EVAL_COMMITTEE_CHECKPOINT", DEFAULT_COMMITTEE_CHECKPOINT
+    )
+    kill_path = kill_path or os.environ.get("EVAL_KILL_FILE", run2.DEFAULT_KILL_FILE)
+    judged = judged_records(checkpoint_path, briefs)
+    projection = project_committee(
+        briefs, gold_by_id, shelf, sample_rate, model, judged
+    )
     sampled = projection["sampled_ids"]
     warn_if_bound_widens(
         sample_rate, len(briefs), len(sampled), emit
     )
 
-    checkpoint_path = checkpoint_path or os.environ.get(
-        "EVAL_COMMITTEE_CHECKPOINT", DEFAULT_COMMITTEE_CHECKPOINT
-    )
-    kill_path = kill_path or os.environ.get("EVAL_KILL_FILE", run2.DEFAULT_KILL_FILE)
-    # Resume on what the committee actually read, not on where it sat in the
-    # corpus. A brief id is a position: regenerate a corpus and 001 is a
-    # different brief that reuses the name. Keyed on the id alone, resume would
-    # hand those verdicts to briefs no committee ever saw, silently, and the
-    # audit would prune on them. A record with no digest predates this check and
-    # cannot prove which brief it judged, so it is re-read rather than trusted.
-    judged = {}
-    for record in run2.load_checkpoint(checkpoint_path):
-        brief_id = record.get("brief_id")
-        if not isinstance(brief_id, str) or brief_id not in briefs:
-            continue
-        if record.get("brief_digest") != _brief_digest(briefs[brief_id]):
-            continue
-        judged[brief_id] = record
     total_usd = sum(
         _record_cost(record, model)
         for brief_id, record in judged.items()

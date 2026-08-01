@@ -58,8 +58,17 @@ ASSUMED_OUTPUT_TOKENS = 800
 # The measured grid is $28.68 across 2700 runs. This leaves headroom for a
 # heavier-thinking brief without letting a runaway loop spend unbounded.
 DEFAULT_MAX_USD = 60.00
-DEFAULT_CHECKPOINT = os.path.join(harness2.HERE, "checkpoints", "results.jsonl")
-DEFAULT_KILL_FILE = os.path.join(harness2.HERE, "checkpoints", "STOP")
+# Under the corpus root, not next to the code, for the reason the committee
+# checkpoint already moved: a checkpoint records what a model said about
+# particular briefs, so it belongs to the corpus those briefs came from. Shared
+# at HERE, a later round appended its runs into the previous round's file. Two
+# things then went wrong at once. Resume reads by brief id, condition and k, so
+# a later corpus numbering from 001 again inherits verdicts for runs that never
+# happened on its briefs. And the ceiling sums every record in the file, so a
+# new round started its budget already spent by the round before it and stopped
+# partway through a prefix of the corpus rather than covering it.
+DEFAULT_CHECKPOINT = os.path.join(harness2.CORPUS_ROOT, "checkpoints", "results.jsonl")
+DEFAULT_KILL_FILE = os.path.join(harness2.CORPUS_ROOT, "checkpoints", "STOP")
 
 
 def _prices(model):
