@@ -1,0 +1,182 @@
+{
+  "cells": {
+    "c@80": {
+      "clusters": 273,
+      "fit": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.5639,
+        "icc": 0.0,
+        "lo": 0.463,
+        "mean": 0.5134,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0256
+      },
+      "known_wrong_pick": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1723,
+        "icc": 0.0,
+        "lo": 0.0915,
+        "mean": 0.1319,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0205
+      },
+      "mountable": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "n": 273,
+      "pass_rate": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.6592,
+        "icc": 0.0,
+        "lo": 0.5423,
+        "mean": 0.6007,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0297
+      },
+      "refusal": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      }
+    },
+    "h@80": {
+      "clusters": 273,
+      "fit": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.6671,
+        "icc": 0.0,
+        "lo": 0.5759,
+        "mean": 0.6215,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0232
+      },
+      "known_wrong_pick": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.2091,
+        "icc": 0.0,
+        "lo": 0.1205,
+        "mean": 0.1648,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0225
+      },
+      "mountable": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "n": 273,
+      "pass_rate": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7717,
+        "icc": 0.0,
+        "lo": 0.6642,
+        "mean": 0.7179,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0273
+      },
+      "refusal": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      }
+    }
+  },
+  "paired": {
+    "against": "c@80",
+    "cell": "h@80",
+    "fit": {
+      "clusters": 273,
+      "design_effect": 1.0,
+      "hi": 0.1612,
+      "icc": 0.0,
+      "lo": 0.055,
+      "mean": 0.1081,
+      "n": 273,
+      "n_eff": 273.0,
+      "se": 0.027
+    },
+    "known_wrong_pick": {
+      "clusters": 273,
+      "design_effect": 1.0,
+      "hi": 0.0703,
+      "icc": 0.0,
+      "lo": -0.0044,
+      "mean": 0.033,
+      "n": 273,
+      "n_eff": 273.0,
+      "se": 0.019
+    },
+    "mountable": {
+      "clusters": 273,
+      "design_effect": 1.0,
+      "hi": 0.0,
+      "icc": 0.0,
+      "lo": 0.0,
+      "mean": 0.0,
+      "n": 273,
+      "n_eff": 273.0,
+      "se": 0.0
+    },
+    "n": 273,
+    "pass_rate": {
+      "clusters": 273,
+      "design_effect": 1.0,
+      "hi": 0.1769,
+      "icc": 0.0,
+      "lo": 0.0575,
+      "mean": 0.1172,
+      "n": 273,
+      "n_eff": 273.0,
+      "se": 0.0303
+    },
+    "refusal": {
+      "clusters": 273,
+      "design_effect": 1.0,
+      "hi": 0.0,
+      "icc": 0.0,
+      "lo": 0.0,
+      "mean": 0.0,
+      "n": 273,
+      "n_eff": 273.0,
+      "se": 0.0
+    }
+  }
+}

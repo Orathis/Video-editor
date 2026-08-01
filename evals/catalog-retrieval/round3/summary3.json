@@ -1,0 +1,4379 @@
+{
+  "across_ks": [
+    {
+      "branch": "tie",
+      "k": 5,
+      "leader": "hybrid@w=0.7",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0544,
+        "icc": 0.0,
+        "lo": -0.0177,
+        "mean": 0.0183,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0183
+      },
+      "runner_up": "semantic",
+      "ship": "lexical"
+    },
+    {
+      "branch": "separated",
+      "k": 10,
+      "leader": "hybrid@w=0.7",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1033,
+        "icc": 0.0,
+        "lo": 0.0285,
+        "mean": 0.0659,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.019
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.7"
+    },
+    {
+      "branch": "separated",
+      "k": 20,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1745,
+        "icc": 0.0,
+        "lo": 0.0673,
+        "mean": 0.1209,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0272
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 30,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.144,
+        "icc": 0.0,
+        "lo": 0.0391,
+        "mean": 0.0916,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0266
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 40,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1195,
+        "icc": 0.0,
+        "lo": 0.0197,
+        "mean": 0.0696,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0253
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 50,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1286,
+        "icc": 0.0,
+        "lo": 0.0325,
+        "mean": 0.0806,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0244
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 60,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1388,
+        "icc": 0.0,
+        "lo": 0.0444,
+        "mean": 0.0916,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.024
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 70,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.13,
+        "icc": 0.0,
+        "lo": 0.0459,
+        "mean": 0.0879,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0214
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 80,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1481,
+        "icc": 0.0,
+        "lo": 0.0497,
+        "mean": 0.0989,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.025
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "separated",
+      "k": 90,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1459,
+        "icc": 0.0,
+        "lo": 0.0519,
+        "mean": 0.0989,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0239
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "separated",
+      "k": 100,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1187,
+        "icc": 0.0,
+        "lo": 0.0352,
+        "mean": 0.0769,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0212
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "separated",
+      "k": 110,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1303,
+        "icc": 0.0,
+        "lo": 0.0529,
+        "mean": 0.0916,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0197
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "separated",
+      "k": 120,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.109,
+        "icc": 0.0,
+        "lo": 0.0302,
+        "mean": 0.0696,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.02
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "separated",
+      "k": 130,
+      "leader": "hybrid@w=0.5",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0961,
+        "icc": 0.0,
+        "lo": 0.0284,
+        "mean": 0.0623,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0172
+      },
+      "runner_up": "semantic",
+      "ship": "hybrid@w=0.5"
+    },
+    {
+      "branch": "separated",
+      "k": 140,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0902,
+        "icc": 0.0,
+        "lo": 0.0271,
+        "mean": 0.0586,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.016
+      },
+      "runner_up": "lexical",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "separated",
+      "k": 150,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0724,
+        "icc": 0.0,
+        "lo": 0.0155,
+        "mean": 0.044,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0144
+      },
+      "runner_up": "lexical",
+      "ship": "hybrid@w=0.3"
+    },
+    {
+      "branch": "tie",
+      "k": 160,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0271,
+        "icc": 0.0,
+        "lo": -0.0051,
+        "mean": 0.011,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0082
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 170,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0234,
+        "icc": 0.0,
+        "lo": -0.0015,
+        "mean": 0.011,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0063
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 180,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0234,
+        "icc": 0.0,
+        "lo": -0.0015,
+        "mean": 0.011,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0063
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 190,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0162,
+        "icc": 0.0,
+        "lo": -0.0088,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0064
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 200,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0162,
+        "icc": 0.0,
+        "lo": -0.0088,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0064
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 210,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0162,
+        "icc": 0.0,
+        "lo": -0.0088,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0064
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 220,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0162,
+        "icc": 0.0,
+        "lo": -0.0088,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0064
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 230,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0109,
+        "icc": 0.0,
+        "lo": -0.0035,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 240,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0109,
+        "icc": 0.0,
+        "lo": -0.0035,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 250,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0109,
+        "icc": 0.0,
+        "lo": -0.0035,
+        "mean": 0.0037,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 260,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 270,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 280,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 290,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 300,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 310,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 320,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 330,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 340,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 350,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 360,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 370,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 380,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 390,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 400,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 410,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 420,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    },
+    {
+      "branch": "tie",
+      "k": 423,
+      "leader": "hybrid@w=0.3",
+      "margin": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "runner_up": "lexical",
+      "ship": "lexical"
+    }
+  ],
+  "briefs": 273,
+  "ceiling_reached": false,
+  "clusters": 273,
+  "converged": true,
+  "curve": [
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.2493,
+        "icc": 0.0,
+        "lo": 0.1536,
+        "mean": 0.2015,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0243
+      },
+      "k": 5
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.3551,
+        "icc": 0.0,
+        "lo": 0.2456,
+        "mean": 0.3004,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0278
+      },
+      "k": 10
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4802,
+        "icc": 0.0,
+        "lo": 0.3623,
+        "mean": 0.4212,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0299
+      },
+      "k": 20
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.5907,
+        "icc": 0.0,
+        "lo": 0.4716,
+        "mean": 0.5311,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0303
+      },
+      "k": 30
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.6948,
+        "icc": 0.0,
+        "lo": 0.58,
+        "mean": 0.6374,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0292
+      },
+      "k": 40
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7751,
+        "icc": 0.0,
+        "lo": 0.6681,
+        "mean": 0.7216,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0272
+      },
+      "k": 50
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8431,
+        "icc": 0.0,
+        "lo": 0.7467,
+        "mean": 0.7949,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0245
+      },
+      "k": 60
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8892,
+        "icc": 0.0,
+        "lo": 0.8031,
+        "mean": 0.8462,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0219
+      },
+      "k": 70
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9367,
+        "icc": 0.0,
+        "lo": 0.8655,
+        "mean": 0.9011,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0181
+      },
+      "k": 80
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9637,
+        "icc": 0.0,
+        "lo": 0.9044,
+        "mean": 0.9341,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.015
+      },
+      "k": 90
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9694,
+        "icc": 0.0,
+        "lo": 0.9134,
+        "mean": 0.9414,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0142
+      },
+      "k": 100
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9832,
+        "icc": 0.0,
+        "lo": 0.9362,
+        "mean": 0.9597,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0119
+      },
+      "k": 110
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9832,
+        "icc": 0.0,
+        "lo": 0.9362,
+        "mean": 0.9597,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0119
+      },
+      "k": 120
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9858,
+        "icc": 0.0,
+        "lo": 0.9409,
+        "mean": 0.9634,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0114
+      },
+      "k": 130
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9977,
+        "icc": 0.0,
+        "lo": 0.9657,
+        "mean": 0.9817,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0081
+      },
+      "k": 140
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9997,
+        "icc": 0.0,
+        "lo": 0.971,
+        "mean": 0.9853,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0073
+      },
+      "k": 150
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0015,
+        "icc": 0.0,
+        "lo": 0.9766,
+        "mean": 0.989,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0063
+      },
+      "k": 160
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 170
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 180
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 190
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 200
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 210
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 220
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 230
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 240
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 250
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 260
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 270
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 280
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 290
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 300
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 310
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 320
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 330
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 340
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 350
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 360
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 370
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 380
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 390
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 400
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 410
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 420
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 423
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.2929,
+        "icc": 0.0,
+        "lo": 0.1906,
+        "mean": 0.2418,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.026
+      },
+      "k": 5
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4238,
+        "icc": 0.0,
+        "lo": 0.3088,
+        "mean": 0.3663,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0292
+      },
+      "k": 10
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.6161,
+        "icc": 0.0,
+        "lo": 0.4975,
+        "mean": 0.5568,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0301
+      },
+      "k": 20
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7194,
+        "icc": 0.0,
+        "lo": 0.6066,
+        "mean": 0.663,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0287
+      },
+      "k": 30
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.782,
+        "icc": 0.0,
+        "lo": 0.6759,
+        "mean": 0.7289,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.027
+      },
+      "k": 40
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8397,
+        "icc": 0.0,
+        "lo": 0.7427,
+        "mean": 0.7912,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0246
+      },
+      "k": 50
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.886,
+        "icc": 0.0,
+        "lo": 0.799,
+        "mean": 0.8425,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0221
+      },
+      "k": 60
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9085,
+        "icc": 0.0,
+        "lo": 0.8277,
+        "mean": 0.8681,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0205
+      },
+      "k": 70
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9367,
+        "icc": 0.0,
+        "lo": 0.8655,
+        "mean": 0.9011,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0181
+      },
+      "k": 80
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9489,
+        "icc": 0.0,
+        "lo": 0.8826,
+        "mean": 0.9158,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0168
+      },
+      "k": 90
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9608,
+        "icc": 0.0,
+        "lo": 0.9,
+        "mean": 0.9304,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0154
+      },
+      "k": 100
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9778,
+        "icc": 0.0,
+        "lo": 0.927,
+        "mean": 0.9524,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0129
+      },
+      "k": 110
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9805,
+        "icc": 0.0,
+        "lo": 0.9316,
+        "mean": 0.956,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0124
+      },
+      "k": 120
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9883,
+        "icc": 0.0,
+        "lo": 0.9457,
+        "mean": 0.967,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0108
+      },
+      "k": 130
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9908,
+        "icc": 0.0,
+        "lo": 0.9506,
+        "mean": 0.9707,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0102
+      },
+      "k": 140
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9977,
+        "icc": 0.0,
+        "lo": 0.9657,
+        "mean": 0.9817,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0081
+      },
+      "k": 150
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0015,
+        "icc": 0.0,
+        "lo": 0.9766,
+        "mean": 0.989,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0063
+      },
+      "k": 160
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 170
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 180
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 190
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 200
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 210
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 220
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 230
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 240
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 250
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 260
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 270
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 280
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 290
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 300
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 310
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 320
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 330
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 340
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 350
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 360
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 370
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 380
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 390
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 400
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 410
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 420
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 423
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.3124,
+        "icc": 0.0,
+        "lo": 0.2077,
+        "mean": 0.2601,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0266
+      },
+      "k": 5
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4389,
+        "icc": 0.0,
+        "lo": 0.323,
+        "mean": 0.381,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0294
+      },
+      "k": 10
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.5834,
+        "icc": 0.0,
+        "lo": 0.4642,
+        "mean": 0.5238,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0303
+      },
+      "k": 20
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7018,
+        "icc": 0.0,
+        "lo": 0.5876,
+        "mean": 0.6447,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.029
+      },
+      "k": 30
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7751,
+        "icc": 0.0,
+        "lo": 0.6681,
+        "mean": 0.7216,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0272
+      },
+      "k": 40
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8263,
+        "icc": 0.0,
+        "lo": 0.7268,
+        "mean": 0.7766,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0253
+      },
+      "k": 50
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8762,
+        "icc": 0.0,
+        "lo": 0.7868,
+        "mean": 0.8315,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0227
+      },
+      "k": 60
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9021,
+        "icc": 0.0,
+        "lo": 0.8195,
+        "mean": 0.8608,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.021
+      },
+      "k": 70
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.918,
+        "icc": 0.0,
+        "lo": 0.8402,
+        "mean": 0.8791,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0198
+      },
+      "k": 80
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9306,
+        "icc": 0.0,
+        "lo": 0.857,
+        "mean": 0.8938,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0187
+      },
+      "k": 90
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9489,
+        "icc": 0.0,
+        "lo": 0.8826,
+        "mean": 0.9158,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0168
+      },
+      "k": 100
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9608,
+        "icc": 0.0,
+        "lo": 0.9,
+        "mean": 0.9304,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0154
+      },
+      "k": 110
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9637,
+        "icc": 0.0,
+        "lo": 0.9044,
+        "mean": 0.9341,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.015
+      },
+      "k": 120
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9805,
+        "icc": 0.0,
+        "lo": 0.9316,
+        "mean": 0.956,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0124
+      },
+      "k": 130
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9858,
+        "icc": 0.0,
+        "lo": 0.9409,
+        "mean": 0.9634,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0114
+      },
+      "k": 140
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9932,
+        "icc": 0.0,
+        "lo": 0.9555,
+        "mean": 0.9744,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0096
+      },
+      "k": 150
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9977,
+        "icc": 0.0,
+        "lo": 0.9657,
+        "mean": 0.9817,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0081
+      },
+      "k": 160
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9977,
+        "icc": 0.0,
+        "lo": 0.9657,
+        "mean": 0.9817,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0081
+      },
+      "k": 170
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9997,
+        "icc": 0.0,
+        "lo": 0.971,
+        "mean": 0.9853,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0073
+      },
+      "k": 180
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0015,
+        "icc": 0.0,
+        "lo": 0.9766,
+        "mean": 0.989,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0063
+      },
+      "k": 190
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 200
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 210
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 220
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 230
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 240
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 250
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 260
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 270
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 280
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 290
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 300
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 310
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 320
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 330
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 340
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 350
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 360
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 370
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 380
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 390
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 400
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 410
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 420
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 423
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.1681,
+        "icc": 0.0,
+        "lo": 0.0883,
+        "mean": 0.1282,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0203
+      },
+      "k": 5
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.2533,
+        "icc": 0.0,
+        "lo": 0.1569,
+        "mean": 0.2051,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0245
+      },
+      "k": 10
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.3551,
+        "icc": 0.0,
+        "lo": 0.2456,
+        "mean": 0.3004,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0278
+      },
+      "k": 20
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4465,
+        "icc": 0.0,
+        "lo": 0.3301,
+        "mean": 0.3883,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0296
+      },
+      "k": 30
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.5432,
+        "icc": 0.0,
+        "lo": 0.4239,
+        "mean": 0.4835,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0303
+      },
+      "k": 40
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.5871,
+        "icc": 0.0,
+        "lo": 0.4679,
+        "mean": 0.5275,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0303
+      },
+      "k": 50
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.6592,
+        "icc": 0.0,
+        "lo": 0.5423,
+        "mean": 0.6007,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0297
+      },
+      "k": 60
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7089,
+        "icc": 0.0,
+        "lo": 0.5952,
+        "mean": 0.652,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0289
+      },
+      "k": 70
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7717,
+        "icc": 0.0,
+        "lo": 0.6642,
+        "mean": 0.7179,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0273
+      },
+      "k": 80
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8229,
+        "icc": 0.0,
+        "lo": 0.7229,
+        "mean": 0.7729,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0254
+      },
+      "k": 90
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8597,
+        "icc": 0.0,
+        "lo": 0.7667,
+        "mean": 0.8132,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0236
+      },
+      "k": 100
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8989,
+        "icc": 0.0,
+        "lo": 0.8154,
+        "mean": 0.8571,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0212
+      },
+      "k": 110
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9212,
+        "icc": 0.0,
+        "lo": 0.8444,
+        "mean": 0.8828,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0195
+      },
+      "k": 120
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9367,
+        "icc": 0.0,
+        "lo": 0.8655,
+        "mean": 0.9011,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0181
+      },
+      "k": 130
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9549,
+        "icc": 0.0,
+        "lo": 0.8913,
+        "mean": 0.9231,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0162
+      },
+      "k": 140
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9694,
+        "icc": 0.0,
+        "lo": 0.9134,
+        "mean": 0.9414,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0142
+      },
+      "k": 150
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9955,
+        "icc": 0.0,
+        "lo": 0.9605,
+        "mean": 0.978,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0089
+      },
+      "k": 160
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9997,
+        "icc": 0.0,
+        "lo": 0.971,
+        "mean": 0.9853,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0073
+      },
+      "k": 170
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9997,
+        "icc": 0.0,
+        "lo": 0.971,
+        "mean": 0.9853,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0073
+      },
+      "k": 180
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 190
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 200
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 210
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 220
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 230
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 240
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 250
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 260
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 270
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 280
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 290
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 300
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 310
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 320
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 330
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 340
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 350
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 360
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 370
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 380
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 390
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 400
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 410
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 420
+    },
+    {
+      "arm": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 423
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.2929,
+        "icc": 0.0,
+        "lo": 0.1906,
+        "mean": 0.2418,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.026
+      },
+      "k": 5
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.3705,
+        "icc": 0.0,
+        "lo": 0.2596,
+        "mean": 0.315,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0282
+      },
+      "k": 10
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4951,
+        "icc": 0.0,
+        "lo": 0.3767,
+        "mean": 0.4359,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0301
+      },
+      "k": 20
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.6305,
+        "icc": 0.0,
+        "lo": 0.5124,
+        "mean": 0.5714,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.03
+      },
+      "k": 30
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7159,
+        "icc": 0.0,
+        "lo": 0.6028,
+        "mean": 0.6593,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0287
+      },
+      "k": 40
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.7648,
+        "icc": 0.0,
+        "lo": 0.6565,
+        "mean": 0.7106,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0275
+      },
+      "k": 50
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8025,
+        "icc": 0.0,
+        "lo": 0.6993,
+        "mean": 0.7509,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0262
+      },
+      "k": 60
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8297,
+        "icc": 0.0,
+        "lo": 0.7308,
+        "mean": 0.7802,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0251
+      },
+      "k": 70
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8498,
+        "icc": 0.0,
+        "lo": 0.7546,
+        "mean": 0.8022,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0242
+      },
+      "k": 80
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8795,
+        "icc": 0.0,
+        "lo": 0.7909,
+        "mean": 0.8352,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0225
+      },
+      "k": 90
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9053,
+        "icc": 0.0,
+        "lo": 0.8236,
+        "mean": 0.8645,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0208
+      },
+      "k": 100
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9085,
+        "icc": 0.0,
+        "lo": 0.8277,
+        "mean": 0.8681,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0205
+      },
+      "k": 110
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9274,
+        "icc": 0.0,
+        "lo": 0.8528,
+        "mean": 0.8901,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.019
+      },
+      "k": 120
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9398,
+        "icc": 0.0,
+        "lo": 0.8697,
+        "mean": 0.9048,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0178
+      },
+      "k": 130
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9489,
+        "icc": 0.0,
+        "lo": 0.8826,
+        "mean": 0.9158,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0168
+      },
+      "k": 140
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9549,
+        "icc": 0.0,
+        "lo": 0.8913,
+        "mean": 0.9231,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0162
+      },
+      "k": 150
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9608,
+        "icc": 0.0,
+        "lo": 0.9,
+        "mean": 0.9304,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0154
+      },
+      "k": 160
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9637,
+        "icc": 0.0,
+        "lo": 0.9044,
+        "mean": 0.9341,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.015
+      },
+      "k": 170
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9723,
+        "icc": 0.0,
+        "lo": 0.9179,
+        "mean": 0.9451,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0138
+      },
+      "k": 180
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9805,
+        "icc": 0.0,
+        "lo": 0.9316,
+        "mean": 0.956,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0124
+      },
+      "k": 190
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9805,
+        "icc": 0.0,
+        "lo": 0.9316,
+        "mean": 0.956,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0124
+      },
+      "k": 200
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9858,
+        "icc": 0.0,
+        "lo": 0.9409,
+        "mean": 0.9634,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0114
+      },
+      "k": 210
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9858,
+        "icc": 0.0,
+        "lo": 0.9409,
+        "mean": 0.9634,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0114
+      },
+      "k": 220
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9932,
+        "icc": 0.0,
+        "lo": 0.9555,
+        "mean": 0.9744,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0096
+      },
+      "k": 230
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9955,
+        "icc": 0.0,
+        "lo": 0.9605,
+        "mean": 0.978,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0089
+      },
+      "k": 240
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9997,
+        "icc": 0.0,
+        "lo": 0.971,
+        "mean": 0.9853,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0073
+      },
+      "k": 250
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0015,
+        "icc": 0.0,
+        "lo": 0.9766,
+        "mean": 0.989,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0063
+      },
+      "k": 260
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 270
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 280
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 290
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 300
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 310
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0029,
+        "icc": 0.0,
+        "lo": 0.9825,
+        "mean": 0.9927,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0052
+      },
+      "k": 320
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 330
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 340
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0035,
+        "icc": 0.0,
+        "lo": 0.9891,
+        "mean": 0.9963,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0037
+      },
+      "k": 350
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 360
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 370
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 380
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 390
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 400
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 410
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 420
+    },
+    {
+      "arm": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 1.0,
+        "mean": 1.0,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0
+      },
+      "k": 423
+    }
+  ],
+  "exploratory": [],
+  "family_runs": [
+    {
+      "branch": "tie",
+      "family": "lexical",
+      "hi": 5,
+      "lo": 5
+    },
+    {
+      "branch": "separated",
+      "family": "hybrid",
+      "hi": 150,
+      "lo": 10
+    },
+    {
+      "branch": "tie",
+      "family": "lexical",
+      "hi": 423,
+      "lo": 160
+    }
+  ],
+  "knees": [
+    {
+      "arm": "hybrid@w=0.3",
+      "exhausted": false,
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9637,
+        "icc": 0.0,
+        "lo": 0.9044,
+        "mean": 0.9341,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.015
+      },
+      "k": 90,
+      "tokens_per_run": 5888
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "exhausted": false,
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.886,
+        "icc": 0.0,
+        "lo": 0.799,
+        "mean": 0.8425,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0221
+      },
+      "k": 60,
+      "tokens_per_run": 3999
+    },
+    {
+      "arm": "hybrid@w=0.7",
+      "exhausted": false,
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.9021,
+        "icc": 0.0,
+        "lo": 0.8195,
+        "mean": 0.8608,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.021
+      },
+      "k": 70,
+      "tokens_per_run": 4628
+    },
+    {
+      "arm": "lexical",
+      "exhausted": false,
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8989,
+        "icc": 0.0,
+        "lo": 0.8154,
+        "mean": 0.8571,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0212
+      },
+      "k": 110,
+      "tokens_per_run": 7148
+    },
+    {
+      "arm": "semantic",
+      "exhausted": false,
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.8297,
+        "icc": 0.0,
+        "lo": 0.7308,
+        "mean": 0.7802,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0251
+      },
+      "k": 70,
+      "tokens_per_run": 4628
+    }
+  ],
+  "ks": [
+    5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+    210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 310, 320, 330, 340, 350, 360, 370, 380, 390,
+    400, 410, 420, 423
+  ],
+  "margins": [
+    {
+      "against": "hybrid@w=0.7",
+      "arm": "hybrid@w=0.5",
+      "difference": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.0287,
+        "icc": 0.0,
+        "lo": -0.058,
+        "mean": -0.0147,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.022
+      }
+    },
+    {
+      "against": "hybrid@w=0.7",
+      "arm": "semantic",
+      "difference": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": -0.0285,
+        "icc": 0.0,
+        "lo": -0.1033,
+        "mean": -0.0659,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.019
+      }
+    },
+    {
+      "against": "hybrid@w=0.7",
+      "arm": "hybrid@w=0.3",
+      "difference": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": -0.0255,
+        "icc": 0.0,
+        "lo": -0.1357,
+        "mean": -0.0806,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.028
+      }
+    },
+    {
+      "against": "hybrid@w=0.7",
+      "arm": "lexical",
+      "difference": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": -0.1139,
+        "icc": 0.0,
+        "lo": -0.2378,
+        "mean": -0.1758,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0315
+      }
+    }
+  ],
+  "max_waves": 5,
+  "operating_point": null,
+  "outcome": {
+    "branch": "k-dependent",
+    "difference": null,
+    "followups": [],
+    "reason": "the rule ships lexical over k=5 to k=5, then hybrid over k=10 to k=150, then lexical over k=160 to k=423",
+    "ship": null
+  },
+  "ranking": [
+    {
+      "arm": "hybrid@w=0.7",
+      "family": "hybrid",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4389,
+        "icc": 0.0,
+        "lo": 0.323,
+        "mean": 0.381,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0294
+      },
+      "k": 10,
+      "tier": "decision"
+    },
+    {
+      "arm": "hybrid@w=0.5",
+      "family": "hybrid",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.4238,
+        "icc": 0.0,
+        "lo": 0.3088,
+        "mean": 0.3663,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0292
+      },
+      "k": 10,
+      "tier": "decision"
+    },
+    {
+      "arm": "semantic",
+      "family": "semantic",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.3705,
+        "icc": 0.0,
+        "lo": 0.2596,
+        "mean": 0.315,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0282
+      },
+      "k": 10,
+      "tier": "decision"
+    },
+    {
+      "arm": "hybrid@w=0.3",
+      "family": "hybrid",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.3551,
+        "icc": 0.0,
+        "lo": 0.2456,
+        "mean": 0.3004,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0278
+      },
+      "k": 10,
+      "tier": "decision"
+    },
+    {
+      "arm": "lexical",
+      "family": "lexical",
+      "interval": {
+        "clusters": 273,
+        "design_effect": 1.0,
+        "hi": 0.2533,
+        "icc": 0.0,
+        "lo": 0.1569,
+        "mean": 0.2051,
+        "n": 273,
+        "n_eff": 273.0,
+        "se": 0.0245
+      },
+      "k": 10,
+      "tier": "decision"
+    }
+  ],
+  "shelf_size": 424,
+  "stop_reason": "k-dependent",
+  "stop_reason_says": "the rule ships a different family depending on the list length it is read at, so the round ends on the question the rule pre-registered for this case, which is what k rather than which arm. Growing the corpus cannot change it, because every arm draws from the same shelf and so they must converge at sufficient k",
+  "unanimous_across_ks": false,
+  "unavailable": {},
+  "waves_run": 1
+}
