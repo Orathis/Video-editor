@@ -135,7 +135,12 @@ class ValidateGoldTests(unittest.TestCase):
         self.assertIn("alpha reason two", report)
         self.assertIn("beta reason", report)
 
-    def test_accuracy_prints_above_floor_and_blocks_below_floor(self):
+    def test_the_scored_rate_prints_above_floor_and_blocks_below_floor(self):
+        # The below-floor corpus is unplaceable rather than merely wrong: three
+        # readers naming three different moves leave no majority and so no
+        # acceptable set, which is the failure the floor still has to catch. A
+        # single wrong majority is a near twin and now passes, which is the whole
+        # point of round 4 and is pinned in test_validate_gold_multitarget.
         above_replies = [canned("move-alpha", "correct") for _ in range(3)]
         above_stdout = io.StringIO()
         with patch.object(validate_gold.provider, "chat", side_effect=above_replies):
@@ -150,13 +155,20 @@ class ValidateGoldTests(unittest.TestCase):
 
         self.assertEqual(result["accuracy"], 1.0)
         self.assertIn("Corpus accuracy: 100.00% (1/1)", above_stdout.getvalue())
-        self.assertIn("Status: PASS", report)
+        self.assertIn("Scored corpus agreement: 100.00% (1/1)", above_stdout.getvalue())
+        self.assertIn("Status: PASS, gated on scored corpus agreement", report)
 
-        below_replies = [canned("move-beta", "incorrect") for _ in range(3)]
+        below_replies = [
+            canned("move-beta", "one reader"),
+            canned("move-gamma", "another reader"),
+            canned("move-delta", "a third reader"),
+        ]
         below_stdout = io.StringIO()
         with patch.object(validate_gold.provider, "chat", side_effect=below_replies):
             with redirect_stdout(below_stdout):
-                with self.assertRaisesRegex(SystemExit, "below the 95.00% floor"):
+                with self.assertRaisesRegex(
+                    SystemExit, "scored corpus agreement 0.00% is below the 95.00% floor"
+                ):
                     validate_gold.validate_corpus(
                         {"01": "fixture below floor"},
                         {"01": gold("move-alpha")},

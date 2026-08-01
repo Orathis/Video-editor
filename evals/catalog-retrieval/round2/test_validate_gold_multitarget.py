@@ -13,10 +13,12 @@ rate has to sit over every brief that was read, so a brief no set can be built
 for lowers the number rather than disappearing from it.
 """
 
+import io
 import os
 import shutil
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from unittest.mock import patch
 
 import prune_corpus
@@ -177,6 +179,103 @@ class MultiTargetCommitteeTests(unittest.TestCase):
                 {"001": gold(["fade"], bad=["fade"])},
                 [canned("fade")] * 3,
             )
+
+
+class AgreementFloorTests(unittest.TestCase):
+    """The floor is applied to the scored rate, not to the strict rate.
+
+    Round 3 gated on strict reconstruction and failed at 75.21 percent, because
+    a beat that two near twins answer equally well counted as a failure. Those
+    briefs are scored now, so the gate moved onto the rate over the corpus that
+    is actually scored. The strict rate stays reported and stops deciding.
+    """
+
+    def setUp(self):
+        self.transport = patch.object(
+            validate_gold.provider.urllib.request,
+            "urlopen",
+            side_effect=AssertionError("network access is disabled in this test suite"),
+        )
+        self.transport.start()
+        self.addCleanup(self.transport.stop)
+
+        self.workdir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.workdir, ignore_errors=True)
+        env = patch.dict(
+            validate_gold.os.environ,
+            {
+                "EVAL_COMMITTEE_CHECKPOINT": os.path.join(self.workdir, "committee.jsonl"),
+                "EVAL_KILL_FILE": os.path.join(self.workdir, "STOP"),
+            },
+        )
+        env.start()
+        self.addCleanup(env.stop)
+
+    def validate(self, briefs, gold_by_id, replies):
+        with patch.object(validate_gold.provider, "chat", side_effect=replies):
+            with redirect_stdout(io.StringIO()) as captured:
+                result, report = validate_gold.validate_corpus(
+                    briefs,
+                    gold_by_id,
+                    SHELF,
+                    audit_path=None,
+                    emit=lambda _line: None,
+                )
+        return result, report, captured.getvalue()
+
+    def test_a_corpus_whose_only_failures_are_merged_near_twins_passes(self):
+        # Strict reconstruction is 0 of 2 here, which round 3 would have blocked
+        # on and then pruned the corpus down to nothing. Both briefs carry an
+        # acceptable set, so both are scorable and the grid is not blocked.
+        result, report, printed = self.validate(
+            {"001": "a soft handoff", "002": "another soft handoff"},
+            {"001": gold(["fade"]), "002": gold(["fade"])},
+            [
+                canned("dissolve"), canned("dissolve"), canned("fade"),
+                canned("dissolve"), canned("dissolve"), canned("fade"),
+            ],
+        )
+        self.assertEqual(0.0, result["accuracy"])
+        self.assertEqual(1.0, result["scored_agreement"])
+        self.assertEqual(2, result["merged_count"])
+        self.assertIn("Status: PASS, gated on scored corpus agreement", report)
+        # The strict rate is kept and printed, it just does not decide.
+        self.assertIn("Corpus accuracy: 0.00% (0/2)", printed)
+        self.assertIn("Scored corpus agreement: 100.00% (2/2)", printed)
+
+    def test_genuinely_unplaceable_briefs_still_block_the_grid(self):
+        with self.assertRaisesRegex(
+            SystemExit, "scored corpus agreement 0.00% is below the 95.00% floor"
+        ):
+            self.validate(
+                {"001": "nothing the shelf carries"},
+                {"001": gold(["fade"])},
+                [canned("cut"), canned("wipe"), canned("dissolve")],
+            )
+
+    def test_a_contested_brief_counts_against_the_floor_like_any_other_failure(self):
+        # The majority is a move the constructor marked known-wrong, so no set
+        # can be written and the brief is not scorable. Strict accuracy would
+        # read the same corpus at 50 percent and also block, but for the wrong
+        # reason: the point is that a brief with no acceptable set never counts
+        # as agreement.
+        with self.assertRaisesRegex(
+            SystemExit, "scored corpus agreement 50.00% is below the 95.00% floor"
+        ):
+            self.validate(
+                {"001": "a soft handoff", "002": "a hard join"},
+                {"001": gold(["fade"], bad=["cut"]), "002": gold(["wipe"])},
+                [
+                    canned("cut"), canned("cut"), canned("fade"),
+                    canned("wipe"), canned("wipe"), canned("wipe"),
+                ],
+            )
+
+    def test_the_gate_reads_one_rate_and_names_it(self):
+        self.assertEqual(
+            0.75, validate_gold.gate_rate({"scored_agreement": 0.75, "accuracy": 0.5})
+        )
+        self.assertIsNone(validate_gold.gate_rate({"accuracy": 1.0}))
 
 
 class AuditReportTests(unittest.TestCase):
