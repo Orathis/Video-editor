@@ -28,11 +28,21 @@ function deferredProducer<T>() {
   };
 }
 
-function makeResolver<T>(overrides: Partial<Parameters<typeof createMediaResolver>[0]> = {}) {
+interface ResolverOverrides<T> {
+  maxEntries?: number;
+  concurrency?: number;
+  failureTtlMs?: number;
+  maxBytes?: number;
+  sizeOf?: (value: T) => number;
+}
+
+function makeResolver<T>(overrides: ResolverOverrides<T> = {}) {
   return createMediaResolver<T>({
     maxEntries: 64,
     concurrency: 8,
     failureTtlMs: 30_000,
+    maxBytes: Number.POSITIVE_INFINITY,
+    sizeOf: () => 0,
     ...overrides,
   });
 }
@@ -199,6 +209,29 @@ describe("createMediaResolver", () => {
     await lru.resolve("b", produceFor("b"));
     await lru.resolve("c", produceFor("c"));
     expect(calls).toEqual(["a", "b", "c", "b"]);
+  });
+
+  it("evicts past the byte bound even when the entry count is nowhere near it", async () => {
+    // 100 entries allowed, but only ~3 of these fit in the byte bound.
+    const bounded = makeResolver<string>({
+      maxEntries: 100,
+      maxBytes: 30,
+      sizeOf: (value) => value.length,
+    });
+    const produceFor = (label: string) => async () => label.repeat(10); // 10 bytes
+
+    await bounded.resolve("a", produceFor("a"));
+    await bounded.resolve("b", produceFor("b"));
+    await bounded.resolve("c", produceFor("c"));
+    expect(bounded.peek("a")).toBe("a".repeat(10));
+
+    // Fourth entry pushes bytes to 40 > 30: the least-recently-used goes, and
+    // "a" survives despite being inserted first, because it was just touched.
+    await bounded.resolve("d", produceFor("d"));
+    expect(bounded.peek("b")).toBeUndefined();
+    expect(bounded.peek("a")).toBe("a".repeat(10));
+    expect(bounded.peek("c")).toBe("c".repeat(10));
+    expect(bounded.peek("d")).toBe("d".repeat(10));
   });
 
   it("runs at most `concurrency` producers at once", async () => {
