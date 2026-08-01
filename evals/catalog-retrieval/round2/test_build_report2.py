@@ -232,7 +232,11 @@ def test_briefs_on_one_move_do_not_buy_a_tight_interval():
 
 def test_the_paired_difference_carries_a_clustered_interval():
     # Identical fit on both sides of the pairing, so the difference is exactly
-    # zero and its interval must be zero wide rather than a division by zero.
+    # zero. Its interval is not, because two cells agreeing on this corpus is
+    # not the same as two cells that cannot disagree. With nothing varying the
+    # sandwich reports a standard error of zero, and stats.py falls back to the
+    # rule of three over the clusters: 3/2 is 1.5, wider than a difference of
+    # two rates can possibly be, so it is clipped to the range one can occupy.
     records = [
         record("001", "c", 5, ["alpha"], shown=["alpha", "beta"]),
         record("002", "c", 5, ["beta"], shown=["beta", "gamma"]),
@@ -242,7 +246,8 @@ def test_the_paired_difference_carries_a_clustered_interval():
     rows = build_report2.score_all(records, GOLD, SHELF)
     difference = build_report2.paired_against_full_shelf(rows)["c@5"]["difference"]
     assert difference["mean"] == 0.0, difference
-    assert (difference["lo"], difference["hi"]) == (0.0, 0.0), difference
+    assert difference["se"] == 0.0, difference
+    assert (difference["lo"], difference["hi"]) == (-1.0, 1.0), difference
 
 
 def test_render_produces_html_with_every_cell():
