@@ -1,0 +1,2330 @@
+{
+  "cells": {
+    "c@110/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5592,
+        "icc": 0.0,
+        "lo": 0.4822,
+        "mean": 0.5207,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0196
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1802,
+        "icc": 0.0,
+        "lo": 0.1112,
+        "mean": 0.1457,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0176
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6696,
+        "icc": 0.0,
+        "lo": 0.5748,
+        "mean": 0.6222,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0241
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "c@110/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5665,
+        "icc": 0.0,
+        "lo": 0.4859,
+        "mean": 0.5262,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0205
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1223,
+        "icc": 0.0,
+        "lo": 0.0653,
+        "mean": 0.0938,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0145
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9927,
+        "mean": 0.9975,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6769,
+        "icc": 0.0,
+        "lo": 0.5824,
+        "mean": 0.6296,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.024
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    "c@20/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2565,
+        "icc": 0.0,
+        "lo": 0.1823,
+        "mean": 0.2194,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0189
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1391,
+        "icc": 0.0,
+        "lo": 0.0782,
+        "mean": 0.1086,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0155
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.987,
+        "icc": 0.0,
+        "lo": 0.9538,
+        "mean": 0.9704,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0084
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2969,
+        "icc": 0.0,
+        "lo": 0.2117,
+        "mean": 0.2543,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0217
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0462,
+        "icc": 0.0,
+        "lo": 0.013,
+        "mean": 0.0296,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0084
+      }
+    },
+    "c@20/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2601,
+        "icc": 0.0,
+        "lo": 0.1838,
+        "mean": 0.222,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0194
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1251,
+        "icc": 0.0,
+        "lo": 0.0674,
+        "mean": 0.0963,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0147
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9882,
+        "mean": 0.9951,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2943,
+        "icc": 0.0,
+        "lo": 0.2094,
+        "mean": 0.2519,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0216
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    "c@210/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5974,
+        "icc": 0.0,
+        "lo": 0.5278,
+        "mean": 0.5626,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0177
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1856,
+        "icc": 0.0,
+        "lo": 0.1156,
+        "mean": 0.1506,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0178
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7413,
+        "icc": 0.0,
+        "lo": 0.6513,
+        "mean": 0.6963,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0229
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "c@210/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6036,
+        "icc": 0.0,
+        "lo": 0.5271,
+        "mean": 0.5654,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0195
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1167,
+        "icc": 0.0,
+        "lo": 0.0611,
+        "mean": 0.0889,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0142
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9927,
+        "mean": 0.9975,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7199,
+        "icc": 0.0,
+        "lo": 0.6282,
+        "mean": 0.6741,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0233
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    "c@300/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5839,
+        "icc": 0.0,
+        "lo": 0.5154,
+        "mean": 0.5496,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0174
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2205,
+        "icc": 0.0,
+        "lo": 0.1449,
+        "mean": 0.1827,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0192
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7294,
+        "icc": 0.0,
+        "lo": 0.6385,
+        "mean": 0.684,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0231
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "c@300/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6367,
+        "icc": 0.0,
+        "lo": 0.5623,
+        "mean": 0.5995,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0189
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1223,
+        "icc": 0.0,
+        "lo": 0.0653,
+        "mean": 0.0938,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0145
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9882,
+        "mean": 0.9951,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7672,
+        "icc": 0.0,
+        "lo": 0.6797,
+        "mean": 0.7235,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0223
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    "h@110/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.594,
+        "icc": 0.0,
+        "lo": 0.5212,
+        "mean": 0.5576,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0185
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1856,
+        "icc": 0.0,
+        "lo": 0.1156,
+        "mean": 0.1506,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0178
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7271,
+        "icc": 0.0,
+        "lo": 0.6359,
+        "mean": 0.6815,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0232
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "h@110/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5693,
+        "icc": 0.0,
+        "lo": 0.4899,
+        "mean": 0.5296,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0202
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1501,
+        "icc": 0.0,
+        "lo": 0.0869,
+        "mean": 0.1185,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0161
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9882,
+        "mean": 0.9951,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6721,
+        "icc": 0.0,
+        "lo": 0.5773,
+        "mean": 0.6247,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0241
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    "h@20/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.415,
+        "icc": 0.0,
+        "lo": 0.336,
+        "mean": 0.3755,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0201
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1584,
+        "icc": 0.0,
+        "lo": 0.0935,
+        "mean": 0.1259,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0165
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5105,
+        "icc": 0.0,
+        "lo": 0.413,
+        "mean": 0.4617,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0248
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "h@20/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.4399,
+        "icc": 0.0,
+        "lo": 0.355,
+        "mean": 0.3975,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0216
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1167,
+        "icc": 0.0,
+        "lo": 0.0611,
+        "mean": 0.0889,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0142
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.513,
+        "icc": 0.0,
+        "lo": 0.4154,
+        "mean": 0.4642,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0248
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "h@210/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6169,
+        "icc": 0.0,
+        "lo": 0.5487,
+        "mean": 0.5828,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0174
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1748,
+        "icc": 0.0,
+        "lo": 0.1067,
+        "mean": 0.1407,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0173
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9927,
+        "mean": 0.9975,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7602,
+        "icc": 0.0,
+        "lo": 0.6719,
+        "mean": 0.716,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0224
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    "h@210/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6259,
+        "icc": 0.0,
+        "lo": 0.5501,
+        "mean": 0.588,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0193
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1082,
+        "icc": 0.0,
+        "lo": 0.0547,
+        "mean": 0.0815,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0136
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9858,
+        "mean": 0.9934,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0039
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7578,
+        "icc": 0.0,
+        "lo": 0.6694,
+        "mean": 0.7136,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0225
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    "h@300/gemini-3.6-flash": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.5977,
+        "icc": 0.0,
+        "lo": 0.5311,
+        "mean": 0.5644,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0169
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2045,
+        "icc": 0.0,
+        "lo": 0.1313,
+        "mean": 0.1679,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0186
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9926,
+        "mean": 1.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7484,
+        "icc": 0.0,
+        "lo": 0.659,
+        "mean": 0.7037,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0227
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    "h@300/gpt-5.6-luna": {
+      "clusters": 405,
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.6358,
+        "icc": 0.0,
+        "lo": 0.5629,
+        "mean": 0.5994,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0185
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1251,
+        "icc": 0.0,
+        "lo": 0.0674,
+        "mean": 0.0963,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0147
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 1.0,
+        "icc": 0.0,
+        "lo": 0.9927,
+        "mean": 0.9975,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.7813,
+        "icc": 0.0,
+        "lo": 0.6953,
+        "mean": 0.7383,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0219
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": 0.0,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    }
+  },
+  "paired": [
+    {
+      "against": "c@20/gemini-3.6-flash",
+      "cell": "h@20/gemini-3.6-flash",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1965,
+        "icc": 0.0,
+        "lo": 0.1156,
+        "mean": 0.1561,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0206
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0498,
+        "icc": 0.0,
+        "lo": -0.0153,
+        "mean": 0.0173,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0166
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0462,
+        "icc": 0.0,
+        "lo": 0.013,
+        "mean": 0.0296,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0084
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2566,
+        "icc": 0.0,
+        "lo": 0.1582,
+        "mean": 0.2074,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.025
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.013,
+        "icc": 0.0,
+        "lo": -0.0462,
+        "mean": -0.0296,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0084
+      }
+    },
+    {
+      "against": "c@20/gpt-5.6-luna",
+      "cell": "h@20/gpt-5.6-luna",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.216,
+        "icc": 0.0,
+        "lo": 0.135,
+        "mean": 0.1755,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0206
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0221,
+        "icc": 0.0,
+        "lo": -0.037,
+        "mean": -0.0074,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.015
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": -0.0019,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2594,
+        "icc": 0.0,
+        "lo": 0.1653,
+        "mean": 0.2123,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0239
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0019,
+        "icc": 0.0,
+        "lo": -0.0118,
+        "mean": -0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    {
+      "against": "h@20/gemini-3.6-flash",
+      "cell": "h@20/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: h@20/gpt-5.6-luna runs at 1 and h@20/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving h@20/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0452,
+        "icc": 0.0,
+        "lo": -0.0012,
+        "mean": 0.022,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0118
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.013,
+        "icc": 0.0,
+        "lo": -0.0611,
+        "mean": -0.037,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0122
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0295,
+        "icc": 0.0,
+        "lo": -0.0246,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0138
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    {
+      "against": "c@20/gemini-3.6-flash",
+      "cell": "c@20/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: c@20/gpt-5.6-luna runs at 1 and c@20/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving c@20/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0174,
+        "icc": 0.0,
+        "lo": -0.0123,
+        "mean": 0.0026,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0076
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0064,
+        "icc": 0.0,
+        "lo": -0.0311,
+        "mean": -0.0123,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0096
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0414,
+        "icc": 0.0,
+        "lo": 0.008,
+        "mean": 0.0247,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0085
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0176,
+        "icc": 0.0,
+        "lo": -0.0225,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0102
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.008,
+        "icc": 0.0,
+        "lo": -0.0414,
+        "mean": -0.0247,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0085
+      }
+    },
+    {
+      "against": "c@110/gemini-3.6-flash",
+      "cell": "h@110/gemini-3.6-flash",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0711,
+        "icc": 0.0,
+        "lo": 0.0028,
+        "mean": 0.037,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0174
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0341,
+        "icc": 0.0,
+        "lo": -0.0242,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0148
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.104,
+        "icc": 0.0,
+        "lo": 0.0146,
+        "mean": 0.0593,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0227
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    {
+      "against": "c@110/gpt-5.6-luna",
+      "cell": "h@110/gpt-5.6-luna",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0389,
+        "icc": 0.0,
+        "lo": -0.032,
+        "mean": 0.0035,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0181
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0529,
+        "icc": 0.0,
+        "lo": -0.0035,
+        "mean": 0.0247,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0144
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0407,
+        "icc": 0.0,
+        "lo": -0.0505,
+        "mean": -0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0232
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "h@110/gemini-3.6-flash",
+      "cell": "h@110/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: h@110/gpt-5.6-luna runs at 1 and h@110/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving h@110/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0042,
+        "icc": 0.0,
+        "lo": -0.0602,
+        "mean": -0.028,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0164
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0004,
+        "icc": 0.0,
+        "lo": -0.0646,
+        "mean": -0.0321,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0165
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0019,
+        "icc": 0.0,
+        "lo": -0.0118,
+        "mean": -0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.014,
+        "icc": 0.0,
+        "lo": -0.0996,
+        "mean": -0.0568,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0218
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": -0.0019,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    {
+      "against": "c@110/gemini-3.6-flash",
+      "cell": "c@110/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: c@110/gpt-5.6-luna runs at 1 and c@110/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving c@110/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0359,
+        "icc": 0.0,
+        "lo": -0.0249,
+        "mean": 0.0055,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0155
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.0235,
+        "icc": 0.0,
+        "lo": -0.0802,
+        "mean": -0.0519,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0144
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0466,
+        "icc": 0.0,
+        "lo": -0.0318,
+        "mean": 0.0074,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0199
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "c@210/gemini-3.6-flash",
+      "cell": "h@210/gemini-3.6-flash",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0515,
+        "icc": 0.0,
+        "lo": -0.0112,
+        "mean": 0.0202,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0159
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0176,
+        "icc": 0.0,
+        "lo": -0.0374,
+        "mean": -0.0099,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.014
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0621,
+        "icc": 0.0,
+        "lo": -0.0226,
+        "mean": 0.0198,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0215
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "c@210/gpt-5.6-luna",
+      "cell": "h@210/gpt-5.6-luna",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0553,
+        "icc": 0.0,
+        "lo": -0.01,
+        "mean": 0.0226,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0166
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0205,
+        "icc": 0.0,
+        "lo": -0.0353,
+        "mean": -0.0074,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0142
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0017,
+        "icc": 0.0,
+        "lo": -0.0099,
+        "mean": -0.0041,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.003
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0817,
+        "icc": 0.0,
+        "lo": -0.0027,
+        "mean": 0.0395,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0215
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "h@210/gemini-3.6-flash",
+      "cell": "h@210/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: h@210/gpt-5.6-luna runs at 1 and h@210/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving h@210/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0392,
+        "icc": 0.0,
+        "lo": -0.0288,
+        "mean": 0.0052,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0173
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.0291,
+        "icc": 0.0,
+        "lo": -0.0894,
+        "mean": -0.0593,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0154
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0017,
+        "icc": 0.0,
+        "lo": -0.0099,
+        "mean": -0.0041,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.003
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0423,
+        "icc": 0.0,
+        "lo": -0.0473,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0228
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "c@210/gemini-3.6-flash",
+      "cell": "c@210/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: c@210/gpt-5.6-luna runs at 1 and c@210/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving c@210/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0349,
+        "icc": 0.0,
+        "lo": -0.0295,
+        "mean": 0.0027,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0164
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.0328,
+        "icc": 0.0,
+        "lo": -0.0907,
+        "mean": -0.0617,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0147
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0225,
+        "icc": 0.0,
+        "lo": -0.067,
+        "mean": -0.0222,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0228
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "c@300/gemini-3.6-flash",
+      "cell": "h@300/gemini-3.6-flash",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0447,
+        "icc": 0.0,
+        "lo": -0.0152,
+        "mean": 0.0147,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0152
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0151,
+        "icc": 0.0,
+        "lo": -0.0447,
+        "mean": -0.0148,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0152
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0626,
+        "icc": 0.0,
+        "lo": -0.0231,
+        "mean": 0.0198,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0218
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    {
+      "against": "c@300/gpt-5.6-luna",
+      "cell": "h@300/gpt-5.6-luna",
+      "changed": ["arm"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0301,
+        "icc": 0.0,
+        "lo": -0.0304,
+        "mean": -0.0002,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0154
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0286,
+        "icc": 0.0,
+        "lo": -0.0237,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0133
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.056,
+        "icc": 0.0,
+        "lo": -0.0264,
+        "mean": 0.0148,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.021
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "h@300/gemini-3.6-flash",
+      "cell": "h@300/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: h@300/gpt-5.6-luna runs at 1 and h@300/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving h@300/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0705,
+        "icc": 0.0,
+        "lo": -0.0006,
+        "mean": 0.035,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0181
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.0405,
+        "icc": 0.0,
+        "lo": -0.1027,
+        "mean": -0.0716,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0158
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0806,
+        "icc": 0.0,
+        "lo": -0.0114,
+        "mean": 0.0346,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0234
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "c@300/gemini-3.6-flash",
+      "cell": "c@300/gpt-5.6-luna",
+      "changed": ["model"],
+      "confounds": [
+        "sampling temperature: c@300/gpt-5.6-luna runs at 1 and c@300/gemini-3.6-flash at 0. Rounds 2 and 3 ran every paid cell at temperature 0 and the family serving c@300/gpt-5.6-luna will not sample there, so these two cells differ in two variables, the model and the temperature. This is a difference with a named confound and not a clean reproduction"
+      ],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0832,
+        "icc": 0.0,
+        "lo": 0.0165,
+        "mean": 0.0499,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.017
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.0594,
+        "icc": 0.0,
+        "lo": -0.1184,
+        "mean": -0.0889,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.015
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0019,
+        "icc": 0.0,
+        "lo": -0.0118,
+        "mean": -0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0833,
+        "icc": 0.0,
+        "lo": -0.0043,
+        "mean": 0.0395,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0223
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": -0.0019,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    {
+      "against": "h@20/gemini-3.6-flash",
+      "cell": "h@110/gemini-3.6-flash",
+      "changed": ["k"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2233,
+        "icc": 0.0,
+        "lo": 0.141,
+        "mean": 0.1821,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0209
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0583,
+        "icc": 0.0,
+        "lo": -0.0089,
+        "mean": 0.0247,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0171
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2729,
+        "icc": 0.0,
+        "lo": 0.1666,
+        "mean": 0.2198,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.027
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    {
+      "against": "h@110/gemini-3.6-flash",
+      "cell": "h@210/gemini-3.6-flash",
+      "changed": ["k"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0534,
+        "icc": 0.0,
+        "lo": -0.003,
+        "mean": 0.0252,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0143
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0139,
+        "icc": 0.0,
+        "lo": -0.0337,
+        "mean": -0.0099,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0121
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0708,
+        "icc": 0.0,
+        "lo": -0.0016,
+        "mean": 0.0346,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0184
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "h@210/gemini-3.6-flash",
+      "cell": "h@300/gemini-3.6-flash",
+      "changed": ["k"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0072,
+        "icc": 0.0,
+        "lo": -0.0441,
+        "mean": -0.0184,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.013
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0503,
+        "icc": 0.0,
+        "lo": 0.004,
+        "mean": 0.0272,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0118
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0073,
+        "icc": 0.0,
+        "lo": -0.0024,
+        "mean": 0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0217,
+        "icc": 0.0,
+        "lo": -0.0463,
+        "mean": -0.0123,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0173
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    },
+    {
+      "against": "h@20/gpt-5.6-luna",
+      "cell": "h@110/gpt-5.6-luna",
+      "changed": ["k"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1725,
+        "icc": 0.0,
+        "lo": 0.0919,
+        "mean": 0.1322,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0205
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0594,
+        "icc": 0.0,
+        "lo": -0.0002,
+        "mean": 0.0296,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0152
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0019,
+        "icc": 0.0,
+        "lo": -0.0118,
+        "mean": -0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.2107,
+        "icc": 0.0,
+        "lo": 0.1103,
+        "mean": 0.1605,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0255
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0118,
+        "icc": 0.0,
+        "lo": -0.0019,
+        "mean": 0.0049,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0035
+      }
+    },
+    {
+      "against": "h@110/gpt-5.6-luna",
+      "cell": "h@210/gpt-5.6-luna",
+      "changed": ["k"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0881,
+        "icc": 0.0,
+        "lo": 0.0286,
+        "mean": 0.0584,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0151
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": -0.013,
+        "icc": 0.0,
+        "lo": -0.0611,
+        "mean": -0.037,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0122
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0016,
+        "icc": 0.0,
+        "lo": -0.0049,
+        "mean": -0.0016,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0016
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.1274,
+        "icc": 0.0,
+        "lo": 0.0504,
+        "mean": 0.0889,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0196
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0074,
+        "icc": 0.0,
+        "lo": -0.0074,
+        "mean": 0.0,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0
+      }
+    },
+    {
+      "against": "h@210/gpt-5.6-luna",
+      "cell": "h@300/gpt-5.6-luna",
+      "changed": ["k"],
+      "confounds": [],
+      "fit": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0384,
+        "icc": 0.0,
+        "lo": -0.0157,
+        "mean": 0.0114,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0137
+      },
+      "known_wrong_pick": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0376,
+        "icc": 0.0,
+        "lo": -0.0079,
+        "mean": 0.0148,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0116
+      },
+      "mountable": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0099,
+        "icc": 0.0,
+        "lo": -0.0017,
+        "mean": 0.0041,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.003
+      },
+      "n": 405,
+      "pass_rate": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0623,
+        "icc": 0.0,
+        "lo": -0.0129,
+        "mean": 0.0247,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0191
+      },
+      "refusal": {
+        "clusters": 405,
+        "design_effect": 1.0,
+        "hi": 0.0024,
+        "icc": 0.0,
+        "lo": -0.0073,
+        "mean": -0.0025,
+        "n": 405,
+        "n_eff": 405.0,
+        "se": 0.0025
+      }
+    }
+  ]
+}
