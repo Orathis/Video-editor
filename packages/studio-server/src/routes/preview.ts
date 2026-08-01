@@ -443,6 +443,11 @@ export function registerPreviewRoutes(api: Hono, adapter: PreviewApiAdapter): vo
     // served ETag and the signature meta tag — must use this post-stamp value or
     // the entry is filed under a signature no later request can ever ask for
     // (and the ETag we hand back is one the next request already disagrees with).
+    // The adapter memoizes signatures and invalidates from a file watcher, which
+    // has not fired yet for the write persistHfIdsIfNeeded just made. Without
+    // this the "re-resolve" returns the pre-stamp value and the fix above is a
+    // no-op: the served ETag is one the next request already disagrees with.
+    if (normalizedDisk !== null) adapter.invalidateProjectSignature?.(project.dir);
     const signature = resolveProjectSignature(adapter, project.dir);
     const etag = `"preview:${signature}${etagSalt}"`;
     const cacheKey = `${project.id}:${etag}`;
