@@ -184,7 +184,13 @@ class IntervalColumnTests(unittest.TestCase):
 class EmDashTests(unittest.TestCase):
     """Scenario 2: the house rule applies to the source and to what it renders."""
 
-    FILES = ("build_report3.py", "test_build_report3.py", "VERDICT.md")
+    FILES = (
+        "build_report3.py",
+        "test_build_report3.py",
+        "confirm3.py",
+        "test_confirm3.py",
+        "VERDICT.md",
+    )
     # Written as a code point rather than as the character, so this file can
     # assert the rule without breaking it on itself.
     EM_DASH = chr(0x2014)
@@ -294,6 +300,19 @@ class KDependentTests(unittest.TestCase):
     def test_the_bands_of_k_are_reported_rather_than_one_chosen_k(self):
         runs = [(r["lo"], r["hi"], r["family"]) for r in self.summary["family_runs"]]
         self.assertEqual([(5, 5, "lexical"), (10, 20, "hybrid")], runs)
+
+    def test_the_ranking_is_read_at_the_shortest_k_that_separates(self):
+        # Not the longest swept k. Read there, the arms have converged and both
+        # the ranking and the paired table come out degenerate: every recall
+        # equal and every paired difference exactly zero, which reports nothing.
+        # The shortest separating k is the only one defensible on token cost and,
+        # being the minimum, cannot have been picked to widen a margin.
+        separated = [
+            row["k"] for row in self.summary["across_ks"] if row["branch"] == "separated"
+        ]
+        self.assertEqual(min(separated), self.summary["ranking"][0]["k"])
+        self.assertNotEqual(max(self.summary["ks"]), self.summary["ranking"][0]["k"])
+        self.assertTrue(self.summary["margins"])
 
     def test_the_rendered_report_still_carries_no_em_dash(self):
         # EmDashTests.EM_DASH rather than the character, because this file is

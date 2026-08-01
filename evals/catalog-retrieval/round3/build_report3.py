@@ -234,13 +234,25 @@ def build_summary(
     else:
         # The swept ks ship different families. Carrying one of their outcomes
         # as the headline would report a choice of list length as a choice of
-        # arm. The ranking below is still shown, at the longest comparable k and
-        # captioned as such, but the verdict names no arm.
+        # arm, so the verdict below names no arm.
+        #
+        # The ranking and the paired table still have to be read somewhere, and
+        # the choice of where cannot be left to whichever k flatters an arm. It
+        # is the smallest k at which the rule separates: among the list lengths
+        # that satisfy step 2, the shortest is the only one defensible on cost,
+        # since every longer list buys the same verdict for more tokens. Being
+        # the minimum, it also cannot have been picked to widen a margin. Read
+        # at the longest k instead, both tables come out degenerate: past the
+        # point where every arm returns the whole shelf, recall is 1.0 for all
+        # of them and every paired difference is exactly zero.
         runs = sweep.family_runs(across, swept)
+        readable = next(
+            (r for r in across if r["outcome"]["branch"] == "separated"), across[-1]
+        )
         headline = {
-            "k": across[-1]["k"],
-            "rows": across[-1]["rows"],
-            "exploratory": across[-1]["exploratory"],
+            "k": readable["k"],
+            "rows": readable["rows"],
+            "exploratory": readable["exploratory"],
             "outcome": {
                 "branch": "k-dependent",
                 "ship": None,
@@ -407,13 +419,54 @@ def render(summary):
         ]
         for row in summary["exploratory"]
     ]
+    across_ks = [
+        [
+            row["k"],
+            row["leader"] or "none",
+            row["runner_up"] or "none",
+            "{0:.4f}".format(row["margin"]["mean"]) if row["margin"] else "n/a",
+            stats.format_interval(row["margin"]) if row["margin"] else "n/a",
+            row["branch"],
+            row["ship"] or "nothing",
+        ]
+        for row in summary["across_ks"]
+    ]
 
     sections = [
         _table(
-            "Ranking, decision tier, each arm at its own best k",
+            "The rule read at every comparable k, one variable between arms",
+            ["k", "leader", "runner-up", "difference", "difference 95% ci",
+             "branch", "ships"],
+            across_ks,
+        ),
+        _paragraph(
+            "Reading the rule at one list length and reporting its answer would let a "
+            "choice of k stand in for a choice of retriever. Reading it at all of them "
+            "removes that freedom: either the swept ks agree, in which case the choice "
+            "of k never mattered, or they disagree, and the disagreement is itself the "
+            "finding. A k at or above the shelf size is not read at all, because a list "
+            "that long is the whole shelf: it is the full-shelf control rather than a "
+            "retrieval arm, and no retriever varies inside it. Rows where the difference "
+            "is exactly zero are the arms already returning the same set, which happens "
+            "well below that length."
+            if across_ks
+            else "No k shorter than the shelf was swept, so no two arms are comparable."
+        ),
+        _table(
+            "Ranking, decision tier, every arm at the same k",
             ["place", "arm", "family", "k", "n", "recall", "recall 95% ci",
              "clusters", "icc", "n eff"],
             ranking,
+        ),
+        _paragraph(
+            "Every arm sits at the same k, so the retriever is the only thing that "
+            "varies down this ranking. Ranking each arm at a list length of its own "
+            "would compare different list lengths at different token costs and call "
+            "that a comparison of arms. When the swept ks disagree, this table is read "
+            "at the shortest list length that separates them, because among the lengths "
+            "that satisfy the rule the shortest is the only one defensible on cost, and "
+            "being the minimum it cannot have been chosen to widen a margin. It is one "
+            "row of the table above, not a verdict on its own."
         ),
         _paragraph(
             "Every interval is clustered by target move rather than by brief, because "
