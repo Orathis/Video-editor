@@ -553,7 +553,9 @@ async function recordRequests(client) {
   };
   await client.send("Network.enable");
   client.on("Network.requestWillBeSent", ({ requestId, request, type }) => {
-    pending.set(requestId, { url: request.url, type });
+    const headers = request.headers ?? {};
+    const ranged = Boolean(headers.Range ?? headers.range);
+    pending.set(requestId, { url: request.url, type, ranged });
     activity.at = Date.now();
   });
   client.on("Network.loadingFinished", ({ requestId, encodedDataLength }) =>
@@ -575,11 +577,39 @@ async function waitForNetworkQuiet(activity) {
   }
 }
 
+/**
+ * A media element fetches one file as a series of ranged reads — that is normal
+ * playback behaviour, not duplication. Counting raw HTTP requests therefore
+ * reports a file pulled once in eight chunks as "8x amplification", and gets
+ * WORSE when a fix defers a source so it is later fetched in pieces.
+ *
+ * What this gate is for is wasted fetching: the same source pulled from scratch
+ * by independent subsystems that do not share a cache. So ranged reads of one
+ * URL collapse into a single logical fetch, and the ratio is built from those.
+ * Raw counts stay in the output as diagnostics.
+ */
+function countLogicalFetches(requests) {
+  const rangedUrls = new Set();
+  let fetches = 0;
+  for (const request of requests) {
+    const url = request.url.split("?")[0];
+    if (!request.ranged) {
+      fetches += 1;
+      continue;
+    }
+    if (rangedUrls.has(url)) continue;
+    rangedUrls.add(url);
+    fetches += 1;
+  }
+  return fetches;
+}
+
 function summariseRequests(completed, wallClockMs) {
   const media = completed.filter((request) => MEDIA_EXTENSIONS.test(request.url));
   const images = completed.filter((request) => IMAGE_EXTENSIONS.test(request.url));
   const distinct = (requests) => new Set(requests.map((request) => request.url.split("?")[0])).size;
   const distinctMediaSources = distinct(media);
+  const mediaFetches = countLogicalFetches(media);
   if (distinctMediaSources === 0) {
     throw new Error("No media requests observed; the project under test carries no media");
   }
@@ -589,9 +619,11 @@ function summariseRequests(completed, wallClockMs) {
     requests: completed.length,
     bytes: sumBytes(completed),
     mediaRequests: media.length,
+    mediaRangedRequests: media.filter((request) => request.ranged).length,
+    mediaFetches,
     mediaBytes: sumBytes(media),
     distinctMediaSources,
-    mediaRequestsPerDistinctSource: round(media.length / distinctMediaSources, 2),
+    mediaRequestsPerDistinctSource: round(mediaFetches / distinctMediaSources, 2),
     imageRequests: images.length,
     distinctImageSources: distinct(images),
   };
