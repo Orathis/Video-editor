@@ -302,7 +302,13 @@ def distractor_gate(brief_text, name, entries):
     query = set(harness2.tokens(brief_text))
     target_score = _lexical_score(query, entries[name])
     if target_score == 0.0:
-        return 0, True
+        # No band exists to count competitors in, so this is not a count of
+        # zero. Reported as None to keep it distinguishable: a zero means the
+        # brief has a band and stands alone in it, which is a brief that gives
+        # its move away, while this means the brief shares no vocabulary with
+        # its own entry at all. Thin entries fail this way whatever the brief
+        # says, and reading both as "distractor:0" hides that.
+        return None, True
     floor = NEIGHBOR_SCORE_RATIO * target_score
     count = sum(
         1
@@ -331,6 +337,8 @@ def validate_candidate(name, brief_text, entries):
         return f"vocabulary:{overlap:.6f}"
     competitors, isolated = distractor_gate(brief_text, name, entries)
     if isolated:
+        if competitors is None:
+            return "distractor:no_shelf_overlap"
         return f"distractor:{competitors}"
     return None
 

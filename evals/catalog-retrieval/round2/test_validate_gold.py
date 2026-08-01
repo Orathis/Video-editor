@@ -436,6 +436,41 @@ class ValidateGoldTests(unittest.TestCase):
             ],
         )
 
+    def test_a_checkpoint_from_another_corpus_is_reread_not_inherited(self):
+        """Same ids, different briefs: the verdicts must not carry across.
+
+        Brief ids are positions in a corpus, so a regenerated corpus numbers
+        from the start again and every id collides with an older brief that
+        says something else. Keyed on the id alone, resume answered the new
+        corpus with the old corpus's verdicts and never spent a call to notice,
+        and the audit then pruned the new corpus on them.
+        """
+        first_briefs, gold_by_id = corpus(3)
+        replies = [canned("move-alpha", "judged for the first corpus")] * 9
+        with patch.object(validate_gold.provider, "chat", side_effect=replies):
+            validate_gold.evaluate_corpus(first_briefs, gold_by_id, SHELF)
+
+        with open(self.checkpoint, encoding="utf-8") as fh:
+            self.assertEqual(len([line for line in fh if line.strip()]), 3)
+
+        # Same ids, text a committee has never seen.
+        second_briefs = {
+            brief_id: f"a different corpus reused id {brief_id}"
+            for brief_id in first_briefs
+        }
+        rest = [canned("move-alpha", "judged for the second corpus")] * 9
+        with patch.object(
+            validate_gold.provider, "chat", side_effect=rest
+        ) as chat_mock:
+            result = validate_gold.evaluate_corpus(second_briefs, gold_by_id, SHELF)
+
+        self.assertEqual(result["new_reads"], 3)
+        self.assertEqual(chat_mock.call_count, 9)
+        self.assertEqual(
+            {record["passes"][0]["why"] for record in result["records"]},
+            {"judged for the second corpus"},
+        )
+
     def test_ceiling_below_projection_stops_before_any_read(self):
         briefs, gold_by_id = corpus(4)
         projection = validate_gold.project_committee(briefs, gold_by_id, SHELF)

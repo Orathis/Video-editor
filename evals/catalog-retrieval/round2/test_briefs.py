@@ -103,6 +103,36 @@ class BriefGeneratorTests(unittest.TestCase):
         self.assertEqual(0, count)
         self.assertTrue(isolated)
 
+    def test_no_overlap_is_reported_apart_from_a_competitor_count_of_zero(self):
+        """Both reject, for opposite reasons, so they must not print the same.
+
+        A count of zero means the brief has a score band and is alone in it,
+        which is a brief that gives its move away. No overlap means the brief
+        never scored against its own entry, which is what a thin entry does to
+        every brief written for it. Reading both as "distractor:0" sent a real
+        diagnosis of the second down the path of the first.
+        """
+        synthetic = {
+            "target": "orchid saffron",
+            "other-a": "harbor cobalt",
+            "other-b": "lantern quartz",
+        }
+        count, isolated = briefs.distractor_gate(
+            "Nothing here shares a single word with that entry.",
+            "target",
+            synthetic,
+        )
+        self.assertIsNone(count)
+        self.assertTrue(isolated)
+        self.assertEqual(
+            "distractor:no_shelf_overlap",
+            briefs.validate_candidate(
+                "target",
+                "Nothing here shares a single word with that entry.",
+                synthetic,
+            ),
+        )
+
     def test_name_forms_are_caught_and_never_survive_an_accepted_corpus(self):
         name = "caption-camera-follow"
         for leaked in (

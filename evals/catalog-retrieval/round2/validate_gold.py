@@ -3,6 +3,7 @@
 
 import collections
 import glob
+import hashlib
 import json
 import math
 import os
@@ -39,7 +40,14 @@ DEFAULT_SAMPLE_RATE = 1.0
 # with three readers projects near $32; this leaves headroom without letting a
 # mis-set rate spend unbounded.
 DEFAULT_MAX_USD = 40.00
-DEFAULT_COMMITTEE_CHECKPOINT = os.path.join(HERE, "checkpoints", "committee.jsonl")
+# Under the corpus, for the same reason the audit is. A checkpoint records what
+# a committee said about particular briefs, so it belongs to the corpus those
+# briefs came from. At HERE it was shared by every round, and resume reads it by
+# brief id, so a later corpus numbering from 001 again would inherit this
+# corpus's verdicts for briefs that committee never saw.
+DEFAULT_COMMITTEE_CHECKPOINT = os.path.join(
+    harness2.CORPUS_ROOT, "checkpoints", "committee.jsonl"
+)
 
 COMMITTEE_INSTRUCTIONS = """Reconstruct which single catalog move the brief describes.
 
@@ -49,6 +57,10 @@ Return only this JSON object:
 Choose exactly one move from the complete shelf below. Use the exact move name.
 Do not discuss any prior response or any evaluation result.
 """
+
+
+def _brief_digest(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def build_committee_context(brief, shelf):
@@ -315,11 +327,20 @@ def evaluate_corpus(
         "EVAL_COMMITTEE_CHECKPOINT", DEFAULT_COMMITTEE_CHECKPOINT
     )
     kill_path = kill_path or os.environ.get("EVAL_KILL_FILE", run2.DEFAULT_KILL_FILE)
-    judged = {
-        record["brief_id"]: record
-        for record in run2.load_checkpoint(checkpoint_path)
-        if isinstance(record.get("brief_id"), str)
-    }
+    # Resume on what the committee actually read, not on where it sat in the
+    # corpus. A brief id is a position: regenerate a corpus and 001 is a
+    # different brief that reuses the name. Keyed on the id alone, resume would
+    # hand those verdicts to briefs no committee ever saw, silently, and the
+    # audit would prune on them. A record with no digest predates this check and
+    # cannot prove which brief it judged, so it is re-read rather than trusted.
+    judged = {}
+    for record in run2.load_checkpoint(checkpoint_path):
+        brief_id = record.get("brief_id")
+        if not isinstance(brief_id, str) or brief_id not in briefs:
+            continue
+        if record.get("brief_digest") != _brief_digest(briefs[brief_id]):
+            continue
+        judged[brief_id] = record
     total_usd = sum(
         _record_cost(record, model)
         for brief_id, record in judged.items()
@@ -364,6 +385,7 @@ def evaluate_corpus(
 
         record = {
             "brief_id": brief_id,
+            "brief_digest": _brief_digest(briefs[brief_id]),
             "constructed_gold": list(constructed_gold),
             "effective_gold": effective_gold,
             "passes": passes,
