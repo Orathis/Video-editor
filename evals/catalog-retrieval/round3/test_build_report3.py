@@ -21,6 +21,7 @@ from html.parser import HTMLParser
 from unittest import mock
 
 import build_report3
+import confirm3
 import stats
 import sweep
 
@@ -380,6 +381,117 @@ class ConfirmationSectionTests(unittest.TestCase):
     def test_the_rendered_confirmation_carries_no_em_dash(self):
         page = build_report3.render(tied_summary(), self.CONFIRMATION)
         self.assertEqual(0, page.count(EmDashTests.EM_DASH))
+
+    def test_round_threes_published_report_still_renders_byte_for_byte(self):
+        """The one artifact this file is not allowed to move.
+
+        report3.html is published and its numbers are quoted in the verdict, so
+        every later round renders through this function without being able to
+        change what round 3 already said. Round 3's confirmation predates the
+        grid and carries a single pairing object where round 4 writes a list,
+        which is exactly the shape this asserts is still read the old way.
+        """
+        here = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(here, "summary3.json"), encoding="utf-8") as fh:
+            summary = json.load(fh)
+        with open(os.path.join(here, "confirm3.json"), encoding="utf-8") as fh:
+            confirmation = json.load(fh)
+        with open(os.path.join(here, "report3.html"), encoding="utf-8") as fh:
+            published = fh.read()
+        self.assertIsInstance(confirmation["paired"], dict)
+        rendered = build_report3.render(summary, confirmation)
+        self.assertEqual(37794, len(rendered.encode("utf-8")))
+        self.assertEqual(published, rendered)
+
+
+class ConfirmationGridTests(unittest.TestCase):
+    """Round 4 confirms at several list lengths and on two models.
+
+    The paid stage then emits a grid of pairings rather than one, and the reader
+    of the comparison table has to be unable to miss that the cross-model row is
+    not a clean one variable difference.
+    """
+
+    def pairing(self, cell, against, changed, confounds=()):
+        rates = {
+            name: {"mean": 0.2, "lo": 0.05, "hi": 0.35, "n_eff": 2.0}
+            for name, _ in confirm3.METRICS
+        }
+        rates.update(
+            cell=cell,
+            against=against,
+            n=4,
+            changed=list(changed),
+            confounds=list(confounds),
+        )
+        return rates
+
+    def confirmation(self, pairings):
+        return {
+            "cells": ConfirmationSectionTests.CONFIRMATION["cells"],
+            "paired": pairings,
+        }
+
+    def test_every_pairing_in_the_grid_gets_its_own_table(self):
+        page = build_report3.render(
+            tied_summary(),
+            self.confirmation(
+                [
+                    self.pairing("h@10", "c@10", ["arm"]),
+                    self.pairing("h@150", "c@150", ["arm"]),
+                    self.pairing("h@80", "h@10", ["k"]),
+                ]
+            ),
+        )
+        captions = [
+            table["caption"]
+            for table in tables_in(page)
+            if table["caption"].startswith("Paid confirmation, paired brief by brief")
+        ]
+        self.assertEqual(3, len(captions))
+        # Named, so three tables of the same shape are not three anonymous ones.
+        self.assertIn("Paid confirmation, paired brief by brief, h@150 against c@150", captions)
+
+    def test_a_cross_model_pairing_is_never_rendered_as_a_reproduction(self):
+        confound = (
+            "sampling temperature: h@10/gpt-5.6-luna runs at 1 and "
+            "h@10/gemini-3.6-flash at 0"
+        )
+        page = build_report3.render(
+            tied_summary(),
+            self.confirmation(
+                [
+                    self.pairing(
+                        "h@10/gpt-5.6-luna",
+                        "h@10/gemini-3.6-flash",
+                        ["model"],
+                        [confound],
+                    )
+                ]
+            ),
+        )
+        self.assertIn("CONFOUND", page)
+        self.assertIn("sampling temperature", page)
+        self.assertIn("must not be read as a reproduction", page)
+        # The changed variable is named as the model, not left as round 3's
+        # sentence about the retriever, which would be false here.
+        self.assertIn("Exactly one thing differs between these cells, the model", page)
+        self.assertEqual(0, page.count(EmDashTests.EM_DASH))
+
+    def test_a_clean_pairing_carries_no_confound_paragraph(self):
+        page = build_report3.render(
+            tied_summary(),
+            self.confirmation([self.pairing("h@10", "c@10", ["arm"])]),
+        )
+        self.assertNotIn("CONFOUND", page)
+        self.assertIn(
+            "Exactly one thing differs between these cells, the retriever", page
+        )
+
+    def test_an_empty_grid_reads_as_no_pairing_rather_than_crashing(self):
+        page = build_report3.render(tied_summary(), self.confirmation([]))
+        self.assertIn("Paid confirmation, what recall cannot see", page)
+        self.assertNotIn("Paid confirmation, paired brief by brief", page)
 
 
 class RunnerUpLabelTests(unittest.TestCase):

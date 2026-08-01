@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(HERE), "round3"))
 
 import gate2  # noqa: E402
 import harness2  # noqa: E402
+import provider  # noqa: E402
 import run2  # noqa: E402
 import stats  # noqa: E402
 
@@ -35,9 +36,25 @@ FAILURE_SAMPLE = 12
 
 
 def cell_key(record):
-    """The label a cell is reported under. c@5 and c@10 are different cells."""
+    """The label a cell is reported under. c@5 and c@10 are different cells.
+
+    So are c@10 on model A and c@10 on model B. run2._record_key and
+    run2._cell_name already carry the model for exactly this reason and this
+    label is the third reading of the same fact, so it carries it too. Left
+    model blind, a round 4 checkpoint holding both models would merge model A's
+    answers with model B's into one cell and report the average as a
+    reproduction, which is the one failure the round cannot detect after the
+    fact.
+
+    A record that carries no model keeps round 2's published label unchanged.
+    Round 2's report and summary are committed artifacts that have to keep
+    regenerating from their own checkpoint, and nothing in that checkpoint
+    records a model.
+    """
     k = record.get("k")
-    return record["condition"] + (f"@{k}" if k else "")
+    model = record.get("model")
+    label = record["condition"] + (f"@{k}" if k else "")
+    return label + (f"/{provider.model_id(model)}" if model else "")
 
 
 def load_results(path=CHECKPOINT):

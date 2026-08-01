@@ -13,6 +13,7 @@ import unittest
 import urllib.error
 from unittest import mock
 
+import build_report2
 import provider
 import run2
 
@@ -444,6 +445,46 @@ class CellIdentityTests(unittest.TestCase):
         del record["model"]
         self.assertIsNone(run2._record_key(record))
 
+    def test_the_reported_cell_label_carries_the_model_too(self):
+        # The third reading of the same fact, after _record_key and _cell_name.
+        # This is the one the report groups by, so left model blind it is the
+        # one that would average model A's answers together with model B's and
+        # print the result as a reproduction.
+        models = ("claude-haiku-4-5", provider.CHAT_MODEL, "gpt-5.6-luna")
+        labels = [build_report2.cell_key(_record(model)) for model in models]
+        self.assertEqual(len(models), len(set(labels)))
+        for model, label in zip(models, labels):
+            self.assertIn(model, label)
+
+    def test_the_same_brief_on_two_models_lands_in_two_cells(self):
+        # Through score_all rather than through cell_key alone, because the
+        # merge this prevents happens when the rows are grouped, not when the
+        # label is computed.
+        rows = build_report2.score_all(
+            [
+                _scored_record(provider.CHAT_MODEL),
+                _scored_record("gpt-5.6-luna"),
+            ],
+            {"01": {"best": ["alpha"], "bad": ["gamma"]}},
+            {"alpha": "what: a\n", "gamma": "what: c\n"},
+        )
+        self.assertEqual(2, len({row["cell"] for row in rows}))
+        self.assertEqual(1, len({row["brief"] for row in rows}))
+
+    def test_a_record_with_no_model_keeps_round_twos_published_label(self):
+        # Round 2's report and summary are committed artifacts and nothing in
+        # its checkpoint records a model, so widening the label must not move
+        # them. These are the exact labels round 2 published.
+        for k, expected in ((5, "c@5"), (10, "c@10")):
+            record = _record(provider.CHAT_MODEL)
+            record.update(condition="c", k=k)
+            del record["model"]
+            self.assertEqual(expected, build_report2.cell_key(record))
+        bare = _record(provider.CHAT_MODEL)
+        bare.update(condition="a", k=None)
+        del bare["model"]
+        self.assertEqual("a", build_report2.cell_key(bare))
+
     def test_each_model_is_priced_from_its_own_row(self):
         usage = {
             "prompt_tokens": 1_000_000,
@@ -477,7 +518,7 @@ class CellIdentityTests(unittest.TestCase):
                 {},
                 {"01": "a beat"},
                 cells=(("a", None),),
-                model=model,
+                models=(model,),
                 emit=lambda _: None,
             )
             totals[model] = total["projected_usd"]
@@ -488,7 +529,7 @@ class CellIdentityTests(unittest.TestCase):
                 {},
                 {"01": "a beat"},
                 cells=(("a", None),),
-                model="gpt-5.6-sol",
+                models=("gpt-5.6-sol",),
                 emit=lambda _: None,
             )
 
@@ -501,7 +542,7 @@ class CellIdentityTests(unittest.TestCase):
             {},
             {"01": "a beat"},
             cells=(("a", None),),
-            model="gpt-5.6-luna",
+            models=("gpt-5.6-luna",),
             emit=lines.append,
         )
         confound = [line for line in lines if "CONFOUND" in line]
@@ -527,10 +568,27 @@ class CellIdentityTests(unittest.TestCase):
             {},
             {"01": "a beat"},
             cells=(("a", None),),
-            model=provider.CHAT_MODEL,
+            models=(provider.CHAT_MODEL,),
             emit=quiet.append,
         )
         self.assertEqual([], [line for line in quiet if "CONFOUND" in line])
+
+        # Both models in one projection, which is what round 4 approves. The
+        # confound belongs to the openai block alone: a grid that printed it
+        # once for the whole run would read as though both cells carried it,
+        # and a grid that dropped it would read as though neither did.
+        grid = []
+        run2.dry_run(
+            {},
+            {"01": "a beat"},
+            cells=(("a", None),),
+            models=(provider.CHAT_MODEL, "gpt-5.6-luna"),
+            emit=grid.append,
+        )
+        self.assertEqual(1, len([line for line in grid if "CONFOUND" in line]), grid)
+        self.assertEqual(
+            2, len([line for line in grid if line.startswith("Model: ")]), grid
+        )
 
 
 def _record(model):
@@ -541,6 +599,14 @@ def _record(model):
         "model": model,
         "attempts": [],
     }
+
+
+def _scored_record(model):
+    """The same record with enough on it for the scorer to read a row."""
+    record = _record(model)
+    record["picks"] = [{"move": "alpha", "why": "x"}]
+    record["shown"] = ["alpha", "gamma"]
+    return record
 
 
 if __name__ == "__main__":

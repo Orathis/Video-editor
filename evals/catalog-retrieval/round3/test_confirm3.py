@@ -200,6 +200,165 @@ class PairedTests(unittest.TestCase):
         difference = confirm3.paired(self.rows(records), "h@10", "c@10")
         self.assertEqual(0, difference["n"])
 
+    def test_a_brief_missing_from_one_cell_leaves_every_other_pairing_whole(self):
+        # The shared set is per pairing. Computed once for the grid, a brief
+        # only one cell skipped would shrink every comparison in the round
+        # rather than the one it actually belongs to.
+        records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
+        records += [record(b, "c", GOLD[b]["best"]) for b in GOLD]
+        records += [record(b, "d", GOLD[b]["best"]) for b in GOLD if b != "004"]
+        rows = self.rows(records)
+        self.assertEqual(3, confirm3.paired(rows, "d@10", "h@10")["n"])
+        self.assertEqual(3, confirm3.paired(rows, "d@10", "c@10")["n"])
+        # The cells that both ran everything are untouched by d's gap.
+        self.assertEqual(4, confirm3.paired(rows, "h@10", "c@10")["n"])
+
+
+class OneVariableTests(unittest.TestCase):
+    """Exactly one of arm, k and model moves between two compared cells.
+
+    This is the property the whole round rests on. A difference measured across
+    two moving variables cannot be attributed to either of them, and the failure
+    mode is not a wrong number but a right number with no meaning, which is why
+    it is refused here rather than computed and qualified in the write-up.
+    """
+
+    A = "gemini-3.6-flash"
+    B = "gpt-5.6-luna"
+
+    def rows(self, cells):
+        """One scored row per brief per named cell, all answering correctly."""
+        out = []
+        for cell in cells:
+            parsed = confirm3.parse_cell(cell)
+            for brief in GOLD:
+                row = dict(
+                    record(brief, parsed["arm"], GOLD[brief]["best"], k=parsed["k"])
+                )
+                if parsed["model"]:
+                    row["model"] = parsed["model"]
+                out.append(row)
+        return confirm3.build_report2.score_all(out, GOLD, SHELF)
+
+    def test_a_label_round_trips_through_the_key_it_came_from(self):
+        # parse_cell is the inverse of cell_key and the two are read together,
+        # so they are tested together. Drift between them is how a model cell
+        # would be parsed as a k cell and compared against the wrong twin.
+        for condition, k, model in (
+            ("c", 80, None),
+            ("h", 10, self.A),
+            ("a", None, None),
+            ("b", None, self.B),
+        ):
+            source = {"brief": "001", "condition": condition, "k": k}
+            if model:
+                source["model"] = model
+            parsed = confirm3.parse_cell(confirm3.build_report2.cell_key(source))
+            self.assertEqual(
+                {"arm": condition, "k": k, "model": model}, parsed
+            )
+
+    def test_one_variable_at_a_time_is_compared(self):
+        cells = ("h@10", "c@10", "h@80", "h@10/" + self.A, "h@10/" + self.B)
+        rows = self.rows(cells)
+        for cell, baseline, expected in (
+            ("h@10", "c@10", "arm"),
+            ("h@80", "h@10", "k"),
+            ("h@10/" + self.B, "h@10/" + self.A, "model"),
+        ):
+            with self.subTest(cell=cell, baseline=baseline):
+                self.assertEqual(
+                    [expected], confirm3.paired(rows, cell, baseline)["changed"]
+                )
+
+    def test_two_variables_are_refused_rather_than_compared(self):
+        rows = self.rows(("h@10", "c@80", "h@80/" + self.B, "h@10/" + self.A))
+        for cell, baseline in (
+            # Arm and k.
+            ("h@10", "c@80"),
+            # Arm and model, and k and model.
+            ("h@80/" + self.B, "h@10/" + self.A),
+        ):
+            with self.subTest(cell=cell, baseline=baseline):
+                with self.assertRaisesRegex(SystemExit, "exactly one of arm, k and model"):
+                    confirm3.paired(rows, cell, baseline)
+
+    def test_a_cell_paired_against_itself_is_refused_too(self):
+        # Zero variables changed is the same defect as two: the output would be
+        # a row of guaranteed zeroes presented as a measured tie.
+        rows = self.rows(("h@10",))
+        with self.assertRaisesRegex(SystemExit, "exactly one of arm, k and model"):
+            confirm3.paired(rows, "h@10", "h@10")
+
+
+class ConfoundTests(unittest.TestCase):
+    """A cross-model difference is reported with its confound, never as clean."""
+
+    VERTEX = "gemini-3.6-flash"
+    OPENAI = "gpt-5.6-luna"
+    ANTHROPIC = "claude-haiku-4-5"
+
+    def rows(self, cells):
+        return OneVariableTests.rows(self, cells)
+
+    def test_the_temperature_confound_rides_along_with_the_model(self):
+        # The openai family rejects temperature 0, which every round 2 and
+        # round 3 cell used. So this pairing moves the model AND the sampling
+        # temperature, and the output has to say so where the difference is
+        # read rather than only in the provider that knows it.
+        rows = self.rows(("h@10/" + self.VERTEX, "h@10/" + self.OPENAI))
+        difference = confirm3.paired(
+            rows, "h@10/" + self.OPENAI, "h@10/" + self.VERTEX
+        )
+        self.assertEqual(["model"], difference["changed"])
+        self.assertEqual(1, len(difference["confounds"]))
+        confound = difference["confounds"][0]
+        self.assertIn("temperature", confound)
+        self.assertIn("not a clean reproduction", confound)
+        self.assertIn(self.OPENAI, confound)
+
+    def test_the_confound_names_the_family_that_will_not_sample_at_zero(self):
+        # Written the other way round, the openai cell is the baseline. A
+        # sentence that always blamed the leader would then say the vertex model
+        # rejects temperature 0, which is false, and false in the one paragraph
+        # a reader consults to find out whether the comparison is clean.
+        rows = self.rows(("h@10/" + self.VERTEX, "h@10/" + self.OPENAI))
+        for cell, baseline in (
+            ("h@10/" + self.OPENAI, "h@10/" + self.VERTEX),
+            ("h@10/" + self.VERTEX, "h@10/" + self.OPENAI),
+        ):
+            with self.subTest(cell=cell):
+                confound = confirm3.paired(rows, cell, baseline)["confounds"][0]
+                blamed = confound.split("the family serving ")[1].split(" will not")[0]
+                self.assertEqual("h@10/" + self.OPENAI, blamed)
+
+    def test_two_models_sampled_the_same_way_carry_no_confound(self):
+        # The other half of the claim. A confound that fired on every model
+        # change would be noise rather than a finding, and would say nothing
+        # about the one pairing where it is true.
+        rows = self.rows(("h@10/" + self.VERTEX, "h@10/" + self.ANTHROPIC))
+        difference = confirm3.paired(
+            rows, "h@10/" + self.ANTHROPIC, "h@10/" + self.VERTEX
+        )
+        self.assertEqual(["model"], difference["changed"])
+        self.assertEqual([], difference["confounds"])
+
+    def test_an_arm_comparison_carries_no_model_confound(self):
+        rows = self.rows(("h@10/" + self.OPENAI, "c@10/" + self.OPENAI))
+        difference = confirm3.paired(
+            rows, "h@10/" + self.OPENAI, "c@10/" + self.OPENAI
+        )
+        self.assertEqual([], difference["confounds"])
+
+    def test_a_cell_that_records_no_model_does_not_claim_a_clean_comparison(self):
+        # Round 2's checkpoint records no model. Pairing one of its cells
+        # against a round 4 cell cannot establish what else differed, and
+        # silence there would read as "nothing did".
+        rows = self.rows(("h@10", "h@10/" + self.OPENAI))
+        difference = confirm3.paired(rows, "h@10/" + self.OPENAI, "h@10")
+        self.assertEqual(["model"], difference["changed"])
+        self.assertIn("cannot be established", difference["confounds"][0])
+
 
 if __name__ == "__main__":
     unittest.main()

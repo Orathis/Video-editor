@@ -404,30 +404,65 @@ def confirmation_sections(confirmation):
         ),
     ]
     paired = confirmation.get("paired")
-    if paired:
+    # One pairing or a grid of them. Round 4 confirms at several list lengths and
+    # on two models, so the paid stage emits a list. Round 3 published a single
+    # object here and its report is a committed artifact, so a lone object is
+    # read as a grid of one rather than the published file being rewritten.
+    pairings = [paired] if isinstance(paired, dict) else list(paired or [])
+    for pairing in pairings:
+        caption = "Paid confirmation, paired brief by brief"
+        if "changed" in pairing:
+            caption += ", {0} against {1}".format(pairing["cell"], pairing["against"])
         sections.append(
             _table(
-                "Paid confirmation, paired brief by brief",
+                caption,
                 ["quantity", "difference", "difference 95% ci", "separated"],
                 [
                     [
                         name.replace("_", " "),
-                        "{0:+.4f}".format(paired[name]["mean"]),
-                        stats.format_interval(paired[name]),
-                        "no" if paired[name]["lo"] <= 0 <= paired[name]["hi"] else "yes",
+                        "{0:+.4f}".format(pairing[name]["mean"]),
+                        stats.format_interval(pairing[name]),
+                        "no" if pairing[name]["lo"] <= 0 <= pairing[name]["hi"] else "yes",
                     ]
                     for name in metrics
                 ],
             )
         )
-        sections.append(
-            _paragraph(
-                "{0} against {1} on the {2} briefs both cells ran, differenced per brief "
-                "so difficulty is held fixed. Exactly one thing differs between these "
-                "cells, the retriever, which is what makes the difference readable at "
-                "all.".format(paired["cell"], paired["against"], paired["n"])
+        note = (
+            "{0} against {1} on the {2} briefs both cells ran, differenced per brief "
+            "so difficulty is held fixed. ".format(
+                pairing["cell"], pairing["against"], pairing["n"]
             )
         )
+        if "changed" not in pairing:
+            # Round 3's pairing predates the grid and records no changed
+            # variable. Its sentence is reproduced verbatim rather than derived,
+            # because report3.html has to keep regenerating byte for byte.
+            note += (
+                "Exactly one thing differs between these cells, the retriever, "
+                "which is what makes the difference readable at all."
+            )
+        else:
+            prose = {name: reads for name, reads in confirm3.VARIABLES}
+            note += (
+                "Exactly one thing differs between these cells, {0}, which is "
+                "what makes the difference readable at all.".format(
+                    ", ".join(prose[name] for name in pairing["changed"])
+                )
+            )
+        sections.append(_paragraph(note))
+        # Its own paragraph, directly under the table it qualifies. Folded into
+        # the sentence above it would read as a footnote on a clean result,
+        # which for a cross-model row is the opposite of what it says.
+        for confound in pairing.get("confounds") or []:
+            sections.append(
+                _paragraph(
+                    "CONFOUND, this comparison is not a clean one variable "
+                    "difference: {0}. It is reported as a difference with a "
+                    "named confound and must not be read as a "
+                    "reproduction.".format(confound)
+                )
+            )
     return sections
 
 

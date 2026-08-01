@@ -339,7 +339,37 @@ CARRIED_OUTPUT_NOTE = {
 }
 
 
-def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
+def _totals(rows):
+    """Sum a set of projected rows. One adder, whether it is one model or two."""
+    return {
+        field: sum(row[field] for row in rows)
+        for field in (
+            "runs",
+            "chars",
+            "estimated_input_tokens",
+            "cached_tokens",
+            "assumed_output_tokens",
+            "input_usd",
+            "cached_usd",
+            "output_usd",
+            "projected_usd",
+        )
+    }
+
+
+def _emit_total(label, total, rows, emit):
+    emit(
+        f"{label:<{CELL_WIDTH}} {total['runs']:>4} {total['chars']:>9} "
+        f"{total['estimated_input_tokens']:>12.2f} "
+        f"{total['cached_tokens']:>8} {total['assumed_output_tokens']:>11} "
+        f"${total['input_usd']:>9.6f} ${total['cached_usd']:>10.6f} "
+        f"${total['output_usd']:>10.6f} "
+        f"${total['projected_usd']:>9.6f}  "
+        f"{sum(row['status'].startswith('SKIPPED') for row in rows)} cell(s) skipped"
+    )
+
+
+def _dry_run_model(entries, briefs, cells, model, emit):
     _prices(model)
     family = provider.model_family(model)
     rows = []
@@ -453,30 +483,63 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
             f"${row['projected_usd']:>9.6f}  {row['status']}"
         )
 
-    total = {
-        "runs": sum(row["runs"] for row in rows),
-        "chars": sum(row["chars"] for row in rows),
-        "estimated_input_tokens": sum(
-            row["estimated_input_tokens"] for row in rows
-        ),
-        "cached_tokens": sum(row["cached_tokens"] for row in rows),
-        "assumed_output_tokens": sum(
-            row["assumed_output_tokens"] for row in rows
-        ),
-        "input_usd": sum(row["input_usd"] for row in rows),
-        "cached_usd": sum(row["cached_usd"] for row in rows),
-        "output_usd": sum(row["output_usd"] for row in rows),
-        "projected_usd": sum(row["projected_usd"] for row in rows),
-    }
-    emit(
-        f"{'TOTAL':<{CELL_WIDTH}} {total['runs']:>4} {total['chars']:>9} "
-        f"{total['estimated_input_tokens']:>12.2f} "
-        f"{total['cached_tokens']:>8} {total['assumed_output_tokens']:>11} "
-        f"${total['input_usd']:>9.6f} ${total['cached_usd']:>10.6f} "
-        f"${total['output_usd']:>10.6f} "
-        f"${total['projected_usd']:>9.6f}  "
-        f"{sum(row['status'].startswith('SKIPPED') for row in rows)} cell(s) skipped"
-    )
+    total = _totals(rows)
+    _emit_total("TOTAL", total, rows, emit)
+    return rows, total
+
+
+def parse_models(spec):
+    """Read a model selection like "gemini-3.6-flash,gpt-5.6-luna".
+
+    Empty spec means the single model EVAL_MODEL names. Each id is resolved to a
+    family here rather than at the first call, so a typo stops the projection
+    instead of being priced against whichever backend the prefix happened to
+    match. Duplicates are refused rather than deduplicated: a grid that names the
+    same model twice was meant to name two, and quietly halving it would price
+    half of what the reader is approving.
+    """
+    if not spec:
+        return (MODEL,)
+    chosen = []
+    for token in spec.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        provider.model_family(token)
+        if token in chosen:
+            raise SystemExit(f"EVAL_MODELS names {token!r} more than once")
+        chosen.append(token)
+    if not chosen:
+        raise SystemExit(f"EVAL_MODELS={spec!r} selected no models")
+    return tuple(chosen)
+
+
+def dry_run(entries, briefs, cells=CELLS, models=(MODEL,), emit=print):
+    """Price the whole grid, which from round 4 on is cells times models.
+
+    Each model gets its own complete block, banner included, rather than a
+    shared header and a merged table. The families are priced differently and
+    carry different caveats, and the reader is approving each of them rather
+    than an average of the two: an openai block carries the temperature confound
+    and a vertex block must not appear to.
+
+    The grand total is only printed when there is more than one model, so a
+    single model projection reads exactly as it did before the grid existed.
+    """
+    rows = []
+    for model in models:
+        model_rows, _ = _dry_run_model(entries, briefs, cells, model, emit)
+        rows.extend(model_rows)
+    total = _totals(rows)
+    if len(models) > 1:
+        emit("")
+        emit(
+            "The whole grid, over {0} models. The per model blocks above are "
+            "what each family costs on its own row; this line is what the round "
+            "is about to buy in total, and it is a sum and not an "
+            "average.".format(len(models))
+        )
+        _emit_total("GRAND TOTAL", total, rows, emit)
     return rows, total
 
 
@@ -530,9 +593,24 @@ def main():
     entries = harness2.load_shelf()
     briefs = harness2.load_briefs()
     cells = parse_cells(os.environ.get("EVAL_CELLS", ""))
+    models = parse_models(os.environ.get("EVAL_MODELS", ""))
     if os.environ.get("EVAL_DRY_RUN") == "1":
-        dry_run(entries, briefs, cells=cells, model=MODEL)
+        dry_run(entries, briefs, cells=cells, models=models)
         return 0
+
+    if len(models) > 1:
+        # The projection covers the grid; the run covers one model. Left to
+        # fall through, this would spend on EVAL_MODEL alone and report the
+        # grid as done, and the missing half would only surface as a model B
+        # column that never appeared. The checkpoint key carries the model, so
+        # the two passes fill one file without colliding.
+        raise SystemExit(
+            "EVAL_MODELS names {0} models and the paid run executes one. Price "
+            "the grid with EVAL_DRY_RUN=1 and EVAL_MODELS, then run once per "
+            "model with EVAL_MODEL: {1}".format(
+                len(models), ", ".join(models)
+            )
+        )
 
     _prices(MODEL)
     provider.validate_model(MODEL)

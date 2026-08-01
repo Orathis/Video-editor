@@ -103,6 +103,34 @@ def model_family(model):
     )
 
 
+# The temperature each family is actually sampled at. Rounds 2 and 3 ran every
+# paid cell at 0, and the openai family rejects 0 outright, so this table is
+# where the round's one named confound lives.
+#
+# One owner, and the backends below read their default from it rather than
+# repeating the number. Four places need this same answer: the two backends that
+# send a temperature, the dry run banner a reader approves spend against, and
+# the confirmation that has to label a cross-model difference as confounded. Four
+# copies is how three of them stay right while the fourth quietly reports a clean
+# reproduction.
+FAMILY_TEMPERATURE = {
+    "vertex": 0,
+    "anthropic": 0,
+    "openai": OPENAI_ONLY_TEMPERATURE,
+}
+
+
+def sampling_temperature(model):
+    """The temperature this model is sampled at, whatever the caller asked for.
+
+    A family missing from the table raises KeyError here rather than defaulting
+    to 0, because a wrong temperature reported as a fact is worse than a crash:
+    it is exactly the claim that two cells differ in one variable when they
+    differ in two.
+    """
+    return FAMILY_TEMPERATURE[model_family(model)]
+
+
 def _api_key(env_name):
     key = os.environ.get(env_name)
     if not key:
@@ -302,7 +330,7 @@ def _chat_anthropic(context, model, config=None):
         {
             "model": model_id(model),
             "max_tokens": config.get("max_tokens", ANTHROPIC_MAX_TOKENS),
-            "temperature": config.get("temperature", 0),
+            "temperature": config.get("temperature", sampling_temperature(model)),
             "messages": [{"role": "user", "content": context}],
         },
     )
@@ -393,7 +421,7 @@ def _chat_openai(context, model, config=None):
 
 
 def _chat_vertex(context, model, config=None):
-    temperature = (config or {}).get("temperature", 0)
+    temperature = (config or {}).get("temperature", sampling_temperature(model))
     resolved = model_id(model)
     project, token = _vertex_auth()
     url = (

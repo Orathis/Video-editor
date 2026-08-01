@@ -275,6 +275,92 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1, len(banner), lines)
         self.assertIn(str(run2.ASSUMED_OUTPUT_TOKENS), banner[0])
 
+    def test_the_dry_run_prices_the_whole_two_model_grid(self):
+        # Round 4's verification gate: the full grid is priced before anything
+        # paid runs. Cells times models, with each model's block priced from its
+        # own row, and a grand total that is the sum rather than a restatement
+        # of the last block.
+        models = (provider.CHAT_MODEL, "gpt-5.6-luna")
+        cells = (("a", None), ("c", 5))
+        lines = []
+        rows, total = run2.dry_run(
+            self.entries,
+            {"01": "a beat", "02": "another beat"},
+            cells=cells,
+            models=models,
+            emit=lines.append,
+        )
+        self.assertEqual(len(cells) * len(models), len(rows))
+        # Every row is a distinct cell: nothing collapsed two models into one.
+        self.assertEqual(len(rows), len({row["cell"] for row in rows}))
+        for model in models:
+            self.assertEqual(
+                len(cells),
+                len([row for row in rows if row["cell"].endswith("/" + model)]),
+            )
+        self.assertAlmostEqual(
+            sum(row["projected_usd"] for row in rows), total["projected_usd"]
+        )
+        # The two families are priced apart, so the grid is not one model's
+        # projection doubled.
+        per_model = {
+            model: sum(
+                row["projected_usd"]
+                for row in rows
+                if row["cell"].endswith("/" + model)
+            )
+            for model in models
+        }
+        self.assertNotAlmostEqual(*per_model.values())
+        grand = [line for line in lines if line.startswith("GRAND TOTAL ")]
+        self.assertEqual(1, len(grand), lines)
+        self.assertIn("{0:.6f}".format(total["projected_usd"]), grand[0])
+
+    def test_a_single_model_projection_prints_no_grand_total(self):
+        # One model is not a grid, and a GRAND TOTAL over one block would read
+        # as though a second had been priced and come to nothing.
+        lines = []
+        run2.dry_run(
+            self.entries,
+            {"01": "a beat"},
+            cells=(("a", None),),
+            emit=lines.append,
+        )
+        self.assertEqual([], [line for line in lines if "GRAND TOTAL" in line])
+
+    def test_a_model_selection_is_read_apart_and_a_typo_stops_it(self):
+        self.assertEqual((run2.MODEL,), run2.parse_models(""))
+        self.assertEqual(
+            ("gemini-3.6-flash", "gpt-5.6-luna"),
+            run2.parse_models(" gemini-3.6-flash , gpt-5.6-luna "),
+        )
+        with self.assertRaisesRegex(SystemExit, "no known family prefix"):
+            run2.parse_models("gemini-3.6-flash,gpt5.6-luna")
+        # Deduplicating would price half of what the reader is approving.
+        with self.assertRaisesRegex(SystemExit, "more than once"):
+            run2.parse_models("gpt-5.6-luna,gpt-5.6-luna")
+
+    def test_a_multi_model_selection_never_falls_through_to_a_paid_single_run(self):
+        # The projection covers the grid and the paid run covers one model. Left
+        # to fall through, this would spend on EVAL_MODEL alone and report the
+        # grid as done.
+        with mock.patch.dict(
+            os.environ,
+            {"EVAL_MODELS": "gemini-3.6-flash,gpt-5.6-luna"},
+            clear=False,
+        ), mock.patch.object(
+            harness2, "load_shelf", return_value=self.entries
+        ), mock.patch.object(
+            harness2, "load_briefs", return_value={"01": "a beat"}
+        ), mock.patch.object(
+            provider, "validate_model", side_effect=AssertionError("must not probe")
+        ), mock.patch.object(
+            provider, "chat", side_effect=AssertionError("must not spend")
+        ):
+            os.environ.pop("EVAL_DRY_RUN", None)
+            with self.assertRaisesRegex(SystemExit, "run once per model"):
+                run2.main()
+
     def test_malformed_output_retries_once_and_records_both_attempts(self):
         responses = [
             (
