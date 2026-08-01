@@ -45,6 +45,24 @@ PRICE_TABLE = {
         "cached": 0.25,
         "output": 2.00,
     },
+    # Second model family, read from anthropic.com/pricing on 2026-08-01.
+    # "cached" is the cache READ rate, 0.1x input; nothing here writes a cache.
+    # These rows exist because the round 4 rule makes the model a cell variable:
+    # pricing a model B cell off the Gemini row would understate or overstate
+    # every projection the spend gate reads, and the gate is the only thing
+    # standing between a runaway loop and an unbounded bill.
+    "claude-haiku-4-5": {
+        "input": 1.00,
+        "cached": 0.10,
+        "output": 5.00,
+    },
+    # List price, not the introductory rate that runs through 2026-08-31. A
+    # projection that quotes the promotion under-reads the gate the day it ends.
+    "claude-sonnet-5": {
+        "input": 3.00,
+        "cached": 0.30,
+        "output": 15.00,
+    },
 }
 
 CACHE_STORAGE_USD_PER_MTOK_HOUR = 1.00
@@ -96,12 +114,26 @@ def usage_cost(usage, model):
 
 
 def _record_key(record):
+    """Identify the cell a checkpoint row belongs to, model included.
+
+    The model is part of the key because round 4 runs the same grid twice. Keyed
+    on brief, condition and k alone, resume would read model A's run as model B
+    already done and the second model would produce nothing, while every report
+    that groups by this key would merge two models' answers into one cell and
+    call the average a reproduction.
+    """
     if (
         isinstance(record.get("brief"), str)
         and isinstance(record.get("condition"), str)
+        and isinstance(record.get("model"), str)
         and "k" in record
     ):
-        return record["brief"], record["condition"], record["k"]
+        return (
+            record["brief"],
+            record["condition"],
+            record["k"],
+            provider.model_id(record["model"]),
+        )
     return None
 
 
@@ -145,8 +177,14 @@ def _append_checkpoint(path, record):
         os.fsync(fh.fileno())
 
 
-def _cell_name(condition, k):
-    return condition.upper() if k is None else f"{condition.upper()}@{k}"
+# Wide enough for the longest arm label followed by the longest model id in the
+# price table. The label carries the model, so the column has to hold it.
+CELL_WIDTH = 28
+
+
+def _cell_name(condition, k, model=None):
+    arm = condition.upper() if k is None else f"{condition.upper()}@{k}"
+    return arm if model is None else f"{arm}/{provider.model_id(model)}"
 
 
 def _record_cost(record, fallback_model):
@@ -185,7 +223,7 @@ def run_grid(
 
     for brief_id in sorted(briefs):
         for condition, k in cells:
-            key = brief_id, condition, k
+            key = brief_id, condition, k, provider.model_id(model)
             if key in completed:
                 continue
             if stop_reason:
@@ -248,7 +286,7 @@ def run_grid(
             new_runs += 1
             total_usd += _record_cost(record, model)
             emit(
-                f"{brief_id} {_cell_name(condition, k)}: "
+                f"{brief_id} {_cell_name(condition, k, model)}: "
                 f"{len(attempts)} attempt(s), total ${total_usd:.6f}"
             )
             if total_usd > max_usd:
@@ -270,6 +308,10 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
     _prices(model)
     rows = []
     emit("DRY RUN: zero network calls and no key required.")
+    # Named because the same grid is projected once per model and the two
+    # projections are not interchangeable: the families are priced differently
+    # and the reader is approving one of them, not an average.
+    emit(f"Model: {model} ({provider.model_family(model)} rates).")
     emit(
         "Estimated input tokens use characters divided by 4.0; "
         "this heuristic is NOT a real tokenizer count."
@@ -282,16 +324,27 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
         "measured; thinking is billed as output and ran 489 to 1104 tokens per "
         "run across the nine cells while the visible answer was 47 to 84."
     )
+    if provider.model_family(model) != "vertex":
+        # Said out loud rather than left to the reader, because the sentence
+        # above reports a measurement taken on the other family. Carrying it
+        # over is the conservative direction, and a projection that quietly
+        # reused another model's observation as its own would not be.
+        emit(
+            "That output measurement was taken on "
+            f"{provider.CHAT_MODEL}. This model is not asked to think, so the "
+            "same figure is carried over as an over-estimate, not as a "
+            "measurement of it."
+        )
     emit("Cached tokens are projected as 0 because no requests are made.")
     emit("")
     emit(
-        f"{'Cell':<6} {'Runs':>4} {'Chars':>9} {'Est uncached':>12} "
+        f"{'Cell':<{CELL_WIDTH}} {'Runs':>4} {'Chars':>9} {'Est uncached':>12} "
         f"{'Cached':>8} {'Assumed out':>11} {'Input USD':>10} "
         f"{'Cached USD':>11} {'Output USD':>11} {'Total USD':>10}  Status"
     )
 
     for condition, k in cells:
-        label = _cell_name(condition, k)
+        label = _cell_name(condition, k, model)
         if condition == "d" and not os.path.exists(harness2.VECTORS):
             row = {
                 "cell": label,
@@ -345,7 +398,7 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
             }
         rows.append(row)
         emit(
-            f"{row['cell']:<6} {row['runs']:>4} {row['chars']:>9} "
+            f"{row['cell']:<{CELL_WIDTH}} {row['runs']:>4} {row['chars']:>9} "
             f"{row['estimated_input_tokens']:>12.2f} "
             f"{row['cached_tokens']:>8} {row['assumed_output_tokens']:>11} "
             f"${row['input_usd']:>9.6f} ${row['cached_usd']:>10.6f} "
@@ -369,7 +422,7 @@ def dry_run(entries, briefs, cells=CELLS, model=MODEL, emit=print):
         "projected_usd": sum(row["projected_usd"] for row in rows),
     }
     emit(
-        f"TOTAL  {total['runs']:>4} {total['chars']:>9} "
+        f"{'TOTAL':<{CELL_WIDTH}} {total['runs']:>4} {total['chars']:>9} "
         f"{total['estimated_input_tokens']:>12.2f} "
         f"{total['cached_tokens']:>8} {total['assumed_output_tokens']:>11} "
         f"${total['input_usd']:>9.6f} ${total['cached_usd']:>10.6f} "

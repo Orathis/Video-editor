@@ -129,8 +129,9 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(1, calls)
         self.assertEqual(2, result["completed"])
         records = run2.load_checkpoint(self.checkpoint)
+        model = provider.model_id(run2.MODEL)
         self.assertEqual(
-            {("01", "b", None), ("02", "b", None)},
+            {("01", "b", None, model), ("02", "b", None, model)},
             {run2._record_key(record) for record in records},
         )
 

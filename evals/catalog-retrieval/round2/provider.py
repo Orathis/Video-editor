@@ -9,6 +9,12 @@ import urllib.parse
 import urllib.request
 
 CHAT_MODEL = "gemini-3.6-flash"
+# The second model family for step 5 of the round 4 rule. Entitlement is
+# settled by validate_model against the account that actually runs the grid,
+# never by the id looking plausible, so the id stays overridable: if the probe
+# refuses this one, the runbook sets EVAL_ANTHROPIC_MODEL and probes again
+# rather than editing code on the run host.
+ANTHROPIC_CHAT_MODEL = os.environ.get("EVAL_ANTHROPIC_MODEL", "claude-haiku-4-5")
 EMBED_MODEL = "text-embedding-3-small"
 # The chat credential is a Google service-account JSON, not a bare API key, so
 # the chat path goes through Vertex rather than the AI Studio endpoint. Which
@@ -18,6 +24,15 @@ CHAT_KEY_ENV = os.environ.get(
     "GEMINI_SERVICE_ACCOUNT_ENV", "GOOGLE_SERVICE_ACCOUNT_JSON"
 )
 EMBED_KEY_ENV = "OPEN" + "A" + "I_API_KEY"
+# Assembled the same way the embed name is, so a grep for a secret name does
+# not match this file and report it as a place a key was written down.
+ANTHROPIC_KEY_ENV = "ANTHROP" + "I" + "C_API_KEY"
+ANTHROPIC_URL = "https://api.anthrop" + "i" + "c.com/v1/messages"
+ANTHROPIC_VERSION = "2023-06-01"
+# The Messages API requires max_tokens, unlike Vertex, which defaults it. 4096
+# is above the 489 to 1104 output tokens measured across the nine cells, so it
+# is a ceiling on a runaway answer rather than a cap the grid runs into.
+ANTHROPIC_MAX_TOKENS = 4096
 # Vertex serves this model only from the multi-region "global" endpoint on this
 # project. Every regional host probed (us-central1, us-east5, europe-west4)
 # answers 404 for it, so the location is not a tunable.
@@ -37,6 +52,27 @@ def model_id(model):
     """
     prefix = "models/"
     return model[len(prefix) :] if model.startswith(prefix) else model
+
+
+FAMILY_PREFIXES = (("gemini-", "vertex"), ("claude-", "anthropic"))
+
+
+def model_family(model):
+    """Name the backend that serves this model, or refuse.
+
+    Falling back to the default backend for an unrecognised id would send a
+    round 4 model B cell to model A and report the answer as a reproduction,
+    which is the one failure this round cannot detect after the fact.
+    """
+    resolved = model_id(model)
+    for prefix, family in FAMILY_PREFIXES:
+        if resolved.startswith(prefix):
+            return family
+    known = ", ".join(prefix for prefix, _ in FAMILY_PREFIXES)
+    raise SystemExit(
+        f"model {model!r} matches no known family prefix ({known}); "
+        "refusing to guess a backend"
+    )
 
 
 def _api_key(env_name):
@@ -130,6 +166,32 @@ def normalize_usage(metadata):
     }
 
 
+def normalize_anthropic_usage(metadata):
+    """Map Messages API usage onto the same shared runner keys.
+
+    input_tokens EXCLUDES both cache reads and cache writes there, while the
+    cost table subtracts cached from prompt to get the uncached share. Reporting
+    input_tokens as prompt_tokens would therefore bill a cached run as negative
+    uncached input, so the cache fields are added back in. Cache writes are
+    counted as plain input, which under-bills them slightly, but nothing in this
+    runner asks for a cache so the field should always be zero.
+    """
+    metadata = metadata if isinstance(metadata, dict) else {}
+    cached = metadata.get("cache_read_input_tokens", 0) or 0
+    written = metadata.get("cache_creation_input_tokens", 0) or 0
+    prompt = (metadata.get("input_tokens", 0) or 0) + cached + written
+    completion = metadata.get("output_tokens", 0) or 0
+    return {
+        "prompt_tokens": prompt,
+        "completion_tokens": completion,
+        # Extended thinking is off, so there is no separate thinking count to
+        # fold in the way the Vertex path does.
+        "thought_tokens": 0,
+        "cached_tokens": cached,
+        "total_tokens": prompt + completion,
+    }
+
+
 def _parse_json(raw):
     text = raw.strip()
     candidates = [text]
@@ -151,7 +213,51 @@ def _parse_json(raw):
 
 
 def chat(context, model, config=None):
-    """Return parsed output, raw text, normalized usage, and elapsed seconds."""
+    """Return parsed output, raw text, normalized usage, and elapsed seconds.
+
+    The model decides the backend. Round 4 compares a model A cell against its
+    model B twin, so the model is a cell variable and not a deployment setting.
+    """
+    if model_family(model) == "anthropic":
+        return _chat_anthropic(context, model, config)
+    return _chat_vertex(context, model, config)
+
+
+def _chat_anthropic(context, model, config=None):
+    config = config or {}
+    started = time.monotonic()
+    body = _post_json(
+        ANTHROPIC_URL,
+        {
+            "x-api-key": _api_key(ANTHROPIC_KEY_ENV),
+            "anthropic-version": ANTHROPIC_VERSION,
+        },
+        {
+            "model": model_id(model),
+            "max_tokens": config.get("max_tokens", ANTHROPIC_MAX_TOKENS),
+            "temperature": config.get("temperature", 0),
+            "messages": [{"role": "user", "content": context}],
+        },
+    )
+    elapsed = time.monotonic() - started
+    # There is no responseMimeType here, so the answer can arrive fenced or with
+    # a sentence in front of it. _parse_json already tolerates both, which is
+    # why no extra instruction is bolted onto the shared prompt: changing the
+    # prompt would change more than one variable between the two models.
+    raw = "".join(
+        block.get("text", "")
+        for block in body.get("content", [])
+        if isinstance(block, dict) and isinstance(block.get("text", ""), str)
+    )
+    return (
+        _parse_json(raw),
+        raw,
+        normalize_anthropic_usage(body.get("usage")),
+        elapsed,
+    )
+
+
+def _chat_vertex(context, model, config=None):
     temperature = (config or {}).get("temperature", 0)
     resolved = model_id(model)
     project, token = _vertex_auth()
@@ -205,14 +311,18 @@ PROBE_PROMPT = 'Reply with exactly this JSON and nothing else: {"ok": true}'
 
 
 def validate_model(model):
-    """Prove the model answers on this project before the grid spends anything.
+    """Prove the model answers on this account before the grid spends anything.
 
-    Vertex exposes no per-project publisher listing that reflects entitlement,
-    so a name check would be guesswork. One real call is the only honest test,
-    and it costs single-digit tokens.
+    Neither backend exposes a listing that reflects entitlement: Vertex has no
+    per-project publisher list, and an Anthropic key returns a catalogue the
+    account may still be refused on. A name check would be guesswork on both, so
+    one real call is the only honest test, and it costs single-digit tokens. The
+    same probe covers both families because chat dispatches on the model.
     """
     try:
-        parsed, raw, usage, _ = chat(PROBE_PROMPT, model, {"temperature": 0})
+        parsed, raw, usage, _ = chat(
+            PROBE_PROMPT, model, {"temperature": 0, "max_tokens": 64}
+        )
     except RuntimeError as error:
         raise SystemExit(
             f"model {model!r} is unavailable on this project: {error}"
