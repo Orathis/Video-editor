@@ -40,10 +40,50 @@ export function useDomEditCompositionRect({
 
   useMountEffect(() => {
     let frame = 0;
+    // Every input below changes on an observable event: the iframe or overlay
+    // resizing, the preview stage's zoom/pan transform (written as `style` on
+    // an ancestor of the iframe, so no ResizeObserver sees it), or the iframe
+    // loading a different composition. Idle, this hook read layout twice and
+    // queried the preview document once on every single frame, forever.
+    //
+    // The rAF loop stays only to notice that `iframeRef.current` has become a
+    // DIFFERENT element — the preview Player remounts on composition switch —
+    // which is the same doc-swap check `offCanvasIndicatorRefresh` makes.
+    let dirty = true;
+    let observed: HTMLIFrameElement | null = null;
+    const markDirty = () => {
+      dirty = true;
+    };
+    const resizeObserver =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(markDirty);
+    const stageObserver =
+      typeof MutationObserver === "undefined" ? null : new MutationObserver(markDirty);
+
+    const observe = (iframe: HTMLIFrameElement | null) => {
+      if (iframe === observed) return;
+      observed?.removeEventListener("load", markDirty);
+      resizeObserver?.disconnect();
+      stageObserver?.disconnect();
+      observed = iframe;
+      markDirty();
+      if (!iframe) return;
+      iframe.addEventListener("load", markDirty);
+      resizeObserver?.observe(iframe);
+      const overlayEl = overlayRef.current;
+      if (overlayEl) resizeObserver?.observe(overlayEl);
+      for (let node = iframe.parentElement; node; node = node.parentElement) {
+        stageObserver?.observe(node, { attributes: true, attributeFilter: ["style", "class"] });
+        if (node === document.body) break;
+      }
+    };
+
     // fallow-ignore-next-line complexity
     const update = () => {
       frame = requestAnimationFrame(update);
       const iframe = iframeRef.current;
+      observe(iframe);
+      if (!dirty) return;
+      dirty = false;
       const overlayEl = overlayRef.current;
       if (!iframe || !overlayEl) return;
       const iRect = iframe.getBoundingClientRect();
@@ -61,7 +101,12 @@ export function useDomEditCompositionRect({
       setCompRect((prev) => (sameRect(prev, next) ? prev : next));
     };
     frame = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      stageObserver?.disconnect();
+      observed?.removeEventListener("load", markDirty);
+    };
   });
 
   return compRect;

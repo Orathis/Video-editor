@@ -48,6 +48,12 @@ export const SnapGuideOverlay = memo(function SnapGuideOverlay({
 
   useMountEffect(() => {
     let frame = 0;
+    // Guides only exist while a drag is snapping. Idle — which is almost
+    // always — this loop still wrote display/left/top/width/height for all ten
+    // slots every frame, invalidating style 60 times a second to draw nothing.
+    // One pass clears the last drawn set; after that the loop writes nothing
+    // until a gesture produces guides again.
+    let hasDrawnGuides = false;
 
     // fallow-ignore-next-line complexity
     const update = () => {
@@ -56,6 +62,9 @@ export const SnapGuideOverlay = memo(function SnapGuideOverlay({
       const state = snapGuidesRef.current;
       const guides = state?.guides ?? [];
       const spacingGuides = state?.spacingGuides ?? [];
+      const hasGuides = guides.length > 0 || spacingGuides.length > 0;
+      if (!hasGuides && !hasDrawnGuides) return;
+      hasDrawnGuides = hasGuides;
       const composition = compositionRectRef.current;
 
       for (let i = 0; i < MAX_GUIDES; i++) {
