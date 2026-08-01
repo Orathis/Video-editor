@@ -28,6 +28,7 @@ ROUND3 = os.path.join(os.path.dirname(HERE), "round3")
 sys.path.insert(0, ROUND3)
 
 import build_report3  # noqa: E402
+import confirm3  # noqa: E402
 import recall  # noqa: E402
 import stats  # noqa: E402
 import sweep  # noqa: E402
@@ -143,11 +144,107 @@ def band_sections(summary):
     return sections
 
 
+def _separates(interval):
+    return interval["lo"] > 0 or interval["hi"] < 0
+
+
+def operating_point(summary, confirmation):
+    """The shipped (arm, k), read off the band and the adjacent-k pairings.
+
+    The rule pre-registered how to pick the arm and it did not pick a k: its
+    outcome here is `k-dependent`, which says in as many words that the open
+    question is what k rather than which arm. So the k is chosen after the
+    numbers existed, by the only mechanical reading that answers "is a longer
+    list still buying anything": the largest bought list length whose step up
+    from the one below it separates on pass rate on at least one model.
+
+    Computed rather than written down so it cannot drift from the confirmation
+    it claims to summarise, and labelled post hoc wherever it is rendered,
+    because a number the rule did not pre-register must not be presented as one
+    the rule decided.
+    """
+    band = summary.get("band")
+    if not confirmation or not band or not band.get("clears"):
+        return None
+    family = band["band"]["family"]
+    steps = {}
+    for pair in confirmation.get("paired", []):
+        if tuple(pair.get("changed") or ()) != ("k",):
+            continue
+        cell = confirm3.parse_cell(pair["cell"])
+        against = confirm3.parse_cell(pair["against"])
+        if harness2.FAMILY_BY_CONDITION.get(cell["arm"]) != family:
+            continue
+        steps.setdefault((against["k"], cell["k"]), []).append(
+            _separates(pair["pass_rate"])
+        )
+    if not steps:
+        return None
+    climbing = sorted(step for step, votes in steps.items() if any(votes))
+    if not climbing:
+        return None
+    return {
+        "family": family,
+        "k": climbing[-1][1],
+        "from_k": climbing[-1][0],
+        "models": len(steps[climbing[-1]]),
+        "stalled": sorted(step for step, votes in steps.items() if not any(votes)),
+    }
+
+
+def operating_point_sections(summary, confirmation):
+    """The one thing a reader opens this page for, before the six tables."""
+    point = operating_point(summary, confirmation)
+    if point is None:
+        return [
+            build_report3._paragraph(
+                "Operating point: none yet. Either the band did not clear, or no "
+                "confirmation has been bought at two list lengths of the leading "
+                "family, so nothing on this page answers what k to ship."
+            )
+        ]
+    stalled = ", ".join(
+        "{0} to {1}".format(lo, hi) for lo, hi in point["stalled"] if lo >= point["k"]
+    )
+    return [
+        build_report3._paragraph(
+            "Operating point: {0} at k={1}. The family is what the band decided, "
+            "over {2} contiguous list lengths against a required {3}. The list "
+            "length is the last one that bought anything: going from k={4} to "
+            "k={1} separated on pass rate on {5} of the models confirmed there, "
+            "and {6}.".format(
+                point["family"],
+                point["k"],
+                summary["band"]["width"],
+                summary["band"]["required"],
+                point["from_k"],
+                point["models"],
+                "every longer step measured here separated on none of them ({0})".format(
+                    stalled
+                )
+                if stalled
+                else "no longer list length was bought, so this is the longest "
+                "measured rather than a measured ceiling",
+            )
+        ),
+        build_report3._paragraph(
+            "The list length above was chosen after the numbers existed. The rule "
+            "fixed how to pick the arm and required confirmation at several list "
+            "lengths; it did not fix how to pick k inside the band, and its own "
+            "outcome on this corpus is k-dependent. Read it as the reading of the "
+            "confirmation that this page can defend, not as something the "
+            "pre-registered rule decided."
+        ),
+    ]
+
+
 def render(summary, confirmation=None):
     return build_report3.render(
         summary,
         confirmation,
-        leading_sections=band_sections(summary),
+        leading_sections=(
+            operating_point_sections(summary, confirmation) + band_sections(summary)
+        ),
         title=TITLE,
     )
 

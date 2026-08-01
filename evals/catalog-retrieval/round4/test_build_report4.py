@@ -218,6 +218,111 @@ class ReportBandProseTests(unittest.TestCase):
         self.assertNotIn("Band stability", page)
 
 
+def step(arm, lo_k, hi_k, model, separates, metric="pass_rate"):
+    """One adjacent-list-length pairing, shaped like confirm3.paired's output."""
+    flat = {"mean": 0.0, "lo": -0.02, "hi": 0.02, "se": 0.01, "clusters": 9, "n": 9}
+    up = {"mean": 0.05, "lo": 0.01, "hi": 0.09, "se": 0.02, "clusters": 9, "n": 9}
+    out = {
+        "cell": "{0}@{1}/{2}".format(arm, hi_k, model),
+        "against": "{0}@{1}/{2}".format(arm, lo_k, model),
+        "changed": ["k"],
+        "n": 9,
+    }
+    for name, _ in build_report4.confirm3.METRICS:
+        out[name] = dict(up if (separates and name == metric) else flat)
+    return out
+
+
+class OperatingPointTests(unittest.TestCase):
+    """The page has to name what ships, and say who decided the list length.
+
+    The band decides the family and the rule stops there: its own outcome on
+    this corpus is k-dependent, so the k comes off the confirmation instead and
+    has to be labelled as chosen after the numbers existed.
+    """
+
+    def summary(self):
+        return summarise(ONE_BAND)
+
+    def confirmation(self, paired):
+        return {"cells": {}, "paired": paired}
+
+    def test_the_shipped_k_is_the_last_step_that_bought_anything(self):
+        point = build_report4.operating_point(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    step("d", 20, 30, "model-a", True),
+                    step("d", 30, 40, "model-a", False),
+                ]
+            ),
+        )
+        self.assertEqual(("semantic", 30, 20), (point["family"], point["k"], point["from_k"]))
+        self.assertEqual([(30, 40)], point["stalled"])
+
+    def test_a_step_that_separates_on_one_model_of_two_still_counts(self):
+        # The claim being made is that a longer list still buys something, and
+        # one model measuring that is enough to make the claim. Requiring both
+        # would silently ship the shorter list whenever the models disagree.
+        point = build_report4.operating_point(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    step("d", 20, 30, "model-a", False),
+                    step("d", 20, 30, "model-b", True),
+                ]
+            ),
+        )
+        self.assertEqual(30, point["k"])
+        self.assertEqual(2, point["models"])
+
+    def test_another_family_cannot_choose_the_list_length(self):
+        # The band already decided the family. A lexical step still climbing at
+        # k=40 says nothing about how long the shipped arm's list should be.
+        point = build_report4.operating_point(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    step("c", 20, 40, "model-a", True),
+                ]
+            ),
+        )
+        self.assertEqual(20, point["k"])
+
+    def test_no_confirmation_ships_no_list_length(self):
+        self.assertIsNone(build_report4.operating_point(self.summary(), None))
+        self.assertIsNone(build_report4.operating_point(self.summary(), {"paired": []}))
+        page = build_report4.render(self.summary())
+        self.assertIn("Operating point: none yet", text_of(page))
+
+    def test_a_band_that_does_not_clear_ships_nothing_whatever_the_pairings_say(self):
+        summary = summarise(NEVER_SEPARATES)
+        self.assertIsNone(
+            build_report4.operating_point(
+                summary, self.confirmation([step("d", 10, 20, "model-a", True)])
+            )
+        )
+
+    def test_the_page_names_the_point_and_says_who_chose_the_list_length(self):
+        page = build_report4.render(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    step("d", 20, 30, "model-a", False),
+                ]
+            ),
+        )
+        text = text_of(page)
+        self.assertIn("Operating point: semantic at k=20", text)
+        self.assertIn("chosen after the numbers existed", text)
+        # And it sits in front of the band table it summarises, not after it.
+        self.assertLess(text.index("Operating point"), text.index("Band stability"))
+
+
 class NoEmDashTests(unittest.TestCase):
     """The count has to be zero, and spelling the character out would fail this file."""
 

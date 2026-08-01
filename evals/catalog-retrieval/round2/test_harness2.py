@@ -3,10 +3,12 @@
 
 import contextlib
 import importlib.util
+import inspect
 import io
 import json
 import math
 import os
+import re
 import tempfile
 import unittest
 import warnings
@@ -262,6 +264,37 @@ class Harness2Tests(unittest.TestCase):
         runner = os.path.realpath(harness2.BRIEFS)
         self.assertEqual(runner, os.path.realpath(gen_briefs.BRIEFS_DIR))
         self.assertEqual(runner, os.path.realpath(validate_gold.BRIEFS_DIR))
+
+
+class FamilyByConditionTests(unittest.TestCase):
+    """The letter to family map has to cover every condition build_context takes.
+
+    Anything reading both the sweep and the paid grid crosses those two
+    vocabularies through this map, and a condition missing from it reads as a
+    family of None, which silently drops that cell from whatever was being
+    decided rather than failing.
+    """
+
+    def conditions_build_context_accepts(self):
+        source = inspect.getsource(harness2.build_context)
+        return set(re.findall(r"condition == \"(\w+)\"", source))
+
+    def test_every_condition_the_dispatch_takes_has_a_family(self):
+        taken = self.conditions_build_context_accepts()
+        self.assertTrue(taken, "no condition branches found, the regex went stale")
+        self.assertEqual(taken, set(harness2.FAMILY_BY_CONDITION))
+
+    def test_the_two_controls_name_no_family(self):
+        # a retrieves nothing and b retrieves everything, so neither is a
+        # retriever whose family could win anything.
+        self.assertIsNone(harness2.FAMILY_BY_CONDITION["a"])
+        self.assertIsNone(harness2.FAMILY_BY_CONDITION["b"])
+
+    def test_the_three_retrievers_name_the_families_the_sweep_uses(self):
+        self.assertEqual(
+            {"c": "lexical", "d": "semantic", "h": "hybrid"},
+            {k: v for k, v in harness2.FAMILY_BY_CONDITION.items() if v},
+        )
 
 
 class Embed2Tests(unittest.TestCase):

@@ -172,6 +172,20 @@ def hybrid_topk(brief_id, brief, entries, k):
     return [name for _, name in fused[:k]]
 
 
+# Which retriever family a condition letter is. The sweep names arms by family
+# and the paid grid names cells by condition, so anything that reads both has to
+# cross the two, and it does it here rather than carrying its own idea of what
+# "h" means. Kept beside build_context, whose branches it must cover: the a and b
+# controls retrieve nothing and everything, so they name no family.
+FAMILY_BY_CONDITION = {
+    "a": None,
+    "b": None,
+    "c": "lexical",
+    "d": "semantic",
+    "h": "hybrid",
+}
+
+
 def build_context(condition, brief_id, brief, entries, k):
     """Return a context and the entry names shown in its one catalog slot."""
     if condition == "a":
