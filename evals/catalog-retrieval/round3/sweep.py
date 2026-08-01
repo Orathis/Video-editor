@@ -19,7 +19,8 @@ import sys
 import recall
 import stats
 
-import harness2  # noqa: E402  recall puts the round two directory on the path
+import gate2  # noqa: E402  recall puts the round two directory on the path
+import harness2  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RULE_FILE = os.path.join(HERE, "DECISION-RULE.md")
@@ -118,29 +119,30 @@ def decision_arms(weights=RRF_WEIGHTS):
 
 
 def arm_flags(fn, briefs, gold, entries, k):
-    """Per brief, was a gold best move on this arm's shown list.
+    """Per brief, was an acceptable move on this arm's shown list.
 
     Same rule as recall.shown_flags, which is asserted in the tests: briefs with
-    no gold are skipped rather than scored as misses. The only difference is that
-    the ranking arrives as a callable, so a parameterised arm can be swept.
+    no gold are skipped rather than scored as misses, and a hit is any move from
+    the acceptable set. The only difference is that the ranking arrives as a
+    callable, so a parameterised arm can be swept.
     """
     flags = {}
     for brief_id, text in briefs.items():
         if brief_id not in gold:
             continue
-        best = gold[brief_id]["best"]
+        best = gate2.acceptable(gold[brief_id], brief_id)
         flags[brief_id] = bool(set(best) & set(fn(brief_id, text, entries, k)))
     return flags
 
 
 def cluster_keys(gold):
-    """Brief id to cluster key, the target move the brief was written for.
+    """Brief id to cluster key, the sorted acceptable set of the gold record.
 
-    Falling back to the brief id when gold names no best move keeps that brief in
-    its own cluster instead of silently merging every such brief into one.
+    Read from gate2 so the sweep, the report builder and the paid confirmation
+    cannot drift into three different ideas of what a cluster is.
     """
     return {
-        brief_id: (entry["best"][0] if entry["best"] else brief_id)
+        brief_id: gate2.cluster_key(entry, brief_id)
         for brief_id, entry in gold.items()
     }
 

@@ -222,11 +222,40 @@ class ClusteringTests(unittest.TestCase):
         _, _, gold = corpus(moves=4, per_move=3)
         keys = sweep.cluster_keys(gold)
         self.assertEqual(4, len(set(keys.values())))
-        self.assertEqual("move-0", keys["0-2"])
+        # A single-target record clusters on that one move, which is round 3's
+        # key wearing a tuple. Every round 3 cluster survives unchanged.
+        self.assertEqual(("move-0",), keys["0-2"])
 
     def test_a_brief_whose_gold_names_no_move_gets_its_own_cluster(self):
         keys = sweep.cluster_keys({"lonely": {"best": []}, "0-0": {"best": ["move-0"]}})
-        self.assertEqual("lonely", keys["lonely"])
+        self.assertEqual(("lonely",), keys["lonely"])
+
+    def test_two_briefs_over_the_same_near_twin_pair_share_one_cluster(self):
+        # The whole reason the key is the set. These two briefs are answered by
+        # the same pair of moves, so they are correlated in exactly the way
+        # clustering exists to absorb, and counting them as two independent
+        # observations would narrow every interval that reads them.
+        keys = sweep.cluster_keys(
+            {
+                "001": {"best": ["move-a", "move-b"]},
+                "002": {"best": ["move-b", "move-a"]},
+                "003": {"best": ["move-a"]},
+            }
+        )
+        self.assertEqual(keys["001"], keys["002"])
+        self.assertEqual(("move-a", "move-b"), keys["001"])
+        # A brief answered by only one of the pair is a different thing to be
+        # right about, so it does not join them.
+        self.assertNotEqual(keys["001"], keys["003"])
+
+    def test_a_move_that_is_both_acceptable_and_known_wrong_stops_the_sweep(self):
+        # An arm that raises SystemExit is reported as having no index, so a
+        # schema error raised that way would be swallowed and printed as a
+        # missing arm. It has to be loud.
+        entries, briefs, gold = corpus(moves=2, per_move=1)
+        gold["0-0"] = {"best": ["move-0"], "bad": ["move-0"]}
+        with self.assertRaisesRegex(ValueError, "both acceptable and known-wrong"):
+            sweep.sweep(briefs, gold, entries, {"lexical": arm(ALWAYS, "lexical")}, (10,))
 
 
 class AvailabilityTests(unittest.TestCase):
@@ -551,6 +580,54 @@ class ConvergenceTests(unittest.TestCase):
 
     def test_one_arm_alone_cannot_converge_with_anything(self):
         self.assertFalse(sweep.converged({"lexical": {"curve": {80: 0.7}}}, (80,)))
+
+
+class Round3ReproductionTests(unittest.TestCase):
+    """Round 3's published numbers, regenerated from round 3's committed corpus.
+
+    This is what "a single-element set behaves exactly as round 3's scalar" has
+    to mean to be worth anything: not that the code looks equivalent, but that
+    the corpus that produced VERDICT.md still produces the same figures through
+    the multi-target reader. The lexical arm is the one that needs no embedding
+    index, so it reproduces on any checkout; the vector file is 24MB and
+    deliberately not committed.
+    """
+
+    CORPUS = os.path.join(sweep.HERE, "corpus")
+
+    @classmethod
+    def setUpClass(cls):
+        cls.briefs = recall.load_briefs(os.path.join(cls.CORPUS, "briefs"))
+        cls.gold = recall.load_gold(os.path.join(cls.CORPUS, "gold"))
+        cls.entries = harness2.load_shelf()
+
+    def test_the_corpus_is_the_one_the_verdict_was_written_from(self):
+        self.assertEqual(273, len(self.briefs))
+        self.assertEqual(273, len(self.gold))
+        self.assertEqual(424, len(self.entries))
+
+    def test_the_published_lexical_recall_row_regenerates_unchanged(self):
+        # VERDICT.md, the k=10 ranking: lexical 0.2051, 0.1569 to 0.2533, over
+        # 273 briefs and 273 target moves.
+        clusters = sweep.cluster_keys(self.gold)
+        self.assertEqual(273, len(set(clusters.values())))
+        flags = recall.shown_flags("lexical", self.briefs, self.gold, self.entries, 10)
+        ids = sorted(flags)
+        interval = stats.clustered_mean(
+            [flags[i] for i in ids], [clusters[i] for i in ids]
+        )
+        self.assertEqual(0.2051, interval["mean"])
+        self.assertEqual(0.1569, interval["lo"])
+        self.assertEqual(0.2533, interval["hi"])
+        self.assertEqual(273, interval["clusters"])
+        self.assertEqual(273.0, interval["n_eff"])
+
+    def test_the_published_lexical_knee_row_regenerates_unchanged(self):
+        # VERDICT.md, the knee table: lexical knees at k=110 with recall 0.8571.
+        curve = recall.sweep(
+            self.briefs, self.gold, self.entries, ("lexical",), (110,)
+        )["lexical"]
+        self.assertEqual(0.8571, curve[110])
 
 
 class NoNetworkTests(unittest.TestCase):

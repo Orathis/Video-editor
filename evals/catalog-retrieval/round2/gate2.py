@@ -52,6 +52,57 @@ def load_gold(gold_dir=GOLD_DIR):
     }
 
 
+def acceptable(entry, brief_id="gold"):
+    """Every shelf move that genuinely answers this beat.
+
+    Gold is a set from round 4 on. A single-element set is exactly round 3's
+    scalar and scores identically, which is what lets round 3's committed corpus
+    keep reproducing its published numbers under the new reader.
+
+    One definition, because six loops read this field: the two recall loops, the
+    sweep, the report builder, the committee and the scorer. When they each did
+    their own reading, a record could be acceptable to one of them and not to
+    the next, and nothing in the eval would have said so.
+
+    A move listed as both acceptable and known-wrong is refused here rather than
+    scored twice, once as the answer and once as the trap. Which of the two
+    readings won would otherwise depend on which loop reached the record first,
+    and the known-wrong-pick rate is one of the two numbers the paid stage
+    exists to measure.
+
+    ValueError, not SystemExit: the sweep treats SystemExit from an arm as "this
+    arm has no index and cannot run", so a schema error raised that way would be
+    swallowed and reported as a missing arm.
+    """
+    best = entry.get("best") if isinstance(entry, dict) else None
+    if not isinstance(best, list) or not best:
+        raise ValueError(f"gold {brief_id} must contain a non-empty best list")
+    if any(not isinstance(move, str) or not move for move in best):
+        raise ValueError(f"gold {brief_id} contains an invalid best move")
+    both = sorted(set(best) & set(entry.get("bad") or []))
+    if both:
+        raise ValueError(
+            f"gold {brief_id} lists {', '.join(both)} as both acceptable and "
+            "known-wrong; one record cannot score a move both ways"
+        )
+    return best
+
+
+def cluster_key(entry, fallback):
+    """The clustering key for one gold record: its sorted acceptable set.
+
+    Round 3 clustered on `best[0]`, which a set leaves undefined. Two briefs
+    whose right answers are the same near-twin pair are correlated in exactly
+    the way clustering exists to absorb, so they share one key. A single-element
+    set hands back that one move, so every round 3 cluster is unchanged.
+
+    A record naming no move clusters with itself rather than merging every such
+    record into one.
+    """
+    best = entry.get("best") if isinstance(entry, dict) else None
+    return tuple(sorted(best)) if best else (fallback,)
+
+
 def _cos(a, b):
     dot = sum(x * y for x, y in zip(a, b))
     return dot / ((sum(x * x for x in a) ** 0.5) * (sum(x * x for x in b) ** 0.5))
@@ -135,7 +186,7 @@ def resolve(pick, shelf, vectors=None, pick_vector=None):
 def score(brief_id, picks, gold, shelf, vectors=None, pick_vectors=None):
     """picks: list of move names (or free-text descriptions for condition A)."""
     g = gold[brief_id]
-    best, bad = set(g["best"]), set(g["bad"])
+    best, bad = set(acceptable(g, brief_id)), set(g["bad"])
 
     resolved, notes = [], []
     for i, p in enumerate(picks):

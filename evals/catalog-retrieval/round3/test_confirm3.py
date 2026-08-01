@@ -90,6 +90,67 @@ class ConfirmTests(unittest.TestCase):
         self.assertEqual(1, cells["h@10"]["n"])
 
 
+class MultiTargetTests(unittest.TestCase):
+    """A beat with two right answers is scored, not excluded."""
+
+    # Three briefs over two near twins, plus one over a single move. 001 and 002
+    # are answered by either twin, so they are one cluster.
+    SHELF = {name: {"name": name, "blurb": name} for name in ("fade", "dissolve", "cut")}
+    GOLD = {
+        "001": {"best": ["fade", "dissolve"], "bad": ["cut"]},
+        "002": {"best": ["dissolve", "fade"], "bad": ["cut"]},
+        "003": {"best": ["cut"], "bad": ["fade"]},
+    }
+
+    def cells(self, records):
+        return confirm3.confirm(records, self.GOLD, self.SHELF)
+
+    def test_naming_either_acceptable_move_is_not_a_known_wrong_pick(self):
+        # The metric this whole stage exists to measure. Under round 3's gold
+        # the twin was simply absent from the corpus; under a set it is present
+        # and must never be read as the trap.
+        records = [
+            record("001", "h", ["fade"]),
+            record("002", "h", ["dissolve"]),
+            record("003", "h", ["cut"]),
+        ]
+        cells = self.cells(records)
+        self.assertEqual(0.0, cells["h@10"]["known_wrong_pick"]["mean"])
+        self.assertEqual(0.0, cells["h@10"]["refusal"]["mean"])
+
+    def test_fit_is_read_against_the_whole_set_not_against_one_of_them(self):
+        # Both briefs name one acceptable move each, and they name different
+        # ones. A scorer reading only the first listed move would score 002 at
+        # zero fit, so the two rows separating here is the evidence the set is
+        # what is being compared against.
+        rows = confirm3.build_report2.score_all(
+            [record("001", "h", ["fade"]), record("002", "h", ["fade"])],
+            self.GOLD,
+            self.SHELF,
+        )
+        self.assertEqual([0.6667, 0.6667], [row["fit"] for row in rows])
+        self.assertTrue(all(row["passed"] for row in rows))
+
+    def test_the_known_wrong_move_still_costs_the_run(self):
+        # The other half of the same claim: widening gold to a set must not
+        # quietly widen it to everything.
+        cells = self.cells([record("001", "h", ["cut"])])
+        self.assertEqual(1.0, cells["h@10"]["known_wrong_pick"]["mean"])
+        self.assertEqual(0.0, cells["h@10"]["fit"]["mean"])
+
+    def test_briefs_over_the_same_pair_count_as_one_cluster(self):
+        records = [record(b, "h", self.GOLD[b]["best"][:1]) for b in self.GOLD]
+        summary = self.cells(records)["h@10"]
+        self.assertEqual(3, summary["n"])
+        # Two clusters, not three: 001 and 002 are answered by the same pair.
+        self.assertEqual(2, summary["clusters"])
+
+    def test_a_record_that_scores_a_move_both_ways_is_refused(self):
+        gold = {"001": {"best": ["fade", "cut"], "bad": ["cut"]}}
+        with self.assertRaisesRegex(ValueError, "both acceptable and known-wrong"):
+            confirm3.confirm([record("001", "h", ["fade"])], gold, self.SHELF)
+
+
 class PairedTests(unittest.TestCase):
     """The two cells are compared brief by brief, never as two column means."""
 

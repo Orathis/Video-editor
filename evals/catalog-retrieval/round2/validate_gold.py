@@ -9,6 +9,7 @@ import math
 import os
 import re
 
+import gate2
 import harness2
 import provider
 import run2
@@ -98,12 +99,51 @@ def _committee_pass(brief, shelf):
 
 
 def _gold_candidates(brief_id, item):
-    best = item.get("best") if isinstance(item, dict) else None
-    if not isinstance(best, list) or not best:
-        raise SystemExit(f"gold {brief_id} must contain a non-empty best list")
-    if any(not isinstance(move, str) or not move for move in best):
-        raise SystemExit(f"gold {brief_id} contains an invalid best move")
-    return best
+    """The acceptable set of one gold record, read through the shared schema.
+
+    gate2 owns what a gold record means, so the committee cannot accept a record
+    the scorer would refuse, or the reverse. It raises ValueError because the
+    sweep reads SystemExit from an arm as a missing index; here a schema error is
+    fatal, so it is re-raised as one.
+    """
+    try:
+        return gate2.acceptable(item, brief_id)
+    except ValueError as error:
+        raise SystemExit(str(error)) from None
+
+
+def _acceptable_gold(constructed, entry, committee_majority, hand_decision):
+    """The set this brief will be scored against, or None if no set exists.
+
+    Round 3 threw away every brief the committee could not reconstruct, which
+    removed exactly the near twins, exactly the briefs where retrieval is
+    hardest. The committee is the honest signal that a beat has more than one
+    right answer: an independent reader holding the whole shelf landed on a
+    different move and could defend it. So that move joins the acceptable set
+    instead of ending the brief.
+
+    Two cases produce no set at all, and both are counted and reported rather
+    than dropped in silence:
+
+      unplaceable  no two readers agreed, so nothing was reconstructed and there
+                   is no second answer to merge.
+      contested    the majority is a move the constructor marked known-wrong for
+                   this beat. Merging it would build a record that lists one move
+                   both ways, which gate2.acceptable refuses, and picking a side
+                   here would be this function overruling a hand-written gold
+                   record on the strength of two readers. It goes to a human.
+    """
+    if hand_decision is not None:
+        return [hand_decision]
+    if committee_majority is None:
+        return None
+    if committee_majority in constructed:
+        return list(constructed)
+    if committee_majority in set(entry.get("bad") or []):
+        return None
+    # Appended, not sorted: the constructed target stays first, which is what
+    # the per-stratum rows are read from.
+    return list(constructed) + [committee_majority]
 
 
 def _stratum(best, shelf):
@@ -420,12 +460,31 @@ def evaluate_corpus(
             effective_gold = list(constructed_gold)
             final_move = committee_majority
             correct = committee_majority in constructed_gold
+        acceptable_gold = _acceptable_gold(
+            constructed_gold,
+            gold_by_id[brief_id],
+            committee_majority,
+            hand_decision,
+        )
 
         record = {
             "brief_id": brief_id,
             "brief_digest": _brief_digest(briefs[brief_id]),
             "constructed_gold": list(constructed_gold),
             "effective_gold": effective_gold,
+            # What the round will actually score this brief against: the set,
+            # not the single survivor. None means no set could be formed.
+            "acceptable_gold": acceptable_gold,
+            "near_twin_merge": bool(
+                acceptable_gold is not None
+                and len(acceptable_gold) > len(constructed_gold)
+            ),
+            "unplaceable": committee_majority is None and hand_decision is None,
+            "contested": bool(
+                acceptable_gold is None
+                and committee_majority is not None
+                and hand_decision is None
+            ),
             "passes": passes,
             "committee_candidates": sorted(counts),
             "committee_majority": committee_majority,
@@ -445,11 +504,22 @@ def evaluate_corpus(
             break
 
     correct_count = sum(record["correct"] for record in records)
+    # The rate on the corpus that is actually scored, over every brief the
+    # committee read. Round 3 reported agreement after the disagreements had
+    # already been removed, which is 100 percent by construction and says
+    # nothing. This denominator is the whole read corpus, so a brief that no set
+    # can be built for lowers the number instead of leaving it.
+    scored_count = sum(record["acceptable_gold"] is not None for record in records)
     return {
         "records": records,
         "total": len(records),
         "correct_count": correct_count,
         "accuracy": correct_count / len(records) if records else None,
+        "scored_count": scored_count,
+        "scored_agreement": scored_count / len(records) if records else None,
+        "merged_count": sum(record["near_twin_merge"] for record in records),
+        "contested_count": sum(record["contested"] for record in records),
+        "unplaceable_count": sum(record["unplaceable"] for record in records),
         "unanimous_count": sum(
             record["unanimous_agreement"] for record in records
         ),
@@ -545,6 +615,14 @@ def _reasoning_lines(record):
     ]
 
 
+def _ratio(result, rate_key, count_key):
+    """One reported rate, or an honest blank when the run did not produce it."""
+    rate = result.get(rate_key)
+    if rate is None:
+        return "not measured"
+    return f"{rate:.2%} ({result.get(count_key, 0)}/{result['total']})"
+
+
 def render_audit(result, fixture_data=False):
     disagreement_sample, control_sample = sample_for_hand_decision(result)
     accuracy = result["accuracy"]
@@ -573,6 +651,15 @@ def render_audit(result, fixture_data=False):
             f"- Status: {status}",
             f"- Unanimous agreement count: {result['unanimous_count']}",
             f"- Disagreement count: {result['disagreement_count']}",
+            "",
+            "### Scored corpus",
+            "",
+            f"- Scored corpus agreement: {_ratio(result, 'scored_agreement', 'scored_count')}",
+            f"- Near twin merges: {result.get('merged_count', 0)}",
+            f"- Contested, majority is a known-wrong move: {result.get('contested_count', 0)}",
+            f"- Unplaceable, no committee majority: {result.get('unplaceable_count', 0)}",
+            "",
+            "Corpus accuracy above is the strict rate: how often the committee reconstructed the one move the brief was constructed from. Scored corpus agreement is the rate over the corpus this round will actually score, where a brief whose beat has two right answers carries both of them as gold rather than being removed. Both denominators are every brief the committee read, so a brief that no acceptable set can be built for lowers the second number instead of vanishing from it. Reporting a rate over the briefs that survived pruning is 100 percent by construction and measures nothing.",
             "",
             "The 95 percent floor limits uncertain labels to at most 15 of a 300-brief corpus. A 90 percent floor could admit 30 wrong briefs and contaminate 270 main-grid cells, so it is too permissive before a large paid run. Falling below the floor blocks the grid with no continue-with-caveat path.",
             "",
