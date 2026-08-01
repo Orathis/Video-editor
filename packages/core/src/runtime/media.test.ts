@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+  hasMediaSyncStateForTest,
   readElementPlaybackRate,
   refreshRuntimeMediaCache,
   resolveRuntimeMediaClipDuration,
@@ -1044,5 +1045,175 @@ describe("syncRuntimeMedia", () => {
       userMuted: false,
     });
     expect(clip.el.muted).toBe(true);
+  });
+});
+
+/**
+ * The active-window contract, pinned before the loop was windowed.
+ *
+ * `syncRuntimeMedia` used to visit every clip on every tick, so pausing a clip
+ * the playhead had just left fell out of the same pass that activated the one
+ * it had just entered. Windowing splits those two into a transition set, and
+ * these tests are what say the departure half still happens: a clip that leaves
+ * its window must be paused on the very next tick, or its audio runs on past
+ * its clip edge for the rest of an exported video.
+ */
+describe("syncRuntimeMedia active window", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  /** A clip whose element tracks paused state the way a real one does. */
+  function createWindowClip(overrides: Partial<RuntimeMediaClip> = {}): RuntimeMediaClip {
+    const el = document.createElement("audio");
+    document.body.appendChild(el);
+    let paused = true;
+    Object.defineProperty(el, "paused", { get: () => paused, configurable: true });
+    Object.defineProperty(el, "currentTime", { value: 0, writable: true, configurable: true });
+    Object.defineProperty(el, "playbackRate", { value: 1, writable: true, configurable: true });
+    Object.defineProperty(el, "duration", { value: 30, writable: true, configurable: true });
+    el.play = vi.fn(() => {
+      paused = false;
+      return Promise.resolve();
+    });
+    el.pause = vi.fn(() => {
+      paused = true;
+    });
+    return {
+      el,
+      start: 0,
+      mediaStart: 0,
+      duration: 5,
+      end: 5,
+      volume: null,
+      playbackRate: 1,
+      loop: false,
+      sourceDuration: null,
+      ...overrides,
+    };
+  }
+
+  function elementState(el: HTMLMediaElement) {
+    return {
+      paused: el.paused,
+      currentTime: el.currentTime,
+      volume: el.volume,
+      playbackRate: el.playbackRate,
+      preload: el.preload,
+    };
+  }
+
+  it("pauses a clip the playhead just left and evicts its sync state", () => {
+    const clip = createWindowClip({ start: 0, end: 5 });
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 2, playing: true, playbackRate: 1 });
+    expect(clip.el.paused).toBe(false);
+    expect(hasMediaSyncStateForTest(clip.el)).toBe(true);
+
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 6, playing: true, playbackRate: 1 });
+    expect(clip.el.pause).toHaveBeenCalledTimes(1);
+    expect(clip.el.paused).toBe(true);
+    expect(hasMediaSyncStateForTest(clip.el)).toBe(false);
+  });
+
+  it("pauses the departed clip on the next playing frame across a clip boundary", () => {
+    const outgoing = createWindowClip({ start: 0, end: 5 });
+    const incoming = createWindowClip({ start: 5, end: 10 });
+    const clips = [outgoing, incoming];
+
+    syncRuntimeMedia({ clips, timeSeconds: 4.98, playing: true, playbackRate: 1 });
+    expect(outgoing.el.paused).toBe(false);
+    expect(incoming.el.paused).toBe(true);
+
+    // One frame later the playhead has crossed `outgoing.end`. Nothing else in
+    // the runtime pauses it — hardSyncAllMedia only assigns currentTime — so if
+    // this tick misses it, it keeps playing to the end of the composition.
+    syncRuntimeMedia({ clips, timeSeconds: 5.02, playing: true, playbackRate: 1 });
+    expect(outgoing.el.paused).toBe(true);
+    expect(outgoing.el.pause).toHaveBeenCalledTimes(1);
+    expect(incoming.el.paused).toBe(false);
+  });
+
+  it("leaves the same element state whether a boundary is crossed forwards or backwards", () => {
+    const forwardA = createWindowClip({ start: 0, end: 5 });
+    const forwardB = createWindowClip({ start: 5, end: 10 });
+    syncRuntimeMedia({
+      clips: [forwardA, forwardB],
+      timeSeconds: 1,
+      playing: false,
+      playbackRate: 1,
+    });
+    syncRuntimeMedia({
+      clips: [forwardA, forwardB],
+      timeSeconds: 6,
+      playing: false,
+      playbackRate: 1,
+    });
+
+    const backwardA = createWindowClip({ start: 0, end: 5 });
+    const backwardB = createWindowClip({ start: 5, end: 10 });
+    syncRuntimeMedia({
+      clips: [backwardA, backwardB],
+      timeSeconds: 9,
+      playing: false,
+      playbackRate: 1,
+    });
+    syncRuntimeMedia({
+      clips: [backwardA, backwardB],
+      timeSeconds: 6,
+      playing: false,
+      playbackRate: 1,
+    });
+
+    // The clip the playhead is inside lands in the same state either way; the
+    // one it is outside is paused either way. (`currentTime` on the outside
+    // clip is history — nothing rewinds an element the playhead already left.)
+    expect(elementState(backwardB.el)).toEqual(elementState(forwardB.el));
+    expect(backwardA.el.paused).toBe(true);
+    expect(forwardA.el.paused).toBe(true);
+  });
+
+  it("treats the window as half-open at both edges", () => {
+    const clip = createWindowClip({ start: 4, end: 8 });
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 3.999, playing: true, playbackRate: 1 });
+    expect(clip.el.paused).toBe(true);
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 4, playing: true, playbackRate: 1 });
+    expect(clip.el.paused).toBe(false);
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 7.999, playing: true, playbackRate: 1 });
+    expect(clip.el.paused).toBe(false);
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 8, playing: true, playbackRate: 1 });
+    expect(clip.el.paused).toBe(true);
+  });
+
+  it("keeps volume, rate and relative time identical for an in-window clip", () => {
+    const clip = createWindowClip({
+      start: 2,
+      end: 12,
+      mediaStart: 1.5,
+      volume: 0.5,
+      playbackRate: 2,
+    });
+    syncRuntimeMedia({
+      clips: [clip],
+      timeSeconds: 5,
+      playing: false,
+      playbackRate: 1.5,
+      userVolume: 0.8,
+    });
+    // relTime = (5 - 2) * 2 + 1.5
+    expect(clip.el.currentTime).toBe(7.5);
+    expect(clip.el.playbackRate).toBe(3);
+    // First active tick trusts the element's own volume (GSAP has already been
+    // seeked); data-volume only becomes the baseline from the second tick on.
+    expect(clip.el.volume).toBeCloseTo(0.8, 10);
+    expect(clip.el.preload).toBe("auto");
+
+    syncRuntimeMedia({
+      clips: [clip],
+      timeSeconds: 5.5,
+      playing: false,
+      playbackRate: 1.5,
+      userVolume: 0.8,
+    });
+    expect(clip.el.volume).toBeCloseTo(0.4, 10);
   });
 });
