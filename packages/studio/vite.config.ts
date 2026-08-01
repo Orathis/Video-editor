@@ -199,6 +199,34 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/node_modules/@codemirror/") || id.includes("/node_modules/@lezer/")) {
+            return "source-editor";
+          }
+          if (
+            id.includes("/node_modules/crelt/") ||
+            id.includes("/node_modules/style-mod/") ||
+            id.includes("/node_modules/w3c-keyname/")
+          ) {
+            return "source-editor";
+          }
+          if (id.includes("/node_modules/marked/") || id.includes("/node_modules/dompurify/")) {
+            return "markdown";
+          }
+          if (id.includes("/node_modules/mediabunny/")) return "media-probe";
+          if (
+            id.includes("/node_modules/react/") ||
+            id.includes("/node_modules/react-dom/") ||
+            id.includes("/node_modules/scheduler/")
+          ) {
+            return "react-vendor";
+          }
+          if (id.includes("/node_modules/")) return "vendor";
+        },
+      },
+    },
   },
   optimizeDeps: {
     include: ["bpm-detective"],
