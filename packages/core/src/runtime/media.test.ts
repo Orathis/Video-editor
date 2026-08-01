@@ -1216,4 +1216,89 @@ describe("syncRuntimeMedia active window", () => {
     });
     expect(clip.el.volume).toBeCloseTo(0.4, 10);
   });
+
+  it("pauses an already-playing element the first time it is seen out of window", () => {
+    // An authored `autoplay` element starts on its own. Before windowing every
+    // tick visited it; now only its first sighting can catch it.
+    const clip = createWindowClip({ start: 10, end: 15 });
+    void clip.el.play();
+    expect(clip.el.paused).toBe(false);
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 0, playing: false, playbackRate: 1 });
+    expect(clip.el.paused).toBe(true);
+  });
+
+  it("touches only the in-window and just-departed elements of a 100-clip composition", () => {
+    const touches = new Map<number, number>();
+    const clips = Array.from({ length: 100 }, (_, index) => {
+      const clip = createWindowClip({ start: index, end: index + 3 });
+      touches.set(index, 0);
+      const bump = () => touches.set(index, (touches.get(index) ?? 0) + 1);
+      const el = new Proxy(clip.el, {
+        get(target, prop) {
+          bump();
+          const value = Reflect.get(target, prop, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+        set(target, prop, value) {
+          bump();
+          return Reflect.set(target, prop, value, target);
+        },
+      });
+      return { ...clip, el };
+    });
+    const touched = () =>
+      [...touches.entries()].filter(([, count]) => count > 0).map(([index]) => index);
+    const reset = () => {
+      for (const index of touches.keys()) touches.set(index, 0);
+    };
+
+    // The first tick legitimately sights every element once (autoplay guard).
+    syncRuntimeMedia({ clips, timeSeconds: 50.5, playing: false, playbackRate: 1 });
+    reset();
+    syncRuntimeMedia({ clips, timeSeconds: 50.5, playing: false, playbackRate: 1 });
+    expect(touched()).toEqual([48, 49, 50]);
+
+    reset();
+    syncRuntimeMedia({ clips, timeSeconds: 51.5, playing: false, playbackRate: 1 });
+    // 49-51 are in window; 48 is the departure that has to be paused.
+    expect(touched()).toEqual([48, 49, 50, 51]);
+  });
+});
+
+describe("runtime media registry", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("issues no full-document media query when nothing has been added or removed", () => {
+    createVideo({ "data-start": "0", "data-duration": "5" });
+    refreshRuntimeMediaCache();
+    const querySelectorAll = vi.spyOn(document, "querySelectorAll");
+    refreshRuntimeMediaCache();
+    refreshRuntimeMediaCache();
+    expect(querySelectorAll).not.toHaveBeenCalled();
+    querySelectorAll.mockRestore();
+  });
+
+  it("sees an element added by a composition mutation on the next call", () => {
+    createVideo({ "data-start": "0", "data-duration": "5" });
+    expect(refreshRuntimeMediaCache().mediaClips).toHaveLength(1);
+    createAudio({ "data-start": "1", "data-duration": "2" });
+    expect(refreshRuntimeMediaCache().mediaClips).toHaveLength(2);
+  });
+
+  it("sees media inside a subtree injected in the same task", () => {
+    refreshRuntimeMediaCache();
+    const host = document.createElement("div");
+    host.innerHTML = '<audio data-start="0" data-duration="2"></audio>';
+    document.body.appendChild(host);
+    expect(refreshRuntimeMediaCache().timedMediaEls).toHaveLength(1);
+  });
+
+  it("does not leave a removed element in the registry", () => {
+    const el = createVideo({ "data-start": "0", "data-duration": "5" });
+    expect(refreshRuntimeMediaCache().timedMediaEls).toHaveLength(1);
+    el.remove();
+    expect(refreshRuntimeMediaCache().timedMediaEls).toHaveLength(0);
+  });
 });
