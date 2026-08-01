@@ -20,6 +20,7 @@ import { init, type TransitionConfig } from "./hyper-shader.js";
 let drawArraysCalls = 0;
 let createProgramCalls = 0;
 let loseContextCalls = 0;
+let webglContextCount = 0;
 
 function createMockWebGl(): WebGLRenderingContext {
   return {
@@ -192,15 +193,19 @@ describe("HyperShader WebGL context loss", () => {
     drawArraysCalls = 0;
     createProgramCalls = 0;
     loseContextCalls = 0;
+    webglContextCount = 0;
     setupDom();
     // No IndexedDB: the snapshot cache degrades to in-memory blobs, which is
     // all this test needs.
     vi.stubGlobal("indexedDB", undefined);
     vi.stubGlobal("createImageBitmap", () => Promise.resolve({}));
-    getContextSpy = vi
-      .spyOn(HTMLCanvasElement.prototype, "getContext")
-      .mockImplementation(((type: string) =>
-        type === "webgl" ? createMockWebGl() : null) as never) as ReturnType<typeof vi.spyOn>;
+    getContextSpy = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(((
+      type: string,
+    ) => {
+      if (type !== "webgl") return null;
+      webglContextCount += 1;
+      return createMockWebGl();
+    }) as never) as ReturnType<typeof vi.spyOn>;
   });
 
   afterEach(() => {
@@ -257,8 +262,10 @@ describe("HyperShader WebGL context loss", () => {
     expect(glCanvas.style.display).toBe("block");
   });
 
-  it("releases the context on teardown instead of leaving it to GC", () => {
+  it("releases the context on teardown instead of leaving it to GC", async () => {
     startShader([SHADER_TRANSITION]);
+    await settle();
+    expect(webglContextCount).toBe(1);
     expect(loseContextCalls).toBe(0);
 
     window.dispatchEvent(new Event("beforeunload"));
@@ -266,10 +273,28 @@ describe("HyperShader WebGL context loss", () => {
     expect(loseContextCalls).toBe(1);
   });
 
-  it("leaves a composition without shader transitions unaffected", async () => {
+  // Browsers cap concurrent WebGL contexts (~16) and silently drop the oldest,
+  // so init() must not take one on spec — only a shader transition that is
+  // actually going to draw may.
+  it("defers context creation until a shader transition needs it", async () => {
+    const { timeline } = startShader([SHADER_TRANSITION]);
+    expect(webglContextCount).toBe(0);
+
+    await settle();
+    timeline.time(1.5);
+    await settle();
+    timeline.time(1.5);
+
+    expect(webglContextCount).toBe(1);
+    expect(drawArraysCalls).toBeGreaterThan(0);
+  });
+
+  it("leaves a composition without shader transitions unaffected, and takes no context", async () => {
     const { timeline, glCanvas } = startShader([CSS_TRANSITION]);
     await settle();
     timeline.time(1.5);
+    await settle();
+    expect(webglContextCount).toBe(0);
     expect(drawArraysCalls).toBe(0);
     expect(Number(sceneOpacity("s1"))).toBeCloseTo(0.5, 5);
 

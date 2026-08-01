@@ -102,7 +102,9 @@ interface CachedTransition {
   duration: number;
   fromId: string;
   toId: string;
-  prog: WebGLProgram | null; // null for CSS-fallback transitions
+  /** The authored shader name; undefined for a CSS crossfade. */
+  shader: string | undefined;
+  prog: WebGLProgram | null; // null until the shader is compiled, and for CSS-fallback transitions
   frames: CachedTransitionFrame[];
   cacheKey: string;
   dirty: boolean;
@@ -928,14 +930,6 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   glCanvas.style.width = `${compWidth}px`;
   glCanvas.style.height = `${compHeight}px`;
 
-  const gl = createContext(glCanvas, compWidth, compHeight);
-  if (!gl) {
-    console.warn("[HyperShader] WebGL unavailable — shader transitions disabled.");
-    const fallback = config.timeline || gsap.timeline({ paused: true });
-    registerTimeline(compId, fallback, config.timeline);
-    return fallback;
-  }
-
   const canvasEl = glCanvas;
   const previewCaptureFps = clampNumber(resolvePositiveNumber(config.previewCaptureFps, 30), 1, 60);
   const previewCaptureScale = resolvePlayerCaptureScale();
@@ -944,12 +938,19 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   const previewTextureHeight = Math.max(1, Math.round(compHeight * previewCaptureScale));
   const cachedTransitions: CachedTransition[] = [];
 
+  // The context and everything in it are created on demand — see ensureGl().
+  let gl: WebGLRenderingContext | null = null;
+  let glRes: GlResources | null = null;
+  let releaseGlContext: (() => void) | null = null;
+  let glUnavailable = false;
+  let contextLost = false;
+
   // Every GL object below dies with the context, so they are created and
-  // recreated as one unit — see the manageContextLoss() call near the end of
-  // init(). `programs` is a stable Map identity refilled in place because the
-  // transition-cache construction loop below reads it during init.
+  // recreated as one unit — see ensureGl() and the context-restore handler it
+  // installs. `programs` is a stable Map identity refilled in place because
+  // syncCacheProgram() reads it after every (re)build.
   const programs = new Map<string, WebGLProgram>();
-  const createGlResources = (): GlResources => {
+  const createGlResources = (gl: WebGLRenderingContext): GlResources => {
     programs.clear();
     for (const t of transitions) {
       // Strict undefined check — an explicit empty string from a vanilla-JS
@@ -995,14 +996,76 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       toFbo: createFramebuffer(gl, toTex),
     };
   };
-  let glRes = createGlResources();
-  let contextLost = false;
+  /**
+   * A cache learns its program when the context comes up, and again after a
+   * context restore — programs die with the context. A shader that fails to
+   * compile degrades to the CSS crossfade path so scene progression still runs.
+   */
+  const syncCacheProgram = (cache: CachedTransition): void => {
+    if (cache.shader === undefined) return;
+    cache.prog = programs.get(cache.shader) ?? null;
+    if (cache.prog) return;
+    console.warn(
+      `[HyperShader] Shader "${cache.shader}" failed to compile — falling back to CSS crossfade.`,
+    );
+    cache.fallback = true;
+    cache.ready = true;
+    cache.dirty = false;
+    cache.persisted = true;
+  };
+
+  /**
+   * Create the context, and everything that lives in it, the first time a
+   * shader transition actually needs to draw.
+   *
+   * Browsers cap concurrent WebGL contexts (~16) and silently drop the oldest,
+   * so a composition whose transitions are all CSS crossfades — it never
+   * compiles a program, uploads a texture or draws — must not hold one. Both
+   * callers are on a shader path: the texture upload choke point and the
+   * shader draw in tickShader().
+   */
+  const ensureGl = (): WebGLRenderingContext | null => {
+    if (gl || glUnavailable) return gl;
+    const created = createContext(canvasEl, compWidth, compHeight);
+    if (!created) {
+      glUnavailable = true;
+      console.warn("[HyperShader] WebGL unavailable — shader transitions play as CSS crossfades.");
+      return null;
+    }
+    gl = created;
+    glRes = createGlResources(created);
+    releaseGlContext = manageContextLoss(canvasEl, created, {
+      onLost: () => {
+        contextLost = true;
+        canvasEl.style.display = "none";
+        // Repaint at the current playhead so the DOM crossfade takes over
+        // immediately instead of leaving the last shader frame frozen on screen.
+        tickShader();
+      },
+      onRestored: () => {
+        contextLost = false;
+        try {
+          rebuildGlResources();
+        } catch (e) {
+          contextLost = true;
+          console.warn("[HyperShader] WebGL context restore failed:", e);
+          return;
+        }
+        // tickShader re-requests textures for the active transition, so this both
+        // repaints and kicks the re-upload.
+        tickShader();
+      },
+    });
+    for (const cache of cachedTransitions) syncCacheProgram(cache);
+    return created;
+  };
 
   const rebuildGlResources = (): void => {
-    glRes = createGlResources();
+    const restored = gl;
+    if (!restored) return;
+    glRes = createGlResources(restored);
     for (const cache of cachedTransitions) {
-      const shader = transitions[cache.index]?.shader;
-      if (shader !== undefined) cache.prog = programs.get(shader) ?? null;
+      syncCacheProgram(cache);
       // Deleting the old textures would be a no-op on a lost context, so the
       // handles are just dropped; ensureTransitionTextures re-uploads them from
       // the cached blobs (in memory, or re-read from IndexedDB). Bumping the
@@ -1107,6 +1170,8 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   };
 
   const renderTextureBlend = (
+    gl: WebGLRenderingContext,
+    glRes: GlResources,
     target: WebGLFramebuffer,
     texA: WebGLTexture,
     texB: WebGLTexture,
@@ -1206,14 +1271,22 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       canvasEl.style.display = "none";
       return;
     }
+    // First shader draw of the composition: this is where the context (and
+    // with it every program) comes into existence. Guarded so an all-CSS
+    // composition never creates one.
+    if (!cache.fallback && !contextLost) ensureGl();
+
     // CSS-only transitions (prog === null) MUST take the fallback path. The
     // fallback flag is the normal signal, but we also guard on prog to keep
     // the invariant even if some path momentarily resets fallback while prog
-    // stays null (it can't be re-created — there is no shader to compile).
+    // stays null (a CSS transition has no shader to compile, and ensureGl
+    // above found no context to compile one in).
     // A lost context joins them: every program, buffer and texture below is
     // dead until `webglcontextrestored`, so the DOM crossfade carries the
     // transition instead of the shader.
-    if (cache.fallback || cache.prog === null || contextLost) {
+    const glCtx = gl;
+    const res = glRes;
+    if (cache.fallback || cache.prog === null || contextLost || !glCtx || !res) {
       state.active = true;
       state.transitionIndex = activeIndex;
       state.prog = null;
@@ -1242,16 +1315,16 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       return;
     }
     paintScenePairState(cache.fromId, cache.toId, "1", "1");
-    renderTextureBlend(glRes.fromFbo, frame.a.fromTex, frame.b.fromTex, frame.mix);
-    renderTextureBlend(glRes.toFbo, frame.a.toTex, frame.b.toTex, frame.mix);
+    renderTextureBlend(glCtx, res, res.fromFbo, frame.a.fromTex, frame.b.fromTex, frame.mix);
+    renderTextureBlend(glCtx, res, res.toFbo, frame.a.toTex, frame.b.toTex, frame.mix);
 
     canvasEl.style.display = "block";
     renderShader(
-      gl,
-      glRes.quadBuf,
+      glCtx,
+      res.quadBuf,
       prog,
-      glRes.fromTex,
-      glRes.toTex,
+      res.fromTex,
+      res.toTex,
       state.progress,
       accentColors,
       compWidth,
@@ -1378,19 +1451,12 @@ export function init(config: HyperShaderConfig): GsapTimeline {
     const toId = scenes[i + 1];
     if (!fromId || !toId) continue;
 
-    // shader omitted → CSS crossfade. shader present but program failed to
-    // compile (logged above) → degrade gracefully to CSS crossfade so the
-    // opacity timeline still runs and scene progression isn't broken. Both
-    // paths land in the always-ready prog=null cache.
-    const requestedShader = t.shader !== undefined;
-    const compiledProg = requestedShader ? (programs.get(t.shader!) ?? null) : null;
-    const isCssFallback = !requestedShader || compiledProg === null;
-    if (requestedShader && compiledProg === null) {
-      console.warn(
-        `[HyperShader] Shader "${t.shader}" failed to compile — falling back to CSS crossfade.`,
-      );
-    }
-    const prog = isCssFallback ? null : compiledProg;
+    // shader omitted → CSS crossfade, an always-ready prog=null cache. A cache
+    // that DID ask for a shader also starts at prog=null: programs are compiled
+    // with the context, which does not exist yet. syncCacheProgram() fills prog
+    // in when ensureGl() brings the context up, and degrades the cache to this
+    // same always-ready CSS state if the shader fails to compile.
+    const isCssFallback = t.shader === undefined;
 
     const dur = t.duration ?? DEFAULT_DURATION;
     const ease = t.ease ?? DEFAULT_EASE;
@@ -1402,7 +1468,8 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       duration: dur,
       fromId,
       toId,
-      prog,
+      shader: t.shader,
+      prog: null,
       frames: [],
       cacheKey: "",
       dirty: !isCssFallback,
@@ -1422,11 +1489,11 @@ export function init(config: HyperShaderConfig): GsapTimeline {
           const toScene = document.getElementById(toId);
           if (!fromScene || !toScene) return;
 
-          state.prog = prog;
+          const cache = cachedTransitions[cacheIndex];
+          state.prog = cache?.prog ?? null;
           state.transitionIndex = cacheIndex;
           state.progress = 0;
           state.active = true;
-          const cache = cachedTransitions[cacheIndex];
           if (cache?.fallback) {
             applyFallbackTransition(cache, 0);
             return;
@@ -1536,22 +1603,27 @@ export function init(config: HyperShaderConfig): GsapTimeline {
     cache.textureGeneration += 1;
     for (const frame of cache.frames) {
       if (frame.fromTex) {
-        gl.deleteTexture(frame.fromTex);
+        gl?.deleteTexture(frame.fromTex);
         frame.fromTex = null;
       }
       if (frame.toTex) {
-        gl.deleteTexture(frame.toTex);
+        gl?.deleteTexture(frame.toTex);
         frame.toTex = null;
       }
     }
     cache.textureReady = false;
   };
 
-  // Caches with prog === null are CSS crossfade transitions and must stay in
-  // the always-ready fallback state. Without this guard, disposeCachedTransition
+  // Transitions that play as a DOM crossfade and must stay in the always-ready
+  // fallback state: the author asked for no shader, or the context is up and
+  // the shader failed to compile. Without this guard, disposeCachedTransition
   // + markScenesDirty would route them through the WebGL prewarm path and
   // tickShader would eventually call renderShader(state.prog!) with a null prog.
-  const isCssOnlyTransition = (cache: CachedTransition): boolean => cache.prog === null;
+  // `prog === null` alone cannot be the test — before ensureGl() every cache
+  // has a null prog, which would strand real shader transitions here and skip
+  // the prewarm that captures their frames.
+  const isCssOnlyTransition = (cache: CachedTransition): boolean =>
+    cache.shader === undefined || (gl !== null && cache.prog === null);
 
   const disposeCachedTransition = (cache: CachedTransition): void => {
     disposeTransitionTextures(cache);
@@ -1596,7 +1668,7 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       getSceneSignature(cache.fromId),
       cache.toId,
       getSceneSignature(cache.toId),
-      transitions[cache.index]?.shader || "unknown",
+      cache.shader || "unknown",
       cache.time,
       cache.duration,
       sampleCount,
@@ -1760,8 +1832,8 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       ]);
       if (!fromEntry || !toEntry) {
         for (const frame of hydratedFrames) {
-          gl.deleteTexture(frame.fromTex);
-          gl.deleteTexture(frame.toTex);
+          gl?.deleteTexture(frame.fromTex);
+          gl?.deleteTexture(frame.toTex);
         }
         return false;
       }
@@ -1794,6 +1866,11 @@ export function init(config: HyperShaderConfig): GsapTimeline {
       return Promise.resolve(true);
     }
     if (cache.texturePromise) return cache.texturePromise;
+    // Being that choke point, this is also where a composition first NEEDS a
+    // context: the guards above have already returned for every cache that
+    // plays as a CSS crossfade, so nothing that reaches here is context-free.
+    const gl = ensureGl();
+    if (!gl) return Promise.resolve(false);
 
     const generation = cache.textureGeneration;
     const frames = cache.frames;
@@ -2252,35 +2329,14 @@ export function init(config: HyperShaderConfig): GsapTimeline {
   };
 
   const sceneEditObservers = observeSceneEdits();
-  const releaseGlContext = manageContextLoss(glCanvas, gl, {
-    onLost: () => {
-      contextLost = true;
-      canvasEl.style.display = "none";
-      // Repaint at the current playhead so the DOM crossfade takes over
-      // immediately instead of leaving the last shader frame frozen on screen.
-      tickShader();
-    },
-    onRestored: () => {
-      contextLost = false;
-      try {
-        rebuildGlResources();
-      } catch (e) {
-        contextLost = true;
-        console.warn("[HyperShader] WebGL context restore failed:", e);
-        return;
-      }
-      // tickShader re-requests textures for the active transition, so this both
-      // repaints and kicks the re-upload.
-      tickShader();
-    },
-  });
   window.addEventListener(
     "beforeunload",
     () => {
       for (const observer of sceneEditObservers) {
         observer.disconnect();
       }
-      releaseGlContext();
+      // Null when no shader transition ever drew — there is no context to release.
+      releaseGlContext?.();
     },
     { once: true },
   );
