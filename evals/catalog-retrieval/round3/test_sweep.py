@@ -323,6 +323,114 @@ class ArmTests(unittest.TestCase):
                 )
 
 
+def swept_arm(family, hits_at_k, brief_ids, tier="decision"):
+    """A swept arm built from which briefs it shows the gold move to at each k.
+
+    Built directly rather than through a retriever so the curve can be given the
+    exact shape under test, including the one every real retriever reaches: a
+    list as long as the shelf shows every brief its own move.
+    """
+    flags = {
+        k: {brief: (1.0 if brief in shown else 0.0) for brief in brief_ids}
+        for k, shown in hits_at_k.items()
+    }
+    return {
+        "family": family,
+        "tier": tier,
+        "flags": flags,
+        "curve": {
+            k: round(sum(f.values()) / len(f), 4) for k, f in flags.items()
+        },
+    }
+
+
+class ShelfLengthListTests(unittest.TestCase):
+    """A list as long as the shelf is the control, and cannot win the ranking.
+
+    Round 2 ran the whole shelf as cell b and the rule fixes it at 0.0. Recall
+    rises with k by construction, so a ranking that takes each arm at its
+    highest recall selects that cell for every arm, ties them all at 1.0, and
+    decides nothing. These tests fail against a ranking that does.
+    """
+
+    TOKENS_PER_K = 63.0
+    TOKENS_PER_RECALL = 23725.0
+
+    def setUp(self):
+        _, self.briefs, self.gold = corpus(moves=8, per_move=3)
+        self.clusters = sweep.cluster_keys(self.gold)
+        self.ids = sorted(self.briefs)
+        self.shelf_size = len(self.ids)
+        strong, weak = self.ids[:16], self.ids[:12]
+        # Both arms flatten early and both reach every brief once the list is
+        # the whole shelf, which is the only k where they are equal.
+        self.swept = {
+            "lexical": swept_arm(
+                "lexical",
+                {5: strong, 10: strong, self.shelf_size: self.ids},
+                self.ids,
+            ),
+            "semantic": swept_arm(
+                "semantic",
+                {5: weak, 10: weak, self.shelf_size: self.ids},
+                self.ids,
+            ),
+        }
+
+    def ranked(self, shelf_size=None):
+        return sweep.rank(
+            self.swept,
+            self.clusters,
+            "decision",
+            self.TOKENS_PER_K,
+            self.TOKENS_PER_RECALL,
+            shelf_size,
+        )
+
+    def test_no_arm_is_ranked_at_a_list_as_long_as_the_shelf(self):
+        for row in self.ranked(self.shelf_size):
+            self.assertLess(row["k"], self.shelf_size, row["arm"])
+
+    def test_the_arms_stay_distinguishable_instead_of_tying_at_perfect_recall(self):
+        rows = self.ranked(self.shelf_size)
+        self.assertEqual(["lexical", "semantic"], [row["arm"] for row in rows])
+        self.assertGreater(
+            rows[0]["interval"]["mean"], rows[1]["interval"]["mean"]
+        )
+        # The better arm is ahead on what it retrieves, not tied at 1.0.
+        self.assertAlmostEqual(16 / 24.0, rows[0]["interval"]["mean"], places=3)
+        self.assertAlmostEqual(12 / 24.0, rows[1]["interval"]["mean"], places=3)
+
+    def test_the_whole_shelf_k_stays_in_the_curve_it_is_only_out_of_the_ranking(self):
+        # Dropping it from the curve too would hide the ceiling, which is the
+        # one thing the long tail of the sweep is there to show.
+        self.assertEqual(1.0, self.swept["lexical"]["curve"][self.shelf_size])
+        kept = sweep.rankable_ks(self.swept["lexical"]["curve"], self.shelf_size)
+        self.assertEqual([5, 10], sorted(kept))
+
+    def test_an_arm_swept_only_at_shelf_length_is_refused_rather_than_ranked(self):
+        only_long = {
+            "lexical": swept_arm("lexical", {self.shelf_size: self.ids}, self.ids)
+        }
+        with self.assertRaises(SystemExit):
+            sweep.rank(
+                only_long,
+                self.clusters,
+                "decision",
+                self.TOKENS_PER_K,
+                self.TOKENS_PER_RECALL,
+                self.shelf_size,
+            )
+
+    def test_the_ranked_k_is_the_knee_and_not_the_longest_list_allowed(self):
+        rows = {row["arm"]: row for row in self.ranked(self.shelf_size)}
+        # Both curves are flat from k=5, so the extra five slots buy nothing and
+        # the ranking must not charge for them.
+        self.assertEqual(5, rows["lexical"]["k"])
+        self.assertEqual(5, rows["semantic"]["k"])
+        self.assertFalse(rows["lexical"]["knee_exhausted"])
+
+
 class KneeTests(unittest.TestCase):
     """The knee is where added recall stops covering the tokens it costs."""
 

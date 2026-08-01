@@ -181,8 +181,12 @@ def build_summary(
     price=None,
 ):
     """Everything the report renders, computed once."""
-    rows = sweep.rank(swept, clusters, "decision")
-    exploratory = sweep.rank(swept, clusters, "exploratory")
+    # The same k for the report as for the command line: each arm at its knee,
+    # and never at a k that shows the whole shelf. A report that ranked on
+    # unbounded recall would name a different winner than the sweep that ran.
+    slope = tokens[0] if tokens else None
+    rows = sweep.rank(swept, clusters, "decision", slope, price, shelf_size)
+    exploratory = sweep.rank(swept, clusters, "exploratory", slope, price, shelf_size)
     outcome = sweep.decide(rows, rule, clusters, exploratory)
     reason = stop_reason(outcome, waves_run, rule, ceiling_reached)
     ks = sorted({k for arm in swept.values() for k in arm["curve"]})

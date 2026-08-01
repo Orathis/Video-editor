@@ -172,17 +172,60 @@ def sweep(briefs, gold, entries, arms, ks=KS):
     return swept, unavailable
 
 
-def rank(swept, clusters, tier="decision"):
-    """One row per arm, at the arm's own best k, with a clustered interval.
+def rankable_ks(curve, shelf_size):
+    """The swept ks that describe a retrieval arm rather than the control.
 
-    The best k is the highest recall and, on a tie, the shortest list: two ks
-    that retrieve the same thing are the same arm at a different price.
+    A list as long as the shelf is the shelf. Round 2 ran that as cell b and the
+    rule fixes it at 0.0, so a k at or above the shelf size is the control
+    wearing a retriever's label, and every arm scores 1.0 there. Those ks stay
+    in the reported curve, because the curve is how the ceiling becomes visible,
+    and they are kept out of the ranking, because a ranking that can select them
+    decides nothing.
     """
+    if shelf_size is None:
+        return dict(curve)
+    return {k: recall_at for k, recall_at in curve.items() if k < shelf_size}
+
+
+def rank(
+    swept,
+    clusters,
+    tier="decision",
+    tokens_per_k=None,
+    tokens_per_recall=None,
+    shelf_size=None,
+):
+    """One row per arm, at the k where a longer list stops paying for itself.
+
+    The k is the arm's knee, not the k with the highest recall. Recall rises
+    with k by construction, so ranking an arm at its recall argmax selects
+    whatever the longest swept k happened to be, and once the sweep reaches the
+    shelf size every arm scores exactly 1.0 by putting all 424 entries in front
+    of the model. That is the round 2 control, which this round's rule fixes at
+    0.0 and forbids changing, so a ranking that can select it is not measuring
+    retrieval at all. The knee is the point the rule already names, where token
+    cost starts to outrun the recall gain, and it cannot run away to the end of
+    the shelf.
+
+    `knee_exhausted` records the arms that never stopped paying inside the
+    swept range. Their k is the end of the sweep rather than a knee, which is a
+    statement about the grid and has to be reported as one.
+    """
+    if tokens_per_k is None:
+        tokens_per_k = token_model()[0]
+    if tokens_per_recall is None:
+        tokens_per_recall = recall_price()
     rows = []
     for label, arm in swept.items():
         if arm["tier"] != tier:
             continue
-        best_k = min(arm["curve"], key=lambda k: (-arm["curve"][k], k))
+        curve = rankable_ks(arm["curve"], shelf_size)
+        if not curve:
+            raise SystemExit(
+                "arm {0} was swept only at k values that show the whole shelf, "
+                "so it has no retrieval configuration to rank".format(label)
+            )
+        best_k, exhausted = knee(curve, tokens_per_k, tokens_per_recall)
         flags = arm["flags"][best_k]
         ids = sorted(flags)
         rows.append(
@@ -191,6 +234,7 @@ def rank(swept, clusters, tier="decision"):
                 "family": arm["family"],
                 "tier": tier,
                 "k": best_k,
+                "knee_exhausted": exhausted,
                 "flags": flags,
                 "interval": stats.clustered_mean(
                     [flags[i] for i in ids], [clusters[i] for i in ids]
@@ -483,9 +527,20 @@ def main(argv=None):
           ))
 
     _print_curves(swept, unavailable, ks)
-    rows = rank(swept, clusters, "decision")
+    slope, price = token_model()[0], recall_price()
+    shelf_size = len(entries)
+    skipped = sorted(k for k in ks if k >= shelf_size)
+    if skipped:
+        print(
+            "\nnot ranked: k {0}, at or past the {1} entry shelf. A list that long "
+            "is the whole shelf, which is round 2's control cell and scores 0.0. "
+            "It stays in the curve above and out of the ranking below.".format(
+                ", ".join(str(k) for k in skipped), shelf_size
+            )
+        )
+    rows = rank(swept, clusters, "decision", slope, price, shelf_size)
     _print_ranking(rows, "ranking, decision tier, clustered by target move")
-    exploratory = rank(swept, clusters, "exploratory")
+    exploratory = rank(swept, clusters, "exploratory", slope, price, shelf_size)
     _print_ranking(exploratory, "ranking, exploratory tier, cannot win this decision")
     _print_knees(swept, ks, token_model(), recall_price())
 
