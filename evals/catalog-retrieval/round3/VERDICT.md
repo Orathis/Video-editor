@@ -65,9 +65,14 @@ k=10 is chosen mechanically, not for effect: among the list lengths that satisfy
 shortest is the only one defensible on token cost, and being the minimum it cannot have been
 picked to widen a margin. Read at the longest comparable k instead, both tables are degenerate.
 
-The three hybrid weights do not separate from each other. `hybrid@w=0.5` sits inside
-`hybrid@w=0.7`'s interval, and `hybrid@w=0.3` leads at longer lists. The family separates; the
-weight does not.
+The weights do separate, but not into an order that survives the sweep. `hybrid@w=0.3` is
+measurably worse than `hybrid@w=0.5` at 7 of the 44 list lengths, all of them short (k=5 to 60),
+and worse than `hybrid@w=0.7` at 9. The two leading weights are the ones that never resolve:
+`hybrid@w=0.5` and `hybrid@w=0.7` separate at 2 of 44 list lengths, k=110 and k=120, and the sign
+of their difference flips across the grid, `w=0.7` nominally ahead at k=10 and `w=0.5` ahead where
+they actually separate. So the weight ordering is k-dependent in the same way the arm ordering is,
+and no single weight leads everywhere. This is not a power problem: resolving the two leaders at
+their closest point needs about 231 independent moves, and the shelf holds 424.
 
 ### Where a longer list stops paying for its tokens
 
@@ -152,8 +157,9 @@ Two things this recommendation is not:
 - It is **not** a claim that hybrid beats lexical at every list length. Outside k=10 to k=150 it
   does not, and above k=160 the rule's own tie break prefers lexical, which needs no embedding
   index and therefore cannot serve stale vectors.
-- It is **not** a claim that the fusion weight matters. The three weights never separated from
-  each other.
+- It is **not** a claim that one fusion weight is best. `hybrid@w=0.3` is measurably worse at
+  short lists, so it is not a free choice, but the two leading weights never resolve into an
+  order that holds across k. Either of them is defensible; picking between them is not.
 
 If the operational cost of maintaining an embedding index is judged higher than the fit gap is
 worth, lexical at its own knee (k=110, 7148 tokens, 0.8571 recall) is a defensible ship, and the
