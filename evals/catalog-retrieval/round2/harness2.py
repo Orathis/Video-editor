@@ -69,9 +69,16 @@ def load_shelf():
     return entries
 
 
-def load_briefs():
+def load_briefs(briefs_dir=None):
+    """Every brief in a corpus, keyed by id. Defaults to the corpus root's.
+
+    The directory is an argument so a caller that means one particular corpus
+    can say so, rather than mutating the module global and hoping to put it
+    back. Round two's own regressions mean round two's briefs whatever
+    EVAL_CORPUS_ROOT is pointed at.
+    """
     briefs = {}
-    for path in sorted(glob.glob(os.path.join(BRIEFS, "*.md"))):
+    for path in sorted(glob.glob(os.path.join(briefs_dir or BRIEFS, "*.md"))):
         with open(path, encoding="utf-8") as fh:
             briefs[os.path.basename(path)[: -len(".md")]] = fh.read()
     return briefs

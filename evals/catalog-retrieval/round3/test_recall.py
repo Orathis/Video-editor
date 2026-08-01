@@ -26,6 +26,15 @@ import provider  # noqa: E402
 
 
 RECALL_LOG = os.path.join(recall.ROUND2, "recall-log.json")
+# Round two's own corpus, named outright rather than taken from the module
+# defaults. Those defaults follow EVAL_CORPUS_ROOT, and every shell that runs
+# the eval sets it, so on the machine that does the work these tests would read
+# round three's briefs and compare them against round two's paid log. The
+# comparison is between different briefs at that point, and it fails, which
+# reads as a broken equivalence proof rather than a misdirected one.
+ROUND2_BRIEFS = os.path.join(recall.ROUND2, "briefs")
+ROUND2_GOLD = os.path.join(recall.ROUND2, "gold")
+ROUND2_VECTORS = os.path.join(recall.ROUND2, "vectors.json")
 # Cell labels in the paid grid's log. c is lexical, d is semantic, h is hybrid,
 # and the suffix is the list length that cell ran at.
 LOGGED_CELLS = {
@@ -36,7 +45,7 @@ LOGGED_CELLS = {
 NO_ROUND2_VECTORS = (
     "round two vectors are absent at {0}, so the semantic and hybrid arms "
     "cannot be recomputed. This test runs unchanged once that file exists."
-).format(recall.VECTORS)
+).format(ROUND2_VECTORS)
 
 
 def _fixture_vector(seed, dimensions=32):
@@ -53,10 +62,18 @@ class EquivalenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.entries = harness2.load_shelf()
-        cls.briefs = recall.load_briefs()
-        cls.gold = recall.load_gold()
+        cls.briefs = recall.load_briefs(ROUND2_BRIEFS)
+        cls.gold = recall.load_gold(ROUND2_GOLD)
+        # The semantic and hybrid arms read this through the harness, so the
+        # vector file has to be pinned alongside the briefs it was built from.
+        cls._vectors = harness2.VECTORS
+        harness2.VECTORS = ROUND2_VECTORS
         with open(RECALL_LOG, encoding="utf-8") as fh:
             cls.log = json.load(fh)
+
+    @classmethod
+    def tearDownClass(cls):
+        harness2.VECTORS = cls._vectors
 
     def assert_matches_log(self, arm):
         for k, cell in sorted(LOGGED_CELLS[arm].items()):
@@ -71,12 +88,12 @@ class EquivalenceTests(unittest.TestCase):
         self.assert_matches_log("lexical")
 
     def test_semantic_recall_reproduces_the_paid_grid_brief_for_brief(self):
-        if not os.path.exists(recall.VECTORS):
+        if not os.path.exists(ROUND2_VECTORS):
             self.skipTest(NO_ROUND2_VECTORS)
         self.assert_matches_log("semantic")
 
     def test_hybrid_recall_reproduces_the_paid_grid_brief_for_brief(self):
-        if not os.path.exists(recall.VECTORS):
+        if not os.path.exists(ROUND2_VECTORS):
             self.skipTest(NO_ROUND2_VECTORS)
         self.assert_matches_log("hybrid")
 

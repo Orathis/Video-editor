@@ -41,7 +41,12 @@ class Harness2Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.entries = harness2.load_shelf()
-        cls.briefs = harness2.load_briefs()
+        # Round two's own briefs, which are the fixtures these tests were
+        # written against. Taking the default would follow EVAL_CORPUS_ROOT to
+        # whichever corpus the shell is pointed at, so round two's regressions
+        # would be run against briefs they say nothing about, and against an
+        # empty corpus they do not fail, they crash in setUpClass.
+        cls.briefs = harness2.load_briefs(os.path.join(harness2.HERE, "briefs"))
         cls.brief_id = sorted(cls.briefs)[0]
         cls.brief = cls.briefs[cls.brief_id]
         cls.temporary = tempfile.TemporaryDirectory()
@@ -373,6 +378,13 @@ class Embed2Tests(unittest.TestCase):
         import validate_gold
 
         modules = (harness2, gen_briefs, validate_gold, prune_corpus, embed2)
+        # What the root was before this test redirected it. Asserting it comes
+        # back to HERE instead would only hold in a shell with no
+        # EVAL_CORPUS_ROOT set, and every shell that actually runs the eval has
+        # one. Pinned to HERE this test fails wherever the corpus is real, which
+        # reads as a broken redirect rather than a test that assumed its own
+        # environment.
+        before = harness2.CORPUS_ROOT
         with tempfile.TemporaryDirectory() as root:
             try:
                 with mock.patch.dict(
@@ -389,6 +401,10 @@ class Embed2Tests(unittest.TestCase):
                         (validate_gold, "BRIEFS_DIR"),
                         (validate_gold, "GOLD_DIR"),
                         (validate_gold, "AUDIT_PATH"),
+                        # The one that actually escaped: the committee wrote its
+                        # checkpoint next to the code instead of next to the
+                        # corpus, so every round shared one resume file.
+                        (validate_gold, "DEFAULT_COMMITTEE_CHECKPOINT"),
                         (prune_corpus, "BRIEFS_DIR"),
                         (prune_corpus, "GOLD_DIR"),
                         (prune_corpus, "EXCLUDED_DIR"),
@@ -403,7 +419,7 @@ class Embed2Tests(unittest.TestCase):
             finally:
                 for module in modules:
                     importlib.reload(module)
-        self.assertEqual(harness2.HERE, harness2.CORPUS_ROOT)
+        self.assertEqual(before, harness2.CORPUS_ROOT)
 
     def test_a_reused_name_holding_new_text_is_embedded_again(self):
         # Brief ids are positions in a corpus, not identities. A regenerated
