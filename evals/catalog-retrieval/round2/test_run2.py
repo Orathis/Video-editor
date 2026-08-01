@@ -6,6 +6,7 @@ import io
 import json
 import os
 import tempfile
+import threading
 import unittest
 import urllib.error
 from unittest import mock
@@ -386,6 +387,178 @@ class RunnerTests(unittest.TestCase):
     def test_unknown_model_has_no_zero_cost_fallback(self):
         with self.assertRaisesRegex(SystemExit, "no price table entry"):
             run2.usage_cost({}, "missing-model")
+
+    def test_the_briefs_of_one_cell_are_in_the_air_at_the_same_time(self):
+        # The runs of a cell are independent by construction and the latency
+        # lives in the call, so putting them in a line only spent wall clock:
+        # nineteen runs a minute measured live, most of three hours for one
+        # model's pass over the grid. A barrier sized to the pool asserts the
+        # overlap without measuring any duration, which is what keeps it from
+        # being flaky. No run may leave the barrier until RUNS_IN_FLIGHT of them
+        # have reached it, so a sequential cell blocks on the first run and
+        # fails on the timeout, and a concurrent one walks through.
+        briefs = {"%02d" % n: "beat %02d" % n for n in range(run2.RUNS_IN_FLIGHT)}
+        barrier = threading.Barrier(run2.RUNS_IN_FLIGHT)
+
+        def wait_for_the_others(context, model, config=None):
+            barrier.wait(timeout=10)
+            return canned_chat()
+
+        with mock.patch.object(provider, "chat", side_effect=wait_for_the_others):
+            result = self._run(briefs, (("b", None),))
+        self.assertEqual(run2.RUNS_IN_FLIGHT, result["new_runs"])
+
+    def test_every_record_carries_the_answer_built_from_its_own_brief(self):
+        # Concurrency's characteristic failure is a result filed under a
+        # neighbour's key, and a count of records cannot see it: runs that all
+        # landed under the wrong brief still count. So each brief carries a
+        # distinguishable beat, the stubbed model answers with the beat it was
+        # actually shown, and the whole mapping is asserted rather than its
+        # size. More briefs than one batch holds, so the batching is exercised
+        # and not just a single pool.
+        briefs = {
+            "%02d" % n: "beat-%02d-is-distinct" % n
+            for n in range(run2.RUNS_IN_FLIGHT * 2 + 1)
+        }
+
+        def answer_with_the_beat_it_was_shown(context, model, config=None):
+            shown = [beat for beat in briefs.values() if beat in context]
+            self.assertEqual(1, len(shown), shown)
+            parsed = {
+                "picks": [{"move": "move-a", "why": shown[0]}],
+                "confidence": "high",
+            }
+            return parsed, json.dumps(parsed), canned_chat()[2], 0.01
+
+        with mock.patch.object(
+            provider, "chat", side_effect=answer_with_the_beat_it_was_shown
+        ):
+            self._run(briefs, (("b", None),))
+
+        recorded = {
+            record["brief"]: record["picks"][0]["why"]
+            for record in run2.load_checkpoint(self.checkpoint)
+        }
+        self.assertEqual(briefs, recorded)
+
+    def test_the_ceiling_still_stops_a_concurrent_run_and_reports_its_reason(self):
+        # The ceiling is the reason a paid run is allowed to exist. Dispatched
+        # in batches it can no longer be exact to the dollar, so what is pinned
+        # is that it still stops: a max set between the first batch and the
+        # second lets one batch land, trips on the second, and dispatches
+        # nothing behind it. Cost per run is read from the live table so a price
+        # change moves the trip point along with the arithmetic.
+        usage = {
+            "prompt_tokens": 100_000,
+            "completion_tokens": 50_000,
+            "cached_tokens": 0,
+            "total_tokens": 150_000,
+        }
+        per_run = run2.usage_cost(usage, run2.MODEL)
+        briefs = {"%02d" % n: "beat %02d" % n for n in range(run2.RUNS_IN_FLIGHT * 3)}
+
+        with mock.patch.object(
+            provider, "chat", return_value=canned_chat(usage)
+        ) as chat:
+            result = self._run(
+                briefs,
+                (("b", None),),
+                max_usd=per_run * run2.RUNS_IN_FLIGHT * 1.5,
+            )
+
+        self.assertEqual("ceiling", result["stop_reason"])
+        # Two batches were bought and the third was never dispatched.
+        self.assertEqual(run2.RUNS_IN_FLIGHT * 2, chat.call_count)
+        self.assertEqual(run2.RUNS_IN_FLIGHT * 2, result["new_runs"])
+        self.assertEqual(
+            run2.RUNS_IN_FLIGHT * 2, len(run2.load_checkpoint(self.checkpoint))
+        )
+
+    def test_the_kill_file_still_stops_a_concurrent_run(self):
+        # Same rule as the ceiling: read once before each batch is dispatched,
+        # and once the file is there nothing further goes out. The batch that
+        # was already in the air when it appeared still lands and is still
+        # recorded, because those calls were billed the moment they were made.
+        briefs = {"%02d" % n: "beat %02d" % n for n in range(run2.RUNS_IN_FLIGHT * 3)}
+        calls = 0
+        counter = threading.Lock()
+
+        def stop_during_the_first_batch(context, model, config=None):
+            nonlocal calls
+            with counter:
+                calls += 1
+                first = calls == 1
+            if first:
+                open(self.kill_file, "w", encoding="utf-8").close()
+            return canned_chat()
+
+        with mock.patch.object(
+            provider, "chat", side_effect=stop_during_the_first_batch
+        ):
+            result = self._run(briefs, (("b", None),))
+
+        self.assertEqual("kill file", result["stop_reason"])
+        self.assertEqual(run2.RUNS_IN_FLIGHT, calls)
+        self.assertEqual(run2.RUNS_IN_FLIGHT, result["new_runs"])
+
+    def test_a_brief_already_in_the_checkpoint_is_still_skipped_with_no_call(self):
+        # Resume is exact or it is not resume: a brief already answered costs
+        # nothing to skip, and a pool that filtered after dispatching would buy
+        # it a second time. The beats the model was actually shown are asserted
+        # rather than a call count, which also catches a filter that skipped the
+        # wrong brief and paid for the right one.
+        briefs = {"01": "beat one", "02": "beat two", "03": "beat three"}
+        run2._append_checkpoint(
+            self.checkpoint,
+            {
+                "brief": "02",
+                "condition": "b",
+                "k": None,
+                "model": run2.MODEL,
+                "attempts": [],
+            },
+        )
+        asked = []
+
+        def note_the_beat(context, model, config=None):
+            asked.extend(beat for beat in briefs.values() if beat in context)
+            return canned_chat()
+
+        with mock.patch.object(provider, "chat", side_effect=note_the_beat):
+            result = self._run(briefs, (("b", None),))
+
+        self.assertEqual(["beat one", "beat three"], sorted(asked))
+        self.assertEqual(2, result["new_runs"])
+        self.assertEqual(3, result["completed"])
+
+    def test_the_checkpoint_holds_only_whole_lines_after_a_concurrent_run(self):
+        # The checkpoint is append-only JSONL written while several runs are in
+        # the air, and a torn or interleaved line is the one failure here that
+        # costs real money: it does not make the run wrong, it makes it
+        # unresumable. Each raw line is parsed with json.loads rather than
+        # through load_checkpoint, which repairs a corrupt final line and would
+        # hide exactly the damage being looked for.
+        cells = (("b", None), ("c", 1))
+        briefs = {"%02d" % n: "beat %02d" % n for n in range(run2.RUNS_IN_FLIGHT * 3)}
+        with mock.patch.object(provider, "chat", return_value=canned_chat()):
+            self._run(briefs, cells)
+
+        with open(self.checkpoint, encoding="utf-8") as handle:
+            lines = handle.readlines()
+        self.assertEqual(len(briefs) * len(cells), len(lines))
+        keys = set()
+        for line in lines:
+            self.assertTrue(line.endswith("\n"), line)
+            keys.add(run2._record_key(json.loads(line)))
+        model = provider.model_id(run2.MODEL)
+        self.assertEqual(
+            {
+                (brief_id, condition, k, model)
+                for brief_id in briefs
+                for condition, k in cells
+            },
+            keys,
+        )
 
 
 class ProviderTests(unittest.TestCase):

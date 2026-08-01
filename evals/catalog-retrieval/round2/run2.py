@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run and resume the round-two catalog grid."""
 
+import concurrent.futures
 import json
 import os
 
@@ -102,6 +103,14 @@ DEFAULT_MAX_USD = 60.00
 # partway through a prefix of the corpus rather than covering it.
 DEFAULT_CHECKPOINT = os.path.join(harness2.CORPUS_ROOT, "checkpoints", "results.jsonl")
 DEFAULT_KILL_FILE = os.path.join(harness2.CORPUS_ROOT, "checkpoints", "STOP")
+# How many of one cell's briefs are in the air at once. Fixed and small on
+# purpose. The pool exists to overlap latency that lives in the call and not in
+# this code, so widening it past the point where the provider starts refusing
+# would buy retries rather than throughput, and the overshoot the spend ceiling
+# tolerates is bounded by this number. It is deliberately not an environment
+# variable or a flag: how many paid calls a run may have outstanding is not a
+# thing to discover at the prompt.
+RUNS_IN_FLIGHT = 6
 
 
 def _prices(model):
@@ -211,6 +220,56 @@ def _record_cost(record, fallback_model):
     )
 
 
+def _run_one(entries, brief_id, brief, condition, k, model):
+    """Build one cell's context for one brief, call the model, shape the record.
+
+    Lifted out of run_grid, and doing what it did there, so that a pool worker
+    can hold exactly one run. It touches nothing the loop owns: not the
+    checkpoint, not the running total, not the completed set, so several of
+    these can be in the air at once without any of them being able to see each
+    other. The brief id it is handed is the one it stamps on the record it
+    returns, which is what keeps a slow run from being recorded under a faster
+    neighbour's key.
+    """
+    context, shown = harness2.build_context(condition, brief_id, brief, entries, k)
+    attempts = []
+    parsed = None
+    raw = ""
+    for _ in range(2):
+        parsed, raw, usage, seconds = provider.chat(context, model)
+        attempts.append(
+            {
+                "usage": usage,
+                "seconds": round(seconds, 2),
+                "ok": parsed is not None,
+            }
+        )
+        if parsed is not None:
+            break
+
+    picks = (parsed or {}).get("picks", []) if isinstance(parsed, dict) else []
+    picks = [pick for pick in picks if isinstance(pick, dict) and pick.get("move")]
+    record = {
+        "brief": brief_id,
+        "condition": condition,
+        "k": k,
+        "model": model,
+        "shown": shown,
+        "context_chars": len(context),
+        "picks": picks,
+        "confidence": (
+            (parsed or {}).get("confidence") if isinstance(parsed, dict) else None
+        ),
+        "attempts": attempts,
+        "raw": raw,
+    }
+    if condition == "a" and picks:
+        record["pick_vectors"] = provider.embed(
+            [f"{pick['move']}. {pick.get('why', '')}" for pick in picks]
+        )
+    return record
+
+
 def run_grid(
     entries,
     briefs,
@@ -236,74 +295,77 @@ def run_grid(
     if total_usd > max_usd:
         stop_reason = "ceiling"
 
-    for brief_id in sorted(briefs):
-        for condition, k in cells:
-            key = brief_id, condition, k, provider.model_id(model)
-            if key in completed:
-                continue
+    # One cell at a time, and inside a cell the briefs go out RUNS_IN_FLIGHT at
+    # a time. The briefs of a cell are independent by construction: each builds
+    # its own context and no run reads another's answer. Every call carries the
+    # whole shelf and the latency is in the call rather than in this code, so
+    # running them in a line only spent wall clock. Measured sequentially that
+    # was about nineteen runs a minute, or the better part of three hours for
+    # one model's pass over the grid.
+    #
+    # The loop over cells stays sequential. A cell is the unit the report
+    # aggregates and the unit a reader approved when they read the projection,
+    # and overlapping two of them would multiply the outstanding spend by the
+    # number of cells while making the running total that is emitted describe
+    # two arms at once.
+    #
+    # The ceiling and the kill file are read once before each batch is
+    # dispatched rather than once per run, so the ceiling is no longer exact to
+    # the dollar. It is still enforced: the moment it trips nothing further is
+    # dispatched, the reason reported is the same "ceiling", and a batch already
+    # in the air is allowed to land and have every one of its answers recorded,
+    # because those calls are billed whether or not the result is kept. The
+    # overshoot is bounded by RUNS_IN_FLIGHT - 1 runs, against a grid projected
+    # at $68.80 under a $150 ceiling.
+    #
+    # The checkpoint is appended by this thread alone, once the batch has
+    # joined, and never by the workers as they finish. It is append-only JSONL
+    # and a torn or interleaved line makes the whole run unresumable, which is
+    # the one failure here that costs real money to recover from. Results are
+    # read back in submission order, and each record carries the brief id its
+    # own worker was handed, so a slow run cannot be filed under a neighbour.
+    model_id = provider.model_id(model)
+    for condition, k in cells:
+        pending = [
+            brief_id
+            for brief_id in sorted(briefs)
+            if (brief_id, condition, k, model_id) not in completed
+        ]
+        for start in range(0, len(pending), RUNS_IN_FLIGHT):
             if stop_reason:
                 break
             if os.path.exists(kill_path):
                 stop_reason = "kill file"
                 break
 
-            context, shown = harness2.build_context(
-                condition, brief_id, briefs[brief_id], entries, k
-            )
-            attempts = []
-            parsed = None
-            raw = ""
-            for _ in range(2):
-                parsed, raw, usage, seconds = provider.chat(context, model)
-                attempts.append(
-                    {
-                        "usage": usage,
-                        "seconds": round(seconds, 2),
-                        "ok": parsed is not None,
-                    }
-                )
-                if parsed is not None:
-                    break
+            batch = pending[start : start + RUNS_IN_FLIGHT]
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=RUNS_IN_FLIGHT
+            ) as executor:
+                runs = [
+                    executor.submit(
+                        _run_one,
+                        entries,
+                        brief_id,
+                        briefs[brief_id],
+                        condition,
+                        k,
+                        model,
+                    )
+                    for brief_id in batch
+                ]
+                results = [run.result() for run in runs]
 
-            picks = (parsed or {}).get("picks", []) if isinstance(parsed, dict) else []
-            picks = [
-                pick
-                for pick in picks
-                if isinstance(pick, dict) and pick.get("move")
-            ]
-            record = {
-                "brief": brief_id,
-                "condition": condition,
-                "k": k,
-                "model": model,
-                "shown": shown,
-                "context_chars": len(context),
-                "picks": picks,
-                "confidence": (
-                    (parsed or {}).get("confidence")
-                    if isinstance(parsed, dict)
-                    else None
-                ),
-                "attempts": attempts,
-                "raw": raw,
-            }
-            if condition == "a" and picks:
-                record["pick_vectors"] = provider.embed(
-                    [
-                        f"{pick['move']}. {pick.get('why', '')}"
-                        for pick in picks
-                    ]
+            for record in results:
+                _append_checkpoint(checkpoint_path, record)
+                completed.add((record["brief"], condition, k, model_id))
+                records.append(record)
+                new_runs += 1
+                total_usd += _record_cost(record, model)
+                emit(
+                    f"{record['brief']} {_cell_name(condition, k, model)}: "
+                    f"{len(record['attempts'])} attempt(s), total ${total_usd:.6f}"
                 )
-
-            _append_checkpoint(checkpoint_path, record)
-            completed.add(key)
-            records.append(record)
-            new_runs += 1
-            total_usd += _record_cost(record, model)
-            emit(
-                f"{brief_id} {_cell_name(condition, k, model)}: "
-                f"{len(attempts)} attempt(s), total ${total_usd:.6f}"
-            )
             if total_usd > max_usd:
                 stop_reason = "ceiling"
                 break
