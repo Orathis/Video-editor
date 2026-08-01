@@ -193,12 +193,31 @@ class PairedTests(unittest.TestCase):
             self.assertEqual(-bound, difference[name]["lo"], name)
             self.assertEqual(bound, difference[name]["hi"], name)
 
-    def test_a_cell_that_never_ran_pairs_against_nothing(self):
-        # Silently returning a difference over zero briefs would report a
-        # comparison that was never made as one that came out even.
+    def test_a_cell_that_never_ran_is_refused_rather_than_scored_as_even(self):
+        # Returning a difference over zero briefs reports a comparison that was
+        # never made as one that came out even. Round 4 hit this for real: the
+        # cells were asked for as "H@20/..." while the rows carry "h@20/...",
+        # and all sixteen pairings came back +0.0000 over n=0, a table of clean
+        # zeros that reads like two models agreeing.
         records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
-        difference = confirm3.paired(self.rows(records), "h@10", "c@10")
-        self.assertEqual(0, difference["n"])
+        with self.assertRaisesRegex(SystemExit, "c@10 is not a cell"):
+            confirm3.paired(self.rows(records), "h@10", "c@10")
+
+    def test_the_refusal_names_the_cells_that_do_exist(self):
+        # The failure is almost always a name that is close to a real one, so
+        # the message has to carry the real ones or the reader is left diffing
+        # a command line against a checkpoint by hand.
+        records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
+        with self.assertRaisesRegex(SystemExit, "Known cells: h@10"):
+            confirm3.paired(self.rows(records), "H@10", "h@10")
+
+    def test_two_cells_that_share_no_brief_are_refused_too(self):
+        # Both names exist, so the name check passes, and the pairing is still
+        # a difference over nothing.
+        records = [record(b, "h", GOLD[b]["best"]) for b in ("001", "002")]
+        records += [record(b, "c", GOLD[b]["best"]) for b in ("003", "004")]
+        with self.assertRaisesRegex(SystemExit, "no brief ran in both"):
+            confirm3.paired(self.rows(records), "h@10", "c@10")
 
     def test_a_brief_missing_from_one_cell_leaves_every_other_pairing_whole(self):
         # The shared set is per pairing. Computed once for the grid, a brief

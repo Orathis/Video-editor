@@ -216,11 +216,37 @@ def paired(rows, cell, baseline):
             )
         )
     by_brief = {}
+    present = set()
     for row in rows:
         by_brief.setdefault(row["brief"], {})[row["cell"]] = row
+        present.add(row["cell"])
+    missing = [name for name in (cell, baseline) if name not in present]
+    if missing:
+        # A cell nobody ran is not a pairing with no overlap, it is a name that
+        # does not exist, and the two must not print the same way. Round 4 asked
+        # for "H@20/gemini-3.6-flash" while the rows carry "h@20/gemini-3.6-flash",
+        # and every metric came back +0.0000 over n=0: a full table of clean
+        # zeros that reads like agreement and is actually a typo. Refuse it here,
+        # where the names are still in hand, rather than letting a difference over
+        # nothing reach a verdict.
+        raise SystemExit(
+            "refusing to pair {0} against {1}: {2} in this checkpoint. "
+            "Known cells: {3}".format(
+                cell,
+                baseline,
+                " and ".join(missing) + (" is not a cell" if len(missing) == 1 else " are not cells"),
+                ", ".join(sorted(present)) or "none, the checkpoint scored no rows",
+            )
+        )
     shared = sorted(
         brief for brief, cells in by_brief.items() if cell in cells and baseline in cells
     )
+    if not shared:
+        raise SystemExit(
+            "refusing to pair {0} against {1}: both cells ran, but no brief ran "
+            "in both, so there is nothing to difference. A pairing over zero "
+            "briefs is not a comparison that came out even.".format(cell, baseline)
+        )
     clusters = [by_brief[brief][cell]["move"] for brief in shared]
     out = {
         "cell": cell,
