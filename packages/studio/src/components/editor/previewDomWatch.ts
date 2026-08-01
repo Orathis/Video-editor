@@ -79,3 +79,54 @@ export function startPreviewDomWatch(
     },
   };
 }
+
+/**
+ * `startPreviewDomWatch` plus the two parent-document movements an overlay
+ * measuring ACROSS the iframe boundary also depends on: the iframe box being
+ * resized, and a stage zoom/pan — written as inline `style` on an ancestor of
+ * the iframe, which no ResizeObserver sees.
+ *
+ * Overlays mounted inside `DomEditOverlay` get these through
+ * `useDomEditCompositionRect`, whose new composition rect routes into
+ * `refreshOverlayGeometry`. An overlay mounted beside it has no such path, so
+ * it asks for them here instead of polling the geometry every frame.
+ */
+export function startPreviewGeometryWatch(
+  iframeRef: RefObject<HTMLIFrameElement | null>,
+  onChange: () => void,
+): PreviewDomWatch {
+  const domWatch = startPreviewDomWatch(iframeRef, onChange);
+  let observedIframe: HTMLIFrameElement | null = null;
+  const resizeObserver =
+    typeof ResizeObserver === "undefined" ? null : new ResizeObserver(onChange);
+  const stageObserver =
+    typeof MutationObserver === "undefined" ? null : new MutationObserver(onChange);
+
+  const observeStage = () => {
+    const iframe = iframeRef.current;
+    if (iframe === observedIframe) return;
+    observedIframe = iframe;
+    resizeObserver?.disconnect();
+    stageObserver?.disconnect();
+    if (!iframe) return;
+    resizeObserver?.observe(iframe);
+    for (let node = iframe.parentElement; node; node = node.parentElement) {
+      stageObserver?.observe(node, { attributes: true, attributeFilter: ["style", "class"] });
+      if (node === iframe.ownerDocument.body) break;
+    }
+  };
+  observeStage();
+
+  return {
+    poll: () => {
+      observeStage();
+      domWatch.poll();
+    },
+    dispose: () => {
+      domWatch.dispose();
+      resizeObserver?.disconnect();
+      stageObserver?.disconnect();
+      observedIframe = null;
+    },
+  };
+}
