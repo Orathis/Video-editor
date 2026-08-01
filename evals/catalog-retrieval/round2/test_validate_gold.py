@@ -9,6 +9,8 @@ import os
 import shutil
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
@@ -593,6 +595,86 @@ class ValidateGoldTests(unittest.TestCase):
 
         self.assertEqual(result["total"], 4)
         self.assertEqual(sorted(result["sampled"]), sorted(briefs))
+
+    def test_the_readers_of_one_brief_run_at_the_same_time(self):
+        # The readers are blind and independent, so reading them one after the
+        # other only spends wall clock: at fifteen seconds a read, 424 briefs
+        # times three readers is over five hours. A barrier sized to the
+        # committee asserts the overlap without measuring any duration, which
+        # is what makes it stable. No reader can leave the barrier until all
+        # three have reached it, so a sequential committee blocks on the first
+        # reader and fails on the timeout, and a concurrent one walks through.
+        barrier = threading.Barrier(validate_gold.COMMITTEE_READERS)
+
+        def reader(*args, **kwargs):
+            barrier.wait(timeout=5)
+            return canned("move-alpha", "read alongside the others")
+
+        with patch.object(validate_gold.provider, "chat", side_effect=reader):
+            result = validate_gold.evaluate_corpus(
+                {"01": "fixture concurrent readers"},
+                {"01": gold("move-alpha")},
+                SHELF,
+            )
+
+        self.assertEqual(
+            len(result["records"][0]["passes"]), validate_gold.COMMITTEE_READERS
+        )
+        self.assertFalse(self.transport_mock.called)
+
+    def test_the_passes_stay_in_reader_order_not_completion_order(self):
+        # The Counter and the ranked tie-break read this list to pick the
+        # majority, so a committee that collected answers as they completed
+        # would silently change which move wins a split vote. Each reader here
+        # answers with a distinct move and finishes in the reverse of the order
+        # it started in, so completion order and reader order cannot be
+        # mistaken for one another: the finished list is asserted to be the
+        # reverse, which keeps the order assertion from passing vacuously.
+        moves = ["move-alpha", "move-beta", "move-gamma"]
+        started = []
+        finished = []
+        lock = threading.Lock()
+
+        def reader(*args, **kwargs):
+            with lock:
+                index = len(started)
+                started.append(moves[index])
+            time.sleep(0.05 * (validate_gold.COMMITTEE_READERS - index))
+            with lock:
+                finished.append(moves[index])
+            return canned(moves[index], f"reader {index}")
+
+        with patch.object(validate_gold.provider, "chat", side_effect=reader):
+            result = validate_gold.evaluate_corpus(
+                {"01": "fixture reader order"},
+                {"01": gold("move-alpha")},
+                SHELF,
+            )
+
+        passes = result["records"][0]["passes"]
+        self.assertEqual(started, moves)
+        self.assertEqual(finished, list(reversed(moves)))
+        self.assertEqual([item["move"] for item in passes], moves)
+
+    def test_a_failed_read_stops_the_run_rather_than_being_swallowed(self):
+        # A read that fails in a paid run has to end the run, exactly as it did
+        # when the readers ran in a line. Catching it here and standing a
+        # placeholder in its place would build a majority out of two answers
+        # and record it as though three readers had spoken.
+        replies = [
+            canned("move-alpha", "first reader"),
+            RuntimeError("a reader failed mid committee"),
+            canned("move-alpha", "third reader"),
+        ]
+        with patch.object(validate_gold.provider, "chat", side_effect=replies):
+            with self.assertRaisesRegex(RuntimeError, "a reader failed mid committee"):
+                validate_gold.evaluate_corpus(
+                    {"01": "fixture failing reader"},
+                    {"01": gold("move-alpha")},
+                    SHELF,
+                )
+
+        self.assertFalse(os.path.exists(self.checkpoint))
 
 
 def write_fixture_audit():

@@ -2,6 +2,7 @@
 """Validate constructed gold with three blind, independent committee passes."""
 
 import collections
+import concurrent.futures
 import glob
 import hashlib
 import json
@@ -446,10 +447,33 @@ def evaluate_corpus(
             stop_reason = "kill file"
             break
         constructed_gold = validated_gold[brief_id]
-        passes = [
-            _committee_pass(briefs[brief_id], shelf)
-            for _ in range(COMMITTEE_READERS)
-        ]
+        # The readers are blind and independent by construction: each one gets
+        # the same brief and the same whole shelf, and never sees another's
+        # answer. So reading them one after another buys nothing. Every read
+        # carries the entire 424-entry shelf, which puts the cost in the call
+        # and not in this code, and three network-bound calls are what threads
+        # are for. The worker count is COMMITTEE_READERS because it is the same
+        # three reads, running at once rather than in a line.
+        #
+        # The results stay in reader order. The Counter and the ranked
+        # tie-break below decide the majority from this list, so yielding by
+        # completion instead would silently change which move wins a split
+        # vote. Futures are read back in submission order for that reason, and
+        # an exception in any pass surfaces here rather than being swallowed or
+        # stood in for, because a failed read in a paid run must stop the run.
+        #
+        # Only the passes within one brief go wide. The loop over briefs stays
+        # sequential: the checkpoint append order, the running spend, the
+        # ceiling and the kill file all depend on one brief finishing before
+        # the next starts, and that is the safety mechanism for a paid run.
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=COMMITTEE_READERS
+        ) as executor:
+            reads = [
+                executor.submit(_committee_pass, briefs[brief_id], shelf)
+                for _ in range(COMMITTEE_READERS)
+            ]
+            passes = [read.result() for read in reads]
         counts = collections.Counter(item["move"] for item in passes)
         ranked = counts.most_common()
         committee_majority = ranked[0][0] if ranked[0][1] >= 2 else None
