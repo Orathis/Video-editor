@@ -181,15 +181,52 @@ def build_summary(
     price=None,
 ):
     """Everything the report renders, computed once."""
-    # The same k for the report as for the command line: each arm at its knee,
-    # and never at a k that shows the whole shelf. A report that ranked on
-    # unbounded recall would name a different winner than the sweep that ran.
-    slope = tokens[0] if tokens else None
-    rows = sweep.rank(swept, clusters, "decision", slope, price, shelf_size)
-    exploratory = sweep.rank(swept, clusters, "exploratory", slope, price, shelf_size)
-    outcome = sweep.decide(rows, rule, clusters, exploratory)
-    reason = stop_reason(outcome, waves_run, rule, ceiling_reached)
+    # The same basis as the command line: the rule read at every comparable k,
+    # every arm at the same k as every other, and never at a k that shows the
+    # whole shelf. A report that ranked on some other basis would name a
+    # different winner than the sweep that ran, which is the one thing a report
+    # of a pre-registered decision cannot do.
     ks = sorted({k for arm in swept.values() for k in arm["curve"]})
+    slope = tokens[0] if tokens else None
+    across = sweep.decide_across_ks(swept, clusters, rule, ks, shelf_size)
+    if not across and ks:
+        # There were list lengths and every one of them was the whole shelf. An
+        # unswept arm list is a different situation and still renders below, as
+        # a report that says nothing is evaluable rather than one that crashes.
+        raise SystemExit(
+            "no swept k is shorter than the {0} entry shelf, so no two arms "
+            "are comparable".format(shelf_size)
+        )
+    families = [
+        swept[result["outcome"]["ship"]]["family"]
+        for result in across
+        if result["outcome"]["ship"] in swept
+    ]
+    unanimous = (
+        bool(families) and len(set(families)) == 1 and len(families) == len(across)
+    )
+    point = (
+        sweep.operating_point(swept, families[0], slope, price, shelf_size)
+        if unanimous and slope and price
+        else None
+    )
+    if not across:
+        # No arm was swept at all, so there is no k to read the rule at. The
+        # rule still has an answer for an empty ranking, and it is the answer
+        # the report should carry: nothing was evaluable.
+        headline = {
+            "k": None,
+            "rows": [],
+            "exploratory": [],
+            "outcome": sweep.decide([], rule, clusters),
+        }
+    elif point:
+        headline = next((r for r in across if r["k"] == point["k"]), across[-1])
+    else:
+        headline = across[-1]
+    rows, exploratory = headline["rows"], headline["exploratory"]
+    outcome = headline["outcome"]
+    reason = stop_reason(outcome, waves_run, rule, ceiling_reached)
     return {
         "shelf_size": shelf_size,
         "briefs": len(clusters),
@@ -209,6 +246,21 @@ def build_summary(
             label: _portable(reason) for label, reason in unavailable.items()
         },
         "converged": sweep.converged(swept, ks) if ks else False,
+        # What the rule said at each comparable k, so a reader can see whether
+        # the verdict rested on the whole curve or on one lucky list length.
+        "across_ks": [
+            {
+                "k": result["k"],
+                "leader": result["rows"][0]["arm"] if result["rows"] else None,
+                "runner_up": result["rows"][1]["arm"] if len(result["rows"]) > 1 else None,
+                "branch": result["outcome"]["branch"],
+                "ship": result["outcome"]["ship"],
+                "margin": result["outcome"].get("difference"),
+            }
+            for result in across
+        ],
+        "unanimous_across_ks": unanimous,
+        "operating_point": point,
         "outcome": {
             "branch": outcome["branch"],
             "ship": outcome["ship"],

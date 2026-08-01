@@ -117,7 +117,7 @@ class DecisionTests(unittest.TestCase):
     def ranked(self, arms, tier="decision"):
         swept, unavailable = sweep.sweep(self.briefs, self.gold, self.entries, arms, (10,))
         self.assertEqual({}, unavailable)
-        return sweep.rank(swept, self.clusters, tier)
+        return sweep.rank(swept, self.clusters, tier, 10)
 
     def test_a_clear_leader_fires_the_separation_branch_and_ships_the_leader(self):
         rows = self.ranked(
@@ -183,8 +183,8 @@ class DecisionTests(unittest.TestCase):
             "reranker": arm(ALWAYS, "reranker", tier="exploratory"),
         }
         swept, _ = sweep.sweep(self.briefs, self.gold, self.entries, arms, (10,))
-        rows = sweep.rank(swept, self.clusters, "decision")
-        exploratory = sweep.rank(swept, self.clusters, "exploratory")
+        rows = sweep.rank(swept, self.clusters, "decision", 10)
+        exploratory = sweep.rank(swept, self.clusters, "exploratory", 10)
         self.assertGreater(exploratory[0]["interval"]["mean"], rows[0]["interval"]["mean"])
 
         outcome = sweep.decide(rows, self.rule, self.clusters, exploratory)
@@ -204,7 +204,7 @@ class ClusteringTests(unittest.TestCase):
         # misses, so all the variance sits between clusters.
         arms = {"lexical": arm(hits(lambda b: int(b.split("-")[0]) % 2 == 0), "lexical")}
         swept, _ = sweep.sweep(briefs, gold, entries, arms, (10,))
-        row = sweep.rank(swept, clusters, "decision")[0]
+        row = sweep.rank(swept, clusters, "decision", 10)[0]
 
         ids = sorted(row["flags"])
         values = [row["flags"][i] for i in ids]
@@ -251,7 +251,7 @@ class AvailabilityTests(unittest.TestCase):
         for reason in unavailable.values():
             self.assertIn("vectors.json", reason)
 
-        rows = sweep.rank(swept, self.clusters, "decision")
+        rows = sweep.rank(swept, self.clusters, "decision", 5)
         ranked = [row["arm"] for row in rows]
         # Not ranked last, which would read as a measured loss, and not carrying
         # lexical's numbers under another name.
@@ -345,12 +345,15 @@ def swept_arm(family, hits_at_k, brief_ids, tier="decision"):
 
 
 class ShelfLengthListTests(unittest.TestCase):
-    """A list as long as the shelf is the control, and cannot win the ranking.
+    """Arms are compared at the same k, and never at a shelf-length list.
 
-    Round 2 ran the whole shelf as cell b and the rule fixes it at 0.0. Recall
-    rises with k by construction, so a ranking that takes each arm at its
-    highest recall selects that cell for every arm, ties them all at 1.0, and
-    decides nothing. These tests fail against a ranking that does.
+    Two ways of choosing k are wrong here and both were live at some point.
+    Taking each arm's highest recall selects the longest swept k, because recall
+    rises with k by construction, and at a k as long as the shelf every arm
+    scores 1.0 by showing the whole thing, which is round 2's control cell and
+    is fixed at 0.0. Taking each arm at its own knee reads as principled and
+    quietly compares two different list lengths at two different prices. These
+    tests fail against either.
     """
 
     TOKENS_PER_K = 63.0
@@ -359,6 +362,7 @@ class ShelfLengthListTests(unittest.TestCase):
     def setUp(self):
         _, self.briefs, self.gold = corpus(moves=8, per_move=3)
         self.clusters = sweep.cluster_keys(self.gold)
+        self.rule = sweep.parse_rule()
         self.ids = sorted(self.briefs)
         self.shelf_size = len(self.ids)
         strong, weak = self.ids[:16], self.ids[:12]
@@ -377,27 +381,29 @@ class ShelfLengthListTests(unittest.TestCase):
             ),
         }
 
-    def ranked(self, shelf_size=None):
-        return sweep.rank(
-            self.swept,
-            self.clusters,
-            "decision",
-            self.TOKENS_PER_K,
-            self.TOKENS_PER_RECALL,
-            shelf_size,
-        )
+    def ranked(self, at_k, shelf_size=None):
+        return sweep.rank(self.swept, self.clusters, "decision", at_k, shelf_size)
 
-    def test_no_arm_is_ranked_at_a_list_as_long_as_the_shelf(self):
-        for row in self.ranked(self.shelf_size):
-            self.assertLess(row["k"], self.shelf_size, row["arm"])
+    def test_every_arm_in_a_ranking_sits_at_the_same_k(self):
+        for at_k in (5, 10):
+            ks = {row["k"] for row in self.ranked(at_k, self.shelf_size)}
+            self.assertEqual({at_k}, ks)
+
+    def test_a_shelf_length_k_is_refused_rather_than_ranked(self):
+        with self.assertRaises(SystemExit):
+            self.ranked(self.shelf_size, self.shelf_size)
+
+    def test_a_ranking_with_no_k_is_refused_rather_than_choosing_one(self):
+        # The old failure mode was rank picking k for itself. It must not have
+        # a default to fall back to.
+        with self.assertRaises(SystemExit):
+            sweep.rank(self.swept, self.clusters, "decision", None, self.shelf_size)
 
     def test_the_arms_stay_distinguishable_instead_of_tying_at_perfect_recall(self):
-        rows = self.ranked(self.shelf_size)
+        rows = self.ranked(5, self.shelf_size)
         self.assertEqual(["lexical", "semantic"], [row["arm"] for row in rows])
-        self.assertGreater(
-            rows[0]["interval"]["mean"], rows[1]["interval"]["mean"]
-        )
-        # The better arm is ahead on what it retrieves, not tied at 1.0.
+        self.assertGreater(rows[0]["interval"]["mean"], rows[1]["interval"]["mean"])
+        # Ahead on what it retrieves, not tied at 1.0 by naming the whole shelf.
         self.assertAlmostEqual(16 / 24.0, rows[0]["interval"]["mean"], places=3)
         self.assertAlmostEqual(12 / 24.0, rows[1]["interval"]["mean"], places=3)
 
@@ -408,27 +414,82 @@ class ShelfLengthListTests(unittest.TestCase):
         kept = sweep.rankable_ks(self.swept["lexical"]["curve"], self.shelf_size)
         self.assertEqual([5, 10], sorted(kept))
 
-    def test_an_arm_swept_only_at_shelf_length_is_refused_rather_than_ranked(self):
-        only_long = {
-            "lexical": swept_arm("lexical", {self.shelf_size: self.ids}, self.ids)
-        }
-        with self.assertRaises(SystemExit):
-            sweep.rank(
-                only_long,
-                self.clusters,
-                "decision",
-                self.TOKENS_PER_K,
-                self.TOKENS_PER_RECALL,
-                self.shelf_size,
-            )
+    def test_the_rule_is_read_at_every_k_below_the_shelf_and_no_others(self):
+        across = sweep.decide_across_ks(
+            self.swept, self.clusters, self.rule, (5, 10, self.shelf_size), self.shelf_size
+        )
+        self.assertEqual([5, 10], [result["k"] for result in across])
 
-    def test_the_ranked_k_is_the_knee_and_not_the_longest_list_allowed(self):
-        rows = {row["arm"]: row for row in self.ranked(self.shelf_size)}
-        # Both curves are flat from k=5, so the extra five slots buy nothing and
-        # the ranking must not charge for them.
-        self.assertEqual(5, rows["lexical"]["k"])
-        self.assertEqual(5, rows["semantic"]["k"])
-        self.assertFalse(rows["lexical"]["knee_exhausted"])
+
+class KneeIsNotAComparisonTests(unittest.TestCase):
+    """The reversal this round actually hit, kept as a regression.
+
+    One arm is better at every list length. The other reaches nearly the same
+    recall only by running a longer, more expensive list. Compared at their own
+    knees they tie, and the tie hands the decision to the weaker arm through the
+    tiebreak. Compared at the same k, the stronger arm separates. The ranking
+    must do the second, because the first calls two different budgets a draw.
+    """
+
+    TOKENS_PER_K = 63.0
+    TOKENS_PER_RECALL = 23725.0
+
+    def setUp(self):
+        # One brief per move, which is the shape wave 1 actually produced, so
+        # the clusters are the briefs and the interval is not doing anything
+        # exotic while the point under test is made.
+        _, self.briefs, self.gold = corpus(moves=100, per_move=1)
+        self.clusters = sweep.cluster_keys(self.gold)
+        self.rule = sweep.parse_rule()
+        ids = sorted(self.briefs)
+        self.shelf_size = 400
+        # Shaped after the real curves. The hybrid arm is ahead at both list
+        # lengths. The lexical arm only comes close by being given the longer,
+        # more expensive one.
+        self.swept = {
+            "hybrid@w=0.3": swept_arm("hybrid", {80: ids[:90], 120: ids[:96]}, ids),
+            "lexical": swept_arm("lexical", {80: ids[:72], 120: ids[:88]}, ids),
+        }
+
+    def test_each_arm_at_its_own_knee_makes_the_weaker_arm_look_equal(self):
+        knees = {
+            label: sweep.knee(arm["curve"], self.TOKENS_PER_K, self.TOKENS_PER_RECALL)[0]
+            for label, arm in self.swept.items()
+        }
+        # The knees genuinely differ, which is the whole trap: the comparison
+        # would be 80 slots against 120.
+        self.assertEqual(80, knees["hybrid@w=0.3"])
+        self.assertEqual(120, knees["lexical"])
+        knee_to_knee = (
+            self.swept["lexical"]["curve"][120]
+            - self.swept["hybrid@w=0.3"]["curve"][80]
+        )
+        self.assertLess(abs(knee_to_knee), 0.05)
+
+    def test_at_a_matched_k_the_stronger_arm_separates_and_ships(self):
+        for at_k in (80, 120):
+            rows = sweep.rank(self.swept, self.clusters, "decision", at_k, self.shelf_size)
+            outcome = sweep.decide(rows, self.rule, self.clusters)
+            self.assertEqual("hybrid@w=0.3", rows[0]["arm"], at_k)
+            self.assertEqual("separated", outcome["branch"], at_k)
+            self.assertEqual("hybrid@w=0.3", outcome["ship"], at_k)
+
+    def test_every_comparable_k_agrees_so_the_choice_of_k_never_decided_it(self):
+        across = sweep.decide_across_ks(
+            self.swept, self.clusters, self.rule, (80, 120), self.shelf_size
+        )
+        shipped = {result["outcome"]["ship"] for result in across}
+        self.assertEqual({"hybrid@w=0.3"}, shipped)
+
+    def test_the_operating_point_is_the_knee_of_the_family_that_won(self):
+        # The knee still answers the question it is good for, which is how long
+        # to make the list once the arm is chosen.
+        point = sweep.operating_point(
+            self.swept, "hybrid", self.TOKENS_PER_K, self.TOKENS_PER_RECALL,
+            self.shelf_size,
+        )
+        self.assertEqual("hybrid@w=0.3", point["arm"])
+        self.assertEqual(80, point["k"])
 
 
 class KneeTests(unittest.TestCase):
@@ -503,7 +564,7 @@ class NoNetworkTests(unittest.TestCase):
                 mock.patch.object(provider, "chat", side_effect=blocked), \
                 mock.patch.object(provider, "embed", side_effect=blocked):
             swept, _ = sweep.sweep(briefs, gold, entries, arms, (5,))
-            rows = sweep.rank(swept, clusters, "decision")
+            rows = sweep.rank(swept, clusters, "decision", 5)
             outcome = sweep.decide(rows, sweep.parse_rule(), clusters)
         self.assertEqual("separated", outcome["branch"])
 

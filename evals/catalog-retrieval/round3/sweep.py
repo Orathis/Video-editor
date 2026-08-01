@@ -187,54 +187,55 @@ def rankable_ks(curve, shelf_size):
     return {k: recall_at for k, recall_at in curve.items() if k < shelf_size}
 
 
-def rank(
-    swept,
-    clusters,
-    tier="decision",
-    tokens_per_k=None,
-    tokens_per_recall=None,
-    shelf_size=None,
-):
-    """One row per arm, at the k where a longer list stops paying for itself.
+def rank(swept, clusters, tier="decision", at_k=None, shelf_size=None):
+    """One row per arm, every arm at the same k, with a clustered interval.
 
-    The k is the arm's knee, not the k with the highest recall. Recall rises
-    with k by construction, so ranking an arm at its recall argmax selects
-    whatever the longest swept k happened to be, and once the sweep reaches the
-    shelf size every arm scores exactly 1.0 by putting all 424 entries in front
-    of the model. That is the round 2 control, which this round's rule fixes at
-    0.0 and forbids changing, so a ranking that can select it is not measuring
-    retrieval at all. The knee is the point the rule already names, where token
-    cost starts to outrun the recall gain, and it cannot run away to the end of
-    the shelf.
+    One variable changes down this ranking, the retriever. That is the round 2
+    honesty property, and it is the whole reason the comparison means anything.
 
-    `knee_exhausted` records the arms that never stopped paying inside the
-    swept range. Their k is the end of the sweep rather than a knee, which is a
-    statement about the grid and has to be reported as one.
+    Two ways of choosing k were tried and both compare arms that are not
+    comparable. Taking each arm's highest recall selects whatever the longest
+    swept k happened to be, because recall rises with k by construction, and
+    once the sweep reaches the shelf size every arm scores exactly 1.0 by
+    showing the model all 424 entries, which is round 2's control cell and is
+    fixed at 0.0. Taking each arm at its own knee looks more principled and is
+    not: on this corpus it seats the hybrid arm at k=80 for 5258 input tokens
+    against the lexical arm at k=120 for 7778, and calls the result a tie. The
+    lexical arm reaches parity there only by being handed 48 percent more
+    budget, and at that same budget the hybrid arm is ahead again.
+
+    So k is an input here, not something the ranking picks for itself. The knee
+    still answers the question it is good for, which is the list length to run
+    the shipped arm at, and it is reported separately.
     """
-    if tokens_per_k is None:
-        tokens_per_k = token_model()[0]
-    if tokens_per_recall is None:
-        tokens_per_recall = recall_price()
+    if at_k is None:
+        raise SystemExit(
+            "rank needs the k to compare the arms at. Ranking each arm at a k "
+            "of its own compares different list lengths and different costs."
+        )
     rows = []
     for label, arm in swept.items():
         if arm["tier"] != tier:
             continue
-        curve = rankable_ks(arm["curve"], shelf_size)
-        if not curve:
+        if shelf_size is not None and at_k >= shelf_size:
             raise SystemExit(
-                "arm {0} was swept only at k values that show the whole shelf, "
-                "so it has no retrieval configuration to rank".format(label)
+                "k={0} is the whole {1} entry shelf, which is round 2's control "
+                "cell and scores 0.0, so no arm can be ranked there".format(
+                    at_k, shelf_size
+                )
             )
-        best_k, exhausted = knee(curve, tokens_per_k, tokens_per_recall)
-        flags = arm["flags"][best_k]
+        if at_k not in arm["flags"]:
+            raise SystemExit(
+                "arm {0} was not swept at k={1}".format(label, at_k)
+            )
+        flags = arm["flags"][at_k]
         ids = sorted(flags)
         rows.append(
             {
                 "arm": label,
                 "family": arm["family"],
                 "tier": tier,
-                "k": best_k,
-                "knee_exhausted": exhausted,
+                "k": at_k,
                 "flags": flags,
                 "interval": stats.clustered_mean(
                     [flags[i] for i in ids], [clusters[i] for i in ids]
@@ -420,6 +421,59 @@ def knee(curve, tokens_per_k, tokens_per_recall):
     return ks[-1], True
 
 
+def decide_across_ks(swept, clusters, rule, ks, shelf_size, tier="decision"):
+    """The rule applied at every comparable k, not at one k chosen afterwards.
+
+    Any single k is a choice, and a choice made after the numbers exist can be
+    the choice that produces the preferred answer. Running the rule at all of
+    them removes that freedom: either the swept ks agree on which family ships,
+    in which case the choice never mattered, or they disagree, which is itself
+    the finding and gets reported rather than resolved by picking one.
+    """
+    results = []
+    for k in sorted(at_k for at_k in ks if at_k < shelf_size):
+        rows = rank(swept, clusters, tier, k, shelf_size)
+        exploratory = rank(swept, clusters, "exploratory", k, shelf_size)
+        results.append(
+            {
+                "k": k,
+                "rows": rows,
+                "exploratory": exploratory,
+                "outcome": decide(rows, rule, clusters, exploratory),
+            }
+        )
+    return results
+
+
+def operating_point(swept, family, tokens_per_k, tokens_per_recall, shelf_size):
+    """Which arm of a family to run, and at what list length.
+
+    Decided only after the family is, and by the knee, which is the question the
+    knee actually answers. On a tie for recall the shorter list wins, since two
+    lists that retrieve the same thing are the same arm at a different price.
+    """
+    best = None
+    for label, arm in sorted(swept.items()):
+        if arm["family"] != family or arm["tier"] != "decision":
+            continue
+        curve = rankable_ks(arm["curve"], shelf_size)
+        if not curve:
+            continue
+        at, exhausted = knee(curve, tokens_per_k, tokens_per_recall)
+        candidate = {
+            "arm": label,
+            "k": at,
+            "recall": arm["curve"][at],
+            "exhausted": exhausted,
+        }
+        if best is None or (candidate["recall"], -candidate["k"]) > (
+            best["recall"],
+            -best["k"],
+        ):
+            best = candidate
+    return best
+
+
 def converged(swept, ks, tolerance=0.01):
     """Do every available arm land within tolerance of each other at the longest k."""
     if len(swept) < 2:
@@ -538,17 +592,56 @@ def main(argv=None):
                 ", ".join(str(k) for k in skipped), shelf_size
             )
         )
-    rows = rank(swept, clusters, "decision", slope, price, shelf_size)
-    _print_ranking(rows, "ranking, decision tier, clustered by target move")
-    exploratory = rank(swept, clusters, "exploratory", slope, price, shelf_size)
-    _print_ranking(exploratory, "ranking, exploratory tier, cannot win this decision")
+    across = decide_across_ks(swept, clusters, rule, ks, shelf_size)
+    if not across:
+        raise SystemExit("no swept k is shorter than the shelf, so nothing is comparable")
+    print("\nthe rule at every comparable k, one variable between arms")
+    print("{0:>6}  {1:<16} {2:<16} {3:>9}  {4:>20}  {5}".format(
+        "k", "leader", "runner-up", "margin", "95% interval", "branch"))
+    for result in across:
+        rows, outcome = result["rows"], result["outcome"]
+        runner = rows[1]["arm"] if len(rows) > 1 else "none"
+        margin = outcome.get("difference") or {}
+        print("{0:>6}  {1:<16} {2:<16} {3:>+9.4f}  {4:>20}  {5}".format(
+            result["k"], rows[0]["arm"], runner,
+            margin.get("mean", 0.0),
+            stats.format_interval(margin) if margin else "n/a",
+            outcome["branch"]))
+
+    families = [
+        swept[r["outcome"]["ship"]]["family"]
+        for r in across
+        if r["outcome"]["ship"] in swept
+    ]
+    unanimous = bool(families) and len(set(families)) == 1 and len(families) == len(across)
+    _print_ranking(across[-1]["rows"], "ranking at the longest comparable k")
     _print_knees(swept, ks, token_model(), recall_price())
 
-    outcome = decide(rows, rule, clusters, exploratory)
-    print("\nrule outcome")
-    print("branch: {0}".format(outcome["branch"]))
-    print("ship: {0}".format(outcome["ship"] or "nothing yet"))
-    print("why: {0}".format(outcome["reason"]))
+    if unanimous:
+        family = families[0]
+        point = operating_point(swept, family, slope, price, shelf_size)
+        headline = next(r for r in across if r["k"] == point["k"])
+        outcome = headline["outcome"]
+        print("\nrule outcome")
+        print("every comparable k ships the {0} family, so which k the rule is "
+              "read at does not change the decision".format(family))
+        print("operating point: {0} at k={1}, recall {2:.4f}, {3:.0f} input "
+              "tokens per run{4}".format(
+                  point["arm"], point["k"], point["recall"],
+                  slope * point["k"] + token_model()[1],
+                  ", the knee is past the end of the sweep" if point["exhausted"] else ""))
+        print("branch: {0}".format(outcome["branch"]))
+        print("ship: {0}".format(point["arm"]))
+        print("why: {0}".format(outcome["reason"]))
+    else:
+        outcome = across[-1]["outcome"]
+        print("\nrule outcome")
+        print("the swept ks do not agree on which family ships: {0}. That "
+              "disagreement is the result and is not resolved by choosing a "
+              "k.".format(", ".join(sorted(set(families))) or "none"))
+        print("branch: {0}".format(outcome["branch"]))
+        print("ship: {0}".format(outcome["ship"] or "nothing yet"))
+        print("why: {0}".format(outcome["reason"]))
     for followup in outcome["followups"]:
         print("follow-up: {0} beats {1} by {2:.4f}, 95% {3}, {4}".format(
             followup["arm"], followup["over"], followup["margin"]["mean"],
