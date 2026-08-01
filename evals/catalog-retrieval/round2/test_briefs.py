@@ -168,6 +168,10 @@ class BriefGeneratorTests(unittest.TestCase):
         second = briefs.choose_targets(self.catalog, 1)
         self.assertEqual(first, second)
         self.assertEqual(len(self.catalog), len(first))
+        # The whole shelf, stated as the literal the round 4 plan commits to, so
+        # a catalog that silently loses or gains a move is caught here rather
+        # than after a paid wave has already been priced against it.
+        self.assertEqual(424, len(first))
         self.assertEqual(
             {name: 1 for name in self.catalog},
             dict(Counter(name for name, _ in first)),

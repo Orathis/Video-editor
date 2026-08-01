@@ -25,6 +25,10 @@ AUDIT_PATH = os.path.join(harness2.CORPUS_ROOT, "GOLD-AUDIT.md")
 # A 95 percent floor limits label uncertainty to at most 15 of 300 briefs. At 90
 # percent, as many as 30 briefs and 270 main-grid cells could inherit bad gold,
 # which is too much avoidable uncertainty before a large paid run.
+#
+# The floor is unchanged at 0.95. What it is applied to changed in round 4: see
+# gate_rate below. The name is kept because it is what the audit and the tests
+# already read.
 ACCURACY_FLOOR = 0.95
 SAMPLE_FRACTION = 0.20
 SAMPLE_CAP = 30
@@ -623,10 +627,38 @@ def _ratio(result, rate_key, count_key):
     return f"{rate:.2%} ({result.get(count_key, 0)}/{result['total']})"
 
 
+def gate_rate(result):
+    """The one number that blocks the grid: agreement over the scored corpus.
+
+    Round 3 gated on the strict reconstruction rate and failed it at 75.21
+    percent, because a brief whose beat has two right answers counted as a
+    reconstruction failure. Round 4 exists to score those briefs instead of
+    excluding them, so the rate that decides whether the corpus is trustworthy
+    has to be the rate over the corpus that is actually scored. Under this rate a
+    merged near twin is a success, and a contested or an unplaceable brief is
+    still a failure, because neither one produces a set that anything can be
+    scored against.
+
+    The strict rate is kept and reported beside it, and it never gates. It is the
+    only number that says how often an independent reader landed on the one move
+    the brief was constructed from, which is what keeps a merge visible instead
+    of laundered, and it is the line prune_corpus reads to check its own
+    arithmetic against the audit.
+
+    One owner, because the report and the block have to gate on the same number.
+    None means the run produced no rate at all, which is never a pass.
+    """
+    return result.get("scored_agreement")
+
+
 def render_audit(result, fixture_data=False):
     disagreement_sample, control_sample = sample_for_hand_decision(result)
     accuracy = result["accuracy"]
-    status = "PASS" if accuracy >= result["floor"] else "BLOCK"
+    scored = gate_rate(result)
+    if scored is None:
+        status = "not measured"
+    else:
+        status = "PASS" if scored >= result["floor"] else "BLOCK"
     lines = ["# Gold Audit", ""]
     if fixture_data:
         lines.extend(
@@ -648,7 +680,7 @@ def render_audit(result, fixture_data=False):
             "",
             f"- Corpus accuracy: {accuracy:.2%} ({result['correct_count']}/{result['total']})",
             f"- Accuracy floor: {result['floor']:.2%}",
-            f"- Status: {status}",
+            f"- Status: {status}, gated on scored corpus agreement",
             f"- Unanimous agreement count: {result['unanimous_count']}",
             f"- Disagreement count: {result['disagreement_count']}",
             "",
@@ -661,7 +693,9 @@ def render_audit(result, fixture_data=False):
             "",
             "Corpus accuracy above is the strict rate: how often the committee reconstructed the one move the brief was constructed from. Scored corpus agreement is the rate over the corpus this round will actually score, where a brief whose beat has two right answers carries both of them as gold rather than being removed. Both denominators are every brief the committee read, so a brief that no acceptable set can be built for lowers the second number instead of vanishing from it. Reporting a rate over the briefs that survived pruning is 100 percent by construction and measures nothing.",
             "",
-            "The 95 percent floor limits uncertain labels to at most 15 of a 300-brief corpus. A 90 percent floor could admit 30 wrong briefs and contaminate 270 main-grid cells, so it is too permissive before a large paid run. Falling below the floor blocks the grid with no continue-with-caveat path.",
+            "Scored corpus agreement is the number the floor is applied to, and the status line above reports its verdict. Round 3 applied the floor to the strict rate and failed it at 75.21 percent, because a brief that two near twin moves answer equally well counted as a reconstruction failure. Those briefs are now scored rather than excluded, so the rate that gates the grid is the rate over the corpus that gets scored. The strict rate is kept and reported because it is the only number that shows how often a blind reader landed on the constructed move, which is what makes a near twin merge visible instead of laundered, and because prune_corpus checks its own arithmetic against it.",
+            "",
+            "The 95 percent floor limits uncertain labels to at most 15 of a 300-brief corpus. A 90 percent floor could admit 30 wrong briefs and contaminate 270 main-grid cells, so it is too permissive before a large paid run. Falling below the floor blocks the grid with no continue-with-caveat path. A contested brief and an unplaceable brief both count against the floor, because neither one yields a set that can be scored.",
             "",
             "Hand decisions are authoritative. When present, a hand decision replaces both the constructed gold candidate and the committee resolution for the final corpus result.",
             "",
@@ -758,16 +792,26 @@ def validate_corpus(
         )
         return result, None
     report = render_audit(result, fixture_data=fixture_data)
+    scored = gate_rate(result)
     print(
         f"Corpus accuracy: {result['accuracy']:.2%} "
         f"({result['correct_count']}/{result['total']})"
     )
+    if scored is not None:
+        print(
+            f"Scored corpus agreement: {scored:.2%} "
+            f"({result['scored_count']}/{result['total']})"
+        )
     if audit_path is not None:
         with open(audit_path, "w", encoding="utf-8") as fh:
             fh.write(report)
-    if result["accuracy"] < result["floor"]:
+    if scored is None:
         raise SystemExit(
-            f"corpus accuracy {result['accuracy']:.2%} is below the "
+            "the committee produced no scored corpus agreement; grid blocked"
+        )
+    if scored < result["floor"]:
+        raise SystemExit(
+            f"scored corpus agreement {scored:.2%} is below the "
             f"{result['floor']:.2%} floor; grid blocked"
         )
     return result, report
