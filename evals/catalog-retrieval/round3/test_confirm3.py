@@ -114,14 +114,23 @@ class PairedTests(unittest.TestCase):
         self.assertEqual(-0.3333, difference["known_wrong_pick"]["mean"])
         self.assertEqual(0.0, difference["refusal"]["mean"])
 
-    def test_two_cells_that_did_the_same_thing_differ_by_exactly_zero(self):
+    def test_two_cells_that_did_the_same_thing_differ_by_zero_but_not_by_certainty(self):
+        # The point estimate is zero and the interval around it is not, because
+        # two cells agreeing on this corpus is not the same as two cells that
+        # cannot disagree. With nothing varying, the interval falls back to the
+        # rule of three over the clusters.
         records = [record(b, "h", GOLD[b]["best"]) for b in GOLD]
         records += [record(b, "c", GOLD[b]["best"]) for b in GOLD]
         difference = confirm3.paired(self.rows(records), "h@10", "c@10")
+        # Two target moves behind the four briefs, so the rule of three hands
+        # back 1.5, wider than a difference of two rates can possibly be. It is
+        # clipped to that range rather than printed as an impossible bound.
+        bound = 1.0
         for name, _ in confirm3.METRICS:
             self.assertEqual(0.0, difference[name]["mean"], name)
-            self.assertEqual(0.0, difference[name]["lo"], name)
-            self.assertEqual(0.0, difference[name]["hi"], name)
+            self.assertEqual(0.0, difference[name]["se"], name)
+            self.assertEqual(-bound, difference[name]["lo"], name)
+            self.assertEqual(bound, difference[name]["hi"], name)
 
     def test_a_cell_that_never_ran_pairs_against_nothing(self):
         # Silently returning a difference over zero briefs would report a

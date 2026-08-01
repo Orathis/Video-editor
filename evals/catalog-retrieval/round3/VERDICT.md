@@ -92,18 +92,18 @@ over 273 briefs at k=5, 20, 80 and 120, so the paid arm is the arm the sweep ran
 
 546 runs over 273 briefs, 3,143,883 tokens, **$7.02** against a $20 ceiling, **0 errors**.
 
-| cell           | refusal | known-wrong-pick | 95% ci           | mountable | fit    | pass rate |
-| -------------- | ------- | ---------------- | ---------------- | --------- | ------ | --------- |
-| h@80 (hybrid)  | 0.0000  | 0.1648           | 0.1205 to 0.2091 | 1.0000    | 0.6215 | 0.7179    |
-| c@80 (lexical) | 0.0000  | 0.1319           | 0.0915 to 0.1723 | 1.0000    | 0.5134 | 0.6007    |
+| cell           | refusal | 95% ci           | known-wrong-pick | 95% ci           | mountable | fit    | pass rate |
+| -------------- | ------- | ---------------- | ---------------- | ---------------- | --------- | ------ | --------- |
+| h@80 (hybrid)  | 0.0000  | 0.0000 to 0.0110 | 0.1648           | 0.1205 to 0.2091 | 1.0000    | 0.6215 | 0.7179    |
+| c@80 (lexical) | 0.0000  | 0.0000 to 0.0110 | 0.1319           | 0.0915 to 0.1723 | 1.0000    | 0.5134 | 0.6007    |
 
 Paired brief by brief, hybrid against lexical:
 
 | quantity         | difference | 95% ci            | separated |
 | ---------------- | ---------- | ----------------- | --------- |
-| refusal          | +0.0000    | 0.0000 to 0.0000  | no        |
+| refusal          | +0.0000    | -0.0110 to 0.0110 | no        |
 | known-wrong-pick | +0.0330    | -0.0044 to 0.0703 | no        |
-| mountable        | +0.0000    | 0.0000 to 0.0000  | no        |
+| mountable        | +0.0000    | -0.0110 to 0.0110 | no        |
 | fit              | +0.1081    | 0.0550 to 0.1612  | yes       |
 | pass rate        | +0.1172    | 0.0575 to 0.1769  | yes       |
 
@@ -114,10 +114,29 @@ that difference contains zero and is not a separation.
 Two things the confirmation settled that the sweep could not:
 
 - **Refusal is a short-list problem, not an arm problem.** At k=80 neither arm ever refused: 0
-  of 273 runs, in both cells. Round 2 measured 0.040 at hybrid k=10 and 0.110 at semantic k=5.
-  A list long enough to separate the arms is already long enough that refusal disappears.
-- **Every pick resolved to a real shelf move.** Mountable is 1.0000 in both cells, so the fit gap
-  is a choosing problem and not a naming problem.
+  of 273 runs, in both cells. That is not a measured rate of exactly zero. Nothing varied, so the
+  interval falls back to the rule of three and bounds the rate under 1.1%, which is the most the
+  corpus can say. Round 2 measured 0.040 at hybrid k=10 and 0.110 at semantic k=5, both far above
+  that bound, so the drop is real even though its floor is not pinned.
+- **Every pick resolved to a real shelf move.** Mountable is 1.0000 in both cells, bounded below
+  at 0.9890 by the same rule, so the fit gap is a choosing problem and not a naming problem.
+
+### What 546 runs could and could not resolve
+
+The corpus is large enough for the comparison the round was run to make, and not large enough for
+one of the two quantities the paid stage bought:
+
+| quantity         | difference | half width | resolved                                     |
+| ---------------- | ---------- | ---------- | -------------------------------------------- |
+| fit              | +0.1081    | 0.0531     | yes, the margin is twice the half width      |
+| pass rate        | +0.1172    | 0.0597     | yes                                          |
+| known-wrong-pick | +0.0330    | 0.0374     | no, the margin sits just inside the interval |
+| refusal          | +0.0000    | 0.0110     | bounded, not resolved                        |
+
+Resolving the known-wrong-pick gap at its observed size would need about 351 briefs, from
+273 x (0.0374 / 0.0330)^2. That is affordable against the 424-entry ceiling, but it would buy one
+secondary number and would not change what ships, since fit and pass rate already separate and
+point the same way. It is recorded here as a known limit rather than run.
 
 ## What actually ships
 
@@ -200,8 +219,12 @@ distinction the shelf does not contain.
 - Scoring stayed mechanical, in `gate2.py`, unchanged. No model judged a model.
 - Naming the whole shelf still scores 0.0.
 - Exactly one variable changed between the paid cells: the retriever, both at k=80.
-- The gate regressions carried forward from round 1 and round 2 still pass. 104 tests in this
-  round's directory, 0 failures.
+- The gate regressions carried forward from round 1 and round 2 still pass. 110 tests in this
+  round's directory, 0 failures, and 90 in round 2's.
+- No interval claims more certainty than the corpus holds. A column where every cluster landed on
+  the same value used to report a width of exactly zero, which is arithmetic rather than evidence;
+  it now falls back to the rule of three, and every rate interval is clipped to the range a rate
+  can occupy rather than printing a negative refusal rate as a bound.
 - The rule was read out of `DECISION-RULE.md` by `sweep.py` rather than transcribed into code,
   and that file is a committed ancestor of every commit that produced a number here.
 

@@ -97,15 +97,43 @@ class ClusteredMean(unittest.TestCase):
         self.assertLess(result["n_eff"], 7)
         self.assertTrue(math.isfinite(result["se"]))
 
-    def test_a_constant_column_has_no_sampling_error(self):
-        # Round 2's full shelf cell shows gold to every brief, so its recall is
-        # 1.0 with nothing to be uncertain about. Reporting a spread here would
-        # be an invented one.
+    def test_a_constant_column_reports_the_rule_of_three_not_zero_width(self):
+        # Round 2's full shelf cell shows gold to every brief, so nothing varies
+        # and the sandwich returns a standard error of exactly zero.
+        #
+        # Zero width is arithmetic, not evidence. The estimator cannot tell a
+        # constant that is structural, as this one is, from a constant that is
+        # merely unobserved, and the two failure modes are not symmetric: a
+        # slightly wide interval on a structural 1.0 misleads nobody, while
+        # "0 refusals in 273 runs" printed as exactly 0.0000 to 0.0000 claims a
+        # certainty the corpus does not hold. So the interval falls back to the
+        # rule of three, 3/clusters, which is conservative in the first case and
+        # correct in the second. It only widens downward, since a recall above
+        # 1.0 is not a thing the corpus could have produced.
         values, moves = round2_recall("b")
         result = stats.clustered_mean(values, moves)
         self.assertEqual(1.0, result["mean"])
         self.assertEqual(0.0, result["se"])
-        self.assertEqual((1.0, 1.0), (result["lo"], result["hi"]))
+        self.assertEqual(round(1.0 - 3.0 / result["clusters"], 4), result["lo"])
+        self.assertEqual(1.0, result["hi"])
+
+    def test_a_zero_rate_is_bounded_rather_than_pinned_to_zero(self):
+        # The case the fallback exists for. 0 of 273 does not establish a rate
+        # of exactly 0.0000; it establishes a rate under roughly 1.1%. The lower
+        # bound stays at 0.0 because a negative refusal rate is not a bound the
+        # measurement leaves open, it is one it forbids.
+        result = stats.clustered_mean([0.0] * 273, list(range(273)))
+        self.assertEqual(0.0, result["mean"])
+        self.assertEqual(0.0, result["lo"])
+        self.assertEqual(0.011, result["hi"])
+
+    def test_a_rate_interval_never_leaves_the_range_a_rate_can_occupy(self):
+        # The sandwich can reach past 1.0 on its own, without the fallback, when
+        # a near-constant column carries just enough spread to be estimated.
+        values = [1.0] * 39 + [0.0]
+        result = stats.clustered_mean(values, list(range(40)))
+        self.assertEqual(1.0, result["hi"])
+        self.assertGreater(result["se"], 0.0)
 
     def test_empty_and_single_observation_do_not_crash(self):
         empty = stats.clustered_mean([], [])
@@ -192,12 +220,15 @@ class IntraClusterCorrelation(unittest.TestCase):
 
 class ClusteredDifference(unittest.TestCase):
     def test_identical_arms_give_a_zero_difference_without_dividing_by_zero(self):
+        # Two arms that agreed on every brief differ by zero, and the interval
+        # around that zero is the rule of three rather than nothing: agreeing on
+        # this corpus is not the same as being the same arm.
         values = [0.4, 0.9, 0.1, 0.6, 0.6]
         keys = ["a", "a", "b", "c", "c"]
         result = stats.clustered_difference(values, list(values), keys)
         self.assertEqual(0.0, result["mean"])
         self.assertEqual(0.0, result["se"])
-        self.assertEqual((0.0, 0.0), (result["lo"], result["hi"]))
+        self.assertEqual((-1.0, 1.0), (result["lo"], result["hi"]))
 
     def test_a_paired_difference_is_narrower_than_the_two_columns_apart(self):
         # Pairing is what holds brief difficulty fixed. A constant per brief

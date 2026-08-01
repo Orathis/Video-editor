@@ -117,7 +117,7 @@ def intra_cluster_correlation(values, clusters):
     return icc, design_effect, n / design_effect
 
 
-def clustered_mean(values, clusters):
+def clustered_mean(values, clusters, bounds=(0.0, 1.0)):
     """A mean with a 95 percent interval that treats the cluster as the unit.
 
     The interval is the cluster robust (sandwich) estimator, which collapses
@@ -126,6 +126,13 @@ def clustered_mean(values, clusters):
     honest. The correlation, design effect and effective n ride alongside as the
     diagnostic that explains why the interval is as wide as it is; they are
     reported, not used, since the sandwich already carries the clustering.
+
+    Every quantity this eval averages is a rate, so the interval is clipped to
+    the range the underlying observations could have taken. Reporting a refusal
+    rate of "-0.0110 to 0.0110" would spend the reader's attention on a bound
+    the measurement forbids. Paired differences pass their own wider range, and
+    an unbounded interval is left alone because a single cluster genuinely
+    bounds nothing.
     """
     values = [float(value) for value in values]
     clusters = list(clusters)
@@ -149,10 +156,22 @@ def clustered_mean(values, clusters):
         standard_error = math.sqrt(k / (k - 1) * residual) / n
 
     half_width = t_critical(k - 1) * standard_error
+    if k >= 2 and standard_error == 0.0:
+        # Every cluster landed on the same value, so the sandwich reports zero
+        # width. That is arithmetic, not evidence: 0 refusals in 273 runs does
+        # not establish that the refusal rate is exactly 0.0000, only that it is
+        # small. The rule of three is the standard bound for this case, and the
+        # widest it can be wrong by is the same 3/k it hands back, so a report
+        # that shows it can never claim more certainty than the data holds.
+        half_width = 3.0 / k
+
+    lo, hi = mean - half_width, mean + half_width
+    if bounds is not None and math.isfinite(half_width):
+        lo, hi = max(lo, bounds[0]), min(hi, bounds[1])
     return {
         "mean": round(mean, 4),
-        "lo": round(mean - half_width, 4),
-        "hi": round(mean + half_width, 4),
+        "lo": round(lo, 4),
+        "hi": round(hi, 4),
         "se": round(standard_error, 4),
         "n": n,
         "clusters": k,
@@ -177,7 +196,7 @@ def clustered_difference(values, baseline, clusters):
             "paired difference needs one baseline value and one cluster per value"
         )
     return clustered_mean(
-        [a - b for a, b in zip(values, baseline)], clusters
+        [a - b for a, b in zip(values, baseline)], clusters, bounds=(-1.0, 1.0)
     )
 
 
