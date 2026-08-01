@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createMediaResolver,
   extractVideoFrames,
+  fetchMediaBytes,
+  mediaBytesResolver,
   mediaCacheKey,
   type MediaResolver,
 } from "./mediaResolver";
@@ -322,5 +324,70 @@ describe("extractVideoFrames", () => {
     video.dispatchEvent(new Event("loadedmetadata"));
     video.dispatchEvent(new Event("seeked"));
     await expect(done).rejects.toThrow(/Tainted/);
+  });
+});
+
+describe("fetchMediaBytes", () => {
+  let fetches: string[];
+
+  beforeEach(() => {
+    mediaBytesResolver.reset();
+    fetches = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        fetches.push(String(url));
+        return Promise.resolve({
+          ok: true,
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+        });
+      }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    mediaBytesResolver.reset();
+  });
+
+  it("downloads a source once however many consumers want its bytes", async () => {
+    // The waveform decoder and the beat analyzer, on the same track.
+    const [waveform, beats] = await Promise.all([
+      fetchMediaBytes("/assets/track.mp3"),
+      fetchMediaBytes("/assets/track.mp3"),
+    ]);
+
+    expect(fetches).toHaveLength(1);
+    expect(waveform).toBe(beats);
+  });
+
+  it("shares the download across consumers that arrive later", async () => {
+    await fetchMediaBytes("/assets/track.mp3");
+    await fetchMediaBytes("/assets/track.mp3");
+
+    expect(fetches).toHaveLength(1);
+  });
+
+  it("treats the same file spelled differently as one source", async () => {
+    await fetchMediaBytes("/assets/track.mp3");
+    await fetchMediaBytes("./assets/track.mp3");
+
+    expect(fetches).toHaveLength(1);
+  });
+
+  it("keeps different sources apart", async () => {
+    await fetchMediaBytes("/assets/a.mp3");
+    await fetchMediaBytes("/assets/b.mp3");
+
+    expect(fetches).toHaveLength(2);
+  });
+
+  it("rejects a non-2xx instead of caching an error page as media", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve({ ok: false, status: 404 })),
+    );
+
+    await expect(fetchMediaBytes("/assets/missing.mp3")).rejects.toThrow(/404/);
   });
 });

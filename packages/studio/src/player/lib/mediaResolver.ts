@@ -333,6 +333,45 @@ export const waveformResolver = createMediaResolver<number[]>({
   failureTtlMs: BUDGETS.metadataFailureTtlMs,
 });
 
+/**
+ * Whole media files, shared by every Studio path that decodes one.
+ *
+ * The waveform decoder and the beat analyzer both want the same audio file's
+ * PCM and each used to fetch it for itself — two downloads of one track, which
+ * is what an amplification count sees. This is the single fetch they share.
+ * Bounded by bytes, because one entry is an entire media file.
+ */
+export const mediaBytesResolver = createMediaResolver<ArrayBuffer>({
+  maxEntries: BUDGETS.mediaBytesCacheEntries,
+  maxBytes: BUDGETS.mediaBytesCacheBytes,
+  sizeOf: (bytes) => bytes.byteLength,
+  concurrency: BUDGETS.concurrentVideoDecodes,
+  failureTtlMs: BUDGETS.metadataFailureTtlMs,
+});
+
+/** One download per source. Rejects on a non-2xx so the failure record expires. */
+export function fetchMediaBytes(src: string): Promise<ArrayBuffer> {
+  return mediaBytesResolver.resolve(mediaCacheKey(src), async () => {
+    const response = await fetch(normalizeMediaUrl(src));
+    if (!response.ok) {
+      throw new Error(`mediaResolver: ${response.status} fetching ${src}`);
+    }
+    return response.arrayBuffer();
+  });
+}
+
+/**
+ * Decode a whole audio file to PCM, sharing one download per source.
+ *
+ * `decodeAudioData` DETACHES the buffer it is handed, so each caller decodes a
+ * copy — the cached entry has to survive for the next one.
+ */
+export async function decodeAudioFromUrl(src: string): Promise<AudioBuffer> {
+  const bytes = await fetchMediaBytes(src);
+  const context = new AudioContext();
+  return context.decodeAudioData(bytes.slice(0)).finally(() => void context.close());
+}
+
 export interface MediaProbeResult {
   duration: number;
   width?: number;

@@ -39,6 +39,13 @@ export interface TimelineViewportBudgets {
   waveformCacheEntries: number;
   /** LRU byte bound on the decoded-waveform cache. */
   waveformCacheBytes: number;
+  /** LRU entry bound on the shared raw-media-bytes cache. */
+  mediaBytesCacheEntries: number;
+  /**
+   * LRU byte bound on the shared raw-media-bytes cache. Entry count alone does
+   * not bound memory: one entry is a whole media file.
+   */
+  mediaBytesCacheBytes: number;
   /** LRU entry bound on the media-metadata cache. */
   metadataRegistryEntries: number;
   /** How long a failed probe stays failed before it is retried. */
@@ -81,6 +88,8 @@ export const ENFORCED_BUDGET_FIELDS = [
   "thumbnailCacheBytes",
   "waveformCacheEntries",
   "waveformCacheBytes",
+  "mediaBytesCacheEntries",
+  "mediaBytesCacheBytes",
   "metadataRegistryEntries",
   "metadataFailureTtlMs",
 ] as const satisfies readonly (keyof TimelineViewportBudgets)[];
@@ -121,6 +130,8 @@ export const TIMELINE_VIEWPORT_BUDGETS: Readonly<TimelineViewportBudgets> = Obje
   thumbnailCacheBytes: 64 * MEBIBYTE,
   waveformCacheEntries: 256,
   waveformCacheBytes: 16 * MEBIBYTE,
+  mediaBytesCacheEntries: 8,
+  mediaBytesCacheBytes: 64 * MEBIBYTE,
   metadataRegistryEntries: 512,
   metadataFailureTtlMs: 30_000,
   maxMountedRows: 64,
