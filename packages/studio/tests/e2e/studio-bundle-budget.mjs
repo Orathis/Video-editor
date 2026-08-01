@@ -22,20 +22,24 @@ import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
 
 /**
- * The target. Reaching it needs the Node-only AST/DOM stack (@babel/parser,
- * esprima, acorn, recast, ast-types, source-map, linkedom) out of the browser
- * bundle — roughly 1.85MB of module graph pulled in through the SDK's
- * openComposition. That is its own unit; this number is not revised down to
- * meet what we happen to ship today.
+ * The target — met as of the AST/DOM-stack removal (measured 604,332B).
+ *
+ * Getting here took the Node-only AST/DOM stack off the first-paint path:
+ * recast / @babel/parser / esprima / ast-types / source-map left the browser
+ * graph entirely when `isStudioHoldSet` moved out of the recast-importing
+ * gsapParser.ts, and linkedom (+ htmlparser2 / css-select / domutils / cssom /
+ * entities) moved behind the dynamic `import("@hyperframes/sdk")` in
+ * src/utils/sdkLazy.ts plus the `sdk-parse` manualChunks rule that keeps the
+ * `/node_modules/` catch-all from folding it back into eager `vendor`.
  */
 export const EAGER_ENTRY_CHUNK_GZIP_TARGET_BYTES = 600 * 1024;
 /**
- * What the gate enforces: a ratchet just above the measured 860,966B, so the
- * 23.6% already won cannot be given back. It may only ever move down.
- * Enforcing the unreached target instead would mean a permanently red check,
- * and a permanently red check gets muted — so it would protect nothing.
+ * What the gate enforces: a ratchet just above the measured 604,332B, so what
+ * has been won cannot be given back. It may only ever move down. It sits above
+ * rather than at the target so ordinary churn does not flip the check red — a
+ * permanently red check gets muted, and would protect nothing.
  */
-export const EAGER_ENTRY_CHUNK_GZIP_RATCHET_BYTES = 870_000;
+export const EAGER_ENTRY_CHUNK_GZIP_RATCHET_BYTES = 610_000;
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_DIST = resolve(HERE, "../../dist");
