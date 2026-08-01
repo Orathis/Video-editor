@@ -183,10 +183,34 @@ def operating_point(summary, confirmation):
     climbing = sorted(step for step, votes in steps.items() if any(votes))
     if not climbing:
         return None
+    shipped_k = climbing[-1][1]
+    # Whether the arm the band chose is still measurably ahead at the list
+    # length that ships. It need not be: the band is a recall result over a
+    # range, and the arms converge as k approaches the shelf size. A page that
+    # names an arm and does not say this would let a reader assume the end to
+    # end advantage was measured at the point they are about to ship.
+    at_shipped = []
+    for pair in confirmation.get("paired", []):
+        if tuple(pair.get("changed") or ()) != ("arm",):
+            continue
+        cell = confirm3.parse_cell(pair["cell"])
+        if cell["k"] != shipped_k:
+            continue
+        if harness2.FAMILY_BY_CONDITION.get(cell["arm"]) != family:
+            continue
+        at_shipped.append(pair["pass_rate"])
     return {
         "family": family,
-        "k": climbing[-1][1],
+        "k": shipped_k,
+        "arm_separates_at_k": sum(1 for gap in at_shipped if _separates(gap)),
+        "arm_measured_at_k": len(at_shipped),
+        "arm_gaps_at_k": sorted(gap["mean"] for gap in at_shipped),
         "from_k": climbing[-1][0],
+        # Both counts, because only one of them is the claim. The step ships on
+        # "at least one model separated", so saying it separated on 2 models
+        # when 2 is merely how many were asked overstates a split decision as a
+        # unanimous one.
+        "separating": sum(1 for vote in steps[climbing[-1]] if vote),
         "models": len(steps[climbing[-1]]),
         "stalled": sorted(step for step, votes in steps.items() if not any(votes)),
     }
@@ -211,13 +235,14 @@ def operating_point_sections(summary, confirmation):
             "Operating point: {0} at k={1}. The family is what the band decided, "
             "over {2} contiguous list lengths against a required {3}. The list "
             "length is the last one that bought anything: going from k={4} to "
-            "k={1} separated on pass rate on {5} of the models confirmed there, "
-            "and {6}.".format(
+            "k={1} separated on pass rate on {5} of the {6} models confirmed "
+            "there, and {7}.".format(
                 point["family"],
                 point["k"],
                 summary["band"]["width"],
                 summary["band"]["required"],
                 point["from_k"],
+                point["separating"],
                 point["models"],
                 "every longer step measured here separated on none of them ({0})".format(
                     stalled
@@ -225,6 +250,22 @@ def operating_point_sections(summary, confirmation):
                 if stalled
                 else "no longer list length was bought, so this is the longest "
                 "measured rather than a measured ceiling",
+            )
+        ),
+        build_report3._paragraph(
+            "At k={0} itself the {1} arm is ahead of lexical end to end on pass "
+            "rate by {2} on the {3} models measured there, and that gap separates "
+            "from zero on {4} of them. The arm was chosen by the recall band, "
+            "which is a result over a range of list lengths and not a claim about "
+            "this one; the arms must converge as k approaches the shelf size, and "
+            "by k={0} they have. Where the arm is decisively worth its embedding "
+            "index is short lists, not this one.".format(
+                point["k"],
+                point["family"],
+                " and ".join("{0:+.4f}".format(gap) for gap in point["arm_gaps_at_k"])
+                or "nothing measured",
+                point["arm_measured_at_k"],
+                point["arm_separates_at_k"],
             )
         ),
         build_report3._paragraph(

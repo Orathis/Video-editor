@@ -18,7 +18,7 @@ result measured on a single model.
 | ------------------------------------ | ------------------------------------------------------------------- | ------ |
 | 1, unbiased corpus                   | 424 moves covered, near twins scored, agreement over the scored set | HELD   |
 | 2, band stability                    | separation over at least 5 contiguous list lengths                  | HELD   |
-| 3, paid agreement at more than one k | four list lengths, three inside the band and one outside            | HELD   |
+| 3, paid agreement at more than one k | eight list lengths, six inside the band and two outside             | HELD   |
 | 4, reproduction on a second model    | same leading family, bands overlapping by at least 5 list lengths   | HELD   |
 
 ## The corpus
@@ -122,6 +122,11 @@ Hybrid is ahead of lexical on fit at seven of the eight cells and separably ahea
 **never separably behind at any list length on either model**, and the one list length outside the
 band came out a tie on both, which is what the rule predicted before the money was spent.
 
+Counting the five short list lengths from leg 4 as well, there are sixteen arm comparisons in this
+round, eight list lengths on each of two models. Hybrid separates on fit at eleven of them and is
+never separably behind at any. The five that do not separate are k=110 on model B and k=210 and
+k=300 on both, which is to say every one of them sits at the long end where the arms converge.
+
 Refusal and mountable behave as bounds, not as exact values. Refusal is 0.0000 in eleven of the
 sixteen cells and never above 0.0049; mountable is 1.0000 in eleven and never below 0.9934. The
 one place either separates is k=20 on model A, where lexical refuses 0.0296 of briefs and hybrid
@@ -159,7 +164,7 @@ From `round4/confirm4.json`, on `gpt-5.6-luna`.
 | quantity                              | value                                                                 |
 | ------------------------------------- | --------------------------------------------------------------------- |
 | same leading family as model A        | yes, hybrid, never separably behind                                   |
-| band overlap, against the required 5  | see leg 4 below                                                       |
+| band overlap, against the required 5  | 5 contiguous list lengths, k=10 to k=50, clears exactly               |
 | fit difference between the two models | +0.0220 at k=20, -0.0280 at k=110, +0.0052 at k=210, +0.0350 at k=300 |
 | verdict: reproduced, or disagreed     | reproduced, with the confound below                                   |
 
@@ -194,21 +199,50 @@ ship anyway, the round bought the missing measurement: both arms on both models 
 50, which together with the k=20 cells already in hand gives each model a contiguous run of five
 list lengths in the grid.
 
-BAND_RESULT_PLACEHOLDER
+3240 further runs on each model bought it. Paired hybrid minus lexical at the five contiguous list
+lengths, on pass rate, from `round4/confirm4.json`:
+
+| k   | model A                      | separates | model B                      | separates |
+| --- | ---------------------------- | --------- | ---------------------------- | --------- |
+| 10  | +0.0864 (+0.0430 to +0.1299) | yes       | +0.1062 (+0.0615 to +0.1508) | yes       |
+| 20  | +0.2074 (+0.1582 to +0.2566) | yes       | +0.2123 (+0.1653 to +0.2594) | yes       |
+| 30  | +0.1951 (+0.1485 to +0.2416) | yes       | +0.2000 (+0.1512 to +0.2488) | yes       |
+| 40  | +0.1901 (+0.1414 to +0.2388) | yes       | +0.1901 (+0.1410 to +0.2393) | yes       |
+| 50  | +0.1679 (+0.1173 to +0.2185) | yes       | +0.1704 (+0.1182 to +0.2225) | yes       |
+
+Both models separate at all five, on fit as well as on pass rate, with hybrid ahead every time.
+The two per-model bands are therefore k=10 to k=50 on both, an overlap of 5 contiguous list
+lengths against a required 5. **Leg 4 holds on the measurement rather than on the argument**, and
+it holds with no room to spare: had one of the ten cells come out a tie, the clause would have
+failed and this verdict would have shipped nothing.
+
+Two things this measurement does not say. It does not extend the separation to the whole recall
+band: at k=110 and above the arms converge end to end, and the overlap that clears the clause sits
+entirely at the short end. And it does not remove the temperature confound, which applies to these
+cells exactly as it applies to the other eight.
 
 ## What money bought, and what it could not
 
 Spend, from each step's own meter. Every figure below is recomputed from the committed usage rows
 rather than read back from a run log.
 
-| step                            | projected               | actual                 |
-| ------------------------------- | ----------------------- | ---------------------- |
-| generation                      | $2.739314 to $10.957256 | not metered, see below |
-| gold committee                  | $55.217838              | $19.322173             |
-| embeddings                      | $1.00 ceiling           | about $0.0014          |
-| confirmation, model A           | $150.00 ceiling         | SPEND_A_PLACEHOLDER    |
-| reproduction, model B           | $60.00 ceiling          | SPEND_B_PLACEHOLDER    |
-| total, against the $400 ceiling | $400.00                 | TOTAL_PLACEHOLDER      |
+| step                            | projected               | actual                       |
+| ------------------------------- | ----------------------- | ---------------------------- |
+| generation                      | $2.739314 to $10.957256 | not metered, see below       |
+| gold committee                  | $55.217838              | $19.322173                   |
+| embeddings                      | $1.00 ceiling           | about $0.0014                |
+| confirmation, model A           | $150.00 ceiling         | $93.527322                   |
+| reproduction, model B           | $60.00 ceiling          | $8.820651                    |
+| total, against the $400 ceiling | $400.00                 | $121.671546, plus generation |
+
+The metered total is $121.671546 over 12960 paid runs and 1272 committee passes, recomputed here
+from the committed usage rows by `run2.usage_cost` rather than read back from a run log. Adding
+generation's bound puts the all-in figure between $124.410860 and $132.628802, against a $400
+ceiling that never fired.
+
+Model A cost ten times model B for identical work, 6480 runs each. That is a price list, not a
+quality signal, and it is why the ceilings are per model: a shared ceiling would have let the
+expensive family spend the cheap one's budget.
 
 Generation has no dollar meter and never had one. Its spend is bounded by construction at four
 attempts per move over 424 moves, which is where the $10.957256 ceiling comes from, and 424 moves
@@ -242,6 +276,13 @@ not add anything new to be right about, which is why one wave was run and the ro
 - Cost at the shipped point is about 13448 prompt tokens per run, against 1478 at k=20 and 19118
   at k=300.
 
+Where hybrid earns its index is short lists, and that is the version to ship if prompt tokens are
+the binding cost rather than quality. Hybrid at k=50 passes 0.5778 of briefs on model A and 0.5753
+on model B for about 3368 prompt tokens. Lexical does not reach that until somewhere between k=50,
+where it passes 0.4099, and k=110, where it passes 0.6222, so matching hybrid's k=50 quality costs
+lexical roughly twice the list. That trade is measured on both models and separates on both, which
+is more than can be said for the arm choice at k=210.
+
 The honest limits of that recommendation, in one place:
 
 - At k=210 itself the hybrid-over-lexical difference is positive on both models and separates on
@@ -271,5 +312,5 @@ The honest limits of that recommendation, in one place:
   checkpoint, so model A's bill stopped model B before its first call.
 - `round3/stats.py` stayed the single owner of every interval in rounds 2, 3 and 4. No interval
   claims more certainty than the corpus holds.
-- The gate regressions carried forward from rounds 1, 2 and 3 kept passing: 155 in round 2, 162 in
-  round 3, 17 in round 4, plus 11 and 18 standalone scenarios.
+- The gate regressions carried forward from rounds 1, 2 and 3 kept passing: 158 in round 2, 162 in
+  round 3, 26 in round 4, plus 11 and 18 standalone scenarios.

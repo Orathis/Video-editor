@@ -233,6 +233,21 @@ def step(arm, lo_k, hi_k, model, separates, metric="pass_rate"):
     return out
 
 
+def arm_gap(arm, k, model, separates, against="c"):
+    """One arm-versus-arm pairing at a single list length."""
+    flat = {"mean": 0.02, "lo": -0.02, "hi": 0.06, "se": 0.02, "clusters": 9, "n": 9}
+    up = {"mean": 0.17, "lo": 0.12, "hi": 0.22, "se": 0.02, "clusters": 9, "n": 9}
+    out = {
+        "cell": "{0}@{1}/{2}".format(arm, k, model),
+        "against": "{0}@{1}/{2}".format(against, k, model),
+        "changed": ["arm"],
+        "n": 9,
+    }
+    for name, _ in build_report4.confirm3.METRICS:
+        out[name] = dict(up if separates else flat)
+    return out
+
+
 class OperatingPointTests(unittest.TestCase):
     """The page has to name what ships, and say who decided the list length.
 
@@ -277,6 +292,56 @@ class OperatingPointTests(unittest.TestCase):
         )
         self.assertEqual(30, point["k"])
         self.assertEqual(2, point["models"])
+        # And the page must not read that split decision back as a unanimous one.
+        self.assertEqual(1, point["separating"])
+
+    def test_the_page_says_how_many_models_the_shipping_step_separated_on(self):
+        page = build_report4.render(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    step("d", 10, 20, "model-b", False),
+                ]
+            ),
+        )
+        self.assertIn("separated on pass rate on 1 of the 2 models", text_of(page))
+
+    def test_the_arm_gap_at_the_shipped_list_length_is_reported_even_when_it_is_zero(
+        self,
+    ):
+        # The band chose the family over a range. If the arms have converged by
+        # the list length that ships, the page has to say so: a reader about to
+        # take on an embedding index deserves to know it bought nothing
+        # measurable at the point they are shipping.
+        page = build_report4.render(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    arm_gap("d", 20, "model-a", False),
+                    arm_gap("d", 20, "model-b", False),
+                    arm_gap("d", 10, "model-a", True),
+                ]
+            ),
+        )
+        text = text_of(page)
+        self.assertIn("+0.0200 and +0.0200 on the 2 models", text)
+        self.assertIn("separates from zero on 0 of them", text)
+
+    def test_only_the_shipped_arm_and_list_length_count_toward_that_gap(self):
+        point = build_report4.operating_point(
+            self.summary(),
+            self.confirmation(
+                [
+                    step("d", 10, 20, "model-a", True),
+                    arm_gap("d", 20, "model-a", True),
+                    arm_gap("c", 20, "model-a", True),
+                    arm_gap("d", 10, "model-a", True),
+                ]
+            ),
+        )
+        self.assertEqual((1, 1), (point["arm_separates_at_k"], point["arm_measured_at_k"]))
 
     def test_another_family_cannot_choose_the_list_length(self):
         # The band already decided the family. A lexical step still climbing at
