@@ -445,6 +445,29 @@ def decide_across_ks(swept, clusters, rule, ks, shelf_size, tier="decision"):
     return results
 
 
+def family_runs(across, swept):
+    """The contiguous bands of k over which the rule ships the same family.
+
+    When the swept ks disagree, the disagreement is not noise to be averaged
+    away or resolved by naming one k. It has a shape: the rule ships one family
+    over a band of list lengths and another over the next band, and where those
+    bands fall is the answer to the question the rule pre-registered, which is
+    what k rather than which arm.
+    """
+    runs = []
+    for result in across:
+        ship = result["outcome"]["ship"]
+        family = swept[ship]["family"] if ship in swept else None
+        branch = result["outcome"]["branch"]
+        if runs and runs[-1]["family"] == family and runs[-1]["branch"] == branch:
+            runs[-1]["hi"] = result["k"]
+        else:
+            runs.append(
+                {"lo": result["k"], "hi": result["k"], "family": family, "branch": branch}
+            )
+    return runs
+
+
 def operating_point(swept, family, tokens_per_k, tokens_per_recall, shelf_size):
     """Which arm of a family to run, and at what list length.
 
@@ -639,19 +662,25 @@ def main(argv=None):
         print("ship: {0}".format(point["arm"]))
         print("why: {0}".format(outcome["reason"]))
     else:
-        outcome = across[-1]["outcome"]
+        # No single ship line here. Reading the rule at one k and printing its
+        # answer would present a choice of list length as a choice of arm, and
+        # the whole point of reading the rule at every k was to remove that
+        # freedom. The bands below are the result.
+        outcome = None
         print("\nrule outcome")
         print("the swept ks do not agree on which family ships: {0}. That "
               "disagreement is the result and is not resolved by choosing a "
-              "k.".format(", ".join(sorted(set(families))) or "none"))
-        print("branch: {0}".format(outcome["branch"]))
-        print("ship: {0}".format(outcome["ship"] or "nothing yet"))
-        print("why: {0}".format(outcome["reason"]))
-    for followup in outcome["followups"]:
-        print("follow-up: {0} beats {1} by {2:.4f}, 95% {3}, {4}".format(
-            followup["arm"], followup["over"], followup["margin"]["mean"],
-            stats.format_interval(followup["margin"]), followup["note"],
-        ))
+              "k, so no arm is named here.".format(
+                  ", ".join(sorted(set(families))) or "none"))
+        for run in family_runs(across, swept):
+            print("  k={0} to k={1}: {2} ({3})".format(
+                run["lo"], run["hi"], run["family"] or "nothing", run["branch"]))
+    if outcome:
+        for followup in outcome["followups"]:
+            print("follow-up: {0} beats {1} by {2:.4f}, 95% {3}, {4}".format(
+                followup["arm"], followup["over"], followup["margin"]["mean"],
+                stats.format_interval(followup["margin"]), followup["note"],
+            ))
     if converged(swept, ks):
         print(
             "arms converge at k={0}: the open question is what k, not which arm".format(max(ks))

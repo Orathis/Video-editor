@@ -248,6 +248,61 @@ class SingleClusterTests(unittest.TestCase):
         self.assertEqual(1, interval["clusters"])
 
 
+def hits_from(k_min, predicate=lambda brief_id: True):
+    """An arm that only reaches the gold move once the list is k_min long."""
+
+    def topk(brief_id, brief, entries, k):
+        if k < k_min or not predicate(brief_id):
+            return []
+        return ["move-{0}".format(brief_id.split("-")[0])]
+
+    return topk
+
+
+class KDependentTests(unittest.TestCase):
+    """A round where the shipped family depends on the list length.
+
+    The rule pre-registers this case: all arms draw from the same shelf, so at
+    sufficient k they converge, and the finding is that the real question was
+    what k. A report that answered it with one arm would be reporting a choice
+    of list length as a choice of retriever.
+    """
+
+    def setUp(self):
+        self.summary = summarise(
+            (3,) * 8,
+            {
+                # Reaches everything, but only once the list is ten long.
+                "hybrid": arm(hits_from(10), "hybrid"),
+                # Reaches two clusters of the eight at any length.
+                "lexical": arm(
+                    hits(lambda brief_id: brief_id.split("-")[0] in ("0", "1")), "lexical"
+                ),
+            },
+        )
+
+    def test_the_shipped_family_differs_across_the_swept_ks(self):
+        shipped = [(row["k"], row["ship"]) for row in self.summary["across_ks"]]
+        self.assertEqual([(5, "lexical"), (10, "hybrid"), (20, "hybrid")], shipped)
+        self.assertFalse(self.summary["unanimous_across_ks"])
+
+    def test_the_verdict_names_no_arm_and_says_the_answer_depends_on_k(self):
+        self.assertEqual("k-dependent", self.summary["outcome"]["branch"])
+        self.assertIsNone(self.summary["outcome"]["ship"])
+        self.assertEqual("k-dependent", self.summary["stop_reason"])
+
+    def test_the_bands_of_k_are_reported_rather_than_one_chosen_k(self):
+        runs = [(r["lo"], r["hi"], r["family"]) for r in self.summary["family_runs"]]
+        self.assertEqual([(5, 5, "lexical"), (10, 20, "hybrid")], runs)
+
+    def test_the_rendered_report_still_carries_no_em_dash(self):
+        # EmDashTests.EM_DASH rather than the character, because this file is
+        # itself one of the files that gate reads.
+        self.assertEqual(
+            0, build_report3.render(self.summary).count(EmDashTests.EM_DASH)
+        )
+
+
 class RunnerUpLabelTests(unittest.TestCase):
     """The arm named beside a margin is the arm the margin was measured against.
 

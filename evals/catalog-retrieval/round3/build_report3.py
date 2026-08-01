@@ -57,6 +57,13 @@ STOP_REASONS = {
         "none of the three stopping conditions has fired yet, so this is an "
         "interim read and not a verdict"
     ),
+    "k-dependent": (
+        "the rule ships a different family depending on the list length it is "
+        "read at, so the round ends on the question the rule pre-registered for "
+        "this case, which is what k rather than which arm. Growing the corpus "
+        "cannot change it, because every arm draws from the same shelf and so "
+        "they must converge at sufficient k"
+    ),
 }
 
 
@@ -67,6 +74,8 @@ def stop_reason(outcome, waves_run, rule, ceiling_reached=False):
     a round that separates on its final wave stopped on the separation and not on
     the wave count.
     """
+    if outcome.get("branch") == "k-dependent":
+        return "k-dependent"
     if outcome.get("branch") == "separated":
         return "separated"
     if ceiling_reached:
@@ -223,7 +232,29 @@ def build_summary(
     elif point:
         headline = next((r for r in across if r["k"] == point["k"]), across[-1])
     else:
-        headline = across[-1]
+        # The swept ks ship different families. Carrying one of their outcomes
+        # as the headline would report a choice of list length as a choice of
+        # arm. The ranking below is still shown, at the longest comparable k and
+        # captioned as such, but the verdict names no arm.
+        runs = sweep.family_runs(across, swept)
+        headline = {
+            "k": across[-1]["k"],
+            "rows": across[-1]["rows"],
+            "exploratory": across[-1]["exploratory"],
+            "outcome": {
+                "branch": "k-dependent",
+                "ship": None,
+                "reason": "the rule ships {0}".format(
+                    ", then ".join(
+                        "{0} over k={1} to k={2}".format(
+                            run["family"] or "nothing", run["lo"], run["hi"]
+                        )
+                        for run in runs
+                    )
+                ),
+                "followups": [],
+            },
+        }
     rows, exploratory = headline["rows"], headline["exploratory"]
     outcome = headline["outcome"]
     reason = stop_reason(outcome, waves_run, rule, ceiling_reached)
@@ -262,6 +293,10 @@ def build_summary(
             for result in across
         ],
         "unanimous_across_ks": unanimous,
+        # The bands of list length over which the rule ships the same family.
+        # One row here means the choice of k never mattered; more than one means
+        # it was the whole question.
+        "family_runs": sweep.family_runs(across, swept) if across else [],
         "operating_point": point,
         "outcome": {
             "branch": outcome["branch"],
