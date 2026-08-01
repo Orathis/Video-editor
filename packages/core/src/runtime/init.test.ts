@@ -2710,4 +2710,146 @@ describe("initSandboxRuntimeModular", () => {
       }).not.toThrow();
     });
   });
+
+  // What a media element is told to buffer, and when. The eager promotion
+  // these tests pin exists to keep the first play() from firing on un-fetched
+  // media; the neighbourhood policy that replaces it has to keep that
+  // property, so it is pinned here as behaviour rather than as an
+  // implementation detail of where the promotion happens.
+  describe("media buffering", () => {
+    /** Ordered `load:`/`play:` log across every probe element in one test. */
+    let mediaLog: string[] = [];
+
+    beforeEach(() => {
+      mediaLog = [];
+    });
+
+    afterEach(() => {
+      delete (window as { __HF_RENDER_CAPTURE_MODE?: boolean }).__HF_RENDER_CAPTURE_MODE;
+    });
+
+    function mountComposition(durationSeconds: number): HTMLElement {
+      const root = document.createElement("div");
+      root.setAttribute("data-composition-id", "main");
+      root.setAttribute("data-root", "true");
+      root.setAttribute("data-start", "0");
+      root.setAttribute("data-duration", String(durationSeconds));
+      root.setAttribute("data-width", "1920");
+      root.setAttribute("data-height", "1080");
+      document.body.appendChild(root);
+      window.__timelines = { main: createMockTimeline(durationSeconds) };
+      return root;
+    }
+
+    /**
+     * An `<audio>` whose `load()`/`play()` are recorded rather than performed
+     * (jsdom implements neither). `sourceDuration` is the duration a metadata
+     * probe would resolve; `duration` is the authored `data-duration`, omitted
+     * for a clip whose window has to come from the source instead.
+     */
+    function addMedia(
+      parent: HTMLElement,
+      options: { id: string; src: string; start: number; duration?: number },
+    ): HTMLAudioElement {
+      const el = document.createElement("audio");
+      el.id = options.id;
+      el.setAttribute("data-start", String(options.start));
+      if (options.duration !== undefined) {
+        el.setAttribute("data-duration", String(options.duration));
+      }
+      el.setAttribute("src", options.src);
+      el.load = () => {
+        mediaLog.push(`load:${options.id}`);
+      };
+      el.play = () => {
+        mediaLog.push(`play:${options.id}`);
+        Object.defineProperty(el, "paused", { value: false, writable: true, configurable: true });
+        return Promise.resolve();
+      };
+      el.pause = () => {
+        Object.defineProperty(el, "paused", { value: true, writable: true, configurable: true });
+      };
+      Object.defineProperty(el, "paused", { value: true, writable: true, configurable: true });
+      Object.defineProperty(el, "currentTime", { value: 0, writable: true, configurable: true });
+      parent.appendChild(el);
+      return el;
+    }
+
+    /** The source duration a metadata probe would have resolved. */
+    function setSourceDuration(el: HTMLMediaElement, seconds: number): void {
+      Object.defineProperty(el, "duration", {
+        value: seconds,
+        writable: true,
+        configurable: true,
+      });
+    }
+
+    // The regression the eager load exists to prevent: play() reaching an
+    // element the browser was never told to fetch produces silence until it
+    // catches up. Whatever the buffering policy is, the clip under the
+    // playhead must have been told to buffer before play() reaches it.
+    it("buffers the clip under the playhead before play() reaches it", () => {
+      const root = mountComposition(120);
+      const first = addMedia(root, { id: "first", src: "track.wav", start: 0, duration: 4 });
+      setSourceDuration(first, 4);
+
+      initSandboxRuntimeModular();
+      expect(mediaLog).toEqual(["load:first"]);
+
+      window.__player?.play();
+
+      expect(mediaLog).toEqual(["load:first", "play:first"]);
+      expect(first.preload).toBe("auto");
+    });
+
+    // The renderer captures whatever the browser has decoded at the instant
+    // the frame is taken, so render mode cannot trade buffered bytes for a
+    // faster open: an unbuffered element at capture time is a silent or black
+    // frame in the export.
+    it("buffers every element eagerly in render capture mode", () => {
+      (window as { __HF_RENDER_CAPTURE_MODE?: boolean }).__HF_RENDER_CAPTURE_MODE = true;
+      const root = mountComposition(600);
+      const near = addMedia(root, { id: "near", src: "near.wav", start: 0, duration: 4 });
+      const far = addMedia(root, { id: "far", src: "far.wav", start: 500, duration: 4 });
+
+      initSandboxRuntimeModular();
+
+      expect(mediaLog).toEqual(["load:near", "load:far"]);
+      expect(near.preload).toBe("auto");
+      expect(far.preload).toBe("auto");
+    });
+
+    // Duration probing is the second job the eager load does: a clip with no
+    // authored `data-duration` takes its window from the probed source
+    // duration, so a policy that stops probing would leave the clip with no
+    // window at all.
+    it("resolves an unauthored clip window from the probed source duration", () => {
+      const root = mountComposition(120);
+      const late = addMedia(root, { id: "late", src: "late.wav", start: 60 });
+      setSourceDuration(late, 10);
+
+      initSandboxRuntimeModular();
+      const player = window.__player;
+      player?.seek(65);
+      player?.play();
+
+      expect(mediaLog).toContain("play:late");
+      expect(late.currentTime).toBeCloseTo(5, 5);
+    });
+
+    it("leaves a composition with no media alone", () => {
+      mountComposition(30);
+
+      initSandboxRuntimeModular();
+      const player = window.__player;
+
+      expect(() => {
+        player?.play();
+        player?.seek(12);
+        player?.renderSeek(20);
+        player?.pause();
+      }).not.toThrow();
+      expect(mediaLog).toEqual([]);
+    });
+  });
 });
