@@ -49,6 +49,15 @@ One component per job. If two components on a page render the same list, delete 
 
 **Two columns is the practical maximum** for anything containing text. Three columns in this content width hyphenates titles mid-word.
 
+**Full films and preview loops are different jobs.** Use `DocsVideo` for a
+narrated film a reader watches intentionally. A plain `<video>` is only for a
+small, muted, autoplaying preview loop inside a visual explanation or Catalog
+item. Do not mix native browser controls with the custom player.
+
+**Related topics must be visible content.** Mintlify does not render a
+`related:` frontmatter list. Add a final `## Related topics` section with only
+the two or three destinations that genuinely help the reader continue.
+
 ### Custom React components
 
 Mintlify compiles `.jsx` / `.tsx` from `docs/snippets/`. Use one when a native component genuinely cannot express the idea — a scrubber, a comparison slider, a live player — not for styling.
