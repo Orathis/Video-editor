@@ -586,22 +586,28 @@ function main(): void {
     // ahead of Studio. Only `groups` is generated; every other property and the
     // tab's position belong to whoever curates docs.json.
     const existingIdx = tabs.findIndex((t) => t.tab === "Catalog");
+    let navigationChanged = false;
     if (existingIdx >= 0) {
       const existingGroups = Array.isArray(tabs[existingIdx].groups)
         ? tabs[existingIdx].groups
         : [];
-      const manualGroups = existingGroups.filter((group) => {
+      const isGeneratedCatalogGroup = (group: { pages?: unknown }): boolean => {
         if (!Array.isArray(group.pages)) return true;
-        return group.pages.every(
+        return group.pages.some(
           (page) =>
-            typeof page !== "string" ||
-            (!page.startsWith("catalog/blocks/") && !page.startsWith("catalog/components/")),
+            typeof page === "string" &&
+            (page.startsWith("catalog/blocks/") || page.startsWith("catalog/components/")),
         );
-      });
-      tabs[existingIdx] = {
-        ...tabs[existingIdx],
-        groups: [...manualGroups, ...catalogGroups],
       };
+      const generatedGroups = existingGroups.filter(isGeneratedCatalogGroup);
+      if (JSON.stringify(generatedGroups) !== JSON.stringify(catalogGroups)) {
+        const manualGroups = existingGroups.filter((group) => !isGeneratedCatalogGroup(group));
+        tabs[existingIdx] = {
+          ...tabs[existingIdx],
+          groups: [...manualGroups, ...catalogGroups],
+        };
+        navigationChanged = true;
+      }
     } else {
       const anchorIdx = tabs.findIndex((t) => t.tab === "Guides" || t.tab === "Documentation");
       tabs.splice(anchorIdx >= 0 ? anchorIdx + 1 : 1, 0, {
@@ -609,10 +615,15 @@ function main(): void {
         icon: "grid-2",
         groups: catalogGroups,
       });
+      navigationChanged = true;
     }
-    writeFileSync(docsJsonPath, JSON.stringify(docsJson, null, 2) + "\n", "utf-8");
+    if (navigationChanged) {
+      writeFileSync(docsJsonPath, JSON.stringify(docsJson, null, 2) + "\n", "utf-8");
+    }
     const totalPages = catalogGroups.reduce((n, g) => n + g.pages.length, 0);
-    console.log(`  ✓ docs.json updated with ${catalogGroups.length} groups, ${totalPages} pages`);
+    console.log(
+      `  ✓ docs.json ${navigationChanged ? "updated" : "already current"} with ${catalogGroups.length} groups, ${totalPages} pages`,
+    );
   }
 
   console.log("\nDone.");
