@@ -55,7 +55,7 @@ Mintlify compiles `.jsx` / `.tsx` from `docs/snippets/`. Use one when a native c
 
 - Named exports only: `export const Thing = () => ...`. Default exports do not work.
 - `useState`, `useEffect`, `useRef`, `useCallback`, `useMemo`, `useContext`, `useReducer` are pre-injected; do not import React.
-- **No third-party packages and no CDN scripts.** Browser built-ins only (`fetch`, `IntersectionObserver`, Canvas, `<video>`). This rules out importing `@hyperframes/player` as a package — embed a hosted composition in an `iframe` instead.
+- **Do not add a dependency or CDN script for presentation alone.** Prefer browser built-ins (`fetch`, `IntersectionObserver`, Canvas, `<video>`). A version-pinned official runtime is acceptable when that runtime is the subject of the demo and the component provides a useful loading or failure state; the live composition on Introduction is the model.
 - A snippet cannot import another snippet. Keep each self-contained.
 - **Declare everything inside the component.** Only the exported component survives
   compilation; module-level `const`s above it are dropped, so a constant defined
