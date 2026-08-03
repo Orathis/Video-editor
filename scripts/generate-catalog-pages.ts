@@ -328,8 +328,6 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
   ];
   lines.push("---", "");
 
-  lines.push(manifest.description, "");
-
   if (tagBadges) {
     lines.push(tagBadges, "");
   }
@@ -365,32 +363,23 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
     );
   }
 
-  // Two genuinely parallel ways to do one thing, so they belong in tabs rather
-  // than stacked with the second framed as an afterthought. The agent request
-  // leads because it is the shorter path for most readers.
+  // Keep both paths visible. The agent path leads for the general audience;
+  // the terminal remains available without hiding it behind a control.
   lines.push(
     "## Add it to a project",
     "",
-    "<Tabs>",
-    "",
-    '<Tab title="Ask your agent">',
+    "### Ask your agent",
     "",
     "```text",
     `Add the ${manifest.title} ${kind} from the HyperFrames Catalog to this project.`,
     "Replace the demo content with mine and match the existing design and timing.",
     "```",
     "",
-    "</Tab>",
-    "",
-    '<Tab title="Terminal">',
+    "### Install from the terminal",
     "",
     "```bash",
     installCmd,
     "```",
-    "",
-    "</Tab>",
-    "",
-    "</Tabs>",
     "",
   );
 
@@ -470,6 +459,15 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
   if (manifest.relatedSkill) {
     lines.push(`<Tip>Related skill: \`/${manifest.relatedSkill}\`</Tip>`, "");
   }
+
+  lines.push(
+    "## Related topics",
+    "",
+    "- [Browse the complete Catalog](/catalog)",
+    "- [Add assets and Catalog items in Studio](/studio/assets-and-blocks)",
+    "- [Build a richer composition](/go-further)",
+    "",
+  );
 
   return lines.join("\n");
 }

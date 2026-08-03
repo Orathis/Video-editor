@@ -53,15 +53,27 @@
         "groups": [
           {
             "group": "Start here",
-            "pages": ["introduction", "quickstart", "go-further", "developers/index"]
+            "pages": [
+              "introduction",
+              "quickstart",
+              "go-further",
+              "developers/index"
+            ]
           },
           {
             "group": "Explore",
-            "pages": ["examples", "product-updates"]
+            "pages": [
+              "examples",
+              "product-updates"
+            ]
           },
           {
             "group": "Choose where to create",
-            "pages": ["guides/choose-creation-path", "guides/mcp", "guides/design-tools"]
+            "pages": [
+              "guides/choose-creation-path",
+              "guides/mcp",
+              "guides/design-tools"
+            ]
           },
           {
             "group": "Prompt Guide",
@@ -90,7 +102,10 @@
               },
               {
                 "group": "Level 3 — Life",
-                "pages": ["prompting/motion", "prompting/transitions"]
+                "pages": [
+                  "prompting/motion",
+                  "prompting/transitions"
+                ]
               },
               {
                 "group": "Level 4 — Substance",
@@ -107,7 +122,9 @@
               },
               {
                 "group": "Level 5 — Voice and sound",
-                "pages": ["prompting/media-and-audio"]
+                "pages": [
+                  "prompting/media-and-audio"
+                ]
               },
               {
                 "group": "Level 6 — Scale",
@@ -124,11 +141,15 @@
               },
               {
                 "group": "Level 7 — Capstone",
-                "pages": ["prompting/capstone"]
+                "pages": [
+                  "prompting/capstone"
+                ]
               },
               {
                 "group": "Appendix",
-                "pages": ["prompting/rules-and-anti-patterns"]
+                "pages": [
+                  "prompting/rules-and-anti-patterns"
+                ]
               }
             ]
           },
@@ -162,7 +183,11 @@
           },
           {
             "group": "Help",
-            "pages": ["help", "guides/troubleshooting", "guides/feedback"]
+            "pages": [
+              "help",
+              "guides/troubleshooting",
+              "guides/feedback"
+            ]
           }
         ]
       },
@@ -172,23 +197,41 @@
         "groups": [
           {
             "group": "Start in Studio",
-            "pages": ["studio/index", "studio/storyboard"]
+            "pages": [
+              "studio/index",
+              "studio/storyboard"
+            ]
           },
           {
             "group": "Edit",
-            "pages": ["studio/canvas", "studio/timeline", "studio/animation", "studio/captions"]
+            "pages": [
+              "studio/canvas",
+              "studio/timeline",
+              "studio/animation",
+              "studio/captions"
+            ]
           },
           {
             "group": "Build and reuse",
-            "pages": ["studio/assets-and-blocks", "studio/variables", "studio/slideshows"]
+            "pages": [
+              "studio/assets-and-blocks",
+              "studio/variables",
+              "studio/slideshows"
+            ]
           },
           {
             "group": "Finish and recover",
-            "pages": ["studio/export", "studio/troubleshooting"]
+            "pages": [
+              "studio/export",
+              "studio/troubleshooting"
+            ]
           },
           {
             "group": "Reference",
-            "pages": ["studio/source", "studio/shortcuts"]
+            "pages": [
+              "studio/source",
+              "studio/shortcuts"
+            ]
           }
         ]
       },
@@ -198,7 +241,9 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["catalog/index"]
+            "pages": [
+              "catalog/index"
+            ]
           },
           {
             "group": "Code Animations",
@@ -212,35 +257,6 @@
               "catalog/blocks/code-shader-dissolve",
               "catalog/blocks/code-snippet-flight",
               "catalog/blocks/code-typing"
-            ]
-          },
-          {
-            "group": "Code Themes",
-            "pages": [
-              "catalog/blocks/code-snippet-apple-terminal-basic",
-              "catalog/blocks/code-snippet-apple-terminal-clear-dark",
-              "catalog/blocks/code-snippet-apple-terminal-clear-light",
-              "catalog/blocks/code-snippet-apple-terminal-grass",
-              "catalog/blocks/code-snippet-apple-terminal-homebrew",
-              "catalog/blocks/code-snippet-apple-terminal-man-page",
-              "catalog/blocks/code-snippet-apple-terminal-novel",
-              "catalog/blocks/code-snippet-apple-terminal-ocean",
-              "catalog/blocks/code-snippet-apple-terminal-pro",
-              "catalog/blocks/code-snippet-apple-terminal-red-sands",
-              "catalog/blocks/code-snippet-apple-terminal-silver-aerogel",
-              "catalog/blocks/code-snippet-apple-terminal-solid-colors",
-              "catalog/blocks/code-snippet-dark-2026",
-              "catalog/blocks/code-snippet-dark-modern",
-              "catalog/blocks/code-snippet-dark-plus",
-              "catalog/blocks/code-snippet-high-contrast",
-              "catalog/blocks/code-snippet-high-contrast-light",
-              "catalog/blocks/code-snippet-light-2026",
-              "catalog/blocks/code-snippet-light-modern",
-              "catalog/blocks/code-snippet-light-plus",
-              "catalog/blocks/code-snippet-monokai",
-              "catalog/blocks/code-snippet-solarized-light",
-              "catalog/blocks/code-snippet-visual-studio-dark",
-              "catalog/blocks/code-snippet-visual-studio-light"
             ]
           },
           {
@@ -265,7 +281,7 @@
             ]
           },
           {
-            "group": "Interface & VFX",
+            "group": "HTML-in-Canvas",
             "pages": [
               "catalog/blocks/ios26-liquid-glass",
               "catalog/blocks/liquid-glass-context-menu",
@@ -315,7 +331,7 @@
             ]
           },
           {
-            "group": "Transitions",
+            "group": "Shader Transitions",
             "pages": [
               "catalog/blocks/chromatic-radial-split",
               "catalog/blocks/cinematic-zoom",
@@ -330,7 +346,12 @@
               "catalog/blocks/sdf-iris",
               "catalog/blocks/swirl-vortex",
               "catalog/blocks/thermal-distortion",
-              "catalog/blocks/whip-pan",
+              "catalog/blocks/whip-pan"
+            ]
+          },
+          {
+            "group": "CSS Transitions",
+            "pages": [
               "catalog/blocks/beat-freeze-cut",
               "catalog/blocks/hw-scribble-transition",
               "catalog/blocks/mk-clone-wall-transition",
@@ -347,18 +368,39 @@
               "catalog/blocks/transitions-other",
               "catalog/blocks/transitions-push",
               "catalog/blocks/transitions-radial",
-              "catalog/blocks/transitions-scale",
-              "catalog/components/grid-pixelate-wipe",
-              "catalog/components/parallax-unzoom",
-              "catalog/components/parallax-zoom"
+              "catalog/blocks/transitions-scale"
             ]
           },
           {
-            "group": "Complete Scenes",
+            "group": "Showcases",
             "pages": [
               "catalog/blocks/app-showcase",
               "catalog/blocks/apple-money-count",
               "catalog/blocks/blue-sweater-intro-video",
+              "catalog/blocks/code-snippet-apple-terminal-basic",
+              "catalog/blocks/code-snippet-apple-terminal-clear-dark",
+              "catalog/blocks/code-snippet-apple-terminal-clear-light",
+              "catalog/blocks/code-snippet-apple-terminal-grass",
+              "catalog/blocks/code-snippet-apple-terminal-homebrew",
+              "catalog/blocks/code-snippet-apple-terminal-man-page",
+              "catalog/blocks/code-snippet-apple-terminal-novel",
+              "catalog/blocks/code-snippet-apple-terminal-ocean",
+              "catalog/blocks/code-snippet-apple-terminal-pro",
+              "catalog/blocks/code-snippet-apple-terminal-red-sands",
+              "catalog/blocks/code-snippet-apple-terminal-silver-aerogel",
+              "catalog/blocks/code-snippet-apple-terminal-solid-colors",
+              "catalog/blocks/code-snippet-dark-2026",
+              "catalog/blocks/code-snippet-dark-modern",
+              "catalog/blocks/code-snippet-dark-plus",
+              "catalog/blocks/code-snippet-high-contrast",
+              "catalog/blocks/code-snippet-high-contrast-light",
+              "catalog/blocks/code-snippet-light-2026",
+              "catalog/blocks/code-snippet-light-modern",
+              "catalog/blocks/code-snippet-light-plus",
+              "catalog/blocks/code-snippet-monokai",
+              "catalog/blocks/code-snippet-solarized-light",
+              "catalog/blocks/code-snippet-visual-studio-dark",
+              "catalog/blocks/code-snippet-visual-studio-light",
               "catalog/blocks/north-korea-locked-down",
               "catalog/blocks/nyc-paris-flight",
               "catalog/blocks/ui-3d-reveal",
@@ -366,7 +408,7 @@
             ]
           },
           {
-            "group": "Data & Diagrams",
+            "group": "Data",
             "pages": [
               "catalog/blocks/data-chart",
               "catalog/blocks/mk-line-graph",
@@ -375,19 +417,15 @@
               "catalog/blocks/us-map-bubble",
               "catalog/blocks/us-map-flow",
               "catalog/blocks/us-map-hex",
-              "catalog/blocks/world-map",
-              "catalog/blocks/flowchart",
-              "catalog/blocks/flowchart-vertical",
-              "catalog/blocks/hw-pipeline",
-              "catalog/blocks/hw-text-cloud",
-              "catalog/blocks/mk-progress-stat",
-              "catalog/blocks/mk-specs-list"
+              "catalog/blocks/world-map"
             ]
           },
           {
-            "group": "Text & Annotations",
+            "group": "Effects",
             "pages": [
               "catalog/components/caption-blend-difference",
+              "catalog/components/grain-overlay",
+              "catalog/components/grid-pixelate-wipe",
               "catalog/components/hw-arrow",
               "catalog/components/hw-boil",
               "catalog/components/hw-box-label",
@@ -396,40 +434,37 @@
               "catalog/components/mk-emphasis-type",
               "catalog/components/mk-usage-arc",
               "catalog/components/morph-text",
-              "catalog/components/texture-mask-text",
-              "catalog/components/yt-circle-pointer"
-            ]
-          },
-          {
-            "group": "Visual & Camera Effects",
-            "pages": [
-              "catalog/components/grain-overlay",
               "catalog/components/motion-blur",
+              "catalog/components/parallax-unzoom",
+              "catalog/components/parallax-zoom",
               "catalog/components/shimmer-sweep",
+              "catalog/components/texture-mask-text",
               "catalog/components/vignette",
               "catalog/components/yt-camera-move",
+              "catalog/components/yt-circle-pointer",
               "catalog/components/yt-feather-highlight",
               "catalog/components/yt-screen-warp"
             ]
           },
           {
-            "group": "Titles & Identity",
-            "pages": [
-              "catalog/blocks/hw-path-text",
-              "catalog/blocks/hw-title",
-              "catalog/blocks/logo-outro",
-              "catalog/blocks/yt-logo-intro",
-              "catalog/blocks/yt-prism-title"
-            ]
-          },
-          {
-            "group": "Frames & Layouts",
+            "group": "Blocks",
             "pages": [
               "catalog/blocks/camcorder-hud",
+              "catalog/blocks/flowchart",
+              "catalog/blocks/flowchart-vertical",
               "catalog/blocks/hw-frame",
+              "catalog/blocks/hw-path-text",
+              "catalog/blocks/hw-pipeline",
+              "catalog/blocks/hw-text-cloud",
+              "catalog/blocks/hw-title",
+              "catalog/blocks/logo-outro",
               "catalog/blocks/mk-background",
               "catalog/blocks/mk-placeholder-grid",
+              "catalog/blocks/mk-progress-stat",
+              "catalog/blocks/mk-specs-list",
               "catalog/blocks/yt-lcd-background",
+              "catalog/blocks/yt-logo-intro",
+              "catalog/blocks/yt-prism-title",
               "catalog/blocks/yt-vertical-fill"
             ]
           }
@@ -441,11 +476,17 @@
         "groups": [
           {
             "group": "Start here",
-            "pages": ["developers/overview"]
+            "pages": [
+              "developers/overview"
+            ]
           },
           {
             "group": "Command line",
-            "pages": ["developers/cli", "packages/cli", "packages/lint"]
+            "pages": [
+              "developers/cli",
+              "packages/cli",
+              "packages/lint"
+            ]
           },
           {
             "group": "SDK guides",
@@ -487,11 +528,19 @@
           },
           {
             "group": "Composition reference",
-            "pages": ["reference/html-schema", "reference/color-grading"]
+            "pages": [
+              "reference/html-schema",
+              "reference/color-grading"
+            ]
           },
           {
             "group": "Rendering paths",
-            "pages": ["guides/rendering", "deploy/overview", "deploy/cloud", "guides/deploy"]
+            "pages": [
+              "guides/rendering",
+              "deploy/overview",
+              "deploy/cloud",
+              "guides/deploy"
+            ]
           },
           {
             "group": "Cloud infrastructure",
@@ -506,7 +555,11 @@
           },
           {
             "group": "Advanced rendering",
-            "pages": ["guides/4k-rendering", "guides/hdr", "guides/performance"]
+            "pages": [
+              "guides/4k-rendering",
+              "guides/hdr",
+              "guides/performance"
+            ]
           },
           {
             "group": "Packages",
