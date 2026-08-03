@@ -628,10 +628,6 @@
       "destination": "/help"
     },
     {
-      "source": "/weekly-updates",
-      "destination": "/product-updates"
-    },
-    {
       "source": "/contributing/studio-manual-dom-editing",
       "destination": "/studio/canvas"
     },
