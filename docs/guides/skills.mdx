@@ -40,6 +40,44 @@ Install or refresh one workflow explicitly:
 npx hyperframes skills update pr-to-video
 ```
 
+## Use the skills in Google Antigravity
+
+Install the skills from the root of the project you open in Antigravity:
+
+```bash
+npx skills add heygen-com/hyperframes --full-depth
+```
+
+Select **Core Skills** and **Antigravity**. This uses Antigravity's supported
+project location, `.agents/skills`, and keeps the skills with the project. Start
+a fresh Antigravity conversation after installation.
+
+Antigravity also supports a global `~/.gemini/config/skills` directory. See
+Google's [current skills guide](https://antigravity.google/docs/skills?app=antigravity-ide)
+before managing that directory by hand.
+
+## Use the skills in GitHub Copilot CLI
+
+Run `npx hyperframes skills update`, open the project, and start Copilot:
+
+```bash
+copilot
+```
+
+If Copilot was already running, use `/skills reload`. Use `/skills list` or
+`/skills info hyperframes` to confirm discovery. GitHub's [current skills
+guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)
+lists its project and personal skill locations.
+
+Both agents can use the same first request:
+
+```text
+Using /hyperframes, make a 10-second product intro for https://example.com.
+```
+
+Continue in the same conversation for revisions. For hosted creation instead
+of a local project, use the [HyperFrames MCP guide](/guides/mcp).
+
 ## Let the router choose
 
 The normal entry point is `/hyperframes`. It confirms the important intent, then selects a workflow from the input:

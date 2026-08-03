@@ -516,9 +516,7 @@
             "group": "Agent setup",
             "pages": [
               "guides/authentication",
-              "guides/skills",
-              "guides/antigravity",
-              "guides/copilot-cli"
+              "guides/skills"
             ]
           },
           {
@@ -692,6 +690,16 @@
     {
       "source": "/guides/publish-and-share",
       "destination": "/guides/export-and-share",
+      "permanent": true
+    },
+    {
+      "source": "/guides/antigravity",
+      "destination": "/guides/skills",
+      "permanent": true
+    },
+    {
+      "source": "/guides/copilot-cli",
+      "destination": "/guides/skills",
       "permanent": true
     },
     {
