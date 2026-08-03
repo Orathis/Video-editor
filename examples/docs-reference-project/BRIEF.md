@@ -39,7 +39,7 @@ language rather than marketing written over it.
 | `<p>`   | This domain is for use in documentation examples without needing permission. Avoid use in operations. |
 | `<a>`   | Learn more → `https://iana.org/domains/example`                                                       |
 
-Brand tokens read off the live page (`capture/extracted/tokens.json`), not invented:
+Brand tokens read off the live page, not invented:
 canvas `#EEEEEE`, ink `#000000` at `opacity: .8`, link/accent `#334488`, type
 `system-ui, sans-serif`.
 
@@ -61,13 +61,13 @@ Narration is the spine; every reveal is cued to a spoken phrase. Timings below a
 
 ## Assets
 
-| Asset                    | Provenance                                                                          |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `assets/example-com.png` | `npx hyperframes capture https://example.com` → `capture/screenshots/full-page.png` |
-| `assets/narration.wav`   | ElevenLabs **River** `SAz9YHcvj6GT2YYXdXww`, via `/media-use`                       |
-| `assets/bgm.wav`         | HeyGen audio catalog, 10.0s bed, ingested from the v1 project via `/media-use`      |
-| `assets/sfx-whoosh.mp3`  | `/media-use` bundled library — `whoosh-short`, 0.57s                                |
-| `assets/sfx-tick.mp3`    | `/media-use` bundled library — `click-soft`, 0.37s                                  |
+| Asset                    | Provenance                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| `assets/example-com.png` | `npx hyperframes capture https://example.com`                                  |
+| `assets/narration.wav`   | ElevenLabs **River** `SAz9YHcvj6GT2YYXdXww`, via `/media-use`                  |
+| `assets/bgm.wav`         | HeyGen audio catalog, 10.0s bed, ingested from the v1 project via `/media-use` |
+| `assets/sfx-whoosh.mp3`  | `/media-use` bundled library — `whoosh-short`, 0.57s                           |
+| `assets/sfx-tick.mp3`    | `/media-use` bundled library — `click-soft`, 0.37s                             |
 
 ## Design truth
 

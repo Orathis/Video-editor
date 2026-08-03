@@ -38,9 +38,6 @@ To move the pin up: `npx hyperframes@latest upgrade --project . --check`, then d
 | `SCRIPT.md`                  | locked narration, the voice, and the exact commands that regenerate it            |
 | `VERIFICATION.md`            | what passed, what changed from v1, and the two framework bugs found on the way    |
 | `transcript.json`            | Whisper word timings for `assets/narration.wav` — the source of every caption cue |
-| `capture/`                   | the live capture of `example.com`: screenshots, extracted DOM, brand tokens       |
-| `snapshots/`                 | 19 inspected frames plus contact sheets, on the 30 fps frame grid                 |
-| `live/`                      | compiled embed, poster, and verified MP4 used by the documentation                |
 
 ## The five variables
 
@@ -134,17 +131,16 @@ captions overlay doctrine literally, and the discipline is worth copying:
 
 The project keeps only the assets used by the composition:
 
-| Shipped asset            | Source                                                                      |
-| ------------------------ | --------------------------------------------------------------------------- |
-| `assets/example-com.png` | `npx hyperframes capture https://example.com` → `screenshots/full-page.png` |
-| `assets/narration.wav`   | ElevenLabs **River**, `eleven_multilingual_v2`                              |
-| `assets/bgm.wav`         | HeyGen audio catalog, 10.0-second bed                                       |
-| `assets/sfx-whoosh.mp3`  | `/media-use` bundled library — `whoosh-short`, 0.57 seconds                 |
-| `assets/sfx-tick.mp3`    | `/media-use` bundled library — `click-soft`, 0.37 seconds                   |
+| Shipped asset            | Source                                                      |
+| ------------------------ | ----------------------------------------------------------- |
+| `assets/example-com.png` | `npx hyperframes capture https://example.com`               |
+| `assets/narration.wav`   | ElevenLabs **River**, `eleven_multilingual_v2`              |
+| `assets/bgm.wav`         | HeyGen audio catalog, 10.0-second bed                       |
+| `assets/sfx-whoosh.mp3`  | `/media-use` bundled library — `whoosh-short`, 0.57 seconds |
+| `assets/sfx-tick.mp3`    | `/media-use` bundled library — `click-soft`, 0.37 seconds   |
 
-`capture/` is the real capture output with the nested scaffold files (`CLAUDE.md`,
-`AGENTS.md`, `meta.json`, `.cursorrules`) removed, so it reads as evidence rather than as
-a second project inside this one.
+Generated capture folders, frame dumps, contact sheets, and compiled docs embeds are not
+committed. The docs copy of the verified render is served from the HyperFrames media CDN.
 
 ## Learning path through the composition
 

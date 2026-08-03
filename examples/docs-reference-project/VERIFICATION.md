@@ -160,8 +160,8 @@ v1's brief claimed the palette was read from the capture, then set the canvas to
 `#eeeeee` — the page's own background. The plate therefore had the same fill as the
 ground and only its border separated them, which is why it read as a faint rectangle.
 
-v2 keeps ink `#1b1b1b` and accent `#334488` from `capture/extracted/tokens.json` (the
-page's CSS literally says `a { color:#348 }`) and steps the **canvas** down to `#e9e9e7`
+v2 keeps ink `#1b1b1b` and accent `#334488` from the captured page (its CSS literally
+says `a { color:#348 }`) and steps the **canvas** down to `#e9e9e7`
 so the plate has something to lift off. `frame.md` labels that as the one derived value
 rather than pretending it was read.
 

@@ -22,17 +22,6 @@ Thumbs.db
 # with `bun run upload:docs-images`. Add explicit negations below for any
 # non-generated assets (logos, svgs) that should stay in the repo.
 docs/images/
-!docs/images/
-docs/images/*
-!docs/images/studio/
-!docs/images/studio/*.jpg
-!docs/images/studio-variables-panel-v1.jpg
-!docs/images/studio-captions-panel-v1.jpg
-!docs/images/studio-slideshow-panel-v1.jpg
-!docs/images/showcase/
-!docs/images/showcase/*.mp4
-!docs/images/showcase/*.jpg
-!docs/images/showcase/*.png
 
 videos/
 
@@ -110,6 +99,9 @@ examples/*
 !examples/gcp-cloud-run/**
 !examples/docs-reference-project
 !examples/docs-reference-project/**
+examples/docs-reference-project/capture/
+examples/docs-reference-project/live/
+examples/docs-reference-project/snapshots/
 # …but never the local smoke run's build/render artifacts.
 examples/gcp-cloud-run/scripts/gcp-smoke-artifacts/
 packages/studio/data/
