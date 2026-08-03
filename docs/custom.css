@@ -1,40 +1,6 @@
 /* HyperFrames Design System — Mintlify Theme Overrides */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-
-/* ── TT Norms Pro (matches hyperframes.heygen.com) ── */
-
-@font-face {
-  font-family: 'TT Norms Pro';
-  src: url('https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_Normal.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'TT Norms Pro';
-  src: url('https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'TT Norms Pro';
-  src: url('https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_DemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'TT Norms Pro';
-  src: url('https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
 /* ── Light mode (default) ── */
 /*
@@ -57,6 +23,11 @@
   --hf-text-tertiary: #999999;
   --hf-heading: #0a0a0a;
   --hf-code-bg: #ffffff;
+  --hf-ui-border: #eeeeee;
+  --hf-sidebar-rail: #eeeeee;
+  --hf-sidebar-text: #707070;
+  --hf-floating-input-shadow: 0 8px 28px rgba(10, 10, 10, 0.08), 0 1px 4px rgba(10, 10, 10, 0.08);
+  --mintlify-slot-header-height: 3.5rem;
 
   --hf-accent-green: #1a7a0a;
   --hf-accent-green-light: rgba(26, 122, 10, 0.07);
@@ -85,6 +56,10 @@
   --hf-text-tertiary: #666666;
   --hf-heading: #f5f5f5;
   --hf-code-bg: #141414;
+  --hf-ui-border: #2a2a2a;
+  --hf-sidebar-rail: #2a2a2a;
+  --hf-sidebar-text: #a0a0a0;
+  --hf-floating-input-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.4);
 
   --hf-accent-green: #22c55e;
   --hf-accent-green-light: rgba(34, 197, 94, 0.1);
@@ -102,14 +77,30 @@
 /* ── Typography ── */
 
 body {
-  font-family: 'TT Norms Pro', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'TT Norms Pro', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
-h1, h2 {
+h1,
+h2 {
   letter-spacing: -0.02em;
 }
 
@@ -117,11 +108,206 @@ h3 {
   letter-spacing: -0.01em;
 }
 
-/* Code font — IBM Plex Mono (loaded via Google Fonts above) */
-code, pre, pre code, kbd,
-[class*="code"],
-[class*="Code"] {
-  font-family: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
+/* ── Content width ──
+ *
+ * The theme caps the article shell at max-w-6xl (72rem) and reserves 28rem of
+ * every wide viewport for the table of contents, which left the actual reading
+ * column at ~664px on a 1600px screen. That is too narrow for a product whose
+ * pages carry 16:9 video: a full-width clip rendered smaller than a phone held
+ * sideways. These raise the shell and hand ~9rem back from the TOC gutter,
+ * taking the column to roughly 950px.
+ *
+ * ID selectors deliberately: they outrank the theme's utility classes without
+ * needing !important, so the cascade stays debuggable. */
+@media (min-width: 1280px) {
+  /* The binding constraint. The left sidebar sits inside #body-content, so its
+   * max-w-8xl (1472px) cap was the real limit: 1432 inner − 287 sidebar = 1144,
+   * then −128 shell padding = 1016, then −352 for the contents rail and gap,
+   * which is exactly the 664px column we measured. */
+  #body-content {
+    max-width: 110rem;
+  }
+
+  /* Let the shell use what #body-content now offers, and reclaim some of the
+   * generous left padding. Setting a width on #content-area itself does
+   * nothing — it is a flex item with grow, so it simply fills what is left. */
+  #content-container {
+    max-width: none;
+    padding-left: 2.5rem;
+  }
+
+  /* The contents rail only ever renders ~256px of text. */
+  #content-side-layout {
+    max-width: 16rem;
+  }
+}
+
+/* No paragraph measure cap. It was tried and removed: these pages are built
+ * almost entirely from lists, tables, cards, and code blocks — a whole guide
+ * carries about three <p> elements — so capping paragraph width changed nothing
+ * measurable while adding a rule that looked meaningful. If long lines ever do
+ * become a problem, cap the structural containers rather than <p>. */
+
+/* Media that should escape any inherited measure. Use on a Frame or a bare
+ * video/image wrapper when the visual is the point of the section. */
+.hf-wide {
+  width: 100%;
+  max-width: none;
+}
+
+/* ── Next-step card thumbnail ──
+ *
+ * Sizing an <img> inside one of these cards with utility classes does not work.
+ * Mintlify wraps every image in its zoom component — span[data-rmiz] >
+ * span[data-rmiz-content] > picture.contents > img — so a width set on a
+ * surrounding div is absorbed by that wrapper, and the image renders full width
+ * with the card's text pushed out of view. Videos are not wrapped, which is why
+ * the same card works with a <video> and not an <img>.
+ *
+ * A custom class is used rather than utilities because Mintlify rewrites
+ * Tailwind classes into its own mint-* namespace and drops what it does not
+ * recognise; classes like this one pass through untouched. */
+.hf-peek {
+  width: 100%;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .hf-peek {
+    width: 16rem;
+  }
+}
+
+/* Collapse the zoom wrapper so the image can fill the box. */
+.hf-peek span,
+.hf-peek picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hf-peek img {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+  object-position: right center;
+}
+
+/* ── Workflow routing and choices ──
+ *
+ * Workflow pages used to render their choices as pill-shaped pseudo-tabs with
+ * one large generated prompt below. That hid useful comparisons, repeated the
+ * short request already shown above, and produced unreadable code in light
+ * mode. These styles keep every choice visible and make the router feel like a
+ * concise editorial index instead of a wall of cards. */
+.hf-workflow-routes {
+  margin: 1.5rem 0;
+  border-top: 1px solid var(--hf-border-color);
+}
+
+.hf-workflow-route {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--hf-border-color);
+  color: inherit;
+  text-decoration: none;
+}
+
+.hf-workflow-route:hover .hf-workflow-route-title {
+  color: var(--hf-accent-green);
+}
+
+.hf-workflow-route video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0;
+  border-radius: 0.5rem;
+  background: #000;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.hf-workflow-route-title {
+  display: block;
+  color: var(--hf-heading);
+  font-weight: 650;
+  line-height: 1.35;
+  transition: color 120ms ease;
+}
+
+.hf-workflow-route-copy {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--hf-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.hf-workflow-choices {
+  margin: 1rem 0 1.5rem;
+  border-top: 1px solid var(--hf-border-color);
+}
+
+.hf-workflow-choice {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.7fr);
+  gap: 1rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--hf-border-color);
+}
+
+.hf-workflow-choice-title {
+  color: var(--hf-heading);
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.hf-workflow-choice-copy {
+  color: var(--hf-text-secondary);
+  font-size: 0.925rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 639px) {
+  .hf-workflow-route {
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+
+  .hf-workflow-choice {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
+
+/* A breakout hero wrapper was tried here and reverted: at this column width it
+ * rendered 968px wide and overwhelmed the page rather than supporting it. The
+ * film stays inside a Frame at the column width. Motion was the part worth
+ * keeping — the hero autoplays muted on a loop instead of waiting behind a play
+ * button — and that lives on the element, not in CSS. */
+
+/* Code font — IBM Plex Mono (loaded via Google Fonts above).
+ *
+ * Deliberately scoped to real code elements. The previous rule also matched
+ * [class*="code"] / [class*="Code"], which caught any element whose class
+ * merely contained that substring — including every Accordion, whose wrapper
+ * carries the Tailwind utility `dark:bg-codeblock`. That set the whole
+ * accordion (and, by inheritance, its title and prose) in monospace, so plain
+ * sentences rendered like terminal output. Syntax tokens inside `pre` inherit
+ * from `pre`, so they do not need a selector of their own. */
+code,
+pre,
+pre code,
+kbd,
+samp {
+  font-family: "IBM Plex Mono", "SF Mono", "Fira Code", monospace;
 }
 
 /* ── Code blocks ── */
@@ -146,6 +332,186 @@ a:not([class]) {
 
 a:not([class]):hover {
   opacity: 0.85;
+}
+
+/* ── Documentation navigation ── */
+
+/*
+ * Keep Aspen's full-width header, but place its desktop controls on one row:
+ * logo → section tabs → search → actions. Mobile keeps Mintlify's layout.
+ */
+@media (min-width: 1024px) {
+  #navbar {
+    height: 3.5rem;
+  }
+
+  #navbar > div:has(.nav-tabs) {
+    display: grid;
+    grid-template-columns: max-content max-content minmax(10.25rem, 1fr) max-content;
+    column-gap: 1rem;
+    align-items: center;
+    height: 3.5rem;
+  }
+
+  #navbar > div:has(.nav-tabs) > .relative,
+  #navbar > div:has(.nav-tabs) > .relative > div:first-child,
+  #navbar > div:has(.nav-tabs) > .relative > div:first-child > div:first-child {
+    display: contents;
+  }
+
+  #navbar > div:has(.nav-tabs) > .relative > div:first-child > div:first-child > div:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #navbar div:has(> .nav-tabs) {
+    grid-column: 2;
+    grid-row: 1;
+    height: 3.5rem;
+    padding: 0;
+  }
+
+  #navbar .nav-tabs {
+    align-items: center;
+    height: 3.5rem;
+  }
+
+  #navbar div:has(> #search-bar-entry) {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  #navbar .topbar-right-container {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  #sidebar-content {
+    top: 3.5rem !important;
+    height: calc(100vh - 3.5rem) !important;
+  }
+
+  /* Keep the repository compact, but retain its useful live star count. */
+  #navbar a[title="heygen-com/hyperframes"] {
+    width: 7.5rem;
+    min-width: 7.5rem;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    justify-content: center;
+  }
+
+  #navbar a[title="heygen-com/hyperframes"] > span.truncate {
+    display: none;
+  }
+
+  #navbar a[title="heygen-com/hyperframes"] > span:not(.truncate) {
+    display: flex !important;
+    color: var(--hf-heading);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * Mintlify removes the live count for roughly one animation frame during
+   * client-side navigation. Keep the last known value in its place so the
+   * control neither collapses nor flashes empty.
+   */
+  #navbar a[title="heygen-com/hyperframes"]:not(:has(> span:not(.truncate)))::after {
+    color: var(--hf-heading);
+    content: "★ 38,440";
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Preserve a useful search field on smaller desktop widths. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  #navbar #assistant-entry {
+    display: none;
+  }
+}
+
+/* Use main's quieter structural border color across Aspen surfaces. */
+#body-content [class*="border-gray-200"],
+#body-content [class*="border-gray-100"] {
+  border-color: var(--hf-ui-border) !important;
+}
+
+/* Keep the floating agent input noticeable against the page background. */
+#body-content .chat-assistant-floating-input > div > div {
+  border-color: var(--hf-border-color-light) !important;
+  background-color: var(--hf-background-light) !important;
+  box-shadow: var(--hf-floating-input-shadow);
+}
+
+/*
+ * Match the navigation rhythm and active-page rail used on the main docs.
+ * Each link owns one rail segment, so the current page can highlight only
+ * its segment. These rules are visual only; groups remain non-collapsible.
+ */
+#navigation-items .sidebar-group-header {
+  color: var(--hf-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+#navigation-items .sidebar-group {
+  padding-left: 0;
+}
+
+#navigation-items .sidebar-group::before {
+  content: none;
+}
+
+#navigation-items .sidebar-group > li {
+  margin-bottom: 0;
+}
+
+#navigation-items .sidebar-group > li + li {
+  margin-top: 0 !important;
+}
+
+#navigation-items .sidebar-group > li > a {
+  width: calc(100% - 1rem);
+  margin-left: 1rem;
+  padding: 0.375rem 0.75rem 0.375rem 1rem;
+  border-left: 1px solid var(--hf-sidebar-rail);
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--hf-sidebar-text);
+}
+
+#navigation-items .sidebar-group > li > a:hover {
+  background: transparent !important;
+  color: var(--hf-heading);
+}
+
+#navigation-items .sidebar-group > li[data-active="true"] > a,
+#navigation-items .sidebar-group > li[data-active-nav-item="true"] > a,
+#navigation-items .sidebar-group > li > a[aria-current="page"] {
+  border-left-color: currentColor;
+  color: var(--hf-heading);
+}
+
+/* Aspen inserts horizontal separators; main uses the same space without a rule. */
+#navigation-items div:has(> .sidebar-group) + div {
+  height: 2rem;
+  padding: 0;
+}
+
+#navigation-items div:has(> .sidebar-group) + div > * {
+  display: none;
+}
+
+/*
+ * Aspen assumes a 96px header and fades scrolled navigation before it reaches
+ * that boundary. Our header is 56px; align the sticky sidebar to it and let
+ * links clip exactly at the header instead of disappearing early.
+ */
+#navigation-items,
+#navigation-items [data-id] {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
 }
 
 /* Catalog texture examples */
@@ -181,7 +547,7 @@ a:not([class]):hover {
 
 .hf-texture-preview-word {
   color: #fff;
-  font-family: Impact, 'Arial Black', sans-serif;
+  font-family: Impact, "Arial Black", sans-serif;
   font-size: 42px;
   line-height: 0.9;
   letter-spacing: 0;
@@ -203,9 +569,7 @@ a:not([class]):hover {
   border-radius: 8px;
   padding: 22px;
   margin: 20px 0 24px;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.54) 1px, transparent 1px),
-    #f1f1f1;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.54) 1px, transparent 1px), #f1f1f1;
   background-size: 44px 100%;
 }
 
@@ -244,7 +608,7 @@ a:not([class]):hover {
 
 .hf-texture-animate-word {
   color: #181818;
-  font-family: Impact, 'Arial Black', sans-serif;
+  font-family: Impact, "Arial Black", sans-serif;
   font-size: 92px;
   line-height: 0.9;
   letter-spacing: 0;
@@ -278,6 +642,11 @@ a:not([class]):hover {
   display: grid;
   gap: 32px;
   margin: 20px 0 40px;
+}
+
+.hf-texture-example-groups > div,
+.hf-texture-example-card {
+  min-width: 0;
 }
 
 .hf-texture-example-title {
@@ -337,7 +706,7 @@ a:not([class]):hover {
 
 .hf-texture-example-word {
   color: #181818;
-  font-family: Impact, 'Arial Black', sans-serif;
+  font-family: Impact, "Arial Black", sans-serif;
   font-size: 54px;
   line-height: 0.9;
   letter-spacing: 0;
@@ -376,6 +745,355 @@ a:not([class]):hover {
   overflow-wrap: anywhere;
 }
 
+/* Portrait proof clips should read as examples inside the page, not become the
+ * page. Landscape films keep the full content width; only explicitly marked
+ * portrait media gets this compact, centered treatment. */
+.hf-portrait-video {
+  display: block;
+  width: auto;
+  max-width: min(100%, 18rem);
+  max-height: min(32rem, 68vh);
+  margin: 0.75rem auto 0;
+  border-radius: 0.5rem;
+  background: #111;
+}
+
+/* Full narrated films use a quiet custom control layer over the native video
+ * engine. Preview loops remain plain muted videos. */
+.hf-docs-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #070707;
+  color: #fff;
+  isolation: isolate;
+  outline: none;
+}
+
+.hf-docs-video:focus-visible {
+  box-shadow: 0 0 0 3px rgba(245, 244, 92, 0.78);
+}
+
+.hf-docs-video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0 !important;
+  background: #070707;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.hf-docs-video-hero-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(8, 8, 8, 0.82);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+}
+
+.hf-docs-video-hero-play:hover {
+  border-color: rgba(245, 244, 92, 0.7);
+  background: rgba(15, 15, 15, 0.94);
+}
+
+.hf-docs-video-hero-play:focus-visible,
+.hf-docs-video-control:focus-visible,
+.hf-docs-video-rate:focus-visible,
+.hf-docs-video-progress:focus-visible {
+  outline: 2px solid #f5f45c;
+  outline-offset: 2px;
+}
+
+.hf-docs-video-hero-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #f5f45c;
+  color: #0b0b0b;
+}
+
+.hf-docs-video-hero-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-left: 0.1rem;
+  fill: currentColor;
+}
+
+.hf-docs-video-controls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 0.45rem;
+  padding: 3.75rem 1rem 0.78rem;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.84));
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  z-index: 2;
+}
+
+.hf-docs-video-controls[data-visible="false"] {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(0.4rem);
+}
+
+.hf-docs-video:hover .hf-docs-video-controls,
+.hf-docs-video:focus-within .hf-docs-video-controls {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hf-docs-video-progress {
+  width: 100%;
+  height: 1rem;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.hf-docs-video-scrub-preview {
+  position: absolute;
+  bottom: 4.1rem;
+  left: clamp(4.75rem, var(--hf-video-preview-x), calc(100% - 4.75rem));
+  width: 9rem;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0.55rem;
+  background: #080808;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  z-index: 4;
+}
+
+.hf-docs-video-scrub-preview[data-visible="false"] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translate(-50%, 0.3rem) scale(0.98);
+}
+
+.hf-docs-video-scrub-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hf-docs-video-scrub-preview span {
+  position: absolute;
+  right: 0.3rem;
+  bottom: 0.3rem;
+  padding: 0.14rem 0.32rem;
+  border-radius: 0.3rem;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.65rem;
+  line-height: 1.15;
+}
+
+.hf-docs-video-progress::-webkit-slider-runnable-track {
+  height: 0.22rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #f5f45c 0,
+    #f5f45c var(--hf-video-progress),
+    rgba(255, 255, 255, 0.34) var(--hf-video-progress),
+    rgba(255, 255, 255, 0.34) 100%
+  );
+}
+
+.hf-docs-video-progress::-moz-range-track {
+  height: 0.22rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.hf-docs-video-progress::-moz-range-progress {
+  height: 0.22rem;
+  border-radius: 999px;
+  background: #f5f45c;
+}
+
+.hf-docs-video-progress::-webkit-slider-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-top: -0.315rem;
+  border: 2px solid #121212;
+  border-radius: 50%;
+  background: #f5f45c;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.hf-docs-video-progress::-moz-range-thumb {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid #121212;
+  border-radius: 50%;
+  background: #f5f45c;
+}
+
+.hf-docs-video-control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.hf-docs-video-control,
+.hf-docs-video-rate {
+  display: grid;
+  height: 2rem;
+  min-width: 2rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hf-docs-video-control:hover,
+.hf-docs-video-rate:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
+}
+
+.hf-docs-video-control svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
+}
+
+.hf-docs-video-rate {
+  min-width: 2.75rem;
+  padding: 0 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.hf-docs-video-time {
+  margin-left: 0.2rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.74rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.hf-docs-video-time span {
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.hf-docs-video-spacer {
+  flex: 1 1 auto;
+}
+
+.hf-docs-video-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2rem;
+  height: 2rem;
+  margin: -1rem 0 0 -1rem;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: #f5f45c;
+  border-radius: 50%;
+  animation: hf-docs-video-spin 700ms linear infinite;
+  z-index: 3;
+}
+
+@keyframes hf-docs-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
+  .hf-docs-video-hero-play {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .hf-docs-video-hero-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .hf-docs-video-controls {
+    gap: 0.25rem;
+    padding: 2.75rem 0.6rem 0.42rem;
+  }
+
+  .hf-docs-video-scrub-preview {
+    bottom: 3.65rem;
+    left: clamp(3.75rem, var(--hf-video-preview-x), calc(100% - 3.75rem));
+    width: 7rem;
+  }
+
+  .hf-docs-video-time {
+    margin-left: 0;
+    font-size: 0.67rem;
+  }
+
+  .hf-docs-video-rate {
+    min-width: 2.45rem;
+    padding: 0 0.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hf-docs-video-controls {
+    transition: none;
+  }
+
+  .hf-docs-video-spinner {
+    animation: none;
+  }
+
+  .hf-docs-video-scrub-preview {
+    transition: none;
+  }
+}
+
 @media (max-width: 860px) {
   .hf-texture-preview-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -409,4 +1127,11 @@ a:not([class]):hover {
   .hf-texture-animate-word {
     animation: none;
   }
+}
+
+/* Hide the section/group label ("Start here", etc.) that the theme renders
+ * above every page title. It repeats the sidebar grouping and adds noise on
+ * every page; each page leads with its own H1 instead. */
+.eyebrow {
+  display: none;
 }

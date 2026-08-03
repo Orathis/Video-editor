@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "HyperFrames",
-  "theme": "maple",
+  "theme": "aspen",
   "colors": {
     "primary": "#0a0a0a",
     "light": "#f6f5f1",
@@ -20,11 +20,12 @@
     }
   },
   "appearance": {
-    "default": "light"
+    "default": "system"
   },
   "logo": {
     "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "dark": "/logo/dark.svg",
+    "href": "https://hyperframes.heygen.com/introduction"
   },
   "favicon": "/favicon.svg",
   "contextual": {
@@ -47,29 +48,16 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Documentation",
+        "tab": "Guides",
+        "icon": "book-open",
         "groups": [
           {
-            "group": "Getting Started",
-            "pages": [
-              "introduction",
-              "changelog",
-              "weekly-updates",
-              "quickstart",
-              "showcase",
-              "examples",
-              "launch-videos"
-            ]
+            "group": "Start here",
+            "pages": ["introduction", "quickstart", "go-further", "developers/index"]
           },
           {
-            "group": "Concepts",
-            "pages": [
-              "concepts/compositions",
-              "concepts/data-attributes",
-              "concepts/variables",
-              "concepts/frame-adapters",
-              "concepts/determinism"
-            ]
+            "group": "Create with an agent",
+            "pages": ["guides/choose-creation-path", "guides/mcp", "guides/design-tools"]
           },
           {
             "group": "Prompt Guide",
@@ -98,10 +86,7 @@
               },
               {
                 "group": "Level 3 — Life",
-                "pages": [
-                  "prompting/motion",
-                  "prompting/transitions"
-                ]
+                "pages": ["prompting/motion", "prompting/transitions"]
               },
               {
                 "group": "Level 4 — Substance",
@@ -118,9 +103,7 @@
               },
               {
                 "group": "Level 5 — Voice and sound",
-                "pages": [
-                  "prompting/media-and-audio"
-                ]
+                "pages": ["prompting/media-and-audio"]
               },
               {
                 "group": "Level 6 — Scale",
@@ -137,66 +120,98 @@
               },
               {
                 "group": "Level 7 — Capstone",
-                "pages": [
-                  "prompting/capstone"
-                ]
+                "pages": ["prompting/capstone"]
               },
               {
                 "group": "Appendix",
-                "pages": [
-                  "prompting/rules-and-anti-patterns"
-                ]
+                "pages": ["prompting/rules-and-anti-patterns"]
               }
             ]
           },
           {
-            "group": "Guides",
+            "group": "Workflows",
             "pages": [
-              "guides/pipeline",
-              "guides/skills",
-              "guides/authentication",
-              "guides/video-components",
-              "guides/color-grading",
-              "guides/media-effects",
-              "guides/media-overlays",
-              "guides/html-in-canvas",
-              "guides/website-to-video",
-              "guides/figma",
-              "guides/antigravity",
-              "guides/copilot-cli",
-              "guides/claude-design",
-              "guides/open-design",
-              "guides/hyperframes-vs-remotion",
-              "guides/gsap-animation",
-              "guides/keyframes",
-              "guides/rendering",
-              "guides/remove-background",
-              "guides/hdr",
-              "guides/4k-rendering",
-              "guides/performance",
-              "guides/timeline-editing",
-              "guides/video-editor-cheatsheet",
-              "guides/common-mistakes",
-              "guides/troubleshooting",
-              "guides/feedback"
+              "workflows",
+              "guides/product-launch-video",
+              "guides/faceless-explainer",
+              "guides/pr-to-video",
+              "guides/captions-and-recuts",
+              "guides/motion-graphics",
+              "guides/music-to-video",
+              "guides/slideshow",
+              "guides/general-video"
             ]
           },
           {
-            "group": "Deploy",
+            "group": "Projects and media",
             "pages": [
-              "deploy/cloud",
-              "guides/deploy",
-              "deploy/aws-lambda",
-              "deploy/gcp-cloud-run",
-              "deploy/templates-on-lambda",
-              "deploy/migrating-to-hyperframes-lambda"
+              "concepts/index",
+              "concepts/variables",
+              "guides/media",
+              "guides/video-components",
+              "guides/avatar-presenter",
+              "guides/voice-and-audio",
+              "guides/remove-background",
+              "guides/color-grading",
+              "guides/media-effects"
             ]
+          },
+          {
+            "group": "Finish",
+            "pages": ["guides/export-and-share"]
+          },
+          {
+            "group": "Explore",
+            "pages": ["examples", "product-updates"]
+          },
+          {
+            "group": "Help",
+            "pages": ["help", "guides/troubleshooting", "guides/feedback"]
+          }
+        ]
+      },
+      {
+        "tab": "Studio",
+        "icon": "palette",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["studio/index"]
+          },
+          {
+            "group": "Review",
+            "pages": ["studio/storyboard"]
+          },
+          {
+            "group": "Edit",
+            "pages": ["studio/canvas", "studio/timeline", "studio/animation", "studio/captions"]
+          },
+          {
+            "group": "Build and reuse",
+            "pages": [
+              "studio/assets-and-blocks",
+              "studio/variables",
+              "studio/slideshows"
+            ]
+          },
+          {
+            "group": "Finish",
+            "pages": ["studio/export"]
+          },
+          {
+            "group": "Reference and help",
+            "pages": ["studio/source", "studio/shortcuts", "studio/troubleshooting"]
           }
         ]
       },
       {
         "tab": "Catalog",
+        "icon": "grid-2",
         "groups": [
+          {
+            "group": "Overview",
+            "pages": ["catalog/index"]
+          },
           {
             "group": "Code Animations",
             "pages": [
@@ -423,53 +438,28 @@
         ]
       },
       {
-        "tab": "Packages",
-        "groups": [
-          {
-            "group": "Packages",
-            "pages": [
-              "packages/core",
-              "packages/parsers",
-              "packages/lint",
-              "packages/studio-server",
-              "packages/sdk",
-              "packages/engine",
-              "packages/player",
-              "packages/producer",
-              "packages/shader-transitions",
-              "packages/aws-lambda",
-              "packages/gcp-cloud-run",
-              "packages/studio",
-              "packages/cli"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "SDK",
+        "tab": "Developers",
+        "icon": "code",
         "groups": [
           {
             "group": "Overview",
-            "pages": [
-              "sdk/overview",
-              "sdk/quickstart"
-            ]
+            "pages": ["developers/overview"]
           },
           {
-            "group": "Guides",
+            "group": "Command line",
+            "pages": ["developers/cli", "packages/cli", "packages/lint"]
+          },
+          {
+            "group": "SDK",
             "pages": [
+              "sdk/quickstart",
               "sdk/guides/querying-and-editing",
               "sdk/guides/timing-and-animation",
               "sdk/guides/undo-redo-and-patches",
               "sdk/guides/persistence",
               "sdk/guides/embedded-override-mode",
               "sdk/guides/canvas-integration",
-              "sdk/guides/editing-affordances"
-            ]
-          },
-          {
-            "group": "Reference",
-            "pages": [
+              "sdk/guides/editing-affordances",
               "sdk/reference/open-composition",
               "sdk/reference/composition",
               "sdk/reference/edit-operations",
@@ -477,16 +467,62 @@
               "sdk/reference/adapters",
               "sdk/reference/utilities"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Reference",
-        "groups": [
+          },
           {
-            "group": "Reference",
+            "group": "Composition and animation",
             "pages": [
-              "reference/html-schema"
+              "concepts/compositions",
+              "reference/html-schema",
+              "concepts/data-attributes",
+              "reference/color-grading",
+              "guides/gsap-animation",
+              "concepts/frame-adapters",
+              "concepts/determinism",
+              "guides/html-in-canvas",
+              "guides/hyperframes-vs-remotion"
+            ]
+          },
+          {
+            "group": "Rendering and deployment",
+            "pages": [
+              "guides/rendering",
+              "deploy/overview",
+              "deploy/cloud",
+              "guides/deploy",
+              "deploy/aws-lambda",
+              "deploy/gcp-cloud-run",
+              "deploy/templates-on-lambda",
+              "deploy/migrating-to-hyperframes-lambda",
+              "packages/aws-lambda",
+              "packages/gcp-cloud-run"
+            ]
+          },
+          {
+            "group": "Advanced rendering",
+            "pages": ["guides/4k-rendering", "guides/hdr", "guides/performance"]
+          },
+          {
+            "group": "Packages",
+            "pages": [
+              "packages/core",
+              "packages/parsers",
+              "packages/studio-server",
+              "packages/sdk",
+              "packages/engine",
+              "packages/player",
+              "packages/producer",
+              "packages/shader-transitions",
+              "packages/studio"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "guides/authentication",
+              "guides/skills",
+              "guides/figma",
+              "guides/antigravity",
+              "guides/copilot-cli"
             ]
           },
           {
@@ -496,15 +532,12 @@
               "contributing/catalog",
               "contributing/release-channels",
               "contributing/changelog-process",
-              "contributing/testing-local-changes",
-              "contributing/studio-manual-dom-editing"
+              "contributing/testing-local-changes"
             ]
           },
           {
             "group": "Community",
-            "pages": [
-              "community/adopters"
-            ]
+            "pages": ["community/adopters"]
           }
         ]
       }
@@ -515,10 +548,141 @@
       "github": "https://github.com/heygen-com/hyperframes"
     }
   },
+  "navbar": {
+    "links": [
+      {
+        "type": "github",
+        "href": "https://github.com/heygen-com/hyperframes"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Playground",
+      "href": "https://www.hyperframes.dev/"
+    }
+  },
   "redirects": [
+    {
+      "source": "/guides",
+      "destination": "/introduction"
+    },
+    {
+      "source": "/showcase",
+      "destination": "/examples"
+    },
+    {
+      "source": "/launch-videos",
+      "destination": "/examples"
+    },
+    {
+      "source": "/guides/claude-design",
+      "destination": "/guides/design-tools"
+    },
+    {
+      "source": "/guides/open-design",
+      "destination": "/guides/design-tools"
+    },
+    {
+      "source": "/guides/common-mistakes",
+      "destination": "/guides/troubleshooting"
+    },
+    {
+      "source": "/guides/create-with-agent",
+      "destination": "/workflows"
+    },
+    {
+      "source": "/guides/choose-your-path",
+      "destination": "/workflows"
+    },
+    {
+      "source": "/guides/help",
+      "destination": "/help"
+    },
+    {
+      "source": "/guides/project-tour",
+      "destination": "/concepts"
+    },
+    {
+      "source": "/guides/media-overlays",
+      "destination": "/catalog"
+    },
+    {
+      "source": "/guides/common-questions",
+      "destination": "/help"
+    },
+    {
+      "source": "/weekly-updates",
+      "destination": "/product-updates"
+    },
+    {
+      "source": "/contributing/studio-manual-dom-editing",
+      "destination": "/studio/canvas"
+    },
+    {
+      "source": "/guides/video-editor-cheatsheet",
+      "destination": "/studio/shortcuts"
+    },
+    {
+      "source": "/guides/timeline-editing",
+      "destination": "/studio/timeline"
+    },
+    {
+      "source": "/guides/website-to-video",
+      "destination": "/guides/product-launch-video"
+    },
     {
       "source": "/guides/prompting",
       "destination": "/prompting/overview",
+      "permanent": true
+    },
+    {
+      "source": "/guides/pipeline",
+      "destination": "/concepts",
+      "permanent": true
+    },
+    {
+      "source": "/guides/quality-checklist",
+      "destination": "/guides/export-and-share",
+      "permanent": true
+    },
+    {
+      "source": "/guides/publish-and-share",
+      "destination": "/guides/export-and-share",
+      "permanent": true
+    },
+    {
+      "source": "/studio/tour",
+      "destination": "/studio",
+      "permanent": true
+    },
+    {
+      "source": "/studio/layers",
+      "destination": "/studio/canvas",
+      "permanent": true
+    },
+    {
+      "source": "/studio/design",
+      "destination": "/studio/canvas",
+      "permanent": true
+    },
+    {
+      "source": "/guides/keyframes",
+      "destination": "/studio/animation",
+      "permanent": true
+    },
+    {
+      "source": "/studio/lint-and-agent",
+      "destination": "/studio/source",
+      "permanent": true
+    },
+    {
+      "source": "/guides/transcribe-and-caption",
+      "destination": "/guides/voice-and-audio",
+      "permanent": true
+    },
+    {
+      "source": "/sdk/overview",
+      "destination": "/sdk/quickstart",
       "permanent": true
     }
   ]

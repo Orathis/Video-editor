@@ -523,7 +523,7 @@ composition with `-c` rather than as a bare path.
 npx hyperframes render -o output.mp4
 ```
 
-1920x1080 / 30fps by default. Use `--fps 60` or `--resolution 3840x2160` to override.
+1920x1080 / 30fps by default. Use `--fps 60` or `--resolution 4k` to override.
 ````
 
 ### Skeleton A -- Social Reel (1080x1920, 15s, 6 scenes)

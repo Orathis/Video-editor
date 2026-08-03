@@ -47,3 +47,7 @@ registry/**/*.html linguist-vendored
 .claude/skills/**/*.mp3 filter=lfs diff=lfs merge=lfs -text
 .agents/skills/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
 .agents/skills/**/*.mp3 filter=lfs diff=lfs merge=lfs -text
+
+# Documentation videos are shipped from the repo and include full journey films.
+# Keep binary masters out of the Git object store while preserving their paths.
+docs/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
