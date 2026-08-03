@@ -75,7 +75,7 @@ Use the [CLI guide](/developers/cli) for the everyday commands and the [complete
 
 ## SDK: inspect and edit
 
-`@hyperframes/sdk` opens composition HTML, gives elements stable `hf-id` identifiers, applies typed edit operations, emits JSON patches, supports undo and redo, and persists through adapters.
+`@hyperframes/sdk` opens composition HTML, gives elements stable `data-hf-id` identifiers, applies typed edit operations, emits JSON patches, supports undo and redo, and persists through adapters.
 
 ```ts
 import { openComposition } from "@hyperframes/sdk";
@@ -131,3 +131,9 @@ composition → inspect or edit → play or render
 ```
 
 Every surface works on the same source. Choose the smallest layer that produces the result your application needs, then move lower only when the higher-level layer removes control you genuinely require.
+
+## Related topics
+
+- [Run complete projects from the CLI](/developers/cli)
+- [Edit composition HTML with the SDK](/sdk/quickstart)
+- [Embed a composition with the Player](/packages/player)
