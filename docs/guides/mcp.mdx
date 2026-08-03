@@ -3,7 +3,9 @@ title: "Create through an AI chat"
 description: "Use the hosted HyperFrames MCP connector to create and render without installing the local CLI."
 ---
 
-HyperFrames MCP is a hosted connector for supported AI chat products. It lets the chat create, revise, preview, and render a HyperFrames composition through your HeyGen account.
+HyperFrames MCP is a hosted connector for supported AI chat products. It lets
+the chat call HyperFrames creation and rendering tools through your HeyGen
+account without installing the local CLI.
 
 <Note>
   This path is in beta. Availability, interface wording, features, credits, and plan requirements
@@ -17,7 +19,6 @@ Use the hosted connector when you want:
 - no local HyperFrames setup;
 - a conversational creation flow;
 - cloud rendering;
-- previous hosted compositions available from the chat.
 
 Use the [local Quickstart](/quickstart) when you need:
 
@@ -37,10 +38,9 @@ https://mcp.heygen.com/mcp/hyperframes/
 
 You need a HeyGen account and access to the HyperFrames connector.
 
-Host access differs: Claude supports remote custom connectors across its current
-consumer and workspace plans; ChatGPT custom apps with create and render actions
-require an eligible Business or Enterprise/Edu workspace; Grok workspace access
-may require administrator setup. The host sections below contain the current steps.
+Each host controls where custom connectors appear and which plans or workspace
+roles can add them. Use the steps below as orientation, then follow the linked
+host documentation when its interface differs.
 
 <Tabs>
   <Tab title="Claude">
@@ -49,13 +49,13 @@ may require administrator setup. The host sections below contain the current ste
     3. Complete the HeyGen sign-in.
     4. In a new chat, open the **+** menu, choose **Connectors**, and enable HyperFrames.
 
-    Claude supports remote custom connectors on Free, Pro, Max, Team, and Enterprise plans. Free accounts can add one custom connector. Team and Enterprise owners configure organization connectors before members connect. See [Anthropic’s current connector instructions](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+    See [Anthropic’s current connector instructions](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp) for plan and workspace requirements.
 
   </Tab>
   <Tab title="ChatGPT">
     If HyperFrames appears in **Settings → Apps**, choose **Connect** and complete HeyGen authorization.
 
-    To add the MCP address as a custom app with create and render actions, a supported Business or Enterprise/Edu workspace must enable developer mode. An authorized user then opens **Settings → Apps → Create**, enters the endpoint, scans the tools, completes OAuth, and creates the app. Workspace admins control publishing and action access.
+    To add the MCP address as a custom app, an authorized user enables the host's developer mode, creates an app from the endpoint, scans the tools, and completes OAuth. Workspace admins may control publishing and action access.
 
     See [OpenAI’s current MCP app instructions](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt-beta).
 
@@ -66,7 +66,7 @@ may require administrator setup. The host sections below contain the current ste
     3. Enter the MCP address above.
     4. Complete HeyGen authorization.
 
-    Business and Enterprise workspaces require an administrator to provision the connector first. See [xAI’s current connector instructions](https://docs.x.ai/grok/connectors).
+    See [xAI’s current connector instructions](https://docs.x.ai/grok/connectors) for workspace requirements.
 
   </Tab>
 </Tabs>
@@ -84,7 +84,9 @@ Style: quiet, spacious, and warm.
 Show the breathing timer and end with “Rest starts here.”
 ```
 
-The connector can create the composition and return a preview supported by the host.
+The connector proposes and builds the composition through the tools exposed in
+that chat. Follow the returned tool result rather than expecting a specific
+preview widget: hosts present MCP output differently.
 
 ## Revise it conversationally
 
@@ -108,20 +110,18 @@ Render this as an MP4 at 30 fps.
 
 MP4 is the normal sharing format. WebM can be useful for web delivery and transparent overlays. MOV can be useful for another editing workflow.
 
-Longer renders may continue as a background job. Ask the connector for the render status if the host does not update automatically.
+The connector renders on hosted infrastructure. Keep any composition or render
+identifier the tool returns so you can refer to the same work in a follow-up.
 
-## Credits and account access
-
-Authoring and rendering can use HeyGen credits. Ask the connector to show the available balance or check your HeyGen account.
-
-Compositions and assets are resolved through the HeyGen account or space used during authorization. If a previous composition is missing, first confirm that the connector is signed into the same account and space.
+OAuth connects the server to your current HeyGen account. Plans, limits, and
+billing can change independently of HyperFrames, so confirm them in the account
+before starting repeated or long renders.
 
 ## Current limits
 
 - Rendering runs on HeyGen infrastructure. Use the local path when you need local rendering or self-hosting.
-- The connector cannot upload a new binary file from chat. Upload it to HeyGen first, then reference it by name.
-- Supported aspect ratios are `16:9`, `9:16`, `1:1`, and `4:5`.
-- A host with MCP widget support can show an embedded preview. Text-only clients receive a preview link.
+- The exact tool list and result presentation depend on the deployed server and the chat host.
+- Hosted output does not give you the same local project folder, Studio surface, or debugging access as the local path.
 - Precise source and pixel-level editing belongs in the local project and Studio.
 
 ## Troubleshooting
@@ -133,12 +133,11 @@ If authorization loops:
 3. confirm that your host plan and workspace permit the connector;
 4. confirm that pop-ups and the HeyGen sign-in window are not blocked.
 
-If a preview or render stalls:
+If a create or render action stalls:
 
-1. wait briefly and list the compositions or ask for the current render status;
+1. keep the last tool result and any identifier it returned;
 2. retry from a new chat if the host session has expired;
-3. keep the composition or job identifier if one is shown;
-4. report the prompt, expected result, actual result, host, and identifier.
+3. report the prompt, expected result, actual result, host, and identifier.
 
 Use [Share feedback](/guides/feedback) when the failure belongs to HyperFrames. Use the host product’s support when the connector cannot be installed or invoked at all.
 
