@@ -316,7 +316,7 @@ export const DocsVideo = ({
 
         {enhanced && (
           <>
-            {!playing && (
+            {!playing && (currentTime <= 0.05 || replaying) && (
               <button
                 type="button"
                 className="hf-docs-video-hero-play"

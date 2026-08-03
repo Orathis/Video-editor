@@ -545,7 +545,9 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/heygen-com/hyperframes"
+      "github": "https://github.com/heygen-com/hyperframes",
+      "x": "https://x.com/HeyGen",
+      "instagram": "https://www.instagram.com/heygen_official/"
     },
     "links": [
       {

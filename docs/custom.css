@@ -281,7 +281,33 @@ samp {
 
   #navbar .nav-tabs {
     align-items: center;
+    gap: 0.25rem;
     height: 3rem;
+  }
+
+  /* Use the same quiet pill treatment as Mintlify's own documentation. */
+  #navbar .nav-tabs-item {
+    height: 2.25rem !important;
+    padding: 0 0.8rem;
+    border-radius: 999px;
+    color: var(--hf-text);
+    transition:
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  #navbar .nav-tabs-item:hover {
+    background: color-mix(in srgb, var(--hf-heading) 6%, transparent);
+    color: var(--hf-heading);
+  }
+
+  #navbar .nav-tabs-item.text-primary {
+    background: color-mix(in srgb, var(--hf-heading) 9%, transparent);
+    color: var(--hf-heading) !important;
+  }
+
+  #navbar .nav-tabs-item > .absolute.bottom-0 {
+    display: none;
   }
 
   #navbar div:has(> #search-bar-entry) {
@@ -329,6 +355,30 @@ samp {
     content: "★";
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* The native gutter was almost 15px wide. Keep the rail quiet and compact. */
+#navigation-items {
+  scrollbar-color: color-mix(in srgb, var(--hf-text) 30%, transparent) transparent;
+  scrollbar-gutter: auto !important;
+  scrollbar-width: thin;
+}
+
+#navigation-items::-webkit-scrollbar {
+  width: 5px;
+}
+
+#navigation-items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#navigation-items::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hf-text) 30%, transparent);
+}
+
+#navigation-items::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--hf-text) 46%, transparent);
 }
 
 /* Preserve a useful search field on smaller desktop widths. */
@@ -1108,25 +1158,25 @@ samp {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.75rem;
-  height: 3.75rem;
+  width: 4rem;
+  height: 2.8rem;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-  background: rgba(8, 8, 8, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.9rem;
+  background: rgba(8, 8, 8, 0.74);
   color: #fff;
   font: inherit;
   cursor: pointer;
   transform: translate(-50%, -50%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
   z-index: 3;
 }
 
 .hf-docs-video-hero-play:hover {
   border-color: var(--hf-video-accent);
-  background: rgba(8, 8, 8, 0.48);
+  background: rgba(8, 8, 8, 0.88);
 }
 
 .hf-docs-video-hero-play:focus-visible,
@@ -1139,18 +1189,18 @@ samp {
 
 .hf-docs-video-hero-icon {
   display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2rem;
+  height: 2rem;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
-  color: var(--hf-video-accent);
+  color: #fff;
 }
 
 .hf-docs-video-hero-icon svg {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.25rem;
+  height: 1.25rem;
   margin-left: 0.1rem;
   fill: currentColor;
 }
@@ -1365,8 +1415,8 @@ samp {
 
 @media (max-width: 520px) {
   .hf-docs-video-hero-play {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 3.6rem;
+    height: 2.55rem;
   }
 
   .hf-docs-video-hero-icon {
