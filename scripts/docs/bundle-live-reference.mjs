@@ -15,7 +15,9 @@ const outputPath = resolve(outputArg);
 const bundledHtml = await bundleToSingleHtml(projectDir, { runtime: "inline" });
 const relativeProjectRoot = relative(dirname(outputPath), projectDir).split(sep).join("/");
 const baseHref = relativeProjectRoot ? `${relativeProjectRoot}/` : "./";
-const html = bundledHtml.replace("<head>", `<head>\n    <base href="${baseHref}">`);
+const html = bundledHtml
+  .replace("<head>", `<head>\n    <base href="${baseHref}">`)
+  .replace(/[ \t]+$/gm, "");
 
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, html);

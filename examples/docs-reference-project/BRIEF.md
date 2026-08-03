@@ -69,8 +69,6 @@ Narration is the spine; every reveal is cued to a spoken phrase. Timings below a
 | `assets/sfx-whoosh.mp3`  | `/media-use` bundled library — `whoosh-short`, 0.57s                                |
 | `assets/sfx-tick.mp3`    | `/media-use` bundled library — `click-soft`, 0.37s                                  |
 
-Every one is recorded in `.media/manifest.jsonl`.
-
 ## Design truth
 
 - The page is `#EEEEEE`. The composition canvas is one step down (`#E9E9E7`) so the

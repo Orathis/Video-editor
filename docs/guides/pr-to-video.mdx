@@ -4,7 +4,6 @@ sidebarTitle: "Pull request"
 description: "Show what changed, why it matters, and what happens next."
 ---
 
-import { PrAudienceChooser } from "/snippets/pr-audience-chooser.jsx";
 import { DocsVideo } from "/snippets/docs-video.jsx";
 
 Give HyperFrames a pull request. It reads the diff, commits, files, and contributors—there is no website capture.
@@ -31,7 +30,9 @@ release state before presenting a proposed change as shipped behavior.
 
 ## Who needs to understand it?
 
-<PrAudienceChooser />
+- **Users** — lead with the visible change, show the before and after, and name any action they must take.
+- **Contributors** — explain the architecture change, important tradeoff, and code path reviewers need to understand.
+- **Social audience** — make one clear feature reveal with visible proof and only the implementation detail that explains it.
 
 The same pull request needs a different story for users, contributors, or a social audience.
 

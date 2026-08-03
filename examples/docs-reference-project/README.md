@@ -39,7 +39,6 @@ To move the pin up: `npx hyperframes@latest upgrade --project . --check`, then d
 | `VERIFICATION.md`            | what passed, what changed from v1, and the two framework bugs found on the way    |
 | `transcript.json`            | Whisper word timings for `assets/narration.wav` — the source of every caption cue |
 | `capture/`                   | the live capture of `example.com`: screenshots, extracted DOM, brand tokens       |
-| `.media/`                    | the media ledger — provenance for every asset, including candidates not shipped   |
 | `snapshots/`                 | 19 inspected frames plus contact sheets, on the 30 fps frame grid                 |
 | `live/`                      | compiled embed, poster, and verified MP4 used by the documentation                |
 
@@ -133,23 +132,15 @@ captions overlay doctrine literally, and the discipline is worth copying:
 
 ## Media provenance
 
-Every asset is registered in `.media/manifest.jsonl`; `.media/index.md` is the readable
-inventory. `assets/` holds what actually ships.
+The project keeps only the assets used by the composition:
 
-| Shipped asset            | Ledger id   | Source                                                                      |
-| ------------------------ | ----------- | --------------------------------------------------------------------------- |
-| `assets/example-com.png` | `image_001` | `npx hyperframes capture https://example.com` → `screenshots/full-page.png` |
-| `assets/narration.wav`   | `voice_001` | ElevenLabs **River** `SAz9YHcvj6GT2YYXdXww`, `eleven_multilingual_v2`       |
-| `assets/bgm.wav`         | `bgm_001`   | HeyGen audio catalog, 10.0s bed, ingested from the v1 project               |
-| `assets/sfx-whoosh.mp3`  | `sfx_003`   | `/media-use` bundled library — `whoosh-short`, 0.57s                        |
-| `assets/sfx-tick.mp3`    | `sfx_004`   | `/media-use` bundled library — `click-soft`, 0.37s                          |
-
-`sfx_001` and `sfx_002` are also in the ledger and deliberately **not** shipped: they
-were the HeyGen catalog's answers for the same two intents (a 1.42s "airy synthesized
-whoosh" and a 0.24s "brief, sharp click"), and the bundled library's shorter, quieter
-equivalents suited a calm 10s piece better. Keeping the rejected candidates on disk is
-the point of the ledger — the search trail stays out of the composition but stays
-auditable.
+| Shipped asset            | Source                                                                      |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `assets/example-com.png` | `npx hyperframes capture https://example.com` → `screenshots/full-page.png` |
+| `assets/narration.wav`   | ElevenLabs **River**, `eleven_multilingual_v2`                              |
+| `assets/bgm.wav`         | HeyGen audio catalog, 10.0-second bed                                       |
+| `assets/sfx-whoosh.mp3`  | `/media-use` bundled library — `whoosh-short`, 0.57 seconds                 |
+| `assets/sfx-tick.mp3`    | `/media-use` bundled library — `click-soft`, 0.37 seconds                   |
 
 `capture/` is the real capture output with the nested scaffold files (`CLAUDE.md`,
 `AGENTS.md`, `meta.json`, `.cursorrules`) removed, so it reads as evidence rather than as

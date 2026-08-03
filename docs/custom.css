@@ -2,6 +2,42 @@
 
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
+@font-face {
+  font-family: "TT Norms Pro";
+  src: url("https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_Normal.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Norms Pro";
+  src: url("https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Norms Pro";
+  src: url("https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_DemiBold.woff2")
+    format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Norms Pro";
+  src: url("https://www-static-assets.heygen.com/fonts/tt-norms/TT_Norms_Pro_Bold.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Light mode (default) ── */
 /*
  * NOTE: All custom variables are namespaced with `--hf-` to avoid
@@ -78,6 +114,7 @@
 
 body {
   font-family:
+    "TT Norms Pro",
     "Inter",
     -apple-system,
     BlinkMacSystemFont,
@@ -92,6 +129,7 @@ h4,
 h5,
 h6 {
   font-family:
+    "TT Norms Pro",
     "Inter",
     -apple-system,
     BlinkMacSystemFont,
@@ -108,101 +146,7 @@ h3 {
   letter-spacing: -0.01em;
 }
 
-/* ── Content width ──
- *
- * The theme caps the article shell at max-w-6xl (72rem) and reserves 28rem of
- * every wide viewport for the table of contents, which left the actual reading
- * column at ~664px on a 1600px screen. That is too narrow for a product whose
- * pages carry 16:9 video: a full-width clip rendered smaller than a phone held
- * sideways. These raise the shell and hand ~9rem back from the TOC gutter,
- * taking the column to roughly 950px.
- *
- * ID selectors deliberately: they outrank the theme's utility classes without
- * needing !important, so the cascade stays debuggable. */
-@media (min-width: 1280px) {
-  /* The binding constraint. The left sidebar sits inside #body-content, so its
-   * max-w-8xl (1472px) cap was the real limit: 1432 inner − 287 sidebar = 1144,
-   * then −128 shell padding = 1016, then −352 for the contents rail and gap,
-   * which is exactly the 664px column we measured. */
-  #body-content {
-    max-width: 110rem;
-  }
-
-  /* Let the shell use what #body-content now offers, and reclaim some of the
-   * generous left padding. Setting a width on #content-area itself does
-   * nothing — it is a flex item with grow, so it simply fills what is left. */
-  #content-container {
-    max-width: none;
-    padding-left: 2.5rem;
-  }
-
-  /* The contents rail only ever renders ~256px of text. */
-  #content-side-layout {
-    max-width: 16rem;
-  }
-}
-
-/* No paragraph measure cap. It was tried and removed: these pages are built
- * almost entirely from lists, tables, cards, and code blocks — a whole guide
- * carries about three <p> elements — so capping paragraph width changed nothing
- * measurable while adding a rule that looked meaningful. If long lines ever do
- * become a problem, cap the structural containers rather than <p>. */
-
-/* Media that should escape any inherited measure. Use on a Frame or a bare
- * video/image wrapper when the visual is the point of the section. */
-.hf-wide {
-  width: 100%;
-  max-width: none;
-}
-
-/* ── Next-step card thumbnail ──
- *
- * Sizing an <img> inside one of these cards with utility classes does not work.
- * Mintlify wraps every image in its zoom component — span[data-rmiz] >
- * span[data-rmiz-content] > picture.contents > img — so a width set on a
- * surrounding div is absorbed by that wrapper, and the image renders full width
- * with the card's text pushed out of view. Videos are not wrapped, which is why
- * the same card works with a <video> and not an <img>.
- *
- * A custom class is used rather than utilities because Mintlify rewrites
- * Tailwind classes into its own mint-* namespace and drops what it does not
- * recognise; classes like this one pass through untouched. */
-.hf-peek {
-  width: 100%;
-  flex: 0 0 auto;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-}
-
-@media (min-width: 640px) {
-  .hf-peek {
-    width: 16rem;
-  }
-}
-
-/* Collapse the zoom wrapper so the image can fill the box. */
-.hf-peek span,
-.hf-peek picture {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.hf-peek img {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  object-fit: cover;
-  object-position: right center;
-}
-
-/* ── Workflow routing and choices ──
- *
- * Workflow pages used to render their choices as pill-shaped pseudo-tabs with
- * one large generated prompt below. That hid useful comparisons, repeated the
- * short request already shown above, and produced unreadable code in light
- * mode. These styles keep every choice visible and make the router feel like a
- * concise editorial index instead of a wall of cards. */
+/* ── Workflow routing ── */
 .hf-workflow-routes {
   margin: 1.5rem 0;
   border-top: 1px solid var(--hf-border-color);
@@ -250,48 +194,12 @@ h3 {
   line-height: 1.5;
 }
 
-.hf-workflow-choices {
-  margin: 1rem 0 1.5rem;
-  border-top: 1px solid var(--hf-border-color);
-}
-
-.hf-workflow-choice {
-  display: grid;
-  grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.7fr);
-  gap: 1rem;
-  padding: 0.95rem 0;
-  border-bottom: 1px solid var(--hf-border-color);
-}
-
-.hf-workflow-choice-title {
-  color: var(--hf-heading);
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.hf-workflow-choice-copy {
-  color: var(--hf-text-secondary);
-  font-size: 0.925rem;
-  line-height: 1.55;
-}
-
 @media (max-width: 639px) {
   .hf-workflow-route {
     grid-template-columns: 7rem minmax(0, 1fr);
     gap: 0.8rem;
   }
-
-  .hf-workflow-choice {
-    grid-template-columns: 1fr;
-    gap: 0.25rem;
-  }
 }
-
-/* A breakout hero wrapper was tried here and reverted: at this column width it
- * rendered 968px wide and overwhelmed the page rather than supporting it. The
- * film stays inside a Frame at the column width. Motion was the part worth
- * keeping — the hero autoplays muted on a loop instead of waiting behind a play
- * button — and that lives on the element, not in CSS. */
 
 /* Code font — IBM Plex Mono (loaded via Google Fonts above).
  *
@@ -413,12 +321,12 @@ a:not([class]):hover {
 
   /*
    * Mintlify removes the live count for roughly one animation frame during
-   * client-side navigation. Keep the last known value in its place so the
-   * control neither collapses nor flashes empty.
+   * client-side navigation. Keep a truthful placeholder in its place so the
+   * control does not collapse while the live count reloads.
    */
   #navbar a[title="heygen-com/hyperframes"]:not(:has(> span:not(.truncate)))::after {
     color: var(--hf-heading);
-    content: "★ 38,440";
+    content: "★";
     font-variant-numeric: tabular-nums;
   }
 }
