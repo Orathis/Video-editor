@@ -18,7 +18,7 @@ Use Player when an application needs to play and seek an HTML composition. Use
 
 ### Via CDN
 
-```html
+```html title="index.html"
 <script type="module" src="https://cdn.jsdelivr.net/npm/@hyperframes/player"></script>
 
 <hyperframes-player
@@ -34,8 +34,11 @@ With a package manager:
 import "@hyperframes/player";
 ```
 
-```html
-<hyperframes-player src="/compositions/intro.html" controls></hyperframes-player>
+```html title="index.html"
+<hyperframes-player
+  src="/compositions/intro.html"
+  controls
+></hyperframes-player>
 ```
 
 Set `autoplay muted` only when playback should start without a user gesture.

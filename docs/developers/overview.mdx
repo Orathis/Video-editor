@@ -2,6 +2,10 @@
 title: "How HyperFrames fits into an application"
 sidebarTitle: "Developer overview"
 description: "Understand the composition contract, editing surfaces, Player, CLI, and rendering layers before choosing an integration."
+related:
+  - /developers/cli
+  - /sdk/quickstart
+  - /packages/player
 ---
 
 Building on HyperFrames means using an editable HTML composition as the shared source for automation, playback, editing, and rendering.
@@ -92,9 +96,16 @@ Start with the [SDK quickstart](/sdk/quickstart).
 
 `@hyperframes/player` is a web component that loads a composition in an isolated iframe and exposes video-like playback controls.
 
-```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@hyperframes/player"></script>
-<hyperframes-player src="/compositions/intro.html" controls></hyperframes-player>
+```html title="index.html"
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/@hyperframes/player"
+></script>
+
+<hyperframes-player
+  src="/compositions/intro.html"
+  controls
+></hyperframes-player>
 ```
 
 Use its JavaScript API to play, pause, seek, change playback rate, and listen for timeline events. It does not edit or render the composition.
