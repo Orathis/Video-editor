@@ -1158,12 +1158,12 @@ samp {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 2.8rem;
+  width: 3.35rem;
+  height: 3.35rem;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 0.9rem;
-  background: rgba(8, 8, 8, 0.74);
+  border-radius: 50%;
+  background: rgba(8, 8, 8, 0.56);
   color: #fff;
   font: inherit;
   cursor: pointer;
@@ -1176,7 +1176,7 @@ samp {
 
 .hf-docs-video-hero-play:hover {
   border-color: var(--hf-video-accent);
-  background: rgba(8, 8, 8, 0.88);
+  background: rgba(8, 8, 8, 0.78);
 }
 
 .hf-docs-video-hero-play:focus-visible,
@@ -1216,9 +1216,11 @@ samp {
   background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.84));
   opacity: 1;
   transform: translateY(0);
+  visibility: visible;
   transition:
     opacity 160ms ease,
-    transform 160ms ease;
+    transform 160ms ease,
+    visibility 0s linear;
   z-index: 2;
 }
 
@@ -1226,6 +1228,11 @@ samp {
   pointer-events: none;
   opacity: 0;
   transform: translateY(0.4rem);
+  visibility: hidden;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 0s linear 160ms;
 }
 
 .hf-docs-video-progress {
@@ -1408,8 +1415,8 @@ samp {
 
 @media (max-width: 520px) {
   .hf-docs-video-hero-play {
-    width: 3.6rem;
-    height: 2.55rem;
+    width: 3rem;
+    height: 3rem;
   }
 
   .hf-docs-video-hero-icon {

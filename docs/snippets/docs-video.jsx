@@ -69,9 +69,7 @@ export const DocsVideo = ({
   const revealControls = () => {
     setControlsVisible(true);
     clearHideTimer();
-    if (playing) {
-      hideTimerRef.current = window.setTimeout(() => setControlsVisible(false), 2200);
-    }
+    hideTimerRef.current = window.setTimeout(() => setControlsVisible(false), 2200);
   };
 
   const togglePlayback = async () => {
