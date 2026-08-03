@@ -21,7 +21,7 @@ export const DocsVideo = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [controlsVisible, setControlsVisible] = useState(true);
+  const [controlsVisible, setControlsVisible] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [fullscreenSupported, setFullscreenSupported] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -88,6 +88,7 @@ export const DocsVideo = ({
       }
     } else {
       video.pause();
+      setControlsVisible(true);
     }
   };
 
@@ -226,10 +227,7 @@ export const DocsVideo = ({
 
   useEffect(() => {
     clearHideTimer();
-    if (!playing) {
-      setControlsVisible(true);
-      return undefined;
-    }
+    if (!playing) return undefined;
     hideTimerRef.current = window.setTimeout(() => setControlsVisible(false), 2200);
     return clearHideTimer;
   }, [playing]);
@@ -272,8 +270,11 @@ export const DocsVideo = ({
         tabIndex={0}
         onKeyDown={handleKeyboard}
         onPointerMove={revealControls}
-        onPointerLeave={() => playing && setControlsVisible(false)}
+        onPointerLeave={() => setControlsVisible(false)}
         onFocus={revealControls}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setControlsVisible(false);
+        }}
       >
         <video
           ref={videoRef}
@@ -335,7 +336,7 @@ export const DocsVideo = ({
 
             <div
               className="hf-docs-video-controls"
-              data-visible={controlsVisible || !playing ? "true" : "false"}
+              data-visible={controlsVisible ? "true" : "false"}
             >
               <div
                 className="hf-docs-video-scrub-preview"
