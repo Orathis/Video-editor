@@ -60,7 +60,7 @@
             "pages": ["examples", "product-updates"]
           },
           {
-            "group": "Create with an agent",
+            "group": "Choose where to create",
             "pages": ["guides/choose-creation-path", "guides/mcp", "guides/design-tools"]
           },
           {
@@ -143,14 +143,14 @@
               "guides/motion-graphics",
               "guides/music-to-video",
               "guides/slideshow",
-              "guides/general-video"
+              "guides/general-video",
+              "guides/export-and-share"
             ]
           },
           {
-            "group": "Projects and media",
+            "group": "Build the project",
             "pages": [
               "concepts/index",
-              "concepts/variables",
               "guides/media",
               "guides/video-components",
               "guides/avatar-presenter",
@@ -159,10 +159,6 @@
               "guides/color-grading",
               "guides/media-effects"
             ]
-          },
-          {
-            "group": "Finish",
-            "pages": ["guides/export-and-share"]
           },
           {
             "group": "Help",
@@ -175,12 +171,8 @@
         "icon": "palette",
         "groups": [
           {
-            "group": "Overview",
-            "pages": ["studio/index"]
-          },
-          {
-            "group": "Review",
-            "pages": ["studio/storyboard"]
+            "group": "Start in Studio",
+            "pages": ["studio/index", "studio/storyboard"]
           },
           {
             "group": "Edit",
@@ -188,19 +180,15 @@
           },
           {
             "group": "Build and reuse",
-            "pages": [
-              "studio/assets-and-blocks",
-              "studio/variables",
-              "studio/slideshows"
-            ]
+            "pages": ["studio/assets-and-blocks", "studio/variables", "studio/slideshows"]
           },
           {
-            "group": "Finish",
-            "pages": ["studio/export"]
+            "group": "Finish and recover",
+            "pages": ["studio/export", "studio/troubleshooting"]
           },
           {
-            "group": "Reference and help",
-            "pages": ["studio/source", "studio/shortcuts", "studio/troubleshooting"]
+            "group": "Reference",
+            "pages": ["studio/source", "studio/shortcuts"]
           }
         ]
       },
@@ -472,6 +460,7 @@
             "group": "Composition and animation",
             "pages": [
               "concepts/compositions",
+              "concepts/variables",
               "reference/html-schema",
               "concepts/data-attributes",
               "reference/color-grading",
