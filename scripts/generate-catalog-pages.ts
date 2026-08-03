@@ -304,7 +304,8 @@ function generateTexturePreview(manifest: RegistryItem, textureGroups: TextureGr
   return lines;
 }
 
-function catalogPreviewFor(kind: ItemKind, manifest: RegistryItem): string {
+function catalogPreviewFor(kind: ItemKind, manifest: RegistryItem): string | undefined {
+  if (manifest.preview) return manifest.preview.poster;
   const dir = typeDir(kind);
   return `${catalogImageBase}/${dir}/${manifest.name}.png`;
 }
@@ -354,10 +355,12 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
   if (textureGroups.length > 0) {
     lines.push(...generateTexturePreview(manifest, textureGroups));
   } else {
-    // Preview video with poster — muted loop, no autoPlay (matches examples page).
     const previewPath = `${catalogImageBase}/${typeDir(kind)}/${manifest.name}`;
+    const previewVideo = manifest.preview?.video ?? `${previewPath}.mp4`;
+    const previewPoster = manifest.preview ? manifest.preview.poster : `${previewPath}.png`;
+    const posterAttribute = previewPoster ? ` poster="${previewPoster}"` : "";
     lines.push(
-      `<video className="w-full aspect-video rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" src="${previewPath}.mp4" poster="${previewPath}.png" autoPlay muted loop playsInline />`,
+      `<video className="w-full aspect-video rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" src="${previewVideo}"${posterAttribute} autoPlay muted loop playsInline />`,
       "",
     );
   }
