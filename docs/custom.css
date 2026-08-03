@@ -63,7 +63,10 @@
   --hf-sidebar-rail: #eeeeee;
   --hf-sidebar-text: #707070;
   --hf-floating-input-shadow: 0 8px 28px rgba(10, 10, 10, 0.08), 0 1px 4px rgba(10, 10, 10, 0.08);
-  --mintlify-slot-header-height: 3.5rem;
+  --mintlify-slot-header-height: 3rem;
+  --hf-brand: #16785b;
+  --hf-brand-soft: rgba(22, 120, 91, 0.1);
+  --hf-video-accent: #3ce6ac;
 
   --hf-accent-green: #1a7a0a;
   --hf-accent-green-light: rgba(26, 122, 10, 0.07);
@@ -96,6 +99,8 @@
   --hf-sidebar-rail: #2a2a2a;
   --hf-sidebar-text: #a0a0a0;
   --hf-floating-input-shadow: 0 8px 28px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.4);
+  --hf-brand: #3ce6ac;
+  --hf-brand-soft: rgba(60, 230, 172, 0.12);
 
   --hf-accent-green: #22c55e;
   --hf-accent-green-light: rgba(34, 197, 94, 0.1);
@@ -234,12 +239,15 @@ pre {
 
 /* ── Links ── */
 
-a:not([class]) {
-  color: var(--hf-accent-blue);
+#content-area :where(p, li, td, blockquote) a:not([class]) {
+  border-bottom: 1px solid color-mix(in srgb, var(--hf-brand) 72%, transparent);
+  color: inherit;
+  text-decoration: none;
 }
 
-a:not([class]):hover {
-  opacity: 0.85;
+#content-area :where(p, li, td, blockquote) a:not([class]):hover {
+  border-bottom-color: var(--hf-brand);
+  color: var(--hf-brand);
 }
 
 /* ── Documentation navigation ── */
@@ -250,7 +258,7 @@ a:not([class]):hover {
  */
 @media (min-width: 1024px) {
   #navbar {
-    height: 3.5rem;
+    height: 3rem;
   }
 
   #navbar > div:has(.nav-tabs) {
@@ -258,7 +266,7 @@ a:not([class]):hover {
     grid-template-columns: max-content max-content minmax(10.25rem, 1fr) max-content;
     column-gap: 1rem;
     align-items: center;
-    height: 3.5rem;
+    height: 3rem;
   }
 
   #navbar > div:has(.nav-tabs) > .relative,
@@ -275,13 +283,13 @@ a:not([class]):hover {
   #navbar div:has(> .nav-tabs) {
     grid-column: 2;
     grid-row: 1;
-    height: 3.5rem;
+    height: 3rem;
     padding: 0;
   }
 
   #navbar .nav-tabs {
     align-items: center;
-    height: 3.5rem;
+    height: 3rem;
   }
 
   #navbar div:has(> #search-bar-entry) {
@@ -296,8 +304,8 @@ a:not([class]):hover {
   }
 
   #sidebar-content {
-    top: 3.5rem !important;
-    height: calc(100vh - 3.5rem) !important;
+    top: 3rem !important;
+    height: calc(100vh - 3rem) !important;
   }
 
   /* Keep the repository compact, but retain its useful live star count. */
@@ -413,7 +421,7 @@ a:not([class]):hover {
 
 /*
  * Aspen assumes a 96px header and fades scrolled navigation before it reaches
- * that boundary. Our header is 56px; align the sticky sidebar to it and let
+ * that boundary. Our header is 48px; align the sticky sidebar to it and let
  * links clip exactly at the header instead of disappearing early.
  */
 #navigation-items,
@@ -672,6 +680,26 @@ a:not([class]):hover {
   width: 100%;
 }
 
+/*
+ * Mintlify loads custom React snippets after the page shell. Reserve the
+ * film's real shape so the unloaded component never flashes as a thin Frame
+ * rail, then let the hydrated player and chapter guide size themselves.
+ */
+.hf-docs-video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #070707;
+}
+
+.hf-docs-video-frame:has(.hf-docs-video-block) {
+  aspect-ratio: auto;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+}
+
 .hf-docs-video {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -750,7 +778,7 @@ a:not([class]):hover {
 }
 
 .hf-docs-video-chapters button[data-active="true"] {
-  box-shadow: inset 2px 0 #6ba864;
+  box-shadow: inset 2px 0 var(--hf-brand);
 }
 
 .hf-docs-video-chapters span,
@@ -839,8 +867,8 @@ a:not([class]):hover {
 
 .hf-agent-action button:hover,
 .hf-agent-action button:focus-visible {
-  border-color: #6ba864;
-  background: rgba(107, 168, 100, 0.1);
+  border-color: var(--hf-brand);
+  background: var(--hf-brand-soft);
 }
 
 .hf-live-reference-start {
@@ -866,7 +894,7 @@ a:not([class]):hover {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  background: #6ba864;
+  background: var(--hf-brand);
   color: #071008;
   font-size: 0.78rem;
 }
@@ -887,8 +915,8 @@ a:not([class]):hover {
 
 .hf-live-reference-start:hover,
 .hf-live-reference-start:focus-visible {
-  border-color: #6ba864;
-  background: rgba(107, 168, 100, 0.08);
+  border-color: var(--hf-brand);
+  background: var(--hf-brand-soft);
 }
 
 .hf-live-reference {
@@ -1068,7 +1096,7 @@ a:not([class]):hover {
 }
 
 .hf-docs-video:focus-visible {
-  box-shadow: 0 0 0 3px rgba(245, 244, 92, 0.78);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hf-video-accent) 78%, transparent);
 }
 
 .hf-docs-video video {
@@ -1088,32 +1116,32 @@ a:not([class]):hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  width: 3.75rem;
+  height: 3.75rem;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
-  background: rgba(8, 8, 8, 0.82);
+  background: rgba(8, 8, 8, 0.22);
   color: #fff;
   font: inherit;
   cursor: pointer;
   transform: translate(-50%, -50%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
   z-index: 3;
 }
 
 .hf-docs-video-hero-play:hover {
-  border-color: rgba(245, 244, 92, 0.7);
-  background: rgba(15, 15, 15, 0.94);
+  border-color: var(--hf-video-accent);
+  background: rgba(8, 8, 8, 0.48);
 }
 
 .hf-docs-video-hero-play:focus-visible,
 .hf-docs-video-control:focus-visible,
 .hf-docs-video-rate:focus-visible,
 .hf-docs-video-progress:focus-visible {
-  outline: 2px solid #f5f45c;
+  outline: 2px solid var(--hf-video-accent);
   outline-offset: 2px;
 }
 
@@ -1124,13 +1152,13 @@ a:not([class]):hover {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  background: #f5f45c;
-  color: #0b0b0b;
+  background: transparent;
+  color: var(--hf-video-accent);
 }
 
 .hf-docs-video-hero-icon svg {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.35rem;
+  height: 1.35rem;
   margin-left: 0.1rem;
   fill: currentColor;
 }
@@ -1226,8 +1254,8 @@ a:not([class]):hover {
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    #f5f45c 0,
-    #f5f45c var(--hf-video-progress),
+    var(--hf-video-accent) 0,
+    var(--hf-video-accent) var(--hf-video-progress),
     rgba(255, 255, 255, 0.34) var(--hf-video-progress),
     rgba(255, 255, 255, 0.34) 100%
   );
@@ -1242,7 +1270,7 @@ a:not([class]):hover {
 .hf-docs-video-progress::-moz-range-progress {
   height: 0.22rem;
   border-radius: 999px;
-  background: #f5f45c;
+  background: var(--hf-video-accent);
 }
 
 .hf-docs-video-progress::-webkit-slider-thumb {
@@ -1251,7 +1279,7 @@ a:not([class]):hover {
   margin-top: -0.315rem;
   border: 2px solid #121212;
   border-radius: 50%;
-  background: #f5f45c;
+  background: var(--hf-video-accent);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   appearance: none;
   -webkit-appearance: none;
@@ -1262,7 +1290,7 @@ a:not([class]):hover {
   height: 0.85rem;
   border: 2px solid #121212;
   border-radius: 50%;
-  background: #f5f45c;
+  background: var(--hf-video-accent);
 }
 
 .hf-docs-video-control-row {
@@ -1331,7 +1359,7 @@ a:not([class]):hover {
   height: 2rem;
   margin: -1rem 0 0 -1rem;
   border: 2px solid rgba(255, 255, 255, 0.28);
-  border-top-color: #f5f45c;
+  border-top-color: var(--hf-video-accent);
   border-radius: 50%;
   animation: hf-docs-video-spin 700ms linear infinite;
   z-index: 3;
