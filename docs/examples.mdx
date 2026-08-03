@@ -61,32 +61,33 @@ Each preview links to the complete source project.
   </a>
 </div>
 
-## One real project, open end to end
+## One project, open end to end
 
-The Reference Project starts from the same beginner request used in the Quickstart:
+This is the same small project used in the Quickstart. Its request, brief,
+source, revision notes, checks, and final render are all public.
 
 ```text
 Using /hyperframes, make a 10-second product intro for https://example.com.
 ```
 
-<Steps>
-  <Step title="The agent confirms the brief">
-    It keeps the real captured page, uses the page's own words, and settles the one missing creative
-    decision: show the site as it is. [Read the brief](https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/BRIEF.md).
-  </Step>
-  <Step title="The source stays inspectable">
-    The capture, storyboard, script, media, captions, and composition are ordinary project files.
-    [Open the project](https://github.com/heygen-com/hyperframes/tree/main/examples/docs-reference-project).
-  </Step>
-  <Step title="The weak first version is revised">
-    The page capture becomes readable at 1:1, decorative noise is removed, and the edit gains measured
-    narration, captions, music, sound, and variables. [See the exact before/after decisions](https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/VERIFICATION.md#2-v1--v2).
-  </Step>
-  <Step title="The project passes the real gates">
-    Lint, browser checks, 19 inspected frames, and the final render all pass. The report includes the
-    remaining info-level findings instead of hiding them. [Read the verification report](https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/VERIFICATION.md).
-  </Step>
-</Steps>
+<div className="not-prose my-6 grid overflow-hidden rounded-xl border border-zinc-200 bg-white md:grid-cols-4 dark:border-zinc-800 dark:bg-zinc-950">
+  <a className="border-b border-zinc-200 p-4 text-inherit no-underline md:border-b-0 md:border-r dark:border-zinc-800" href="https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/BRIEF.md">
+    <span className="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Brief</span>
+    <strong className="mt-1 block text-sm">What the agent decided</strong>
+  </a>
+  <a className="border-b border-zinc-200 p-4 text-inherit no-underline md:border-b-0 md:border-r dark:border-zinc-800" href="https://github.com/heygen-com/hyperframes/tree/main/examples/docs-reference-project">
+    <span className="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Source</span>
+    <strong className="mt-1 block text-sm">Every editable project file</strong>
+  </a>
+  <a className="border-b border-zinc-200 p-4 text-inherit no-underline md:border-b-0 md:border-r dark:border-zinc-800" href="https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/VERIFICATION.md#2-v1--v2">
+    <span className="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Revision</span>
+    <strong className="mt-1 block text-sm">What changed after review</strong>
+  </a>
+  <a className="p-4 text-inherit no-underline" href="https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/VERIFICATION.md">
+    <span className="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Checks</span>
+    <strong className="mt-1 block text-sm">The real verification report</strong>
+  </a>
+</div>
 
 <div style={{ maxWidth: "36rem", margin: "1.5rem auto" }}>
   <DocsVideo
@@ -95,6 +96,9 @@ Using /hyperframes, make a 10-second product intro for https://example.com.
     poster="https://cdn.jsdelivr.net/gh/heygen-com/hyperframes@51f14079e0660434c7e622013e8f5e20621ce304/examples/docs-reference-project/live/poster.jpg"
   />
 </div>
+
+The result is not a sealed demo. Open any stage above and use the same shape for
+your own project: request → brief → source → revision → render.
 
 ## Start from a template
 
