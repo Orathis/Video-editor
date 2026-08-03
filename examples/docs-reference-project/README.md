@@ -24,7 +24,7 @@ bun run render   # → renders/video.mp4
 
 The scripts pin an exact CLI version so this project re-renders identically over time.
 To move the pin up: `npx hyperframes@latest upgrade --project . --check`, then drop
-`--check` to apply, then re-run `npm run check`.
+`--check` to apply, then re-run `bun run check`.
 
 ## Files
 

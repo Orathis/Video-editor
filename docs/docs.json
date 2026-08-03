@@ -56,6 +56,10 @@
             "pages": ["introduction", "quickstart", "go-further", "developers/index"]
           },
           {
+            "group": "Explore",
+            "pages": ["examples", "product-updates"]
+          },
+          {
             "group": "Create with an agent",
             "pages": ["guides/choose-creation-path", "guides/mcp", "guides/design-tools"]
           },
@@ -159,10 +163,6 @@
           {
             "group": "Finish",
             "pages": ["guides/export-and-share"]
-          },
-          {
-            "group": "Explore",
-            "pages": ["examples", "product-updates"]
           },
           {
             "group": "Help",
