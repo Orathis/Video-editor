@@ -551,7 +551,7 @@
       {
         "header": "Explore",
         "items": [
-          { "label": "What is HyperFrames?", "href": "/introduction" },
+          { "label": "Introduction", "href": "/introduction" },
           { "label": "Make your first video", "href": "/quickstart" },
           { "label": "Examples", "href": "/examples" }
         ]

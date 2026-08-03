@@ -223,14 +223,6 @@ samp {
   font-family: "IBM Plex Mono", "SF Mono", "Fira Code", monospace;
 }
 
-/* ── Code blocks ── */
-
-pre {
-  background: var(--hf-code-bg) !important;
-  border: 1px solid var(--hf-border-color) !important;
-  border-radius: 8px !important;
-}
-
 /* ── Selection ── */
 
 ::selection {
