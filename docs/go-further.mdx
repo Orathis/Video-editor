@@ -12,19 +12,76 @@ import { DocsVideo } from "/snippets/docs-video.jsx";
     title="An existing HyperFrames project is revised with an agent, edited in Studio, enriched, checked, and rendered."
     src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-go-further-v2.mp4"
     poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/journey-go-further-v2.jpg"
+    chapters={[
+      { time: 0, label: "Start from a working project" },
+      { time: 6.3, label: "Ask for a story change" },
+      { time: 13.85, label: "Let the agent rewrite it" },
+      { time: 22.6, label: "Make a precise Studio edit" },
+      { time: 30.1, label: "Add reusable detail" },
+      { time: 42.1, label: "Check and render" },
+      { time: 50.6, label: "Review the result" },
+    ]}
+    transcript={[
+      { time: 0.45, text: "This project already works." },
+      {
+        time: 2.55,
+        text: "Going further means changing it without starting over.",
+      },
+      { time: 6.9, text: "Some changes are story-sized." },
+      {
+        time: 9.15,
+        text: "Beat four is where this piece turns — and it was the shortest scene on the timeline.",
+      },
+      {
+        time: 14.3,
+        text: "Say that in plain language, and the timeline rewrites itself.",
+      },
+      {
+        time: 17.9,
+        text: "The turn gains a second and a half; the ending comes in to meet it.",
+      },
+      {
+        time: 23.2,
+        text: "Some changes are pixel-sized. Those you type yourself.",
+      },
+      { time: 26.9, text: "A title size, set by hand, in the panel." },
+      { time: 30.9, text: "Then make the change worth keeping." },
+      {
+        time: 33.3,
+        text: "A Catalog lower third fills the room the agent made,",
+      },
+      {
+        time: 36.6,
+        text: "and its lines become variables — so the next listing is a flag, not an edit.",
+      },
+      {
+        time: 42.9,
+        text: "Check it for real: the two findings that mattered are gone.",
+      },
+      { time: 47.3, text: "Render." },
+      {
+        time: 51.9,
+        text: "One project, two hands. The agent moves the story; you move the frame.",
+      },
+    ]}
   />
 </Frame>
 
 The project does not change format as you gain control. Your agent, Studio, the
 SDK, the Player, and the renderer all work from the same HTML project.
 
+The [Reference Project](https://github.com/heygen-com/hyperframes/tree/main/examples/docs-reference-project)
+continues the first-video example. Its first version is a real page capture on a
+10-second timeline. The revised version keeps that source and adds editable
+variables, narration, fixed captions, music, and sound.
+
 ## Choose the surface by the size of the change
 
 | The change                          | Best first move                      | Example                                                                                     |
 | ----------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Story, structure, or several scenes | Ask the agent                        | “Make the opening reveal the product by three seconds.”                                     |
-| One visible detail or moment        | Edit in Studio                       | Change a line, crop, position, clip boundary, or keyframe.                                  |
-| The same design needs new content   | Use variables or nested compositions | Produce customer, language, or format variants without duplicating the layout.              |
+| Story, structure, or several scenes | Ask the agent                        | “Keep the real page. Add a short spoken explanation.”                                       |
+| One visible detail or moment        | Edit in Studio                       | Change the accent or supporting line.                                                       |
+| The same design needs new content   | Use variables or nested compositions | Make the title, accent, and supporting line reusable.                                       |
 | The project must finish reliably    | Check, render, and watch the file    | Run the browser gate, render through your preferred surface, then review the actual output. |
 
 Use the highest-level tool that gives you enough control. A one-line agent

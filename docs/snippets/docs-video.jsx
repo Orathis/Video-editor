@@ -1,10 +1,19 @@
-export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
+export const DocsVideo = ({
+  src,
+  poster,
+  title,
+  autoPlay = false,
+  chapters = [],
+  transcript = [],
+}) => {
   const videoRef = useRef(null);
   const previewVideoRef = useRef(null);
   const playerRef = useRef(null);
   const hideTimerRef = useRef(null);
   const progressFrameRef = useRef(null);
   const previewSeekFrameRef = useRef(null);
+  const initialMomentAppliedRef = useRef(false);
+  const copyTimerRef = useRef(null);
   const [enhanced, setEnhanced] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -19,6 +28,29 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
   const [scrubbing, setScrubbing] = useState(false);
   const [previewTime, setPreviewTime] = useState(0);
   const [previewPosition, setPreviewPosition] = useState(0);
+  const [momentCopied, setMomentCopied] = useState(false);
+
+  const writeClipboard = async (text) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // Fall through to the browser's older synchronous copy path.
+    }
+
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.setAttribute("readonly", "");
+    field.style.position = "fixed";
+    field.style.opacity = "0";
+    document.body.appendChild(field);
+    field.select();
+    const copied = document.execCommand("copy");
+    field.remove();
+    return copied;
+  };
 
   const formatTime = (seconds) => {
     if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -73,6 +105,28 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
     const nextTime = Number(event.target.value);
     video.currentTime = nextTime;
     setCurrentTime(nextTime);
+  };
+
+  const seekTo = (seconds) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const nextTime = Math.min(duration || video.duration || seconds, Math.max(0, seconds));
+    video.currentTime = nextTime;
+    setCurrentTime(nextTime);
+    revealControls();
+  };
+
+  const copyMomentLink = async () => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("t", String(Math.max(0, Math.floor(currentTime))));
+    if (await writeClipboard(url.toString())) {
+      setMomentCopied(true);
+      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => setMomentCopied(false), 1800);
+    } else {
+      setMomentCopied(false);
+    }
   };
 
   const updateScrubPreview = (event, seekMainVideo = false) => {
@@ -157,7 +211,10 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
     setFullscreenSupported(
       Boolean(playerRef.current?.requestFullscreen || videoRef.current?.webkitEnterFullscreen),
     );
-    return clearHideTimer;
+    return () => {
+      clearHideTimer();
+      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -200,191 +257,252 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const replaying = duration > 0 && currentTime >= duration - 0.15;
+  const activeChapter = chapters.reduce(
+    (active, chapter, index) => (currentTime >= chapter.time ? index : active),
+    0,
+  );
 
   return (
-    <div
-      ref={playerRef}
-      className="hf-docs-video"
-      role="region"
-      aria-label={title}
-      tabIndex={0}
-      onKeyDown={handleKeyboard}
-      onPointerMove={revealControls}
-      onPointerLeave={() => playing && setControlsVisible(false)}
-      onFocus={revealControls}
-    >
-      <video
-        ref={videoRef}
+    <div className="hf-docs-video-block">
+      <div
+        ref={playerRef}
+        className="hf-docs-video"
+        role="region"
         aria-label={title}
-        src={src}
-        poster={poster}
-        autoPlay={autoPlay}
-        playsInline
-        preload="metadata"
-        controls={!enhanced}
-        onClick={togglePlayback}
-        onDoubleClick={toggleFullscreen}
-        onLoadedMetadata={(event) => {
-          setDuration(event.currentTarget.duration || 0);
-          setMuted(event.currentTarget.muted);
-        }}
-        onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
-        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onPlaying={() => setWaiting(false)}
-        onWaiting={() => setWaiting(true)}
-        onCanPlay={() => setWaiting(false)}
-        onEnded={() => {
-          setPlaying(false);
-          setControlsVisible(true);
-        }}
-        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
-      />
+        tabIndex={0}
+        onKeyDown={handleKeyboard}
+        onPointerMove={revealControls}
+        onPointerLeave={() => playing && setControlsVisible(false)}
+        onFocus={revealControls}
+      >
+        <video
+          ref={videoRef}
+          aria-label={title}
+          src={src}
+          poster={poster}
+          autoPlay={autoPlay}
+          playsInline
+          preload="metadata"
+          controls={!enhanced}
+          onClick={togglePlayback}
+          onDoubleClick={toggleFullscreen}
+          onLoadedMetadata={(event) => {
+            const nextDuration = event.currentTarget.duration || 0;
+            setDuration(nextDuration);
+            setMuted(event.currentTarget.muted);
+            if (!initialMomentAppliedRef.current && typeof window !== "undefined") {
+              initialMomentAppliedRef.current = true;
+              const requestedTime = Number(new URL(window.location.href).searchParams.get("t"));
+              if (Number.isFinite(requestedTime) && requestedTime > 0) {
+                const nextTime = Math.min(nextDuration, requestedTime);
+                event.currentTarget.currentTime = nextTime;
+                setCurrentTime(nextTime);
+              }
+            }
+          }}
+          onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
+          onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onPlaying={() => setWaiting(false)}
+          onWaiting={() => setWaiting(true)}
+          onCanPlay={() => setWaiting(false)}
+          onEnded={() => {
+            setPlaying(false);
+            setControlsVisible(true);
+          }}
+          onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
+        />
 
-      {enhanced && (
-        <>
-          {!playing && (
-            <button
-              type="button"
-              className="hf-docs-video-hero-play"
-              onClick={togglePlayback}
-              aria-label={replaying ? "Replay video" : "Play video"}
-            >
-              <span className="hf-docs-video-hero-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 5.5v13l10-6.5z" />
-                </svg>
-              </span>
-            </button>
-          )}
-
-          {waiting && playing && <span className="hf-docs-video-spinner" aria-label="Loading" />}
-
-          <div
-            className="hf-docs-video-controls"
-            data-visible={controlsVisible || !playing ? "true" : "false"}
-          >
-            <div
-              className="hf-docs-video-scrub-preview"
-              data-visible={previewing ? "true" : "false"}
-              style={{ "--hf-video-preview-x": `${previewPosition}%` }}
-              aria-hidden="true"
-            >
-              <video
-                ref={previewVideoRef}
-                src={src}
-                muted
-                playsInline
-                preload="metadata"
-                tabIndex={-1}
-                aria-hidden="true"
-              />
-              <span>{formatTime(previewTime)}</span>
-            </div>
-
-            <input
-              className="hf-docs-video-progress"
-              type="range"
-              min="0"
-              max={duration || 0}
-              step="0.01"
-              value={Math.min(currentTime, duration || 0)}
-              aria-label="Video progress"
-              aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
-              onChange={seek}
-              onPointerEnter={updateScrubPreview}
-              onPointerMove={(event) => updateScrubPreview(event, scrubbing || event.buttons === 1)}
-              onPointerDown={(event) => {
-                setScrubbing(true);
-                event.currentTarget.setPointerCapture?.(event.pointerId);
-                updateScrubPreview(event, true);
-              }}
-              onPointerUp={(event) => {
-                setScrubbing(false);
-                if (event.pointerType !== "mouse") setPreviewing(false);
-              }}
-              onPointerCancel={() => {
-                setScrubbing(false);
-                setPreviewing(false);
-              }}
-              onPointerLeave={() => {
-                if (!scrubbing) setPreviewing(false);
-              }}
-              style={{ "--hf-video-progress": `${progress}%` }}
-            />
-
-            <div className="hf-docs-video-control-row">
+        {enhanced && (
+          <>
+            {!playing && (
               <button
                 type="button"
-                className="hf-docs-video-control"
+                className="hf-docs-video-hero-play"
                 onClick={togglePlayback}
-                aria-label={playing ? "Pause video" : "Play video"}
+                aria-label={replaying ? "Replay video" : "Play video"}
               >
-                {playing ? (
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 5h4v14H7zm6 0h4v14h-4z" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                <span className="hf-docs-video-hero-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
                     <path d="M8 5.5v13l10-6.5z" />
                   </svg>
-                )}
+                </span>
               </button>
+            )}
 
-              <button
-                type="button"
-                className="hf-docs-video-control"
-                onClick={toggleMute}
-                aria-label={muted ? "Unmute video" : "Mute video"}
+            {waiting && playing && <span className="hf-docs-video-spinner" aria-label="Loading" />}
+
+            <div
+              className="hf-docs-video-controls"
+              data-visible={controlsVisible || !playing ? "true" : "false"}
+            >
+              <div
+                className="hf-docs-video-scrub-preview"
+                data-visible={previewing ? "true" : "false"}
+                style={{ "--hf-video-preview-x": `${previewPosition}%` }}
+                aria-hidden="true"
               >
-                {muted ? (
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 9v6h4l5 4V5L8 9zm11.5 1.1 1.4-1.4 1.6 1.6 1.6-1.6 1.4 1.4-1.6 1.6 1.6 1.6-1.4 1.4-1.6-1.6-1.6 1.6-1.4-1.4 1.6-1.6z" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 9v6h4l5 4V5L8 9zm11 1.2v3.6c1-.5 1.7-1.5 1.7-2.8S16 10.7 15 10.2zm0-4v2.1c2.2.6 3.7 2.5 3.7 4.7s-1.5 4.1-3.7 4.7v2.1c3.3-.7 5.7-3.5 5.7-6.8S18.3 6.9 15 6.2z" />
-                  </svg>
-                )}
-              </button>
+                <video
+                  ref={previewVideoRef}
+                  src={src}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                />
+                <span>{formatTime(previewTime)}</span>
+              </div>
 
-              <span className="hf-docs-video-time" aria-hidden="true">
-                {formatTime(currentTime)} <span>/</span> {formatTime(duration)}
-              </span>
+              <input
+                className="hf-docs-video-progress"
+                type="range"
+                min="0"
+                max={duration || 0}
+                step="0.01"
+                value={Math.min(currentTime, duration || 0)}
+                aria-label="Video progress"
+                aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+                onChange={seek}
+                onPointerEnter={updateScrubPreview}
+                onPointerMove={(event) =>
+                  updateScrubPreview(event, scrubbing || event.buttons === 1)
+                }
+                onPointerDown={(event) => {
+                  setScrubbing(true);
+                  event.currentTarget.setPointerCapture?.(event.pointerId);
+                  updateScrubPreview(event, true);
+                }}
+                onPointerUp={(event) => {
+                  setScrubbing(false);
+                  if (event.pointerType !== "mouse") setPreviewing(false);
+                }}
+                onPointerCancel={() => {
+                  setScrubbing(false);
+                  setPreviewing(false);
+                }}
+                onPointerLeave={() => {
+                  if (!scrubbing) setPreviewing(false);
+                }}
+                style={{ "--hf-video-progress": `${progress}%` }}
+              />
 
-              <span className="hf-docs-video-spacer" />
-
-              <button
-                type="button"
-                className="hf-docs-video-rate"
-                onClick={cyclePlaybackRate}
-                aria-label={`Playback speed ${playbackRate} times`}
-              >
-                {playbackRate}×
-              </button>
-
-              {fullscreenSupported && (
+              <div className="hf-docs-video-control-row">
                 <button
                   type="button"
                   className="hf-docs-video-control"
-                  onClick={toggleFullscreen}
-                  aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  onClick={togglePlayback}
+                  aria-label={playing ? "Pause video" : "Play video"}
                 >
-                  {fullscreen ? (
+                  {playing ? (
                     <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M8 3H6v3H3v2h5zm8 0v5h5V6h-3V3zM3 16v2h3v3h2v-5zm13 0v5h2v-3h3v-2z" />
+                      <path d="M7 5h4v14H7zm6 0h4v14h-4z" />
                     </svg>
                   ) : (
                     <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M3 8h2V5h3V3H3zm13-5v2h3v3h2V3zM5 16H3v5h5v-2H5zm14 3h-3v2h5v-5h-2z" />
+                      <path d="M8 5.5v13l10-6.5z" />
                     </svg>
                   )}
                 </button>
-              )}
+
+                <button
+                  type="button"
+                  className="hf-docs-video-control"
+                  onClick={toggleMute}
+                  aria-label={muted ? "Unmute video" : "Mute video"}
+                >
+                  {muted ? (
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 9v6h4l5 4V5L8 9zm11.5 1.1 1.4-1.4 1.6 1.6 1.6-1.6 1.4 1.4-1.6 1.6 1.6 1.6-1.4 1.4-1.6-1.6-1.6 1.6-1.4-1.4 1.6-1.6z" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 9v6h4l5 4V5L8 9zm11 1.2v3.6c1-.5 1.7-1.5 1.7-2.8S16 10.7 15 10.2zm0-4v2.1c2.2.6 3.7 2.5 3.7 4.7s-1.5 4.1-3.7 4.7v2.1c3.3-.7 5.7-3.5 5.7-6.8S18.3 6.9 15 6.2z" />
+                    </svg>
+                  )}
+                </button>
+
+                <span className="hf-docs-video-time" aria-hidden="true">
+                  {formatTime(currentTime)} <span>/</span> {formatTime(duration)}
+                </span>
+
+                <span className="hf-docs-video-spacer" />
+
+                <button
+                  type="button"
+                  className="hf-docs-video-rate"
+                  onClick={cyclePlaybackRate}
+                  aria-label={`Playback speed ${playbackRate} times`}
+                >
+                  {playbackRate}×
+                </button>
+
+                {fullscreenSupported && (
+                  <button
+                    type="button"
+                    className="hf-docs-video-control"
+                    onClick={toggleFullscreen}
+                    aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  >
+                    {fullscreen ? (
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M8 3H6v3H3v2h5zm8 0v5h5V6h-3V3zM3 16v2h3v3h2v-5zm13 0v5h2v-3h3v-2z" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 8h2V5h3V3H3zm13-5v2h3v3h2V3zM5 16H3v5h5v-2H5zm14 3h-3v2h5v-5h-2z" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
+          </>
+        )}
+      </div>
+
+      {chapters.length > 0 && (
+        <div className="hf-docs-video-guide">
+          <div className="hf-docs-video-guide-head">
+            <strong>Chapters</strong>
+            <button type="button" onClick={copyMomentLink}>
+              {momentCopied ? "Link copied" : `Copy ${formatTime(currentTime)} link`}
+            </button>
           </div>
-        </>
+          <div className="hf-docs-video-chapters" aria-label={`${title} chapters`}>
+            {chapters.map((chapter, index) => (
+              <button
+                type="button"
+                key={`${chapter.time}-${chapter.label}`}
+                data-active={activeChapter === index ? "true" : "false"}
+                onClick={() => seekTo(chapter.time)}
+                aria-current={activeChapter === index ? "true" : undefined}
+              >
+                <span>{formatTime(chapter.time)}</span>
+                {chapter.label}
+              </button>
+            ))}
+          </div>
+
+          {transcript.length > 0 && (
+            <details className="hf-docs-video-transcript">
+              <summary>Read transcript</summary>
+              <div>
+                {transcript.map((line) => (
+                  <button
+                    type="button"
+                    key={`${line.time}-${line.text}`}
+                    onClick={() => seekTo(line.time)}
+                  >
+                    <span>{formatTime(line.time)}</span>
+                    {line.text}
+                  </button>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
       )}
     </div>
   );
