@@ -1,0 +1,38 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "system-ui",
+      "fontSize": "24px",
+      "fontWeight": "700",
+      "lineHeight": "normal",
+      "letterSpacing": "normal",
+      "color": "#000000",
+      "sampleText": "Example Domain"
+    },
+    {
+      "role": "body",
+      "fontFamily": "system-ui",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "normal",
+      "letterSpacing": "normal",
+      "color": "#000000",
+      "sampleText": "This domain is for use in documentation examples without nee"
+    }
+  ],
+  "spacing": {
+    "observed": [16],
+    "baseUnit": 8
+  },
+  "radius": [],
+  "shadows": [],
+  "buttons": [],
+  "cards": [],
+  "nav": null,
+  "chips": [],
+  "statCells": [],
+  "tabs": [],
+  "backgrounds": [],
+  "glass": []
+}

@@ -97,6 +97,8 @@ examples/*
 !examples/k8s-jobs/**
 !examples/gcp-cloud-run
 !examples/gcp-cloud-run/**
+!examples/docs-reference-project
+!examples/docs-reference-project/**
 # …but never the local smoke run's build/render artifacts.
 examples/gcp-cloud-run/scripts/gcp-smoke-artifacts/
 packages/studio/data/
@@ -181,3 +183,10 @@ tmp/
 
 # Local editor settings
 .zed/
+
+# Keep the documentation Reference Project complete. Several generic scratch
+# rules above also match legitimate directories inside this one real example;
+# this final negation restores it, while the project's own .gitignore still
+# excludes renders, work files, and individual snapshot frames.
+!examples/docs-reference-project/
+!examples/docs-reference-project/**

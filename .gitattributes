@@ -51,3 +51,10 @@ registry/**/*.html linguist-vendored
 # Documentation videos are shipped from the repo and include full journey films.
 # Keep binary masters out of the Git object store while preserving their paths.
 docs/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
+
+# The documentation Reference Project ships real voice, music, and source
+# media. Keep its binary assets out of the Git object store while preserving a
+# complete, cloneable example.
+examples/docs-reference-project/**/*.wav filter=lfs diff=lfs merge=lfs -text
+examples/docs-reference-project/**/*.mp3 filter=lfs diff=lfs merge=lfs -text
+examples/docs-reference-project/**/*.mp4 filter=lfs diff=lfs merge=lfs -text

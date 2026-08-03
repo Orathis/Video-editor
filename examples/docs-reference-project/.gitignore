@@ -1,0 +1,6 @@
+.work/
+.hyperframes/
+.transcode-cache/
+node_modules/
+renders/
+snapshots/frame-*.png
