@@ -1,19 +1,10 @@
-export const DocsVideo = ({
-  src,
-  poster,
-  title,
-  autoPlay = false,
-  chapters = [],
-  transcript = [],
-}) => {
+export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
   const videoRef = useRef(null);
   const previewVideoRef = useRef(null);
   const playerRef = useRef(null);
   const hideTimerRef = useRef(null);
   const progressFrameRef = useRef(null);
   const previewSeekFrameRef = useRef(null);
-  const initialMomentAppliedRef = useRef(false);
-  const copyTimerRef = useRef(null);
   const [enhanced, setEnhanced] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -28,29 +19,6 @@ export const DocsVideo = ({
   const [scrubbing, setScrubbing] = useState(false);
   const [previewTime, setPreviewTime] = useState(0);
   const [previewPosition, setPreviewPosition] = useState(0);
-  const [momentCopied, setMomentCopied] = useState(false);
-
-  const writeClipboard = async (text) => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-    } catch {
-      // Fall through to the browser's older synchronous copy path.
-    }
-
-    const field = document.createElement("textarea");
-    field.value = text;
-    field.setAttribute("readonly", "");
-    field.style.position = "fixed";
-    field.style.opacity = "0";
-    document.body.appendChild(field);
-    field.select();
-    const copied = document.execCommand("copy");
-    field.remove();
-    return copied;
-  };
 
   const formatTime = (seconds) => {
     if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -104,28 +72,6 @@ export const DocsVideo = ({
     const nextTime = Number(event.target.value);
     video.currentTime = nextTime;
     setCurrentTime(nextTime);
-  };
-
-  const seekTo = (seconds) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const nextTime = Math.min(duration || video.duration || seconds, Math.max(0, seconds));
-    video.currentTime = nextTime;
-    setCurrentTime(nextTime);
-    revealControls();
-  };
-
-  const copyMomentLink = async () => {
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    url.searchParams.set("t", String(Math.max(0, Math.floor(currentTime))));
-    if (await writeClipboard(url.toString())) {
-      setMomentCopied(true);
-      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = window.setTimeout(() => setMomentCopied(false), 1800);
-    } else {
-      setMomentCopied(false);
-    }
   };
 
   const updateScrubPreview = (event, seekMainVideo = false) => {
@@ -212,7 +158,6 @@ export const DocsVideo = ({
     );
     return () => {
       clearHideTimer();
-      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
     };
   }, []);
 
@@ -253,11 +198,6 @@ export const DocsVideo = ({
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const replaying = duration > 0 && currentTime >= duration - 0.15;
-  const activeChapter = chapters.reduce(
-    (active, chapter, index) => (currentTime >= chapter.time ? index : active),
-    0,
-  );
-
   return (
     <div className="hf-docs-video-block">
       <div
@@ -289,15 +229,6 @@ export const DocsVideo = ({
             const nextDuration = event.currentTarget.duration || 0;
             setDuration(nextDuration);
             setMuted(event.currentTarget.muted);
-            if (!initialMomentAppliedRef.current && typeof window !== "undefined") {
-              initialMomentAppliedRef.current = true;
-              const requestedTime = Number(new URL(window.location.href).searchParams.get("t"));
-              if (Number.isFinite(requestedTime) && requestedTime > 0) {
-                const nextTime = Math.min(nextDuration, requestedTime);
-                event.currentTarget.currentTime = nextTime;
-                setCurrentTime(nextTime);
-              }
-            }
           }}
           onDurationChange={(event) => setDuration(event.currentTarget.duration || 0)}
           onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
@@ -461,48 +392,6 @@ export const DocsVideo = ({
         )}
       </div>
 
-      {chapters.length > 0 && (
-        <div className="hf-docs-video-guide">
-          <div className="hf-docs-video-guide-head">
-            <strong>Chapters</strong>
-            <button type="button" onClick={copyMomentLink}>
-              {momentCopied ? "Link copied" : `Copy ${formatTime(currentTime)} link`}
-            </button>
-          </div>
-          <div className="hf-docs-video-chapters" aria-label={`${title} chapters`}>
-            {chapters.map((chapter, index) => (
-              <button
-                type="button"
-                key={`${chapter.time}-${chapter.label}`}
-                data-active={activeChapter === index ? "true" : "false"}
-                onClick={() => seekTo(chapter.time)}
-                aria-current={activeChapter === index ? "true" : undefined}
-              >
-                <span>{formatTime(chapter.time)}</span>
-                {chapter.label}
-              </button>
-            ))}
-          </div>
-
-          {transcript.length > 0 && (
-            <details className="hf-docs-video-transcript">
-              <summary>Read transcript</summary>
-              <div>
-                {transcript.map((line) => (
-                  <button
-                    type="button"
-                    key={`${line.time}-${line.text}`}
-                    onClick={() => seekTo(line.time)}
-                  >
-                    <span>{formatTime(line.time)}</span>
-                    {line.text}
-                  </button>
-                ))}
-              </div>
-            </details>
-          )}
-        </div>
-      )}
     </div>
   );
 };
