@@ -62,3 +62,22 @@ query-filters:
       id: js/insecure-randomness
       paths:
         - "packages/producer/tests/**/output/compiled.html"
+
+  # The docs Reference Project's live embed is a generated publish artifact.
+  # It inlines the same HyperFrames runtime that CodeQL already analyzes at its
+  # source, so runtime bridge and URL-normalization patterns otherwise appear as
+  # new alerts on the generated bundle. Keep the exceptions query-specific and
+  # limited to this one immutable example instead of excluding the path from
+  # analysis wholesale.
+  - exclude:
+      id: js/missing-origin-check
+      paths:
+        - "examples/docs-reference-project/live/index.html"
+  - exclude:
+      id: js/unvalidated-dynamic-method-call
+      paths:
+        - "examples/docs-reference-project/live/index.html"
+  - exclude:
+      id: js/incomplete-url-scheme-check
+      paths:
+        - "examples/docs-reference-project/live/index.html"
