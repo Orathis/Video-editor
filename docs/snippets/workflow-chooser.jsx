@@ -56,8 +56,8 @@ export const WorkflowChooser = () => {
       title: "Build a presentation",
       bring: "Bring an outline, pitch, report, or existing deck.",
       href: "/guides/slideshow",
-      video: "/images/showcase/wfv2-slideshow.mp4",
-      poster: "/images/showcase/wfv2-slideshow.jpg",
+      video: "https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-slideshow.mp4",
+      poster: "https://static.heygen.ai/hyperframes-oss/docs/images/showcase/wfv2-slideshow.jpg",
     },
     {
       title: "Direct a custom video",
