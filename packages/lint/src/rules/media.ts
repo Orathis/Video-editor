@@ -530,6 +530,44 @@ export const mediaRules: Array<(ctx: LintContext) => HyperframeLintFinding[]> = 
     return findings;
   },
 
+  // media_unbounded_media_window — a clip with no out-point extracts to the end
+  // of its source. Distributed plans pre-extract one image per frame of each
+  // clip's media window, so that window — not the composition duration — is the
+  // planDir budget.
+  ({ tags }) => {
+    const findings: HyperframeLintFinding[] = [];
+    for (const tag of tags) {
+      if (tag.name !== "video" && tag.name !== "audio") continue;
+      // Untimed / sourceless media belongs to media_missing_data_start and
+      // media_missing_src / media_variable_src_no_fallback.
+      if (!readAttr(tag.raw, "data-start")) continue;
+      if (!readAttr(tag.raw, "src") && !readAttr(tag.raw, "data-var-src")) continue;
+      if (readAttr(tag.raw, "data-end") || readAttr(tag.raw, "data-duration")) continue;
+
+      const elementId = readAttr(tag.raw, "id") || undefined;
+      const label = `<${tag.name}${elementId ? ` id="${elementId}"` : ""}>`;
+      const mediaStart = Number(readAttr(tag.raw, "data-media-start"));
+      const hasInPoint = Number.isFinite(mediaStart) && mediaStart > 0;
+
+      findings.push({
+        code: "media_unbounded_media_window",
+        // An in-point proves a slice was intended, so a missing out-point is a
+        // contradiction, not a style choice. Without one, "play the whole clip"
+        // is legitimate (full-length A-roll) — warn about the plan cost only.
+        severity: hasInPoint ? "error" : "warning",
+        message: hasInPoint
+          ? `${label} sets data-media-start="${mediaStart}" but has neither data-end nor data-duration, so its media window runs from that in-point to the END of the source. Distributed renders pre-extract every frame of that window, so a few seconds cut from a long source can produce a multi-GiB plan and fail the render.`
+          : `${label} has neither data-end nor data-duration, so its media window is the entire source. Distributed renders pre-extract every frame of that window, so a source much longer than the clip's on-screen time inflates the plan and can exceed the plan-size limit.`,
+        elementId,
+        fixHint: hasInPoint
+          ? `Add data-duration="<seconds the clip should play>" (or data-end) alongside data-media-start="${mediaStart}". An in-point without an out-point is almost always unintended.`
+          : `Add data-duration="<seconds the clip should play>" if the clip should stop before its source ends. If it is intentionally the full source, this is safe — but an explicit data-duration keeps plan size predictable.`,
+        snippet: truncateSnippet(tag.raw),
+      });
+    }
+    return findings;
+  },
+
   // media_crossorigin_breaks_preview — `crossorigin` on <video>/<audio> forces a
   // CORS-checked fetch. The server-side renderer downloads media directly (no CORS),
   // so it always works there; but Studio preview runs in the browser, where a media

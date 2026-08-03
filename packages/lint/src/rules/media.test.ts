@@ -232,6 +232,65 @@ describe("media rules", () => {
     expect(finding?.elementId).toBe("demo-video");
   });
 
+  it("reports error for a clip cut with data-media-start but no out-point", async () => {
+    const html = `
+<html><body>
+  <div id="root" data-composition-id="c1" data-width="1920" data-height="1080" data-start="0" data-duration="7">
+    <video id="five9-video" src="training.mp4" data-start="0" data-media-start="2280" muted playsinline></video>
+  </div>
+  <script>window.__timelines = window.__timelines || {}; window.__timelines["c1"] = gsap.timeline({ paused: true });</script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "media_unbounded_media_window");
+    expect(finding).toBeDefined();
+    expect(finding?.severity).toBe("error");
+    expect(finding?.elementId).toBe("five9-video");
+    expect(finding?.message).toContain("2280");
+  });
+
+  it("only warns for a full-source clip with no in-point and no out-point", async () => {
+    const html = `
+<html><body>
+  <div id="root" data-composition-id="c1" data-width="1920" data-height="1080" data-start="0" data-duration="7">
+    <video id="aroll" src="aroll.mp4" data-start="0" muted playsinline></video>
+  </div>
+  <script>window.__timelines = window.__timelines || {}; window.__timelines["c1"] = gsap.timeline({ paused: true });</script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const matches = result.findings.filter((f) => f.code === "media_unbounded_media_window");
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.severity).toBe("warning");
+    expect(matches[0]?.elementId).toBe("aroll");
+  });
+
+  it("accepts a cut clip that declares an out-point", async () => {
+    const html = `
+<html><body>
+  <div id="root" data-composition-id="c1" data-width="1920" data-height="1080" data-start="0" data-duration="7">
+    <video id="v-dur" src="training.mp4" data-start="0" data-media-start="2280" data-duration="7" muted playsinline></video>
+    <video id="v-end" src="training.mp4" data-start="0" data-media-start="1089" data-end="7" muted playsinline></video>
+  </div>
+  <script>window.__timelines = window.__timelines || {}; window.__timelines["c1"] = gsap.timeline({ paused: true });</script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    expect(result.findings.find((f) => f.code === "media_unbounded_media_window")).toBeUndefined();
+  });
+
+  it("leaves untimed and sourceless media to their own rules", async () => {
+    const html = `
+<html><body>
+  <div id="root" data-composition-id="c1" data-width="1920" data-height="1080" data-start="0" data-duration="7">
+    <video id="untimed" src="clip.mp4" muted playsinline></video>
+    <audio id="sourceless" data-start="0"></audio>
+  </div>
+  <script>window.__timelines = window.__timelines || {}; window.__timelines["c1"] = gsap.timeline({ paused: true });</script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    expect(result.findings.find((f) => f.code === "media_unbounded_media_window")).toBeUndefined();
+    expect(result.findings.find((f) => f.code === "media_missing_data_start")).toBeDefined();
+    expect(result.findings.find((f) => f.code === "media_missing_src")).toBeDefined();
+  });
+
   it("allows audible video clips to omit muted when data-has-audio is true", async () => {
     const html = `
 <html><body>

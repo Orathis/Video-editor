@@ -43,6 +43,8 @@ When adding a new clip to an existing composition:
 
 `data-media-start` (on `<video>`/`<audio>`) is an offset _into the source media_. Use it to skip the first few seconds of a media file without trimming the file itself.
 
+**Always give a clip with `data-media-start` a matching `data-duration`.** The in-point only says where the media window opens; without an out-point the window runs to the end of the source, and distributed renders pre-extract every frame of it. Cutting seconds out of a long recording without `data-duration` is what produces multi-GiB plans and `PLAN_TOO_LARGE` failures — `hyperframes lint` errors on `media_unbounded_media_window` to catch it.
+
 ## Relative Timing
 
 `data-start` accepts a clip ID instead of a number, meaning "start when that clip ends". Add `+ N` / `- N` to offset; negative produces overlap (useful for crossfades).
