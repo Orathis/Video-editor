@@ -9,22 +9,19 @@ related:
 
 import { DocsVideo } from "/snippets/docs-video.jsx";
 
-One complete film shows the quality bar. The smaller previews below show the range.
+## Finished films
 
-## HyperFrames launch
+Each preview links to the complete source project.
 
-<DocsVideo
-  title="HyperFrames launch film"
-  src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/hyperframes-launch-preview.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/hyperframes-launch-poster.jpg"
-/>
+<div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-4 my-7">
+  <a className="group overflow-hidden rounded-xl border border-zinc-200 bg-white text-inherit no-underline dark:border-zinc-800 dark:bg-zinc-950" href="https://github.com/heygen-com/hyperframes-launches/tree/main/hyperframes-launch">
+    <video className="aspect-video w-full object-cover" src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/hyperframes-launch-preview.mp4" poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/hyperframes-launch-poster.jpg" autoPlay muted loop playsInline preload="metadata" />
+    <div className="p-4">
+      <strong className="block text-sm">HyperFrames launch</strong>
+      <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">Product film · source included</span>
+    </div>
+  </a>
 
-Product UI, typography, footage, captions, voiceover, music, and sound — built as one HyperFrames
-project. [Inspect the source →](https://github.com/heygen-com/hyperframes-launches/tree/main/hyperframes-launch)
-
-## More finished work
-
-<div className="not-prose grid grid-cols-1 md:grid-cols-3 gap-4 my-7">
   <a className="group overflow-hidden rounded-xl border border-zinc-200 bg-white text-inherit no-underline dark:border-zinc-800 dark:bg-zinc-950" href="https://github.com/heygen-com/hyperframes-launches/tree/main/timeline-launch">
     <video className="aspect-video w-full object-cover" src="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/timeline-editor-preview.mp4" poster="https://static.heygen.ai/hyperframes-oss/docs/images/showcase/timeline-editor-poster.jpg" autoPlay muted loop playsInline preload="metadata" />
     <div className="p-4">
@@ -62,6 +59,41 @@ project. [Inspect the source →](https://github.com/heygen-com/hyperframes-laun
       <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">Motion design · source included</span>
     </div>
   </a>
+</div>
+
+## One real project, open end to end
+
+The Reference Project starts from the same beginner request used in the Quickstart:
+
+```text
+Using /hyperframes, make a 10-second product intro for https://example.com.
+```
+
+<Steps>
+  <Step title="The agent confirms the brief">
+    It keeps the real captured page, uses the page's own words, and settles the one missing creative
+    decision: show the site as it is. [Read the brief](https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/BRIEF.md).
+  </Step>
+  <Step title="The source stays inspectable">
+    The capture, storyboard, script, media, captions, and composition are ordinary project files.
+    [Open the project](https://github.com/heygen-com/hyperframes/tree/main/examples/docs-reference-project).
+  </Step>
+  <Step title="The weak first version is revised">
+    The page capture becomes readable at 1:1, decorative noise is removed, and the edit gains measured
+    narration, captions, music, sound, and variables. [See the exact before/after decisions](https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/VERIFICATION.md#2-v1--v2).
+  </Step>
+  <Step title="The project passes the real gates">
+    Lint, browser checks, 19 inspected frames, and the final render all pass. The report includes the
+    remaining info-level findings instead of hiding them. [Read the verification report](https://github.com/heygen-com/hyperframes/blob/main/examples/docs-reference-project/VERIFICATION.md).
+  </Step>
+</Steps>
+
+<div style={{ maxWidth: "36rem", margin: "1.5rem auto" }}>
+  <DocsVideo
+    title="The verified 10-second Reference Project render"
+    src="https://cdn.jsdelivr.net/gh/heygen-com/hyperframes@51f14079e0660434c7e622013e8f5e20621ce304/examples/docs-reference-project/live/reference-project-v2.mp4"
+    poster="https://cdn.jsdelivr.net/gh/heygen-com/hyperframes@51f14079e0660434c7e622013e8f5e20621ce304/examples/docs-reference-project/live/poster.jpg"
+  />
 </div>
 
 ## Start from a template
