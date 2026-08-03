@@ -145,3 +145,9 @@ Every import records where it came from (`fileKey`, `nodeId`, `version`) in `.me
 | `RATE_LIMITED` (429) | Figma's per-minute limit | The client retries with backoff automatically (honoring `Retry-After`); if it still surfaces, wait a minute or batch fewer nodes |
 | "Render timeout" on batch export | Too many large frames in one `/v1/images` call | Chunk to ~4 ids per call |
 | `ref has no node id` | Link points at a file, not a node | Copy the link with `?node-id=…` (right-click layer → Copy link) |
+
+## Related topics
+
+- [Bring a design into a project](/guides/design-tools)
+- [Work on the imported project in Studio](/studio)
+- [Manage project media](/guides/media)
