@@ -3,4 +3,6 @@
 .transcode-cache/
 node_modules/
 renders/
-snapshots/frame-*.png
+capture/
+live/
+snapshots/
