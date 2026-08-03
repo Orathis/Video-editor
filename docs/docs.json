@@ -68,6 +68,12 @@
             ]
           },
           {
+            "group": "30 Days of HyperFrames",
+            "pages": [
+              "thirty-days"
+            ]
+          },
+          {
             "group": "Choose where to create",
             "pages": [
               "guides/choose-creation-path",

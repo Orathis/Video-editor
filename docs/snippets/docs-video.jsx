@@ -1,4 +1,11 @@
-export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
+export const DocsVideo = ({
+  src,
+  poster,
+  title,
+  autoPlay = false,
+  loop = false,
+  portrait = false,
+}) => {
   const videoRef = useRef(null);
   const previewVideoRef = useRef(null);
   const playerRef = useRef(null);
@@ -199,7 +206,7 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const replaying = duration > 0 && currentTime >= duration - 0.15;
   return (
-    <div className="hf-docs-video-block">
+    <div className="hf-docs-video-block" data-portrait={portrait ? "true" : "false"}>
       <div
         ref={playerRef}
         className="hf-docs-video"
@@ -220,6 +227,7 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
           src={src}
           poster={poster}
           autoPlay={autoPlay}
+          loop={loop}
           playsInline
           preload="metadata"
           controls={!enhanced}
@@ -246,7 +254,7 @@ export const DocsVideo = ({ src, poster, title, autoPlay = false }) => {
 
         {enhanced && (
           <>
-            {!playing && (currentTime <= 0.05 || replaying) && (
+            {!playing && (currentTime <= 0.2 || replaying) && (
               <button
                 type="button"
                 className="hf-docs-video-hero-play"

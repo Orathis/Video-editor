@@ -722,6 +722,16 @@ samp {
   width: 100%;
 }
 
+.hf-docs-video-block[data-portrait="true"] {
+  width: min(100%, 18rem);
+  margin: 0.75rem auto 0;
+}
+
+.hf-docs-video-block[data-portrait="true"] .hf-docs-video {
+  aspect-ratio: 9 / 16;
+  max-height: min(32rem, 68vh);
+}
+
 /*
  * Mintlify loads custom React snippets after the page shell. Reserve the
  * film's real shape so the unloaded component never flashes as a thin Frame
