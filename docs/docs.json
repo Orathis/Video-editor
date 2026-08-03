@@ -430,7 +430,7 @@
         "icon": "code",
         "groups": [
           {
-            "group": "Overview",
+            "group": "Start here",
             "pages": ["developers/overview"]
           },
           {
@@ -438,7 +438,7 @@
             "pages": ["developers/cli", "packages/cli", "packages/lint"]
           },
           {
-            "group": "SDK",
+            "group": "SDK guides",
             "pages": [
               "sdk/quickstart",
               "sdk/guides/querying-and-editing",
@@ -447,7 +447,12 @@
               "sdk/guides/persistence",
               "sdk/guides/embedded-override-mode",
               "sdk/guides/canvas-integration",
-              "sdk/guides/editing-affordances",
+              "sdk/guides/editing-affordances"
+            ]
+          },
+          {
+            "group": "SDK reference",
+            "pages": [
               "sdk/reference/open-composition",
               "sdk/reference/composition",
               "sdk/reference/edit-operations",
@@ -457,27 +462,30 @@
             ]
           },
           {
-            "group": "Composition and animation",
+            "group": "Composition, design & animation",
             "pages": [
               "concepts/compositions",
               "concepts/variables",
-              "reference/html-schema",
               "concepts/data-attributes",
-              "reference/color-grading",
               "guides/gsap-animation",
               "concepts/frame-adapters",
               "concepts/determinism",
               "guides/html-in-canvas",
-              "guides/hyperframes-vs-remotion"
+              "guides/hyperframes-vs-remotion",
+              "guides/figma"
             ]
           },
           {
-            "group": "Rendering and deployment",
+            "group": "Composition reference",
+            "pages": ["reference/html-schema", "reference/color-grading"]
+          },
+          {
+            "group": "Rendering paths",
+            "pages": ["guides/rendering", "deploy/overview", "deploy/cloud", "guides/deploy"]
+          },
+          {
+            "group": "Cloud infrastructure",
             "pages": [
-              "guides/rendering",
-              "deploy/overview",
-              "deploy/cloud",
-              "guides/deploy",
               "deploy/aws-lambda",
               "deploy/gcp-cloud-run",
               "deploy/templates-on-lambda",
@@ -505,28 +513,24 @@
             ]
           },
           {
-            "group": "Integrations",
+            "group": "Agent setup",
             "pages": [
               "guides/authentication",
               "guides/skills",
-              "guides/figma",
               "guides/antigravity",
               "guides/copilot-cli"
             ]
           },
           {
-            "group": "Contributing",
+            "group": "Contributing & community",
             "pages": [
               "contributing",
               "contributing/catalog",
               "contributing/release-channels",
               "contributing/changelog-process",
-              "contributing/testing-local-changes"
+              "contributing/testing-local-changes",
+              "community/adopters"
             ]
-          },
-          {
-            "group": "Community",
-            "pages": ["community/adopters"]
           }
         ]
       }
@@ -542,25 +546,52 @@
       {
         "header": "Explore",
         "items": [
-          { "label": "Introduction", "href": "/introduction" },
-          { "label": "Make your first video", "href": "/quickstart" },
-          { "label": "Examples", "href": "/examples" }
+          {
+            "label": "Introduction",
+            "href": "/introduction"
+          },
+          {
+            "label": "Make your first video",
+            "href": "/quickstart"
+          },
+          {
+            "label": "Examples",
+            "href": "/examples"
+          }
         ]
       },
       {
         "header": "Build",
         "items": [
-          { "label": "Studio", "href": "/studio" },
-          { "label": "Catalog", "href": "/catalog" },
-          { "label": "Developers", "href": "/developers/overview" }
+          {
+            "label": "Studio",
+            "href": "/studio"
+          },
+          {
+            "label": "Catalog",
+            "href": "/catalog"
+          },
+          {
+            "label": "Developers",
+            "href": "/developers/overview"
+          }
         ]
       },
       {
         "header": "Resources",
         "items": [
-          { "label": "Product updates", "href": "/product-updates" },
-          { "label": "Playground", "href": "https://www.hyperframes.dev/" },
-          { "label": "GitHub", "href": "https://github.com/heygen-com/hyperframes" }
+          {
+            "label": "Product updates",
+            "href": "/product-updates"
+          },
+          {
+            "label": "Playground",
+            "href": "https://www.hyperframes.dev/"
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/heygen-com/hyperframes"
+          }
         ]
       }
     ]
