@@ -320,15 +320,14 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
   const source = manifest as RegistryItem & SourceMetadata;
   const textureGroups = textureGroupsFor(manifest);
 
-  const lines: string[] = ["---", `title: ${yamlString(manifest.title)}`];
-  if (textureGroups.length === 0) {
-    lines.push(`description: ${yamlString(manifest.description)}`);
-  }
+  const lines: string[] = [
+    "---",
+    `title: ${yamlString(manifest.title)}`,
+    `description: ${yamlString(manifest.description)}`,
+  ];
   lines.push("---", "");
 
-  if (textureGroups.length === 0) {
-    lines.push(`# ${manifest.title}`, "", manifest.description, "");
-  }
+  lines.push(manifest.description, "");
 
   if (tagBadges) {
     lines.push(tagBadges, "");
@@ -363,25 +362,40 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
     );
   }
 
-  // Install command
+  // Two genuinely parallel ways to do one thing, so they belong in tabs rather
+  // than stacked with the second framed as an afterthought. The agent request
+  // leads because it is the shorter path for most readers.
   lines.push(
-    "## Install",
+    "## Add it to a project",
     "",
-    "<CodeGroup>",
+    "<Tabs>",
     "",
-    "```bash Terminal",
+    '<Tab title="Ask your agent">',
+    "",
+    "```text",
+    `Add the ${manifest.title} ${kind} from the HyperFrames Catalog to this project.`,
+    "Replace the demo content with mine and match the existing design and timing.",
+    "```",
+    "",
+    "</Tab>",
+    "",
+    '<Tab title="Terminal">',
+    "",
+    "```bash",
     installCmd,
     "```",
     "",
-    "</CodeGroup>",
+    "</Tab>",
+    "",
+    "</Tabs>",
     "",
   );
 
-  // Details
+  // Registry metadata, visible. It is short — three rows and a file list — so
+  // hiding it behind a click bought nothing and cost Cmd+F and printing.
+  lines.push("## Details", "");
   if (kind === "block" && manifest.dimensions && manifest.duration) {
     lines.push(
-      "## Details",
-      "",
       `| Property | Value |`,
       `| --- | --- |`,
       `| Type | ${typeLabel(kind)} |`,
@@ -390,29 +404,21 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
       "",
     );
   } else {
-    lines.push(
-      "## Details",
-      "",
-      `| Property | Value |`,
-      `| --- | --- |`,
-      `| Type | ${typeLabel(kind)} |`,
-      "",
-    );
-  }
-
-  if (textureGroups.length > 0) {
-    lines.push(...generateTextureAgentUsage(manifest, textureGroups));
-    lines.push(...generateTextureAnimationExample(manifest, textureGroups));
-    lines.push(...generateTextureExamples(manifest, textureGroups));
+    lines.push(`| Property | Value |`, `| --- | --- |`, `| Type | ${typeLabel(kind)} |`, "");
   }
 
   // Files
   if (textureGroups.length === 0) {
-    lines.push("## Files", "", "| File | Target | Type |", "| --- | --- | --- |");
+    lines.push("**Installed files**", "", "| File | Target | Type |", "| --- | --- | --- |");
     for (const f of manifest.files) {
       lines.push(`| \`${f.path}\` | \`${f.target}\` | ${f.type} |`);
     }
     lines.push("");
+  }
+  if (textureGroups.length > 0) {
+    lines.push(...generateTextureAgentUsage(manifest, textureGroups));
+    lines.push(...generateTextureAnimationExample(manifest, textureGroups));
+    lines.push(...generateTextureExamples(manifest, textureGroups));
   }
 
   // Usage hint — find the primary file by type, not array position.
@@ -426,9 +432,11 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
     const w = manifest.dimensions.width;
     const h = manifest.dimensions.height;
     lines.push(
-      "## Usage",
+      "## Use it",
       "",
-      "After installing, add the block to your host composition:",
+      "Ask your agent to replace the example content, match the project style, and place the block at the right moment in the video.",
+      "",
+      "**Wiring it by hand.** The installed block can be added to a host composition with:",
       "",
       "```html",
       `<div data-composition-id="${manifest.name}" data-composition-src="${primaryTarget}" data-start="0" data-duration="${manifest.duration}" data-track-index="1" data-width="${w}" data-height="${h}"></div>`,
@@ -438,16 +446,18 @@ function generateItemMdx(kind: ItemKind, manifest: RegistryItem): string {
   } else {
     if (textureGroups.length > 0) {
       lines.push(
-        "## Usage",
+        "## Use it",
         "",
         `After \`${installCmd}\`, the installed snippet lives at \`${primaryTarget}\` inside your current HyperFrames project. Open that file and paste the real \`<style>\` element near the bottom into your composition once; it defines \`hf-texture-text\` and every \`hf-texture-*\` class used by the examples above. Keep the installed texture PNGs in \`assets/${manifest.name}/masks/\`; the CSS references them with project-root URLs.`,
         "",
       );
     } else {
       lines.push(
-        "## Usage",
+        "## Use it",
         "",
-        `Open \`${primaryTarget}\` and paste its contents into your composition. See the comment header in the file for detailed instructions.`,
+        "Ask your agent to apply the component to the intended element and preserve the project’s existing timing.",
+        "",
+        `**Wiring it by hand.** Open \`${primaryTarget}\` and paste its contents into your composition. The comment header in that file contains any item-specific instructions.`,
         "",
       );
     }
@@ -569,16 +579,37 @@ function main(): void {
     .map(([group, pages]) => ({ group, pages }));
 
   if (catalogGroups.length > 0) {
-    // Replace or insert the Catalog tab
+    // Update the existing Catalog tab in place. Rebuilding the object dropped
+    // everything except the groups — the tab lost its `icon` — and removing it
+    // before re-inserting moved it, because the anchor tab it looked for
+    // ("Documentation") no longer exists and the fallback index put Catalog
+    // ahead of Studio. Only `groups` is generated; every other property and the
+    // tab's position belong to whoever curates docs.json.
     const existingIdx = tabs.findIndex((t) => t.tab === "Catalog");
-    const catalogTab = { tab: "Catalog", groups: catalogGroups };
-    // Remove existing Catalog tab if present, then insert at position 1
-    // (after Documentation, before Packages).
     if (existingIdx >= 0) {
-      tabs.splice(existingIdx, 1);
+      const existingGroups = Array.isArray(tabs[existingIdx].groups)
+        ? tabs[existingIdx].groups
+        : [];
+      const manualGroups = existingGroups.filter((group) => {
+        if (!Array.isArray(group.pages)) return true;
+        return group.pages.every(
+          (page) =>
+            typeof page !== "string" ||
+            (!page.startsWith("catalog/blocks/") && !page.startsWith("catalog/components/")),
+        );
+      });
+      tabs[existingIdx] = {
+        ...tabs[existingIdx],
+        groups: [...manualGroups, ...catalogGroups],
+      };
+    } else {
+      const anchorIdx = tabs.findIndex((t) => t.tab === "Guides" || t.tab === "Documentation");
+      tabs.splice(anchorIdx >= 0 ? anchorIdx + 1 : 1, 0, {
+        tab: "Catalog",
+        icon: "grid-2",
+        groups: catalogGroups,
+      });
     }
-    const docsIdx = tabs.findIndex((t) => t.tab === "Documentation");
-    tabs.splice(docsIdx >= 0 ? docsIdx + 1 : 1, 0, catalogTab);
     writeFileSync(docsJsonPath, JSON.stringify(docsJson, null, 2) + "\n", "utf-8");
     const totalPages = catalogGroups.reduce((n, g) => n + g.pages.length, 0);
     console.log(`  ✓ docs.json updated with ${catalogGroups.length} groups, ${totalPages} pages`);

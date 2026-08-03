@@ -3,8 +3,6 @@ title: "Portal"
 description: "VFX composition block"
 ---
 
-# Portal
-
 VFX composition block
 
 `html-in-canvas` `webgl`
@@ -15,15 +13,28 @@ VFX composition block
 
 <video className="w-full aspect-video rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" src="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/vfx-portal.mp4" poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/vfx-portal.png" autoPlay muted loop playsInline />
 
-## Install
+## Add it to a project
 
-<CodeGroup>
+<Tabs>
 
-```bash Terminal
+<Tab title="Ask your agent">
+
+```text
+Add the Portal block from the HyperFrames Catalog to this project.
+Replace the demo content with mine and match the existing design and timing.
+```
+
+</Tab>
+
+<Tab title="Terminal">
+
+```bash
 npx hyperframes add vfx-portal
 ```
 
-</CodeGroup>
+</Tab>
+
+</Tabs>
 
 ## Details
 
@@ -33,15 +44,17 @@ npx hyperframes add vfx-portal
 | Dimensions | 1920×1080 |
 | Duration | 10s |
 
-## Files
+**Installed files**
 
 | File | Target | Type |
 | --- | --- | --- |
 | `vfx-portal.html` | `compositions/vfx-portal.html` | hyperframes:composition |
 
-## Usage
+## Use it
 
-After installing, add the block to your host composition:
+Ask your agent to replace the example content, match the project style, and place the block at the right moment in the video.
+
+**Wiring it by hand.** The installed block can be added to a host composition with:
 
 ```html
 <div data-composition-id="vfx-portal" data-composition-src="compositions/vfx-portal.html" data-start="0" data-duration="10" data-track-index="1" data-width="1920" data-height="1080"></div>
