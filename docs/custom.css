@@ -1228,13 +1228,6 @@ samp {
   transform: translateY(0.4rem);
 }
 
-.hf-docs-video:hover .hf-docs-video-controls,
-.hf-docs-video:focus-within .hf-docs-video-controls {
-  pointer-events: auto;
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .hf-docs-video-progress {
   width: 100%;
   height: 1rem;
