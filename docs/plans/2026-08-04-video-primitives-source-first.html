@@ -849,6 +849,7 @@
           <a href="#contract">Contract</a>
           <a href="#flow">User journey</a>
           <a href="#migration">Migration</a>
+          <a href="#first-migration">First build</a>
           <a href="#scope">V1 scope</a>
         </div>
       </nav>
@@ -1053,6 +1054,93 @@
               <span>Fixed objects and depth</span><span>→</span><span>Object data plus direct scene graph editing</span>
             </div>
           </article>
+        </div>
+      </section>
+
+      <section class="section" id="first-migration">
+        <div class="section-heading">
+          <h2>First build: Thread Message Stack.</h2>
+          <p>
+            Prove the source-first contract with one collection primitive before generalizing anything. The shipping artifact remains one copied HTML file.
+          </p>
+        </div>
+
+        <div class="scope">
+          <article class="scope-panel ship">
+            <h3>Implementation slice</h3>
+            <ul>
+              <li>Keep the current bubble markup, layout, GSAP timing, and visual defaults.</li>
+              <li>Replace the fixed message nodes with one <code>messages[]</code> JSON seam and a small local render loop.</li>
+              <li>Let the installer replace only that JSON block when structured message data is supplied.</li>
+              <li>Copy the whole HTML file into the project so every selector, keyframe, and script remains editable.</li>
+              <li>Use the existing CLI authentication, catalog install, preview, lint, check, and render paths.</li>
+            </ul>
+          </article>
+          <article class="scope-panel defer">
+            <h3>Explicit cut line</h3>
+            <ul>
+              <li>No new component runtime or package dependency.</li>
+              <li>No universal primitive schema or shared slot protocol.</li>
+              <li>No nested array editor in Studio.</li>
+              <li>No migration of the other 24 primitives in this release.</li>
+              <li>No promise that every future primitive uses the same JSON shape.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="principles">
+          <article class="principle-main">
+            <h3>Thin file contract</h3>
+            <pre aria-label="First primitive implementation contract"><code>&lt;script type=<span class="token-string">"application/json"</span> data-hf-primitive-data&gt;
+{
+  <span class="token-key">"messages"</span>: [
+    { <span class="token-key">"side"</span>: <span class="token-string">"out"</span>, <span class="token-key">"text"</span>: <span class="token-string">"Message 01"</span> },
+    { <span class="token-key">"side"</span>: <span class="token-string">"in"</span>,  <span class="token-key">"text"</span>: <span class="token-string">"Message 02"</span> }
+    // ...up to the requested 20, or any authored count
+  ],
+  <span class="token-key">"timing"</span>: { <span class="token-key">"stagger"</span>: 0.42, <span class="token-key">"hold"</span>: 0.8 }
+}
+&lt;/script&gt;</code></pre>
+          </article>
+          <aside class="principle-side">
+            <h3>Release train</h3>
+            <div class="rule-list">
+              <div class="rule"><strong>1 · Primitive</strong><span>Render 1, 6, and 20 messages from the embedded data.</span></div>
+              <div class="rule"><strong>2 · Installer</strong><span>Materialize requested messages into the copied source.</span></div>
+              <div class="rule"><strong>3 · Smart funnel</strong><span>Discover, authenticate only on selection, then resume the install.</span></div>
+              <div class="rule"><strong>4 · Learn</strong><span>Measure OAuth completion, first preview, and first render before migrating primitive two.</span></div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="flow-shell">
+          <div class="flow" role="img" aria-label="First primitive implementation sequence">
+            <div class="flow-node"><strong>Catalog result</strong><span>thread-message-stack selected with the original query preserved.</span></div>
+            <div class="flow-node accent"><strong>Install</strong><span>Copy the canonical HTML, then replace its JSON data block.</span></div>
+            <div class="flow-node"><strong>Preview</strong><span>All requested messages render in authored sequence with no truncation.</span></div>
+            <div class="flow-node"><strong>Own source</strong><span>User edits data, DOM, CSS, GSAP, or JavaScript directly.</span></div>
+          </div>
+          <details>
+            <summary>Mermaid source</summary>
+            <pre><code>sequenceDiagram
+  participant U as User or agent
+  participant C as Smart catalog
+  participant I as CLI installer
+  participant H as Installed HTML
+  U-&gt;&gt;C: Find an iMessage primitive for 20 messages
+  C--&gt;&gt;U: Select Thread Message Stack
+  U-&gt;&gt;C: Complete HeyGen OAuth if needed
+  C-&gt;&gt;I: Resume selection with original query
+  I-&gt;&gt;H: Copy source and materialize messages[]
+  H--&gt;&gt;U: Preview all 20; source stays editable</code></pre>
+          </details>
+        </div>
+
+        <div class="acceptance">
+          <h3>First-migration acceptance</h3>
+          <p>
+            The same primitive renders 1, 6, and 20 ordered messages without clipping or silent truncation; the installer changes only the embedded data block; existing local source edits remain possible; and the project still passes the current HyperFrames lint, check, preview, and render workflow. Primitive two starts only after this journey is measured.
+          </p>
         </div>
       </section>
 
