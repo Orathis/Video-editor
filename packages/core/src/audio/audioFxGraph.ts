@@ -38,9 +38,22 @@ export function synthesizeReverbImpulse(
   };
   const cutoff = Math.max(0.001, 1 - Math.max(0, Math.min(1, damping)));
   let lp = 0;
+  let energy = 0;
   for (let i = 0; i < length; i++) {
     lp += cutoff * (rand() - lp);
-    out[i] = lp * Math.pow(1 - i / length, 2.5);
+    const sample = lp * Math.pow(1 - i / length, 2.5);
+    out[i] = sample;
+    energy += sample * sample;
+  }
+  // Scale to unit energy. A ConvolverNode applies the impulse's gain whole (the
+  // graph sets `normalize = false` so the room is deterministic rather than
+  // browser-defined), and this impulse is decaying noise whose raw energy runs
+  // to +33 dB at the default size — loud enough that simply adding a Reverb
+  // clipped the mix. Normalising here keeps the wet knob meaning what it says
+  // and keeps preview and render identical, since both convolve this buffer.
+  const norm = Math.sqrt(energy);
+  if (norm > 0) {
+    for (let i = 0; i < length; i++) out[i] = (out[i] ?? 0) / norm;
   }
   return out;
 }
@@ -216,12 +229,19 @@ const PHASER_STAGES = 6;
 const allpassPhaser: Builder = (ctx, p) => {
   const input = ctx.createGain();
   const out = ctx.createGain();
+  // aphaser's in_gain/out_gain trim the signal entering and leaving the effect.
+  // Wiring them to the wet and dry legs instead made "Input" mute the dry path
+  // and let the two defaults sum above unity, so inserting a phaser raised the
+  // track level.
+  const inTrim = ctx.createGain();
+  const outTrim = ctx.createGain();
   const lfo = ctx.createOscillator();
   const depth = ctx.createGain();
   const wet = ctx.createGain();
   const dry = ctx.createGain();
   const stages: BiquadFilterNode[] = [];
-  let node: AudioNode = input;
+  input.connect(inTrim);
+  let node: AudioNode = inTrim;
   for (let i = 0; i < PHASER_STAGES; i++) {
     const ap = ctx.createBiquadFilter();
     ap.type = "allpass";
@@ -232,9 +252,14 @@ const allpassPhaser: Builder = (ctx, p) => {
     stages.push(ap);
   }
   lfo.connect(depth);
+  // aphaser's type 0 is triangular, 1 sinusoidal. The builder never set this, so
+  // the declared default ("Triangular") was silently a sine. An OscillatorNode
+  // has no triangle-with-the-same-phase primitive to switch to, so triangle is
+  // the node's own "triangle" type.
   lfo.start();
-  node.connect(wet).connect(out);
-  input.connect(dry).connect(out);
+  node.connect(wet).connect(outTrim);
+  inTrim.connect(dry).connect(outTrim);
+  outTrim.connect(out);
   const apply = (v: HfAudioFxParamValues): void => {
     // aphaser sweeps around a centre derived from its delay; mirror the range
     // rather than the exact curve, and let the parity harness score it.
@@ -242,8 +267,12 @@ const allpassPhaser: Builder = (ctx, p) => {
     for (const ap of stages) ap.frequency.value = centre;
     depth.gain.value = centre * n(v.decay);
     lfo.frequency.value = n(v.speed);
-    wet.gain.value = n(v.out_gain);
-    dry.gain.value = n(v.in_gain);
+    lfo.type = String(v.type) === "1" ? "sine" : "triangle";
+    inTrim.gain.value = n(v.in_gain);
+    outTrim.gain.value = n(v.out_gain);
+    // Summed at unity: the sweep is the effect, not a blend control.
+    wet.gain.value = 1;
+    dry.gain.value = 1;
   };
   apply(p);
   return {
@@ -256,7 +285,7 @@ const allpassPhaser: Builder = (ctx, p) => {
       } catch {
         /* already stopped */
       }
-      [input, out, depth, wet, dry, ...stages].forEach((x) => x.disconnect());
+      [input, out, inTrim, outTrim, depth, wet, dry, ...stages].forEach((x) => x.disconnect());
     },
   };
 };
@@ -351,7 +380,13 @@ function shapeOf(chain: HfAudioFxChain): string {
     .map((node) => {
       const p = normalizeAudioFxParams(node.type, node.params);
       const poles = p.poles !== undefined ? `:${p.poles}` : "";
-      return `${node.type}${poles}`;
+      // A one-pole filter is an IIRFilterNode whose coefficients are fixed at
+      // construction, so its cutoff cannot be pushed into the running graph.
+      // Carrying the frequency here makes a cutoff change rebuild instead of
+      // being pushed into a no-op updater — which is what let preview keep
+      // filtering at the old frequency while the render used the new one.
+      const fixedFreq = String(p.poles) === "1" ? `@${p.frequency}` : "";
+      return `${node.type}${poles}${fixedFreq}`;
     })
     .join("|");
 }

@@ -12,18 +12,28 @@
 export const AUDIO_FX_WORKLET_SOURCE = `
 const dbToLin = (db) => Math.pow(10, db / 20);
 
-/** One-pole envelope follower shared by the dynamics processors. */
-class Env {
-  constructor(attackMs, releaseMs) { this.set(attackMs, releaseMs); this.value = 0; }
+/**
+ * One-pole envelope followers, one per channel.
+ *
+ * Per channel matters: the followers advance once per sample, so a single shared
+ * follower stepped once per channel per sample. On stereo that ran a 20 ms attack
+ * as 10 ms, and gave the right channel a gain computed from an envelope that had
+ * already traversed the left — so the two channels ducked by different amounts
+ * from the same input and the image pumped.
+ */
+class EnvBank {
+  constructor(attackMs, releaseMs) { this.set(attackMs, releaseMs); this.values = []; }
   set(attackMs, releaseMs) {
     this.a = Math.exp(-1 / (sampleRate * Math.max(1e-5, attackMs / 1000)));
     this.r = Math.exp(-1 / (sampleRate * Math.max(1e-5, releaseMs / 1000)));
   }
-  push(x) {
+  push(ch, x) {
+    const prev = this.values[ch] ?? 0;
     const m = Math.abs(x);
-    const c = m > this.value ? this.a : this.r;
-    this.value = m + c * (this.value - m);
-    return this.value;
+    const c = m > prev ? this.a : this.r;
+    const next = m + c * (prev - m);
+    this.values[ch] = next;
+    return next;
   }
 }
 
@@ -41,7 +51,7 @@ class HfCompressor extends AudioWorkletProcessor {
   constructor(o) {
     super();
     this.p = o.processorOptions || {};
-    this.env = new Env(this.p.attack ?? 20, this.p.release ?? 250);
+    this.env = new EnvBank(this.p.attack ?? 20, this.p.release ?? 250);
     this.port.onmessage = (e) => {
       this.p = { ...this.p, ...e.data };
       this.env.set(this.p.attack ?? 20, this.p.release ?? 250);
@@ -59,7 +69,7 @@ class HfCompressor extends AudioWorkletProcessor {
       const inp = i[ch], out = o[ch];
       for (let n = 0; n < inp.length; n++) {
         const x = inp[n];
-        const env = this.env.push(x);
+        const env = this.env.push(ch, x);
         const envDb = env > 1e-9 ? 20 * Math.log10(env) : -200;
         const g = dbToLin(kneeGain(envDb, p.threshold ?? -24, p.ratio ?? 4, kneeDb));
         out[n] = x * g * makeup * mix + x * (1 - mix);
@@ -74,7 +84,7 @@ class HfLimiter extends AudioWorkletProcessor {
   constructor(o) {
     super();
     this.p = o.processorOptions || {};
-    this.env = new Env(this.p.attack ?? 5, this.p.release ?? 50);
+    this.env = new EnvBank(this.p.attack ?? 5, this.p.release ?? 50);
     this.port.onmessage = (e) => {
       this.p = { ...this.p, ...e.data };
       this.env.set(this.p.attack ?? 5, this.p.release ?? 50);
@@ -89,7 +99,7 @@ class HfLimiter extends AudioWorkletProcessor {
       const inp = i[ch], out = o[ch];
       for (let n = 0; n < inp.length; n++) {
         const x = inp[n];
-        const env = this.env.push(x);
+        const env = this.env.push(ch, x);
         // Only ever attenuate: a limiter that can raise level is a compressor.
         const g = env > ceiling ? ceiling / env : 1;
         out[n] = x * g * outGain;
@@ -104,8 +114,8 @@ class HfGate extends AudioWorkletProcessor {
   constructor(o) {
     super();
     this.p = o.processorOptions || {};
-    this.env = new Env(this.p.attack ?? 1, this.p.release ?? 100);
-    this.gain = 1;
+    this.env = new EnvBank(this.p.attack ?? 1, this.p.release ?? 100);
+    this.gains = [];
     this.port.onmessage = (e) => {
       this.p = { ...this.p, ...e.data };
       this.env.set(this.p.attack ?? 1, this.p.release ?? 100);
@@ -118,11 +128,16 @@ class HfGate extends AudioWorkletProcessor {
     const threshold = dbToLin(p.threshold ?? -35);
     const floor = dbToLin(p.range ?? -24);
     const ratio = p.ratio ?? 10;
+    // Knee is declared in the registry as a ratio, like the compressor's; a
+    // hard threshold ignored it and chattered on material sitting right at the
+    // gate point.
+    const kneeDb = 20 * Math.log10(Math.max(1.0001, p.knee ?? 2.83));
+    const kneeLin = dbToLin((p.threshold ?? -35) + kneeDb);
     for (let ch = 0; ch < i.length; ch++) {
       const inp = i[ch], out = o[ch];
       for (let n = 0; n < inp.length; n++) {
         const x = inp[n];
-        const env = this.env.push(x);
+        const env = this.env.push(ch, x);
         let target = 1;
         if (env < threshold) {
           const under = env > 1e-9 ? threshold / env : 1e9;
@@ -130,9 +145,11 @@ class HfGate extends AudioWorkletProcessor {
           if (!isFinite(target)) target = floor;
         }
         // Smooth toward the target so the gate does not click on every sample.
-        const c = target < this.gain ? this.env.r : this.env.a;
-        this.gain = target + c * (this.gain - target);
-        out[n] = x * this.gain;
+        const held = this.gains[ch] ?? 1;
+        const c = target < held ? this.env.r : this.env.a;
+        const smoothed = target + c * (held - target);
+        this.gains[ch] = smoothed;
+        out[n] = x * smoothed;
       }
     }
     return true;
@@ -144,7 +161,7 @@ class HfBitcrush extends AudioWorkletProcessor {
   constructor(o) {
     super();
     this.p = o.processorOptions || {};
-    this.hold = 0;
+    this.holds = [];
     this.held = [];
     this.port.onmessage = (e) => { this.p = { ...this.p, ...e.data }; };
   }
@@ -158,10 +175,14 @@ class HfBitcrush extends AudioWorkletProcessor {
     for (let ch = 0; ch < i.length; ch++) {
       const inp = i[ch], out = o[ch];
       if (this.held[ch] === undefined) this.held[ch] = 0;
+      if (this.holds[ch] === undefined) this.holds[ch] = 0;
       for (let n = 0; n < inp.length; n++) {
-        if (this.hold === 0) this.held[ch] = Math.round(inp[n] * levels) / levels;
+        // Per channel: advancing one shared counter only on the last channel
+        // left every earlier channel either unheld or frozen for a whole
+        // 128-sample quantum, clicking once a block.
+        if (this.holds[ch] === 0) this.held[ch] = Math.round(inp[n] * levels) / levels;
         out[n] = this.held[ch] * mix + inp[n] * (1 - mix);
-        if (ch === i.length - 1) this.hold = (this.hold + 1) % step;
+        this.holds[ch] = (this.holds[ch] + 1) % step;
       }
     }
     return true;

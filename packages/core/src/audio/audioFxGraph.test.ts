@@ -274,3 +274,70 @@ describe("synthesizeReverbImpulse", () => {
     expect(Math.max(...Array.from(tail, Math.abs))).toBeLessThan(0.01);
   });
 });
+
+describe("levels and per-channel state", () => {
+  const energy = (ir: Float32Array): number => {
+    let e = 0;
+    for (const v of ir) e += v * v;
+    return Math.sqrt(e);
+  };
+
+  it("normalises the reverb impulse, so adding one does not clip the mix", () => {
+    // A ConvolverNode applies the impulse's gain whole (normalize is off so the
+    // room is deterministic). Raw decaying noise ran to +33 dB at the registry
+    // default, which put the wet path ~24 dB over dry at wet: 0.35.
+    for (const [size, damping] of [
+      [0.7, 0.5],
+      [1, 0],
+      [0, 1],
+      [0.5, 0.5],
+    ]) {
+      expect(energy(synthesizeReverbImpulse(48000, size, damping))).toBeCloseTo(1, 5);
+    }
+  });
+
+  it("keeps a phaser at unity, rather than summing its two gains above it", () => {
+    // in_gain/out_gain trim what enters and leaves the effect; wired as a wet/dry
+    // pair their defaults summed to 1.14, so inserting a phaser raised the level.
+    const ctx = new FakeCtx();
+    buildFxNode(ctx as unknown as BaseAudioContext, "phaser", defaultAudioFxParams("phaser"));
+    const gains = ctx.created.filter((n) => n.kind === "gain").map((n) => n.gain.value);
+    // The wet and dry legs are summed at unity; the trims carry the knob values.
+    expect(gains.filter((g) => g === 1).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("sets the phaser LFO waveform it declares", () => {
+    const ctx = new FakeCtx();
+    buildFxNode(ctx as unknown as BaseAudioContext, "phaser", {
+      ...defaultAudioFxParams("phaser"),
+      type: "0",
+    });
+    const osc = ctx.created.find((n) => n.kind === "osc");
+    expect(osc?.type).toBe("triangle");
+    const ctx2 = new FakeCtx();
+    buildFxNode(ctx2 as unknown as BaseAudioContext, "phaser", {
+      ...defaultAudioFxParams("phaser"),
+      type: "1",
+    });
+    expect(ctx2.created.find((n) => n.kind === "osc")?.type).toBe("sine");
+  });
+
+  it("rebuilds a one-pole filter when its cutoff moves", () => {
+    // Its coefficients are fixed at construction, so a cutoff change cannot be
+    // pushed into the running graph — preview kept filtering at the old
+    // frequency while the render used the new one.
+    const ctx = new FakeCtx() as unknown as BaseAudioContext;
+    const chain = (frequency: number): HfAudioFxChain => ({
+      version: 1,
+      nodes: [{ type: "highpass", enabled: true, params: { frequency, q: 0.707, poles: "1" } }],
+    });
+    const built = buildFxChain(ctx, chain(300));
+    expect(built.update(chain(2000))).toBe(false);
+    // A two-pole filter is a BiquadFilterNode and still updates in place.
+    const twoPole = (frequency: number): HfAudioFxChain => ({
+      version: 1,
+      nodes: [{ type: "highpass", enabled: true, params: { frequency, q: 0.707, poles: "2" } }],
+    });
+    expect(buildFxChain(ctx, twoPole(300)).update(twoPole(2000))).toBe(true);
+  });
+});
