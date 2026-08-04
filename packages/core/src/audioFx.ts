@@ -137,7 +137,10 @@ export const HF_AUDIO_FX: readonly HfAudioFxDef[] = [
     label: "Low Shelf",
     group: "filter",
     description: "Lift or drop everything below the corner frequency.",
-    params: [freq("frequency", "Frequency", 200, 20, 2000), gainDb(-40, 40, 0), qParam(0.707)],
+    // No Q: the Web Audio spec leaves it unused for shelving filters, so the
+    // control moved nothing — and being automatable, a lane drawn on it would
+    // have been silently inert.
+    params: [freq("frequency", "Frequency", 200, 20, 2000), gainDb(-40, 40, 0)],
     web: "biquad-lowshelf",
   },
   {
@@ -145,7 +148,7 @@ export const HF_AUDIO_FX: readonly HfAudioFxDef[] = [
     label: "High Shelf",
     group: "filter",
     description: "Lift or drop everything above the corner frequency.",
-    params: [freq("frequency", "Frequency", 4000, 500, 20000), gainDb(-40, 40, 0), qParam(0.707)],
+    params: [freq("frequency", "Frequency", 4000, 500, 20000), gainDb(-40, 40, 0)],
     web: "biquad-highshelf",
   },
   {
@@ -458,16 +461,6 @@ export const HF_AUDIO_FX: readonly HfAudioFxDef[] = [
       },
       {
         kind: "number",
-        key: "aa",
-        label: "Anti-alias",
-        unit: "",
-        min: 0,
-        max: 1,
-        step: 0.01,
-        default: 0.5,
-      },
-      {
-        kind: "number",
         key: "mix",
         label: "Mix",
         unit: "",
@@ -557,16 +550,6 @@ export const HF_AUDIO_FX: readonly HfAudioFxDef[] = [
         max: 10,
         step: 0.01,
         default: 1,
-      },
-      {
-        kind: "number",
-        key: "decay",
-        label: "Decay",
-        unit: "",
-        min: 0,
-        max: 0.9,
-        step: 0.01,
-        default: 0.5,
       },
       {
         kind: "number",

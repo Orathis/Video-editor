@@ -3,6 +3,7 @@ import {
   AudioFxChainError,
   defaultAudioFxParams,
   enabledAudioFxNodes,
+  getAudioFxDef,
   HF_AUDIO_FX,
   HF_AUDIO_FX_CHAIN_VERSION,
   HF_AUDIO_FX_IDS,
@@ -111,5 +112,29 @@ describe("enabledAudioFxNodes", () => {
       nodes: [{ type: "peaking" }, { type: "delay", enabled: false }],
     });
     expect(nodes.map((n) => n.type)).toEqual(["peaking"]);
+  });
+});
+
+describe("declared parameters are real", () => {
+  const paramKeys = (id: string): string[] => (getAudioFxDef(id)?.params ?? []).map((p) => p.key);
+
+  it("offers no shelf Q, which a BiquadFilterNode ignores for shelf types", () => {
+    // It was also flagged automatable, so a lane could be drawn on it and heard
+    // not at all.
+    expect(paramKeys("lowshelf")).not.toContain("q");
+    expect(paramKeys("highshelf")).not.toContain("q");
+    // Peaking and the pass filters do use Q.
+    expect(paramKeys("peaking")).toContain("q");
+    expect(paramKeys("lowpass")).toContain("q");
+  });
+
+  it("offers no knob whose builder reads nothing", () => {
+    // chorus `decay` and bitcrush `aa` were declared with ranges and defaults but
+    // no builder ever read them: dials that moved and did nothing.
+    expect(paramKeys("chorus")).not.toContain("decay");
+    expect(paramKeys("bitcrush")).not.toContain("aa");
+    // The phaser's decay does drive its sweep depth, and the gate's knee is read.
+    expect(paramKeys("phaser")).toContain("decay");
+    expect(paramKeys("gate")).toContain("knee");
   });
 });
