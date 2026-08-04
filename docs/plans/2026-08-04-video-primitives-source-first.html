@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Source-first video primitives | HyperFrames</title>
+    <meta
+      name="description"
+      content="A visual architecture brief for making HyperFrames video primitives fully editable while preserving optional structured inputs."
+    />
+    <!-- Repository icon source: packages/studio/public/favicon.svg -->
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f5f7f7;
+        --surface: #ffffff;
+        --surface-2: #edf2f1;
+        --ink: #152120;
+        --muted: #5e6d6a;
+        --line: #ced9d6;
+        --accent: #147d78;
+        --accent-strong: #0c5f5a;
+        --accent-soft: #d8eeeb;
+        --code: #14211f;
+        --code-ink: #eaf7f5;
+        --shadow: 0 18px 55px rgba(35, 64, 60, 0.12);
+        --radius: 14px;
+        --content: min(1220px, calc(100vw - 40px));
+        --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #101716;
+          --surface: #17201f;
+          --surface-2: #1d2927;
+          --ink: #edf6f4;
+          --muted: #9fb2ae;
+          --line: #334541;
+          --accent: #55bdb5;
+          --accent-strong: #7bd5ce;
+          --accent-soft: #203f3b;
+          --code: #0b1110;
+          --code-ink: #eaf7f5;
+          --shadow: 0 18px 55px rgba(0, 0, 0, 0.26);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        line-height: 1.55;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+        background: color-mix(in srgb, var(--bg) 90%, transparent);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav {
+        width: var(--content);
+        min-height: 68px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 28px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        text-decoration: none;
+        font-weight: 720;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+
+      .brand svg {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .nav-links a {
+        text-decoration: none;
+      }
+
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+
+      main {
+        overflow: hidden;
+      }
+
+      .hero {
+        width: var(--content);
+        min-height: calc(100dvh - 69px);
+        margin: 0 auto;
+        padding: 64px 0;
+        display: grid;
+        grid-template-columns: minmax(0, 0.88fr) minmax(480px, 1.12fr);
+        align-items: center;
+        gap: 64px;
+      }
+
+      .kicker {
+        margin: 0 0 16px;
+        color: var(--accent-strong);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 720px;
+        margin-bottom: 22px;
+        font-size: clamp(48px, 6.2vw, 86px);
+        line-height: 0.96;
+        letter-spacing: -0.058em;
+      }
+
+      .hero-copy > p:not(.kicker) {
+        max-width: 580px;
+        margin-bottom: 28px;
+        color: var(--muted);
+        font-size: clamp(18px, 2vw, 22px);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .button {
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid var(--accent);
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent);
+        color: #f5fffd;
+        font-weight: 720;
+        text-decoration: none;
+        transition: transform 160ms ease, background 160ms ease;
+      }
+
+      .button:hover {
+        background: var(--accent-strong);
+      }
+
+      .button:active {
+        transform: translateY(1px);
+      }
+
+      .button.secondary {
+        background: transparent;
+        color: var(--accent-strong);
+      }
+
+      .decision-note {
+        margin-top: 28px;
+        padding-left: 16px;
+        border-left: 3px solid var(--accent);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .primitive-lab {
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .lab-topbar {
+        min-height: 52px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .lab-title {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .lab-status {
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+
+      .lab-body {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+        min-height: 560px;
+      }
+
+      .controls {
+        padding: 18px;
+        border-right: 1px solid var(--line);
+        background: var(--surface-2);
+      }
+
+      .control {
+        margin-bottom: 19px;
+      }
+
+      .control label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .control output {
+        color: var(--accent-strong);
+        font-family: var(--mono);
+      }
+
+      .control input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+
+      .control input[type="color"] {
+        width: 100%;
+        height: 36px;
+        padding: 3px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .control-hint {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .phone-stage {
+        position: relative;
+        min-width: 0;
+        min-height: 560px;
+        padding: 24px;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 22% 12%, rgba(255, 255, 255, 0.88), transparent 34%),
+          linear-gradient(145deg, color-mix(in srgb, var(--accent) 28%, #d8e9ec), #d1d4e1 48%, #b5c8c5);
+      }
+
+      .phone {
+        width: min(310px, 82%);
+        height: 510px;
+        padding: 14px 9px 12px;
+        border: 7px solid #26302f;
+        border-radius: 36px;
+        background: #f7f7f5;
+        box-shadow: 0 25px 70px rgba(26, 43, 40, 0.28);
+        color: #16201f;
+        overflow: hidden;
+      }
+
+      .phone-head {
+        height: 52px;
+        padding: 5px 12px 10px;
+        border-bottom: 1px solid #d7dedc;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .phone-head span:last-child {
+        color: #6e7b79;
+        font-size: 10px;
+      }
+
+      .thread {
+        height: calc(100% - 52px);
+        padding: 14px 9px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--message-gap, 8px);
+        overflow: hidden auto;
+        scrollbar-width: none;
+      }
+
+      .thread::-webkit-scrollbar {
+        display: none;
+      }
+
+      .message {
+        max-width: 82%;
+        padding: 8px 11px;
+        border-radius: var(--bubble-radius, 16px);
+        background: #e5e8e7;
+        font-size: 12px;
+        line-height: 1.3;
+        animation: message-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .message.out {
+        align-self: flex-end;
+        background: var(--bubble-color, #147d78);
+        color: #f7fffd;
+        border-bottom-right-radius: 5px;
+      }
+
+      .message.in {
+        align-self: flex-start;
+        border-bottom-left-radius: 5px;
+      }
+
+      @keyframes message-in {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.97);
+        }
+      }
+
+      .section {
+        width: var(--content);
+        margin: 0 auto;
+        padding: 104px 0;
+      }
+
+      .section-heading {
+        max-width: 760px;
+        margin-bottom: 48px;
+      }
+
+      h2 {
+        margin-bottom: 16px;
+        font-size: clamp(36px, 4.5vw, 58px);
+        line-height: 1.01;
+        letter-spacing: -0.045em;
+      }
+
+      .section-heading p,
+      .lede {
+        max-width: 680px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .principles {
+        display: grid;
+        grid-template-columns: 1.25fr 0.75fr;
+        gap: 22px;
+      }
+
+      .principle-main,
+      .principle-side {
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .principle-main {
+        padding: 34px;
+        background: var(--code);
+        color: var(--code-ink);
+      }
+
+      .principle-main h3 {
+        font-size: 30px;
+        letter-spacing: -0.03em;
+      }
+
+      .principle-main p {
+        max-width: 650px;
+        color: #a9c2be;
+      }
+
+      pre {
+        margin: 20px 0 0;
+        padding: 20px;
+        border-radius: 10px;
+        overflow: auto;
+        background: #0c1514;
+        color: #dff7f3;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.65;
+        tab-size: 2;
+      }
+
+      .token-key {
+        color: #75d5cd;
+      }
+
+      .token-string {
+        color: #f0d58a;
+      }
+
+      .principle-side {
+        padding: 30px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .principle-side h3 {
+        font-size: 22px;
+      }
+
+      .rule-list {
+        display: grid;
+        gap: 18px;
+      }
+
+      .rule {
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .rule:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      .rule strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .rule span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .flow-shell {
+        padding: 30px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .flow-node {
+        position: relative;
+        min-height: 124px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface-2);
+      }
+
+      .flow-node:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -13px;
+        width: 13px;
+        border-top: 2px solid var(--accent);
+      }
+
+      .flow-node strong {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 14px;
+      }
+
+      .flow-node span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .flow-node.accent {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      details {
+        margin-top: 20px;
+        border-top: 1px solid var(--line);
+        padding-top: 18px;
+      }
+
+      summary {
+        cursor: pointer;
+        color: var(--accent-strong);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      details pre {
+        background: var(--surface-2);
+        color: var(--ink);
+      }
+
+      .migration-tools {
+        margin-bottom: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .filter {
+        padding: 9px 13px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--surface);
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .filter[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .primitive-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .primitive-card {
+        min-height: 178px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .primitive-card[hidden] {
+        display: none;
+      }
+
+      .primitive-card h3 {
+        margin-bottom: 8px;
+        font-size: 19px;
+      }
+
+      .primitive-card p {
+        margin-bottom: 14px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .primitive-card code,
+      .inline-code {
+        color: var(--accent-strong);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      .migration-path {
+        display: grid;
+        grid-template-columns: 1fr 44px 1fr;
+        gap: 10px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .migration-path span:nth-child(2) {
+        color: var(--accent);
+        text-align: center;
+        font-size: 20px;
+      }
+
+      .scope {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+
+      .scope-panel {
+        padding: 28px;
+        border-radius: var(--radius);
+      }
+
+      .scope-panel.ship {
+        background: var(--accent-soft);
+      }
+
+      .scope-panel.defer {
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .scope-panel h3 {
+        font-size: 24px;
+      }
+
+      .scope-panel ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .scope-panel li + li {
+        margin-top: 12px;
+      }
+
+      .acceptance {
+        margin-top: 24px;
+        padding: 24px 28px;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .acceptance h3 {
+        margin-bottom: 10px;
+      }
+
+      .acceptance p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      footer {
+        width: var(--content);
+        margin: 0 auto;
+        padding: 36px 0 48px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 980px) {
+        .hero {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .lab-body {
+          grid-template-columns: 1fr;
+        }
+
+        .controls {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .control {
+          margin-bottom: 0;
+        }
+
+        .flow {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .flow-node:not(:last-child)::after {
+          display: none;
+        }
+      }
+
+      @media (max-width: 760px) {
+        :root {
+          --content: min(100% - 28px, 1220px);
+        }
+
+        .nav {
+          min-height: 62px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hero,
+        .section {
+          padding: 64px 0;
+        }
+
+        h1 {
+          font-size: clamp(44px, 14vw, 64px);
+        }
+
+        .hero {
+          gap: 42px;
+        }
+
+        .controls {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .phone-stage {
+          min-height: 500px;
+          padding: 18px;
+        }
+
+        .principles,
+        .scope,
+        .primitive-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        footer {
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      @media print {
+        :root {
+          color-scheme: light;
+        }
+
+        .site-header,
+        .hero-actions,
+        .migration-tools {
+          display: none;
+        }
+
+        body {
+          background: #ffffff;
+          color: #152120;
+        }
+
+        .hero,
+        .section {
+          min-height: 0;
+          padding: 36px 0;
+        }
+
+        .primitive-lab,
+        .principle-main,
+        .flow-shell,
+        .primitive-card,
+        .scope-panel {
+          break-inside: avoid;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary">
+        <a class="brand" href="#top" aria-label="HyperFrames source-first primitives">
+          <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10.1851 57.8021L33.1145 73.8313C36.2202 75.9978 41.5173 73.5433 42.4816 69.4984L51.7611 30.4271C52.7253 26.3822 48.5802 23.9277 44.4602 26.0942L13.917 42.1235C6.96677 45.7676 4.97564 54.1579 10.1851 57.8021Z" fill="url(#hf-left)" />
+            <path d="M87.5129 57.5141L56.9696 73.5433C52.8371 75.7098 48.7046 73.2553 49.6688 69.2104L58.9483 30.1391C59.9125 26.0942 65.2097 23.6397 68.3154 25.8062L91.2447 41.8354C96.4668 45.4796 94.4631 53.8699 87.5129 57.5141Z" fill="url(#hf-right)" />
+            <defs>
+              <linearGradient id="hf-left" x1="48.5676" y1="25" x2="44.7804" y2="71.9384" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#06E3FA" />
+                <stop offset="1" stop-color="#4FDB5E" />
+              </linearGradient>
+              <linearGradient id="hf-right" x1="54.8282" y1="73.8392" x2="72.0989" y2="32.8932" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#06E3FA" />
+                <stop offset="1" stop-color="#4FDB5E" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>HyperFrames primitives</span>
+        </a>
+        <div class="nav-links">
+          <a href="#contract">Contract</a>
+          <a href="#flow">User journey</a>
+          <a href="#migration">Migration</a>
+          <a href="#scope">V1 scope</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="kicker">Decision: source-first</p>
+          <h1>Video primitives without a ceiling.</h1>
+          <p>The installed HTML, CSS, and JavaScript are the interface. Structured inputs accelerate creation without limiting it.</p>
+          <div class="hero-actions">
+            <a class="button" href="#contract">See the contract</a>
+            <a class="button secondary" href="#migration">Map current primitives</a>
+          </div>
+          <p class="decision-note">
+            This is more open than a React component. Users can change the data, markup, styles, timing, layout, effects, and rendering logic.
+          </p>
+        </div>
+
+        <div class="primitive-lab" aria-label="Interactive thread message primitive preview">
+          <div class="lab-topbar">
+            <span class="lab-title">thread-message-stack.html</span>
+            <span class="lab-status">Live source preview</span>
+          </div>
+          <div class="lab-body">
+            <aside class="controls" aria-label="Preview controls">
+              <div class="control">
+                <label for="message-count">Messages <output id="message-count-value">20</output></label>
+                <input id="message-count" type="range" min="1" max="20" value="20" />
+                <span class="control-hint">Arbitrary collection</span>
+              </div>
+              <div class="control">
+                <label for="message-gap">Gap <output id="message-gap-value">8</output></label>
+                <input id="message-gap" type="range" min="2" max="18" value="8" />
+                <span class="control-hint">CSS layout token</span>
+              </div>
+              <div class="control">
+                <label for="bubble-radius">Radius <output id="bubble-radius-value">16</output></label>
+                <input id="bubble-radius" type="range" min="4" max="28" value="16" />
+                <span class="control-hint">Direct style control</span>
+              </div>
+              <div class="control">
+                <label for="bubble-color">Accent</label>
+                <input id="bubble-color" type="color" value="#147d78" />
+                <span class="control-hint">Optional Studio control</span>
+              </div>
+            </aside>
+            <div class="phone-stage">
+              <div class="phone">
+                <div class="phone-head"><span>Launch room</span><span>20 messages</span></div>
+                <div class="thread" id="thread" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="contract">
+        <div class="section-heading">
+          <h2>Source owns the experience.</h2>
+          <p>The contract adds an optional data seam. It does not create a new abstraction layer between creators and the browser.</p>
+        </div>
+
+        <div class="principles">
+          <article class="principle-main">
+            <h3>One HTML file, two ways to customize</h3>
+            <p>
+              Agents can replace structured data quickly, then edit any source line when the desired result exceeds the declared inputs.
+            </p>
+            <pre aria-label="Proposed primitive source contract"><code>&lt;script type=<span class="token-string">"application/json"</span> data-hf-primitive-data&gt;
+{
+  <span class="token-key">"messages"</span>: [
+    { <span class="token-key">"side"</span>: <span class="token-string">"out"</span>, <span class="token-key">"text"</span>: <span class="token-string">"Ship the new primitive?"</span> },
+    { <span class="token-key">"side"</span>: <span class="token-string">"in"</span>,  <span class="token-key">"text"</span>: <span class="token-string">"Make it twenty messages."</span> }
+  ],
+  <span class="token-key">"timing"</span>: { <span class="token-key">"stagger"</span>: 0.42, <span class="token-key">"hold"</span>: 0.8 }
+}
+&lt;/script&gt;
+
+&lt;style&gt;/* Every selector stays editable. */&lt;/style&gt;
+&lt;div class=<span class="token-string">"thread"</span>&gt;&lt;/div&gt;
+&lt;script&gt;/* Every render and motion rule stays editable. */&lt;/script&gt;</code></pre>
+          </article>
+
+          <aside class="principle-side">
+            <h3>Three boundaries only</h3>
+            <div class="rule-list">
+              <div class="rule">
+                <strong>Data seam</strong>
+                <span>Arbitrary JSON for lists, nested settings, and repeatable items.</span>
+              </div>
+              <div class="rule">
+                <strong>Open source</strong>
+                <span>HTML, CSS, JavaScript, GSAP, and WebGL remain directly editable.</span>
+              </div>
+              <div class="rule">
+                <strong>Optional controls</strong>
+                <span>Promote common scalar values into the existing Studio variable system.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-heading">
+          <h2>The user journey stays short.</h2>
+          <p>Smart discovery can drive HeyGen authentication, then return users to the exact primitive and query they selected.</p>
+        </div>
+
+        <div class="flow-shell">
+          <div class="flow" role="img" aria-label="Prompt to editable render flow">
+            <div class="flow-node"><strong>Describe</strong><span>Ask for an iMessage thread with 20 messages.</span></div>
+            <div class="flow-node accent"><strong>Discover</strong><span>Smart catalog finds the closest primitive after explicit sign-in.</span></div>
+            <div class="flow-node"><strong>Install</strong><span>CLI copies the full HTML source into the project.</span></div>
+            <div class="flow-node"><strong>Materialize</strong><span>Agent writes the 20 message objects into the data seam.</span></div>
+            <div class="flow-node"><strong>Customize</strong><span>Edit any source line beyond the structured inputs.</span></div>
+            <div class="flow-node"><strong>Render</strong><span>Use existing HyperFrames lint, check, preview, and render.</span></div>
+          </div>
+          <details>
+            <summary>Mermaid source</summary>
+            <pre><code>flowchart LR
+  A[Describe 20-message thread] --> B[Smart catalog discovery]
+  B --> C[HeyGen OAuth when selected]
+  C --> D[Install full HTML source]
+  D --> E[Materialize JSON data]
+  E --> F[Edit HTML, CSS, and JavaScript]
+  F --> G[Existing lint, check, preview, render]</code></pre>
+          </details>
+        </div>
+      </section>
+
+      <section class="section" id="migration">
+        <div class="section-heading">
+          <h2>Adapt the current 25 primitives.</h2>
+          <p>Keep their authored motion. Replace hardcoded content with data seams only where repetition or external content needs it.</p>
+        </div>
+
+        <div class="migration-tools" role="toolbar" aria-label="Filter primitive migration map">
+          <button class="filter" type="button" aria-pressed="true" data-filter="all">All 25</button>
+          <button class="filter" type="button" aria-pressed="false" data-filter="collection">Collections</button>
+          <button class="filter" type="button" aria-pressed="false" data-filter="copy">Copy and cards</button>
+          <button class="filter" type="button" aria-pressed="false" data-filter="effect">Effects</button>
+          <button class="filter" type="button" aria-pressed="false" data-filter="spatial">Spatial</button>
+        </div>
+
+        <div class="primitive-grid" id="primitive-grid">
+          <article class="primitive-card" data-category="collection">
+            <h3>Conversation and ordered lists</h3>
+            <p>Thread Message Stack, Rank List Settle, Pill Row Collapse, State Chip Rail</p>
+            <div class="migration-path">
+              <span>Hardcoded rows and fixed count</span><span>→</span><span><code>items[]</code> plus authored layout and timing</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="collection">
+            <h3>Repeatable cards and personas</h3>
+            <p>Persona Card Fan, Plan Room Audit</p>
+            <div class="migration-path">
+              <span>Fixed card markup</span><span>→</span><span><code>cards[]</code> plus an editable card template</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="copy">
+            <h3>Copy-led compositions</h3>
+            <p>Kinetic Type Swap, Version Plate Type, Marker Highlight, Caliper Caption Rail, Caption Camera Follow</p>
+            <div class="migration-path">
+              <span>Text embedded in markup</span><span>→</span><span>Existing scalar variables plus open source</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="copy">
+            <h3>Cards with business data</h3>
+            <p>Receipt Card, Chevron Pill Card Morph, Grade Split Reveal</p>
+            <div class="migration-path">
+              <span>Fixed fields and labels</span><span>→</span><span><code>fields{}</code>, scalar controls, editable markup</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="effect">
+            <h3>2D visual effects</h3>
+            <p>Echo Trail, Halftone Dissolve, Particle Text Dissolve, Press Ripple, Whiteboard Ink</p>
+            <div class="migration-path">
+              <span>Authored effect constants</span><span>→</span><span>Optional parameters, source remains canonical</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="effect">
+            <h3>Transitions and match cuts</h3>
+            <p>Match Cut</p>
+            <div class="migration-path">
+              <span>Fixed transition target</span><span>→</span><span>Named source and destination slots in HTML</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="spatial">
+            <h3>Camera and focus</h3>
+            <p>Depth Rack Focus, Focus Rack, Orbit Ring Camera</p>
+            <div class="migration-path">
+              <span>Fixed media and camera path</span><span>→</span><span>Media references plus editable camera code</span>
+            </div>
+          </article>
+          <article class="primitive-card" data-category="spatial">
+            <h3>Spatial assembly</h3>
+            <p>Glyph Ring Assemble, Z Punch Through</p>
+            <div class="migration-path">
+              <span>Fixed objects and depth</span><span>→</span><span>Object data plus direct scene graph editing</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="scope">
+        <div class="section-heading">
+          <h2>Start with one thin seam.</h2>
+          <p>The first implementation proves arbitrary collections without changing the core renderer or building a universal visual schema.</p>
+        </div>
+
+        <div class="scope">
+          <article class="scope-panel ship">
+            <h3>Ship first</h3>
+            <ul>
+              <li>Convert Thread Message Stack from six hardcoded bubbles to an arbitrary JSON message array.</li>
+              <li>Let catalog install materialize user data into the copied source file.</li>
+              <li>Keep existing scalar variables for common Studio controls.</li>
+              <li>Preserve the current HyperFrames runtime, GSAP contract, lint, check, and render path.</li>
+              <li>Measure local query to Smart click, OAuth completion, install, and first render.</li>
+            </ul>
+          </article>
+          <article class="scope-panel defer">
+            <h3>Do not build yet</h3>
+            <ul>
+              <li>A new universal component runtime.</li>
+              <li>A nested object and array editor in Studio.</li>
+              <li>A no-code scene graph that models every HTML and CSS capability.</li>
+              <li>A slot protocol shared by every primitive before two real migrations need it.</li>
+              <li>A compatibility layer that hides or wraps the installed source.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="acceptance" id="acceptance-a1">
+          <h3>Acceptance example A1</h3>
+          <p>
+            A user asks for 20 messages. The installed primitive renders all 20 in authored sequence, then the user can change any bubble, selector, keyframe, or script directly without ejecting from a framework.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Source-first primitives architecture brief</span>
+      <span>Current behavior, proposed seam, migration map, and V1 scope</span>
+    </footer>
+
+    <script>
+      const messages = [
+        ["out", "Can the primitive show twenty messages?"],
+        ["in", "Yes. The source owns the loop."],
+        ["out", "Can I change every bubble?"],
+        ["in", "Markup, CSS, timing, and data."],
+        ["out", "What about the background?"],
+        ["in", "Replace it or rewrite it."],
+        ["out", "Different senders?"],
+        ["in", "Add any fields you need."],
+        ["out", "Custom easing?"],
+        ["in", "Edit the timeline directly."],
+        ["out", "Could I add reactions?"],
+        ["in", "Add the markup and styles."],
+        ["out", "Or an avatar?"],
+        ["in", "Use an image or video element."],
+        ["out", "Do controls still help?"],
+        ["in", "Yes, for common scalar knobs."],
+        ["out", "But they are optional?"],
+        ["in", "The source is always available."],
+        ["out", "Then this is not a black box."],
+        ["in", "Exactly. Install it, own it."],
+      ];
+
+      const thread = document.querySelector("#thread");
+      const phoneCount = document.querySelector(".phone-head span:last-child");
+      const controls = {
+        count: document.querySelector("#message-count"),
+        gap: document.querySelector("#message-gap"),
+        radius: document.querySelector("#bubble-radius"),
+        color: document.querySelector("#bubble-color"),
+      };
+
+      function renderMessages() {
+        const count = Number(controls.count.value);
+        thread.replaceChildren(
+          ...messages.slice(0, count).map(([side, text], index) => {
+            const bubble = document.createElement("div");
+            bubble.className = `message ${side}`;
+            bubble.textContent = text;
+            bubble.style.animationDelay = `${Math.min(index * 24, 280)}ms`;
+            return bubble;
+          }),
+        );
+        phoneCount.textContent = `${count} message${count === 1 ? "" : "s"}`;
+        document.querySelector("#message-count-value").textContent = String(count);
+        requestAnimationFrame(() => {
+          thread.scrollTop = thread.scrollHeight;
+        });
+      }
+
+      controls.count.addEventListener("input", renderMessages);
+      controls.gap.addEventListener("input", () => {
+        thread.style.setProperty("--message-gap", `${controls.gap.value}px`);
+        document.querySelector("#message-gap-value").textContent = controls.gap.value;
+      });
+      controls.radius.addEventListener("input", () => {
+        thread.style.setProperty("--bubble-radius", `${controls.radius.value}px`);
+        document.querySelector("#bubble-radius-value").textContent = controls.radius.value;
+      });
+      controls.color.addEventListener("input", () => {
+        thread.style.setProperty("--bubble-color", controls.color.value);
+      });
+
+      document.querySelectorAll(".filter").forEach((button) => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          document.querySelectorAll(".filter").forEach((item) => {
+            item.setAttribute("aria-pressed", String(item === button));
+          });
+          document.querySelectorAll(".primitive-card").forEach((card) => {
+            card.hidden = filter !== "all" && card.dataset.category !== filter;
+          });
+        });
+      });
+
+      renderMessages();
+    </script>
+  </body>
+</html>
