@@ -51,6 +51,7 @@ export {
   validateEngineConfigSnapshot,
   DEFAULT_CONFIG,
   scaleProtocolTimeoutForComposition,
+  scaleNavigationTimeoutForDocument,
   shouldClampToScreenshotForConcreteGpu,
   applyConcreteGpuScreenshotClamp,
   resolveExtractCacheDir,

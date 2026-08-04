@@ -571,6 +571,45 @@ export function scaleProtocolTimeoutForComposition(
 }
 
 /**
+ * Reference compiled-document size for the baseline `pageNavigationTimeout`:
+ * 4 MB. `page.goto(..., { waitUntil: "domcontentloaded" })` blocks on Chrome
+ * parsing the compiled entry HTML, and HyperFrames compiles the WHOLE
+ * composition into one document (inline runtime, inline styles, inline
+ * data-URI assets). Parse cost is ~linear in document bytes, so a long
+ * composition produces a document that legitimately needs more than the flat
+ * 60s default — with `--workers N` every worker pays that parse concurrently.
+ */
+const NAVIGATION_TIMEOUT_REFERENCE_BYTES = 4 * 1024 * 1024;
+
+/**
+ * Absolute ceiling on the scaled navigation timeout (10 minutes). A document
+ * that genuinely cannot reach `domcontentloaded` must still fail rather than
+ * hang unbounded.
+ */
+const MAX_SCALED_NAVIGATION_TIMEOUT_MS = 600_000;
+
+/**
+ * Scale a base `pageNavigationTimeout` up for oversized compiled documents.
+ *
+ * Sibling of {@link scaleProtocolTimeoutForComposition}: same clamp contract
+ * (only ever raises, never lowers below the configured base), different
+ * driver. The protocol timeout bounds one CDP call, so it scales with output
+ * pixel area; navigation bounds the initial HTML parse, so it scales with
+ * compiled document bytes. Pure function; exported for tests.
+ */
+export function scaleNavigationTimeoutForDocument(
+  baseTimeoutMs: number,
+  documentBytes: number,
+): number {
+  if (!Number.isFinite(documentBytes) || documentBytes <= 0) return baseTimeoutMs;
+  const factor = documentBytes / NAVIGATION_TIMEOUT_REFERENCE_BYTES;
+  if (factor <= 1) return baseTimeoutMs;
+  const scaled = Math.ceil(baseTimeoutMs * factor);
+  const ceiling = Math.max(baseTimeoutMs, MAX_SCALED_NAVIGATION_TIMEOUT_MS);
+  return Math.min(ceiling, Math.max(baseTimeoutMs, scaled));
+}
+
+/**
  * Auto-disable `enableStreamingEncode` on Windows software-GPU compound.
  *
  * Field signal (`ts=1784131903`, win32/x64, CLI 0.7.58, 156s UI-heavy

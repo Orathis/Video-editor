@@ -80,6 +80,7 @@ import {
   resolveBrowserGpuMode,
   resolveHeadlessShellPath,
   applyConcreteGpuScreenshotClamp,
+  scaleNavigationTimeoutForDocument,
   scaleProtocolTimeoutForComposition,
   classifyCaptureFailure,
   cloneCaptureWarning,
@@ -2257,6 +2258,32 @@ async function executeRenderPipeline(input: {
       });
       cfg.protocolTimeout = scaledProtocolTimeout;
       updateCaptureObservability({ protocolTimeoutMs: scaledProtocolTimeout });
+    }
+
+    // Same treatment for the `page.goto` navigation timeout, driven by the
+    // compiled document size instead of pixel area. HyperFrames compiles the
+    // whole composition into ONE entry document, so a long composition parses
+    // for a long time before `domcontentloaded` fires — and each of N workers
+    // pays that parse concurrently. The flat 60s default therefore fails
+    // long-but-valid renders with a bare `Navigation timeout of 60000 ms
+    // exceeded` (heygen-com/hyperframes#2968: 13-minute composition,
+    // `--workers 4`). `cfg` is passed by reference into every capture session,
+    // and the timeout is read at goto time, so mutating it here (before the
+    // probe launches) reaches the probe and all capture workers. Only ever
+    // raises; small compositions keep the configured base, and an explicit
+    // `--browser-timeout` above the scaled value is never lowered.
+    const scaledNavigationTimeout = scaleNavigationTimeoutForDocument(
+      cfg.pageNavigationTimeout,
+      compiled.html.length,
+    );
+    if (scaledNavigationTimeout > cfg.pageNavigationTimeout) {
+      log.info("[Render] Scaled page navigation timeout up for large compiled document.", {
+        from: cfg.pageNavigationTimeout,
+        to: scaledNavigationTimeout,
+        documentBytes: compiled.html.length,
+      });
+      cfg.pageNavigationTimeout = scaledNavigationTimeout;
+      updateCaptureObservability({ pageNavigationTimeoutMs: scaledNavigationTimeout });
     }
 
     const probeResult = await observeRenderStage(

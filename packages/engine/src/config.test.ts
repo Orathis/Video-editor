@@ -6,6 +6,7 @@ import {
   resolveDefaultDrawElement,
   DEFAULT_CONFIG,
   scaleProtocolTimeoutForComposition,
+  scaleNavigationTimeoutForDocument,
   shouldClampToScreenshotForConcreteGpu,
   applyConcreteGpuScreenshotClamp,
   shouldAutoDisableStreamingEncodeOnWin32Compound,
@@ -835,6 +836,38 @@ describe("scaleProtocolTimeoutForComposition", () => {
     expect(scaleProtocolTimeoutForComposition(base, { width: Number.NaN, height: 1080 })).toBe(
       base,
     );
+  });
+});
+
+describe("scaleNavigationTimeoutForDocument", () => {
+  const base = 60_000;
+  const MB = 1024 * 1024;
+
+  it("keeps the base timeout for a reference-or-smaller document", () => {
+    expect(scaleNavigationTimeoutForDocument(base, 4 * MB)).toBe(base);
+    expect(scaleNavigationTimeoutForDocument(base, 512 * 1024)).toBe(base);
+  });
+
+  it("scales up proportionally with compiled document bytes", () => {
+    // A 13-minute composition compiles to a document many times the 4 MB
+    // reference — heygen-com/hyperframes#2968 died on the flat 60s default.
+    expect(scaleNavigationTimeoutForDocument(base, 16 * MB)).toBe(base * 4);
+  });
+
+  it("clamps at the 10-minute ceiling for a pathological document", () => {
+    expect(scaleNavigationTimeoutForDocument(base, 4096 * MB)).toBe(600_000);
+  });
+
+  it("never lowers a base timeout that already exceeds the ceiling", () => {
+    // An explicit `--browser-timeout 900` must survive the scaling pass.
+    const highBase = 900_000;
+    expect(scaleNavigationTimeoutForDocument(highBase, 8 * MB)).toBeGreaterThanOrEqual(highBase);
+  });
+
+  it("returns the base timeout for degenerate sizes", () => {
+    expect(scaleNavigationTimeoutForDocument(base, 0)).toBe(base);
+    expect(scaleNavigationTimeoutForDocument(base, -1)).toBe(base);
+    expect(scaleNavigationTimeoutForDocument(base, Number.NaN)).toBe(base);
   });
 });
 
