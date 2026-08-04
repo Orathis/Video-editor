@@ -16,7 +16,9 @@ import { FlatMotionSection } from "./propertyPanelFlatMotionSection";
 import { isCanaryEnabled } from "../../telemetry/canary";
 import { audioFxSummary } from "./audioFxSummary";
 import { AudioFxGroup } from "./propertyPanelAudioFxGroup";
+import { useVolumeAutomation } from "./useVolumeAutomation";
 import { FlatMediaSection } from "./propertyPanelFlatMediaSection";
+import type { DomEditSelection } from "./domEditing";
 import { deriveElementTiming } from "./propertyPanelFlatTimingDerivation";
 import { createGsapLivePreview } from "./gsapLivePreview";
 import { formatTextFieldPreview } from "./propertyPanelSections";
@@ -67,6 +69,7 @@ export function PropertyPanelFlat({
   onSetAttribute,
   onSetAttributes,
   onSetAttributeLive,
+  onSetAttributeQuiet,
   onApplyColorGradingScope,
   onSetHtmlAttribute,
   onRemoveBackground,
@@ -255,6 +258,8 @@ export function PropertyPanelFlat({
   const showMotionEffects = gsapEffectHandlers !== null;
   const showMotionGroup = showMotionTiming || showMotionEffects;
 
+  const volumeAutomation = useVolumeAutomation(element, onSetAttribute);
+
   const groups: FlatGroupDescriptor[] = [];
   if (isTextEditable) {
     groups.push({
@@ -434,8 +439,7 @@ export function PropertyPanelFlat({
       content: (
         <AudioFxGroup
           element={element}
-          onSetAttribute={onSetAttribute}
-          onSetAttributeLive={onSetAttributeLive}
+          onSetAttributeQuiet={onSetAttributeQuiet ?? onSetAttributeLive}
         />
       ),
     });
@@ -454,6 +458,7 @@ export function PropertyPanelFlat({
           onSetAttribute={onSetAttribute}
           onSetHtmlAttribute={onSetHtmlAttribute}
           onRemoveBackground={onRemoveBackground}
+          {...volumeAutomation}
         />
       ),
     });
