@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Hyperframes catalog discovery — what, why, how</title>
+  <title>Hyperframes catalog discovery — visual source of truth</title>
   <style>
-    :root{--paper:#f4f1e8;--ink:#171713;--muted:#69685f;--rule:#c8c4b8;--panel:#fffdf7;--acid:#d7ff4f;--blue:#3859ff;--coral:#ff654f;--green:#187f5a;--shadow:5px 5px 0 #171713;--r:12px}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:1180px;margin:auto;padding:32px 28px 110px}.eyebrow{font:700 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--blue)}h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.055em;margin:20px 0;max-width:970px}h2{font-size:clamp(28px,4vw,46px);line-height:1.02;letter-spacing:-.04em;margin:0 0 18px}h3{font-size:20px;line-height:1.2;margin:0 0 9px}p{max-width:76ch;margin:0 0 14px}.lede{font-size:21px;max-width:74ch}.muted,.note{color:var(--muted)}a{color:inherit;text-decoration-thickness:2px;text-underline-offset:3px}nav{position:sticky;top:0;z-index:5;background:rgba(244,241,232,.92);backdrop-filter:blur(10px);border-block:1px solid var(--rule);display:flex;gap:18px;overflow:auto;padding:11px 0;margin:36px 0 54px}nav a{white-space:nowrap;text-decoration:none;font:650 12px ui-monospace,monospace;color:var(--muted)}nav a:hover{color:var(--blue)}section{scroll-margin-top:70px;margin:0 0 88px}.hero-grid,.grid-2,.grid-3,.unit-grid{display:grid;gap:16px}.hero-grid{grid-template-columns:repeat(3,1fr);margin-top:34px}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}.card{background:var(--panel);border:1.5px solid var(--ink);border-radius:var(--r);padding:22px}.card.pop{box-shadow:var(--shadow)}.card.acid{background:var(--acid)}.card.blue{background:var(--blue);color:white}.card.coral{background:#ffe1dc}.big{font-size:33px;line-height:1;font-weight:800;letter-spacing:-.04em}.pill{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:4px 8px;font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.04em;margin-bottom:11px}.callout{border-left:7px solid var(--coral);padding:17px 20px;background:#fff3ef;margin:22px 0}.callout.good{border-color:var(--green);background:#e9f8f1}.formula{font:650 14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;background:#171713;color:#f8f5eb;padding:16px;border-radius:9px;overflow:auto}.facts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0}.facts span{padding:10px 13px;border:1px solid var(--rule);background:var(--panel);border-radius:8px;font-weight:700}.facts b{color:var(--blue)}.bar-list{display:grid;gap:13px;margin:24px 0}.bar-row{display:grid;grid-template-columns:minmax(170px,260px) 1fr 75px;align-items:center;gap:14px}.track{height:30px;border:1px solid var(--ink);background:#e2ded1;position:relative;overflow:hidden}.fill{height:100%;background-color:var(--blue);background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px}.fill.alt{background-color:#7390ff}.fill.grey{background-color:#767970}.fill.orange{background-color:#ff9e55}.value{font:800 16px ui-monospace,monospace;text-align:right}.winner{font-weight:800}.band{height:54px;display:grid;grid-template-columns:6fr 20fr 1fr 3fr 17fr;border:1.5px solid var(--ink);margin:25px 0 8px}.band div{display:grid;place-items:center;text-align:center;font:700 11px ui-monospace,monospace;border-right:1px solid var(--ink);padding:4px}.band div:last-child{border:0}.lex{background:#dedbd1}.hyb{background-color:var(--acid);background-image:radial-gradient(#171713 1px,transparent 1px);background-size:5px 5px}.diagram{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:stretch;margin:24px 0}.node{border:1.5px solid var(--ink);background:var(--panel);padding:16px;border-radius:10px}.arrow{display:grid;place-items:center;font-size:23px}.choice{display:grid;grid-template-columns:1fr 1fr;gap:14px}.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.step{border:1px solid var(--ink);padding:9px 11px;background:var(--panel);border-radius:8px}.mermaid{white-space:pre;overflow:auto;background:#20201d;color:#f8f5eb;border-radius:10px;padding:16px;font:12px/1.5 ui-monospace,monospace}.definition{display:grid;grid-template-columns:170px 1fr;border-top:1px solid var(--rule);padding:12px 0}.definition dt{font-weight:800}.definition dd{margin:0;color:#4e4d47}.contract{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}.contract th,.contract td{border:1px solid var(--rule);padding:10px;vertical-align:top;text-align:left}.contract th{background:#e8e4d8}.code{font:12px/1.55 ui-monospace,monospace;background:#171713;color:#f7f3e8;border-radius:9px;padding:16px;overflow:auto;white-space:pre}.modes button{appearance:none;border:1.5px solid var(--ink);background:var(--panel);padding:9px 12px;font-weight:750;cursor:pointer}.modes button.active{background:var(--acid);box-shadow:3px 3px 0 var(--ink)}#sim-output{min-height:94px;margin-top:14px}.scenario{border-top:1px solid var(--rule);padding:13px 0;display:grid;grid-template-columns:220px 1fr}.scenario b{padding-right:15px}.unit-grid{grid-template-columns:repeat(2,1fr)}.unit{position:relative;padding-top:50px}.unit .n{position:absolute;top:16px;right:17px;font:900 22px ui-monospace,monospace;color:var(--blue)}.checks li{margin-bottom:8px}.status{display:inline-flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.dot.amber{background:#e19420}.dot.red{background:var(--coral)}.footer{border-top:1px solid var(--rule);padding-top:22px;color:var(--muted);font-size:13px}.nowrap{white-space:nowrap}@media(max-width:800px){.shell{padding:22px 16px 80px}.hero-grid,.grid-2,.grid-3,.unit-grid,.choice{grid-template-columns:1fr}.bar-row{grid-template-columns:1fr 58px}.bar-row>span:first-child{grid-column:1/-1}.diagram{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.definition,.scenario{grid-template-columns:1fr}.band{height:auto;grid-template-columns:1fr}.band div{min-height:46px;border-right:0;border-bottom:1px solid var(--ink)}}
+    :root{--paper:#f4f1e8;--ink:#171713;--muted:#69685f;--rule:#c8c4b8;--panel:#fffdf7;--acid:#d7ff4f;--blue:#3859ff;--coral:#ff654f;--green:#187f5a;--shadow:5px 5px 0 #171713;--r:12px}*{box-sizing:border-box}html{scroll-behavior:smooth;overflow-x:hidden}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:1180px;margin:auto;padding:32px 28px 110px}.eyebrow{font:700 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--blue)}h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.055em;margin:20px 0;max-width:970px}h2{font-size:clamp(28px,4vw,46px);line-height:1.02;letter-spacing:-.04em;margin:0 0 18px}h3{font-size:20px;line-height:1.2;margin:0 0 9px}p{max-width:76ch;margin:0 0 14px}.lede{font-size:21px;max-width:74ch}.muted,.note{color:var(--muted)}a{color:inherit;text-decoration-thickness:2px;text-underline-offset:3px}nav{position:sticky;top:0;z-index:5;width:100%;max-width:100%;contain:inline-size;background:rgba(244,241,232,.92);backdrop-filter:blur(10px);border-block:1px solid var(--rule);display:flex;gap:18px;overflow:auto;padding:11px 0;margin:36px 0 54px}nav a{white-space:nowrap;text-decoration:none;font:650 12px ui-monospace,monospace;color:var(--muted)}nav a:hover{color:var(--blue)}section{scroll-margin-top:70px;margin:0 0 88px}.hero-grid,.grid-2,.grid-3,.unit-grid,.journey-grid{display:grid;gap:16px}.hero-grid{grid-template-columns:repeat(3,1fr);margin-top:34px}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}.card{background:var(--panel);border:1.5px solid var(--ink);border-radius:var(--r);padding:22px}.card.pop{box-shadow:var(--shadow)}.card.acid{background:var(--acid)}.card.blue{background:var(--blue);color:white}.card.coral{background:#ffe1dc}.big{font-size:33px;line-height:1;font-weight:800;letter-spacing:-.04em}.pill{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:4px 8px;font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.04em;margin-bottom:11px}.callout{border-left:7px solid var(--coral);padding:17px 20px;background:#fff3ef;margin:22px 0}.callout.good{border-color:var(--green);background:#e9f8f1}.formula{font:650 14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;background:#171713;color:#f8f5eb;padding:16px;border-radius:9px;overflow:auto}.facts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0}.facts span{padding:10px 13px;border:1px solid var(--rule);background:var(--panel);border-radius:8px;font-weight:700}.facts b{color:var(--blue)}.bar-list{display:grid;gap:13px;margin:24px 0}.bar-row{display:grid;grid-template-columns:minmax(170px,260px) 1fr 75px;align-items:center;gap:14px}.track{height:30px;border:1px solid var(--ink);background:#e2ded1;position:relative;overflow:hidden}.fill{height:100%;background-color:var(--blue);background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px}.fill.alt{background-color:#7390ff}.fill.grey{background-color:#767970}.fill.orange{background-color:#ff9e55}.value{font:800 16px ui-monospace,monospace;text-align:right}.winner{font-weight:800}.band{height:54px;display:grid;grid-template-columns:6fr 20fr 1fr 3fr 17fr;border:1.5px solid var(--ink);margin:25px 0 8px}.band div{display:grid;place-items:center;text-align:center;font:700 11px ui-monospace,monospace;border-right:1px solid var(--ink);padding:4px}.band div:last-child{border:0}.lex{background:#dedbd1}.hyb{background-color:var(--acid);background-image:radial-gradient(#171713 1px,transparent 1px);background-size:5px 5px}.diagram{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:stretch;margin:24px 0}.node{border:1.5px solid var(--ink);background:var(--panel);padding:16px;border-radius:10px}.arrow{display:grid;place-items:center;font-size:23px}.choice{display:grid;grid-template-columns:1fr 1fr;gap:14px}.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.step{border:1px solid var(--ink);padding:9px 11px;background:var(--panel);border-radius:8px}.train{position:relative;padding-top:54px}.train .n{position:absolute;top:15px;right:18px;font:900 28px ui-monospace,monospace}.train ul,.journey ol{padding-left:20px}.gate{border-top:1px solid currentColor;padding-top:11px;font-size:14px}.journey-grid{grid-template-columns:repeat(3,1fr)}.journey{display:flex;flex-direction:column}.journey .outcome{margin-top:auto;border-top:1px solid var(--rule);padding-top:12px;font-weight:750}.mermaid{white-space:pre;overflow:auto;contain:inline-size;background:var(--panel);color:var(--ink);border:1.5px solid var(--ink);border-radius:10px;padding:18px;margin:24px 0;font:12px/1.5 ui-monospace,monospace;text-align:center}.definition{display:grid;grid-template-columns:170px 1fr;border-top:1px solid var(--rule);padding:12px 0}.definition dt{font-weight:800}.definition dd{margin:0;color:#4e4d47}.table-scroll{max-width:100%;overflow-x:auto;contain:inline-size}.contract{border-collapse:collapse;width:100%;min-width:720px;font-size:14px;background:var(--panel)}.contract th,.contract td{border:1px solid var(--rule);padding:10px;vertical-align:top;text-align:left}.contract th{background:#e8e4d8}.code{font:12px/1.55 ui-monospace,monospace;background:#171713;color:#f7f3e8;border-radius:9px;padding:16px;overflow:auto;white-space:pre}.modes button{appearance:none;border:1.5px solid var(--ink);background:var(--panel);padding:9px 12px;font-weight:750;cursor:pointer}.modes button.active{background:var(--acid);box-shadow:3px 3px 0 var(--ink)}#sim-output{min-height:94px;margin-top:14px}.scenario{border-top:1px solid var(--rule);padding:13px 0;display:grid;grid-template-columns:220px 1fr}.scenario b{padding-right:15px}.unit-grid{grid-template-columns:repeat(2,1fr)}.unit{position:relative;padding-top:50px}.unit .n{position:absolute;top:16px;right:17px;font:900 22px ui-monospace,monospace;color:var(--blue)}.checks li{margin-bottom:8px}.status{display:inline-flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.dot.amber{background:#e19420}.dot.red{background:var(--coral)}.footer{border-top:1px solid var(--rule);padding-top:22px;color:var(--muted);font-size:13px}.nowrap{white-space:nowrap}@media(max-width:800px){.shell{padding:22px 16px 80px}.hero-grid,.grid-2,.grid-3,.unit-grid,.choice,.journey-grid{grid-template-columns:1fr}.bar-row{grid-template-columns:1fr 58px}.bar-row>span:first-child{grid-column:1/-1}.diagram{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.definition,.scenario{grid-template-columns:1fr}.band{height:auto;grid-template-columns:1fr}.band div{min-height:46px;border-right:0;border-bottom:1px solid var(--ink)}}
   </style>
 </head>
 <body><main class="shell">
-  <div class="eyebrow">Hyperframes product plan · 2026-08-03 · proposed, not implemented</div>
+  <div class="eyebrow">Hyperframes product plan · visual source of truth · 2026-08-04 · proposed, not implemented</div>
   <h1>One catalog.<br/>Two ways to find it.</h1>
   <p class="lede">Every Hyperframes user should be able to browse and search components locally. Signed-in users may explicitly ask HeyGen for smarter ranking, free of credits. Both paths must return the same installable catalog IDs, and neither path touches Hyperion.</p>
   <div class="hero-grid">
@@ -18,28 +18,70 @@
     <article class="card pop"><span class="pill">Hard boundary</span><div class="big">Hyperframes only</div><p>CLI, SDK, Studio and media-use. Hyperion and website-to-video remain unchanged.</p></article>
   </div>
 
-  <nav><a href="#decision">Decision</a><a href="#artifact">The artifact</a><a href="#evidence">Evidence</a><a href="#experience">User experience</a><a href="#architecture">Architecture</a><a href="#api">API</a><a href="#scale">Scale</a><a href="#edges">Edge cases</a><a href="#plan">Plan</a><a href="#definitions">Definitions</a></nav>
+  <nav><a href="#decision">Decision</a><a href="#source-of-truth">Release trains</a><a href="#artifact">The artifact</a><a href="#evidence">Evidence</a><a href="#experience">User experience</a><a href="#journeys">Journeys</a><a href="#architecture">Architecture</a><a href="#api">API</a><a href="#scale">Scale</a><a href="#edges">Edge cases</a><a href="#plan">Plan</a><a href="#definitions">Definitions</a><a href="#open-questions">Open questions</a></nav>
 
   <section id="decision"><div class="eyebrow">01 · what / why / how</div><h2>The decision we can make now</h2>
     <div class="grid-3">
-      <div class="card"><h3>What</h3><p>Add a versioned search artifact to the Hyperframes release, a pure local search engine, and two authenticated HeyGen catalog endpoints: browse metadata and smart search.</p></div>
+      <div class="card"><h3>What</h3><p>Add a versioned search artifact to the Hyperframes release and a pure local search engine first. Add one authenticated HeyGen Smart-search endpoint only after the local product and evaluation gates pass. V1 browse is local.</p></div>
       <div class="card"><h3>Why</h3><p>The catalog is already larger than a human can scan comfortably. Local search protects openness and resilience; HeyGen search can improve paraphrase and multilingual recall without shipping provider secrets.</p></div>
       <div class="card"><h3>How</h3><p>One canonical ID contract feeds CLI, Studio, SDK, API and media-use. The API searches only an immutable catalog digest the client says it can install.</p></div>
     </div>
     <div class="callout"><strong>Not a production claim:</strong> the old experiment studied which moves to place in an LLM prompt. It did not test human browsing, a top-10 API, Pinecone, the Studio UI, latency, demand, or abuse. Those are new gates, not inherited confidence.</div>
   </section>
 
-  <section id="artifact"><div class="eyebrow">02 · where “424” comes from</div><h2>The catalog is generated, not hand-counted</h2>
+  <section id="source-of-truth"><div class="eyebrow">02 · visual source of truth</div><h2>Three independent release trains</h2>
+    <p class="lede">A release train is an independently shippable stage with its own exit gate and rollback. Finishing one creates value without requiring the next. The arrows mean “may start after the gate passes,” not “must ship together.”</p>
+    <div class="grid-3">
+      <article class="card acid pop train"><span class="n">01</span><span class="pill">Ship first · local GA</span><h3>Local catalog product</h3><ul><li>Signed, versioned catalog artifact + detached checksum</li><li>Pure deterministic local scorer</li><li>CLI, Studio and public SDK</li><li>Canonical install path through <code>runAdd</code></li><li>Dedicated media-use adapter in the first release</li><li>Zero-network browse/search tests</li></ul><p class="gate"><strong>Exit:</strong> installable IDs, integrity, accessibility, performance and offline journeys pass. <strong>Rollback:</strong> ship the prior artifact/client; no server dependency exists.</p></article>
+      <article class="card pop train"><span class="n">02</span><span class="pill">Measure · opt-in beta</span><h3>Product evidence</h3><ul><li>Dogfood local CLI and Studio journeys</li><li>Preregister top-5/10/20 user tasks</li><li>Compare local lexical, bundled embeddings, EF in-memory and Pinecone candidates</li><li>Measure first-useful result, install success, latency, multilingual quality and operating cost</li><li>Keep Smart results out of default UX</li></ul><p class="gate"><strong>Exit:</strong> a named strategy beats the local baseline on the primary user metric without violating latency, privacy or cost guardrails. <strong>Rollback:</strong> stop the experiment; Train 01 remains intact.</p></article>
+      <article class="card blue pop train"><span class="n">03</span><span class="pill">Gated · remote beta</span><h3>HeyGen Smart search</h3><ul><li>Authenticated <code>POST /v3/hyperframes/catalog/search</code></li><li>Immutable index keyed by catalog + strategy digests</li><li>Explicit Smart toggle; zero credits, bounded use</li><li>Typed degraded/fallback contract</li><li>Shadow → employee → opt-in beta → limited ramp</li></ul><p class="gate"><strong>Exit:</strong> quality, load, privacy, abuse, freshness and operational gates hold. <strong>Rollback:</strong> Smart kill switch forces local; retain the last-known-good index and strategy.</p></article>
+    </div>
+    <pre class="mermaid" aria-label="Release trains and gates">flowchart LR
+  T1["TRAIN 01<br/>Local catalog product"] --> G1{"Offline + install + UX<br/>gates pass?"}
+  G1 -->|yes| T2["TRAIN 02<br/>Measured opt-in beta"]
+  G1 -->|no| T1
+  T2 --> G2{"Primary user metric wins<br/>within cost/privacy/latency?"}
+  G2 -->|yes| T3["TRAIN 03<br/>HeyGen Smart beta"]
+  G2 -->|no| T1
+  T3 -. kill switch / LKG restore .-> T1
+  classDef first fill:#d7ff4f,stroke:#171713,color:#171713,stroke-width:2px
+  classDef gated fill:#3859ff,stroke:#171713,color:#fff,stroke-width:2px
+  class T1 first
+  class T3 gated</pre>
+    <h3 style="margin-top:30px">Responsibility and handoff matrix</h3>
+    <div class="table-scroll"><table class="contract"><thead><tr><th>Owner surface</th><th>Deliverable</th><th>Depends on</th><th>Approver / release gate</th><th>Rollback owner</th></tr></thead><tbody>
+      <tr><td>Hyperframes OSS</td><td>Artifact, checksum, local scorer, CLI, Studio, SDK, canonical installer</td><td>Registry manifests and install tests</td><td>Hyperframes maintainers; Train 01 definition of done</td><td>Hyperframes release owner</td></tr>
+      <tr><td>media-use</td><td>Thin Hyperframes provider adapter and user guidance; no copied source or second ledger</td><td>Stable CLI JSON/install contract</td><td>media-use maintainer + Hyperframes contract tests</td><td>media-use package owner disables adapter</td></tr>
+      <tr><td>Product / evaluation</td><td>Task corpus, primary metric, benchmark report and go/no-go record</td><td>Train 01 product flows</td><td>Product + data owners approve Train 02 gate</td><td>Experiment owner stops exposure</td></tr>
+      <tr><td>HeyGen API / EF</td><td>Auth, rate limits, Smart endpoint, immutable index lifecycle and observability</td><td>Frozen artifact identity + passed Train 02 gate</td><td>API, security and privacy owners approve Train 03 ramp</td><td>API on-call owns kill switch and LKG restore</td></tr>
+    </tbody></table></div>
+    <pre class="mermaid" aria-label="Ownership handoffs">sequenceDiagram
+  participant HF as Hyperframes OSS
+  participant MU as media-use
+  participant PX as Product / evaluation
+  participant API as HeyGen API / EF
+  HF->>HF: Ship artifact + local scorer + CLI/Studio/SDK
+  HF->>MU: Publish stable JSON + install contract
+  MU->>HF: Resolve canonical ID through runAdd
+  HF->>PX: Expose local journeys and telemetry-safe outcomes
+  PX->>PX: Benchmark four retrieval candidates
+  PX-->>API: Go only if Train 02 gate passes
+  API->>HF: Serve exact catalog + strategy digests
+  API-->>HF: On failure, typed fallback to local</pre>
+    <p class="note">Named individuals and repo-specific approvers are intentionally deferred; the ownership boundaries above are the source-of-truth contract until those names are assigned.</p>
+  </section>
+
+  <section id="artifact"><div class="eyebrow">03 · where “424” comes from</div><h2>The catalog is generated, not hand-counted</h2>
     <p>The evaluated branch scans committed primitive source artifacts and the registry manifests at Git <code>HEAD</code>. It validates each source, merges reviewed duplicate names, sorts the result, and emits a shelf plus a machine-readable index.</p>
     <div class="facts"><span><b>25</b> primitives</span><span>+</span><span><b>109</b> blocks</span><span>+</span><span><b>302</b> components</span><span>−</span><span><b>12</b> reviewed overlaps</span><span>=</span><span><b>424</b> unique entries</span></div>
     <div class="callout good"><strong>Important:</strong> 424 is a snapshot from <code>feat-video-primitives</code>, not a permanent product limit. Main currently has a different registry count, and primitives must not appear in a public search result until they have an installable contract.</div>
-    <div class="diagram"><div class="node"><h3>Source PR</h3><p>Add, edit, deprecate or remove a registry item.</p></div><div class="arrow">→</div><div class="node"><h3>Deterministic builder</h3><p>Validate IDs, files, compatibility, duplicates and search fields.</p></div><div class="arrow">→</div><div class="node"><h3>Immutable release artifact</h3><p><code>catalog-search.json</code> + SHA-256 digest, bundled with the CLI and indexed remotely.</p></div></div>
+    <div class="diagram"><div class="node"><h3>Source PR</h3><p>Add, edit, deprecate or remove a registry item. Every public ID must resolve through the canonical installer.</p></div><div class="arrow">→</div><div class="node"><h3>Deterministic builder</h3><p>Validate IDs, exact install manifests/files/hashes, compatibility, duplicates and search fields.</p></div><div class="arrow">→</div><div class="node"><h3>Immutable release artifact</h3><p><code>catalog-search.json</code> + detached SHA-256 checksum, exported from the shared package and bundled with the CLI.</p></div></div>
     <details><summary><strong>When a component is added</strong></summary><p>Its manifest must pass schema and install tests. The builder adds it to a new digest. CI builds a new remote namespace and queries it before that digest can become active. Old released clients keep searching their old digest.</p></details>
     <details><summary><strong>When a component is removed or renamed</strong></summary><p>A new digest omits it. Existing digests remain readable for a defined support window. Renames use a deprecated alias and <code>replacementId</code>; a name is never silently reassigned to unrelated code.</p></details>
     <details><summary><strong>When a user has a custom registry</strong></summary><p>V1 searches it locally only. Proprietary metadata is never uploaded to HeyGen implicitly. A future hosted-custom-index feature requires a separate consent, tenancy and deletion design.</p></details>
   </section>
 
-  <section id="evidence"><div class="eyebrow">03 · fact-checked Round 4</div><h2>All five methods, in words a teammate can use</h2>
+  <section id="evidence"><div class="eyebrow">04 · fact-checked Round 4</div><h2>All five methods, in words a teammate can use</h2>
     <p><strong>“Recall at top 20” means:</strong> among 405 test briefs, after a method returned only 20 catalog entries, how often did those 20 include at least one entry the gold set considered acceptable? It does not mean users liked the first result, and it is not a production conversion rate.</p>
     <div class="bar-list" aria-label="Recall at top 20 for all five retrieval methods">
       <div class="bar-row"><span class="winner">Hybrid, 70% word-rank weight</span><div class="track"><div class="fill" style="width:55.56%"></div></div><span class="value">55.56%</span></div>
@@ -54,7 +96,7 @@
     <p>The preferred family changes with list length. The preregistered decision asked for one shippable operating point and therefore recorded <code>ship: null</code> and <code>stop_reason: k-dependent</code>. This plan does not relabel that as an approval. It uses it to define the next product-specific evaluation: top 5/10/20 results, human and agent tasks, exact API text, and the actual embedding model.</p>
   </section>
 
-  <section id="experience"><div class="eyebrow">04 · real users</div><h2>How people use it</h2>
+  <section id="experience"><div class="eyebrow">05 · real users</div><h2>How people use it</h2>
     <div class="grid-2">
       <div class="card"><span class="pill">CLI</span><div class="code">hyperframes catalog
 hyperframes catalog search "animated pricing comparison"
@@ -75,13 +117,44 @@ hyperframes add data-chart</div><p style="margin-top:12px">Local is the default.
     <h3 style="margin-top:28px">Mode simulator</h3><div class="modes" id="modes"><button data-mode="unsigned" class="active">Not signed in</button><button data-mode="signed">Signed in</button><button data-mode="down">HeyGen down</button><button data-mode="mismatch">Catalog mismatch</button></div><div id="sim-output" class="card acid" role="status"></div>
   </section>
 
-  <section id="architecture"><div class="eyebrow">05 · architecture</div><h2>One result contract, two retrieval paths</h2>
+  <section id="journeys"><div class="eyebrow">06 · user journeys</div><h2>Six paths the product must make obvious</h2>
+    <div class="journey-grid">
+      <article class="card journey"><span class="pill">Journey 1 · local CLI</span><h3>Find and install without an account</h3><ol><li>Run <code>hyperframes catalog search</code>.</li><li>Search the bundled artifact immediately.</li><li>Filter and select an installable canonical ID.</li><li><code>runAdd</code> verifies compatibility and writes files.</li></ol><p class="outcome">Outcome: useful offline discovery; no query or metadata leaves the machine.</p></article>
+      <article class="card journey"><span class="pill">Journey 2 · Studio</span><h3>Browse visually, local by default</h3><ol><li>Open the Blocks browser.</li><li>See local results while typing.</li><li>Keep filters, keyboard focus and result announcements stable.</li><li>Add the selected block through the same installer contract.</li></ol><p class="outcome">Outcome: the Studio route never waits for auth or a provider to show the catalog.</p></article>
+      <article class="card journey"><span class="pill">Journey 3 · Smart</span><h3>Explicit signed-in upgrade</h3><ol><li>Choose “Smart search · free with HeyGen.”</li><li>Sign in or reuse shared credentials.</li><li>Send query + exact catalog digest.</li><li>Display strategy/degraded state and install only intersecting IDs.</li></ol><p class="outcome">Outcome: better ranking is opt-in, zero-credit and compatible with the local client.</p></article>
+      <article class="card journey"><span class="pill">Journey 4 · fallback</span><h3>Keep working when Smart fails</h3><ol><li>Bound the remote request with timeout/circuit breaker.</li><li>Handle 401 once; never retry forever.</li><li>Preserve query and filters.</li><li>Announce “showing local results.”</li></ol><p class="outcome">Outcome: no empty catalog, silent downgrade or blocked creative flow.</p></article>
+      <article class="card journey"><span class="pill">Journey 5 · install</span><h3>Trust the result after selection</h3><ol><li>Resolve the canonical ID against the exact artifact.</li><li>Verify manifest, file hashes and CLI compatibility.</li><li>Reject removed, stale or non-installable entries.</li><li>Record provenance and written files.</li></ol><p class="outcome">Outcome: search never invents a second install path or identity system.</p></article>
+      <article class="card journey"><span class="pill">Journey 6 · media-use</span><h3>Discover through the agent adapter</h3><ol><li>Resolve with <code>--type hyperframes</code>.</li><li>Use local by default; Smart only via <code>--provider heygen</code>.</li><li>Pass the canonical ID to Hyperframes.</li><li>Record digest and installer output, never copied source.</li></ol><p class="outcome">Outcome: media-use ships in Train 01 as a thin, testable adapter.</p></article>
+    </div>
+    <pre class="mermaid" aria-label="Local, Smart, fallback and install user flow">flowchart TD
+  Start["User opens CLI, Studio or media-use"] --> Local["Load bundled catalog artifact"]
+  Local --> Search["Search / browse locally"]
+  Search --> Choice{"Choose Smart?"}
+  Choice -->|no| Select["Select canonical ID"]
+  Choice -->|yes| Auth{"Signed in?"}
+  Auth -->|no| Login["OAuth login"]
+  Auth -->|yes| Remote["POST query + exact catalog digest"]
+  Login --> Remote
+  Remote --> Healthy{"Valid compatible response?"}
+  Healthy -->|yes| Select
+  Healthy -->|no / timeout / 429| Fallback["Announce local fallback<br/>preserve query + filters"]
+  Fallback --> Search
+  Select --> Verify["Verify manifest, files, hashes, compatibility"]
+  Verify --> Install["Existing runAdd installer"]
+  Install --> Done["Record provenance + written files"]
+  classDef local fill:#d7ff4f,stroke:#171713,color:#171713
+  classDef remote fill:#3859ff,stroke:#171713,color:#fff
+  class Local,Search,Fallback local
+  class Remote remote</pre>
+  </section>
+
+  <section id="architecture"><div class="eyebrow">07 · architecture</div><h2>One result contract, two retrieval paths</h2>
     <div class="choice">
       <div class="card"><h3>Local path · GA candidate</h3><div class="flowline"><span class="step">query</span>→<span class="step">bundled digest</span>→<span class="step">exact + token ranking</span>→<span class="step">typed results</span>→<span class="step">runAdd</span></div><ul><li>No auth, provider or network.</li><li>O(entries × query terms); measured before GA.</li><li>Custom registry supported locally.</li><li>Never auto-claims semantic understanding.</li></ul></div>
-      <div class="card"><h3>HeyGen path · gated beta</h3><div class="flowline"><span class="step">query + digest</span>→<span class="step">auth</span>→<span class="step">API</span>→<span class="step">immutable index</span>→<span class="step">compatibility gate</span>→<span class="step">runAdd</span></div><ul><li>Pinecone and embedding credentials stay server-side.</li><li>Dense and keyword arms may run concurrently, then RRF.</li><li>Any partial-arm failure is labeled; it is never called hybrid.</li><li>Unsupported digest falls back locally.</li></ul></div>
+      <div class="card"><h3>HeyGen path · gated beta</h3><div class="flowline"><span class="step">query + digest</span>→<span class="step">auth</span>→<span class="step">API</span>→<span class="step">winning index strategy</span>→<span class="step">compatibility gate</span>→<span class="step">runAdd</span></div><ul><li>The provider is selected by Train 02 evidence, not assumed.</li><li>Provider and embedding credentials stay server-side.</li><li>Any partial-arm failure is labeled; it is never called hybrid.</li><li>Unsupported digest falls back locally.</li></ul></div>
     </div>
     <h3 style="margin-top:30px">Ownership</h3><div class="diagram"><div class="node"><h3>Hyperframes OSS</h3><p>Catalog truth, artifact schema, local scorer, CLI/Studio/SDK, installer.</p></div><div class="arrow">↔</div><div class="node"><h3>HeyGen API</h3><p>Authentication, zero-credit policy, rate limits, index lookup, response envelope.</p></div><div class="arrow">↔</div><div class="node"><h3>media-use</h3><p>Thin provider adapter and sign-in guidance. No duplicate catalog or installer.</p></div></div>
-    <details><summary><strong>Mermaid source: request flow</strong></summary><pre class="mermaid">flowchart LR
+    <h3 style="margin-top:30px">End-to-end request flow</h3><pre class="mermaid" aria-label="End-to-end request architecture">flowchart LR
   U[Hyperframes user] --> C{Search mode}
   C -->|local default| A[Bundled catalog artifact]
   A --> L[Local lexical scorer]
@@ -95,11 +168,11 @@ hyperframes add data-chart</div><p style="margin-top:12px">Local is the default.
   L --> G[Shared result contract]
   R --> G
   G --> V[Compatibility validation]
-  V --> I[Existing runAdd installer]</pre></details>
-    <details><summary><strong>Why Pinecone, and what we actually reuse</strong></summary><p>At 424 entries, Pinecone is not required for speed: a 424 × 1536 float32 matrix is only about 2.49 MiB. Pinecone earns its place by centralizing dynamic indexes, multilingual embeddings, quality tuning and future scale. Reuse Asset Scout’s environment-scoped namespace, lazy client, timeouts, metrics and failure discipline. Reuse Project Items’ closer text precedent for dense + BM25 arms and client-side RRF. Do not copy either model or scorer blindly: Asset Scout is multimodal dense-only, Project Items uses a different embedding model, and its RRF ranks are zero-based while the catalog evaluation is one-based.</p></details>
+  V --> I[Existing runAdd installer]</pre>
+    <details><summary><strong>Why Pinecone is a candidate, not a decision</strong></summary><p>At 424 entries, Pinecone is not required for speed: a 424 × 1536 float32 matrix is only about 2.49 MiB. Train 02 compares local lexical search, bundled embeddings, EF in-memory retrieval and Pinecone on quality, latency, multilingual behavior, cost and operational load. If Pinecone wins, reuse Asset Scout’s environment-scoped namespace, lazy client, timeouts, metrics and failure discipline plus Project Items’ text-retrieval precedent. Do not copy either model or scorer blindly: Asset Scout is multimodal dense-only, Project Items uses a different embedding model, and its RRF ranks are zero-based while the catalog evaluation is one-based.</p></details>
   </section>
 
-  <section id="api"><div class="eyebrow">06 · contracts</div><h2>The API can never return something the client cannot install</h2>
+  <section id="api"><div class="eyebrow">08 · contracts</div><h2>The API can never return something the client cannot install</h2>
     <div class="grid-2"><div><h3>Canonical artifact</h3><pre class="code">{
   "schemaVersion": 1,
   "catalogVersion": "0.8.0",
@@ -111,6 +184,7 @@ hyperframes add data-chart</div><p style="margin-top:12px">Local is the default.
     "title": "Data chart",
     "description": "…",
     "tags": ["data", "chart"],
+    "aliases": [],
     "searchText": "…",
     "minCliVersion": "0.8.0",
     "deprecated": null,
@@ -125,17 +199,17 @@ X-HeyGen-Client-Source: hyperframes
   "catalogDigest": "sha256:…",
   "types": ["block", "component"],
   "limit": 20
-}</pre><p>Free text uses POST so it does not land in URL query logs. The server stores no raw query in telemetry. Browse without free text is a separate cacheable <code>GET /v3/hyperframes/catalog/items</code>.</p></div></div>
-    <h3 style="margin-top:28px">Required response fields</h3><table class="contract"><thead><tr><th>Field</th><th>Why it exists</th><th>Client rule</th></tr></thead><tbody>
+}</pre><p>Free text uses POST so it does not land in URL query logs. The server stores no raw query in telemetry. <code>X-HeyGen-Client-Source</code> is a bounded telemetry label only; authorization, billing and rate limits use server-derived identity and never trust it. V1 has no remote browse endpoint: empty-query browse always reads the bundled local artifact.</p></div></div>
+    <h3 style="margin-top:28px">Required response fields</h3><div class="table-scroll"><table class="contract"><thead><tr><th>Field</th><th>Why it exists</th><th>Client rule</th></tr></thead><tbody>
       <tr><td><code>catalogDigest</code></td><td>Names the exact immutable catalog searched.</td><td>Must equal the request or reject the response.</td></tr>
       <tr><td><code>strategy</code></td><td><code>local</code>, <code>semantic</code>, or <code>hybrid</code>.</td><td>Display honestly; never infer from success.</td></tr>
       <tr><td><code>strategyVersion</code></td><td>Pins model, field recipe and fusion behavior.</td><td>Needed for evaluation and rollback.</td></tr>
       <tr><td><code>items[].id/name/type</code></td><td>Stable identity and installer lookup.</td><td>Intersect with local artifact before display/install.</td></tr>
       <tr><td><code>degraded</code></td><td>States whether an arm or dependency failed.</td><td>Smart UI must label or fall back; no silent downgrade.</td></tr>
-    </tbody></table>
+    </tbody></table></div>
   </section>
 
-  <section id="scale"><div class="eyebrow">07 · production boundaries</div><h2>Code-complete is not production-ready</h2>
+  <section id="scale"><div class="eyebrow">09 · production boundaries</div><h2>Code-complete is not production-ready</h2>
     <div class="grid-3"><div class="card"><span class="status"><i class="dot"></i><strong>Local can fail open</strong></span><p>Remote failure still leaves a deterministic search path over the exact installable digest.</p></div><div class="card"><span class="status"><i class="dot amber"></i><strong>Smart needs gates</strong></span><p>Quality, capacity, privacy, abuse and catalog freshness must pass before a default changes.</p></div><div class="card"><span class="status"><i class="dot red"></i><strong>No unbounded work</strong></span><p>No unlimited query, top-k, candidate pool, pagination depth, retries, concurrency or index fan-out.</p></div></div>
     <h3 style="margin-top:30px">Capacity equations</h3><div class="formula">embed calls / second = smart-search QPS × embedding-cache miss rate
 Pinecone reads / second = smart-search QPS × retrieval arms (1 semantic, 2 hybrid)
@@ -143,7 +217,7 @@ monthly provider cost = requests × (embedding cost + index read cost)
 required tested capacity ≥ 3 × forecast peak QPS
 local work = catalog entries × normalized query terms</div>
     <p class="note">The plan deliberately does not invent a demand forecast. Product and API owners must record expected steady QPS, burst QPS, daily active searchers and queries per searcher before capacity approval.</p>
-    <h3 style="margin-top:28px">Activation gates</h3><table class="contract"><thead><tr><th>Gate</th><th>Pass condition before production traffic</th></tr></thead><tbody>
+    <h3 style="margin-top:28px">Activation gates</h3><div class="table-scroll"><table class="contract"><thead><tr><th>Gate</th><th>Pass condition before production traffic</th></tr></thead><tbody>
       <tr><td>Quality</td><td>On a product-specific top-5/10/20 corpus, smart is statistically no worse than local and improves at least one preregistered primary metric. Human usefulness and install success are measured separately.</td></tr>
       <tr><td>Scale</td><td>Load test at 3× recorded peak forecast with bounded queues; no error-budget breach, connection leak or unbounded memory growth.</td></tr>
       <tr><td>Latency</td><td>API owner approves explicit p50/p95/p99 targets after a dev benchmark. CLI timeout is longer than the approved p99 but still short enough to fall back without blocking work.</td></tr>
@@ -151,13 +225,13 @@ local work = catalog entries × normalized query terms</div>
       <tr><td>Freshness</td><td>A release cannot activate until the exact digest is indexed, counted, sampled and query-smoked. Old namespaces remain until the supported client window expires.</td></tr>
       <tr><td>Privacy</td><td>Raw query absent from analytics, structured logs and error payloads; cache keys use a digest; retention and access are documented.</td></tr>
       <tr><td>Abuse</td><td>Auth required, body/query size bounded, <code>limit ≤ 50</code>, cursor depth bounded, per-account/IP/global rate limits and provider circuit breaker tested.</td></tr>
-    </tbody></table>
+    </tbody></table></div>
   </section>
 
-  <section id="edges"><div class="eyebrow">08 · failure and edge matrix</div><h2>How the system behaves when reality is messy</h2>
+  <section id="edges"><div class="eyebrow">10 · failure and edge matrix</div><h2>How the system behaves when reality is messy</h2>
     <div class="scenario"><b>User is not signed in</b><span>Local works. <code>--smart</code> explains the free OAuth login path and makes no remote request until the user signs in.</span></div>
     <div class="scenario"><b>OAuth token expired</b><span>Refresh once through the shared credential code. A second 401 becomes an auth error and local fallback; never retry forever.</span></div>
-    <div class="scenario"><b>HeyGen / Pinecone / embedder down</b><span>One bounded request, circuit breaker, explicit “showing local results” fallback. Do not cache the failure as an empty catalog.</span></div>
+    <div class="scenario"><b>HeyGen / retrieval provider / embedder down</b><span>One bounded request, circuit breaker, explicit “showing local results” fallback. Do not cache the failure as an empty catalog.</span></div>
     <div class="scenario"><b>One hybrid arm fails</b><span>Do not label the surviving list “hybrid.” Return a typed degraded state or fail smart search so the client can choose a clearly labeled local result.</span></div>
     <div class="scenario"><b>Client digest is unknown</b><span>Return <code>catalog_version_unavailable</code> with supported upgrade guidance. Never search “latest” and send entries the client cannot install.</span></div>
     <div class="scenario"><b>Item removed during rollout</b><span>Old clients query their old namespace; new clients query the new digest. Retention policy, not mutable aliases, controls rollback.</span></div>
@@ -169,25 +243,52 @@ local work = catalog entries × normalized query terms</div>
     <div class="scenario"><b>Concurrent release and search</b><span>Build a new immutable namespace first, smoke it, then advertise the digest. Never mutate the namespace currently serving requests.</span></div>
     <div class="scenario"><b>429 or exhausted service budget</b><span>Search remains zero-credit but rate-limited. Respect <code>Retry-After</code>, do not retry in the same command, fall back locally.</span></div>
     <div class="scenario"><b>media-use calls it</b><span>Provider shells the Hyperframes CLI with argv arrays, fixed timeout and source attribution. Hyperframes owns auth headers and installation.</span></div>
+    <pre class="mermaid" aria-label="Smart search failure and rollback flow">stateDiagram-v2
+  [*] --> LocalReady: client starts
+  LocalReady --> SmartPending: user explicitly enables Smart
+  SmartPending --> SmartResults: compatible success
+  SmartPending --> LocalFallback: timeout / 401 / 429 / provider error
+  SmartPending --> LocalFallback: catalog or strategy digest mismatch
+  SmartResults --> LocalReady: Smart toggled off
+  SmartResults --> LocalFallback: circuit opens or kill switch
+  LocalFallback --> LocalReady: announce + preserve query and filters
+  LocalReady --> PriorArtifact: client/artifact rollback
+  SmartResults --> LastKnownGood: index/strategy rollback
+  LastKnownGood --> LocalReady: remote still unhealthy</pre>
   </section>
 
-  <section id="plan"><div class="eyebrow">09 · implementation plan</div><h2>Eight units, with the risky decisions first</h2>
+  <section id="plan"><div class="eyebrow">11 · implementation plan</div><h2>Nine units grouped by release train</h2>
     <div class="unit-grid">
-      <article class="card unit"><span class="n">U0</span><h3>Freeze the product contract</h3><p><strong>Goal:</strong> approve local-default / explicit-smart behavior, zero-credit policy, public result types, supported digest window and activation metrics.</p><p><strong>Outputs:</strong> this plan, API RFC, threat/privacy review, demand forecast.</p><p><strong>Verification:</strong> owners sign the boundary table; no code begins with unresolved identity/version semantics.</p></article>
-      <article class="card unit"><span class="n">U1</span><h3>Canonical search artifact</h3><p><strong>Hyperframes files:</strong> <code>packages/core/src/registry/catalogSearch.ts</code>, <code>packages/core/schemas/catalog-search.json</code>, <code>scripts/generate-catalog-search.ts</code>, <code>registry/catalog-search.json</code>.</p><p>Generate canonical JSON, digest, searchable text, aliases and installability proof. Package it via <code>packages/cli/scripts/build-copy.mjs</code>.</p><p><strong>Tests:</strong> deterministic bytes, add/remove/rename, duplicate, missing file, non-installable primitive, schema drift, package contents.</p></article>
+      <article class="card unit"><span class="n">U0</span><h3>Freeze the visual source of truth</h3><p><strong>Goal:</strong> approve the three trains, local-default / explicit-smart behavior, zero-credit policy, public result types, supported digest window and activation metrics.</p><p><strong>Outputs:</strong> this HTML plan first, then matching API RFC, threat/privacy review and demand forecast.</p><p><strong>Verification:</strong> surface owners sign the boundary table; no code begins with unresolved identity/version semantics.</p></article>
+      <article class="card unit"><span class="n">U1</span><h3>Canonical search artifact</h3><p><strong>Hyperframes files:</strong> <code>packages/core/src/registry/catalogSearch.ts</code>, <code>packages/core/schemas/catalog-search.json</code>, <code>scripts/generate-catalog-search.ts</code>, <code>registry/catalog-search.json</code>.</p><p>Generate canonical JSON, a detached checksum, searchable text, aliases and installability proof bound to immutable manifests, file paths and hashes. Export the exact artifact from the shared package and bundle it via <code>packages/cli/scripts/build-copy.mjs</code>.</p><p><strong>Tests:</strong> deterministic bytes, checksum/package parity, add/remove/rename, duplicate, missing/hash-mismatched file, non-installable primitive and schema drift.</p></article>
       <article class="card unit"><span class="n">U2</span><h3>Pure local scorer</h3><p><strong>Files:</strong> <code>packages/core/src/registry/searchCatalog.ts</code> and tests.</p><p>Exact name/title/tag boosts plus deterministic normalized token overlap. No network, wall clock or mutable global cache. Stable tie-break by canonical ID.</p><p><strong>Tests:</strong> empty, Unicode, punctuation, aliases, deprecated items, filters, stable ordering, 10× future catalog performance.</p></article>
-      <article class="card unit"><span class="n">U3</span><h3>CLI, Studio and SDK</h3><p><strong>Files:</strong> <code>packages/cli/src/commands/catalog.ts</code>, new catalog client modules, <code>packages/cli/src/server/studioServer.ts</code>, <code>packages/studio/src/hooks/useBlockCatalog.ts</code>, <code>BlocksTab.tsx</code>.</p><p>Add <code>catalog search</code>, <code>--smart</code>, <code>--local-only</code>, JSON contract and explicit fallback labels. Keep <code>runAdd</code> as the only installer.</p><p><strong>Tests:</strong> CLI snapshots, no-auth, 401 refresh, 429/timeout/mismatch fallback, Studio route/browser flows, compatibility rejection.</p></article>
-      <article class="card unit"><span class="n">U4</span><h3>Immutable remote index</h3><p><strong>EF files:</strong> new <code>heygen/core/common/clients/pinecone_hyperframes_catalog.py</code> plus indexing activity/workflow.</p><p>Reuse Project Items document index pattern for keyword + dense fields and Asset Scout’s environment guardrails. Namespace by environment + catalog digest; IDs are canonical IDs.</p><p><strong>Tests:</strong> idempotent upsert, deleted namespace retention, wrong-env refusal, partial batch, model/dimension mismatch, digest count and sampled payload parity.</p></article>
-      <article class="card unit"><span class="n">U5</span><h3>Authenticated HeyGen API</h3><p><strong>EF files:</strong> extend <code>movio/api_service/app/controller/hyperframes_v3.py</code>; add DTO/service and retrieval client tests.</p><p><code>GET …/catalog/items</code> browses; <code>POST …/catalog/search</code> accepts free text. OAuth/API key, zero credits, heavy rate policy, source attribution, typed errors.</p><p><strong>Tests:</strong> auth matrix, extra-field forbid, limits, cursor scope, query privacy, unknown digest, no raw score leak, degraded backend, OpenAPI.</p></article>
-      <article class="card unit"><span class="n">U6</span><h3>media-use adapter</h3><p><strong>Skill files:</strong> <code>scripts/lib/registry.mjs</code>, new <code>hyperframes-provider.mjs</code>, <code>scripts/resolve.mjs</code>, coverage/provider/privacy tests and references.</p><p>Add type <code>hyperframes</code>. Local invokes Hyperframes local search; <code>--provider heygen</code> explicitly invokes smart. Record canonical ID/digest/install output, never copy code into <code>.media</code>.</p></article>
-      <article class="card unit"><span class="n">U7</span><h3>Product-specific evaluation</h3><p>Build preregistered top-5/10/20 tasks for real CLI/Studio users. Compare local, semantic and hybrid with the exact production fields, model and RRF convention. Measure recall, first-useful rank, successful install, latency and refusal separately.</p><p><strong>Gate:</strong> no “smart” default or GA until the exact served strategy passes. The old 424-move prompt evaluation remains evidence, not authorization.</p></article>
-      <article class="card unit"><span class="n">U8</span><h3>Rollout and operations</h3><p><strong>States:</strong> off → internal shadow → employee opt-in → authenticated beta → limited ramp → GA. Every state has a one-switch local rollback.</p><p><strong>Order:</strong> publish artifact/client → build/index digest → deploy API dark → shadow → verify dashboards/capacity → expose opt-in. Retain prior namespaces and strategy version for rollback.</p></article>
+      <article class="card unit"><span class="n">U3</span><h3>Train 01 · local CLI, Studio and SDK</h3><p><strong>Files:</strong> <code>packages/cli/src/commands/catalog.ts</code>, local catalog modules, <code>packages/cli/src/server/studioServer.ts</code>, <code>packages/studio/src/hooks/useBlockCatalog.ts</code>, <code>BlocksTab.tsx</code>.</p><p>Add local <code>catalog search</code>, JSON output and offline browse. Preserve existing <code>--type</code>, <code>--tag</code>, <code>--json</code> and picker behavior. Extend <code>runAdd</code> to accept canonical IDs and keep it the only installer.</p><p><strong>Tests:</strong> zero-network CLI/Studio routes, compatibility snapshots, keyboard/focus/live-region accessibility, canonical-ID uniqueness and install rejection.</p></article>
+      <article class="card unit"><span class="n">U4</span><h3>Train 01 · media-use adapter</h3><p><strong>Skill files:</strong> <code>scripts/lib/registry.mjs</code>, new <code>hyperframes-provider.mjs</code>, <code>scripts/resolve.mjs</code>, coverage/provider/privacy tests and references.</p><p>Add type <code>hyperframes</code>. Local invokes Hyperframes local search. Record canonical ID, digest and installer output; never copy code into <code>.media</code>. The adapter ships with Train 01.</p></article>
+      <article class="card unit"><span class="n">U5</span><h3>Train 02 · product-specific evaluation</h3><p>Build preregistered top-5/10/20 tasks for real CLI/Studio/media-use journeys. Compare local lexical, bundled embeddings, EF in-memory and Pinecone using the exact production fields. Measure first-useful rank and successful install as user outcomes, with latency, multilingual quality, refusal, privacy and cost guardrails.</p><p><strong>Gate:</strong> no remote product traffic until a named candidate beats the local baseline on the preregistered primary metric. The old 424-move prompt evaluation remains evidence, not authorization.</p></article>
+      <article class="card unit"><span class="n">U6</span><h3>Train 03 · selected immutable index</h3><p><strong>EF files:</strong> provider client plus indexing activity/workflow chosen after U5.</p><p>Key every immutable build by environment + catalog digest + strategy digest + index-build digest; IDs are canonical IDs. Define build, smoke, promotion, sealing, supported-window retention and garbage collection before serving traffic.</p><p><strong>Tests:</strong> idempotent build, wrong-env refusal, partial batch, model/dimension mismatch, payload parity, promotion/LKG restore, retention and GC.</p></article>
+      <article class="card unit"><span class="n">U7</span><h3>Train 03 · authenticated Smart API and clients</h3><p><strong>EF files:</strong> extend <code>movio/api_service/app/controller/hyperframes_v3.py</code>; add DTO/service and retrieval client tests.</p><p>Only <code>POST …/catalog/search</code> is remote in V1. Add OAuth/API-key authorization, zero credits, server-derived quotas, bounded source attribution and typed full/degraded/fallback responses. CLI adds <code>--smart</code>, <code>--local-only</code> and <code>--require-smart</code>; JSON output and exit codes distinguish fallback from forced-provider failure.</p><p>Studio keeps local results visible while Smart loads, cancels stale requests, preserves query/filters, restores focus after OAuth and announces fallback/errors.</p><p><strong>Tests:</strong> scopes/authz, tenant-safe cache and abuse keys, no raw-query logs, 401 refresh, 429/timeout/mismatch fallback, forced-provider semantics, rapid-query cancellation, accessibility and OpenAPI.</p></article>
+      <article class="card unit"><span class="n">U8</span><h3>Train 03 · rollout and operations</h3><p><strong>States:</strong> off → internal shadow → employee opt-in → authenticated beta → limited ramp → GA.</p><p><strong>Rollback controls:</strong> separate Smart kill switch, prior client/artifact release, last-known-good index/strategy pointer and signed emergency revocation. Retain auditable promotion and rollback records.</p></article>
     </div>
-    <div class="callout"><strong>Dependency order:</strong> U0 → U1 → U2 → U3. U4 and U5 may proceed only after U1 freezes identity. U6 depends on U3. U7 requires U2 + the actual U4/U5 candidate. U8 starts only when U7 and the scale/security gates pass.</div>
+    <pre class="mermaid" aria-label="Implementation dependency graph">flowchart LR
+  U0[U0 HTML source of truth] --> U1[U1 artifact + integrity]
+  U1 --> U2[U2 local scorer]
+  U2 --> U3[U3 local CLI / Studio / SDK]
+  U3 --> U4[U4 media-use adapter]
+  U3 --> T1{"TRAIN 01 DONE"}
+  U4 --> T1
+  T1 --> U5[U5 measured candidate evaluation]
+  U5 --> T2{"TRAIN 02 GATE"}
+  T2 -->|pass| U6[U6 selected immutable index]
+  T2 -->|fail| U2
+  U6 --> U7[U7 Smart API + clients]
+  U7 --> U8[U8 rollout + rollback]
+  U8 --> T3{"TRAIN 03 RAMP"}</pre>
+    <div class="callout"><strong>Dependency rule:</strong> U0 → U1 → U2 → U3/U4 completes Train 01. U5 is a separate measured beta. U6–U8 may start only after U5 names a winning candidate and the Train 02 gate passes.</div>
     <h3>Definition of done</h3><ul class="checks"><li>Every returned item intersects the exact client digest and passes the existing compatibility gate.</li><li>Local search works without sign-in or network and is the visible fallback for every remote failure.</li><li>Smart search charges zero credits, requires authentication, observes approved limits and exposes its strategy/degraded state.</li><li>Adding/removing/renaming an item produces a deterministic new digest and cannot corrupt old clients.</li><li>CLI, Studio, SDK and media-use share identity, ranking result schema and installer ownership.</li><li>Quality, load, privacy, abuse, observability, rollout and rollback evidence are attached before GA.</li></ul>
   </section>
 
-  <section id="definitions"><div class="eyebrow">10 · plain-language glossary</div><h2>Terms used in this plan</h2><dl>
+  <section id="definitions"><div class="eyebrow">12 · plain-language glossary</div><h2>Terms used in this plan</h2><dl>
+    <div class="definition"><dt>Release train</dt><dd>An independently shippable stage with its own user value, entry/exit gates and rollback. Train 01 does not need Train 02 or 03 to remain useful.</dd></div>
     <div class="definition"><dt>Catalog</dt><dd>The list of Hyperframes things a user can discover and use: blocks, components and any primitives that have a real install/open contract.</dd></div>
     <div class="definition"><dt>Artifact</dt><dd>A generated JSON file shipped with a release. It is the search-ready view of the source manifests, not a second hand-edited catalog.</dd></div>
     <div class="definition"><dt>Canonical ID</dt><dd>A stable identity such as <code>block:data-chart</code>. Display names may change; the identity must not silently point to different code.</dd></div>
@@ -211,7 +312,23 @@ local work = catalog entries × normalized query terms</div>
     <div class="definition"><dt>Rollback</dt><dd>Return to the prior client/index/strategy. Immutable digests make that a pointer/config change rather than a data reconstruction.</dd></div>
   </dl></section>
 
-  <footer class="footer"><p><strong>Fact sources:</strong> Hyperframes registry/CLI/auth source at the plan branch; <code>evals/catalog-retrieval/round2/build_shelf.py</code>; <code>round4/DECISION-RULE.md</code>; <code>round4/summary4.json</code>; HeyGen Asset Scout and Project Items retrieval implementations; media-use provider/auth/privacy references. Proposed endpoints, files, limits and rollout gates are labeled as design, not existing behavior.</p><p>Authoritative scope: standalone Hyperframes. Hyperion, Astral agent orchestration and website-to-video are out.</p></footer>
+  <section id="open-questions"><div class="eyebrow">13 · deferred decisions</div><h2>Deferred / Open Questions</h2>
+    <h3>From 2026-08-04 review</h3>
+    <div class="card coral">
+      <h3>Custom registries lack a complete product contract</h3>
+      <p><strong>Catalog sources / scope · P1 · scope guardian + adversarial review · confidence 100</strong></p>
+      <p>The plan implies custom-registry support, but does not yet define artifact generation, canonical-ID collision and namespace rules, provenance and integrity, refresh/versioning, install compatibility, or whether private registry metadata may reach Smart search. V1 behavior remains an explicit product decision until those boundaries are resolved.</p>
+      <!-- dedup-key: section="catalog sources scope" title="custom registries lack a complete product contract" evidence="the plan implies customregistry support but does not define artifact generation canonicalid collisions provenance refresh or privacy" -->
+    </div>
+    <div class="card coral" style="margin-top:16px">
+      <h3>Named cross-repo approvers and rollback owners</h3>
+      <p><strong>Ownership / release management · P1 · adversarial review · deferred by product owner</strong></p>
+      <p>The visual matrix assigns responsibility by surface, but named individuals, required approvers, repository-specific release calendars and escalation paths still need assignment before U0 exits. No implementation unit may treat an unassigned handoff as implicitly owned.</p>
+      <!-- dedup-key: section="ownership release management" title="named crossrepo approvers and rollback owners" evidence="surface ownership is mapped but named approvers calendars and escalation paths remain unassigned" -->
+    </div>
+  </section>
+
+  <footer class="footer"><p><strong>Fact sources:</strong> Hyperframes registry/CLI/auth source at the plan branch; <code>evals/catalog-retrieval/round2/build_shelf.py</code>; <code>round4/DECISION-RULE.md</code>; <code>round4/summary4.json</code>; HeyGen Asset Scout and Project Items retrieval implementations; media-use provider/auth/privacy references. Proposed endpoints, files, limits and rollout gates are labeled as design, not existing behavior.</p><p><strong>Source-of-truth rule:</strong> this HTML owns the product boundary, release trains, journeys and gates. Follow-on RFCs and HeyGenverse must link back to it and may add implementation detail, but may not silently change these decisions.</p><p>Authoritative scope: standalone Hyperframes. Hyperion, Astral agent orchestration and website-to-video are out.</p></footer>
 </main>
 <script>
 const outputs={
@@ -223,4 +340,8 @@ const outputs={
 const box=document.querySelector('#sim-output'); const buttons=[...document.querySelectorAll('#modes button')];
 function show(mode){buttons.forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));box.innerHTML=outputs[mode]}
 buttons.forEach(b=>b.addEventListener('click',()=>show(b.dataset.mode)));show('unsigned');
+</script>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({startOnLoad:true,theme:'base',securityLevel:'strict',themeVariables:{primaryColor:'#d7ff4f',primaryTextColor:'#171713',primaryBorderColor:'#171713',lineColor:'#171713',secondaryColor:'#fffdf7',tertiaryColor:'#e8e4d8',fontFamily:'Inter, ui-sans-serif, system-ui, sans-serif'}});
 </script></body></html>
