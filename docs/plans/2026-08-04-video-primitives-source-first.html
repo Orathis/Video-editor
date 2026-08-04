@@ -851,6 +851,7 @@
           <a href="#flow">User journey</a>
           <a href="#migration">Migration</a>
           <a href="#first-migration">First build</a>
+          <a href="#measurement">PostHog</a>
           <a href="#scope">V1 scope</a>
         </div>
       </nav>
@@ -1111,7 +1112,7 @@
               <div class="rule"><strong>1 · Primitive</strong><span>Render 1, 6, and 20 messages from the embedded data.</span></div>
               <div class="rule"><strong>2 · Installer</strong><span>Materialize requested messages into the copied source.</span></div>
               <div class="rule"><strong>3 · Smart funnel</strong><span>Discover, authenticate only on selection, then resume the install.</span></div>
-              <div class="rule"><strong>4 · Learn</strong><span>Measure OAuth completion, first preview, and first render before migrating primitive two.</span></div>
+              <div class="rule"><strong>4 · Learn</strong><span>Ship the PostHog funnel contract and measure OAuth completion, first preview, and first render before migrating primitive two.</span></div>
             </div>
           </aside>
         </div>
@@ -1147,6 +1148,68 @@
         </div>
       </section>
 
+      <section class="section" id="measurement">
+        <div class="section-heading">
+          <h2>PostHog is part of the product contract.</h2>
+          <p>
+            The first primitive is not complete unless the acquisition and activation journey is observable from anonymous discovery through authenticated render. Track the funnel without collecting authored content.
+          </p>
+        </div>
+
+        <div class="scope">
+          <article class="scope-panel ship">
+            <h3>Required funnel events</h3>
+            <ul>
+              <li><code>primitive_catalog_searched</code> — a catalog query returns results.</li>
+              <li><code>primitive_catalog_result_selected</code> — a user chooses a primitive and rank is recorded.</li>
+              <li><code>primitive_auth_started</code> and <code>primitive_auth_completed</code> — OAuth begins and the suspended install resumes.</li>
+              <li><code>primitive_install_started</code> and <code>primitive_install_completed</code> — source is materialized into the project.</li>
+              <li><code>primitive_preview_succeeded</code> — the installed primitive first renders locally.</li>
+              <li><code>primitive_render_succeeded</code> — the first final render completes.</li>
+              <li>Matching <code>*_failed</code> events use a bounded <code>error_code</code>, never raw exception text.</li>
+            </ul>
+          </article>
+          <article class="scope-panel defer">
+            <h3>Identity and privacy boundary</h3>
+            <ul>
+              <li>Create one <code>funnel_id</code> before search and preserve it across OAuth, resume, retries, and install.</li>
+              <li>Use the anonymous CLI installation identity before auth; on OAuth success, identify the HeyGen user and alias the anonymous journey once.</li>
+              <li>Attach <code>primitive_id</code>, <code>catalog_version</code>, result rank, CLI version, duration, auth state, and a deduping event or install id.</li>
+              <li>Never send the raw query, message text, HTML, CSS, JavaScript, asset URLs, credentials, tokens, or rendered media.</li>
+              <li>Honor the existing telemetry opt-out and keep event names and properties versioned and documented.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="principles">
+          <article class="principle-main">
+            <h3>Activation funnel</h3>
+            <pre aria-label="PostHog activation funnel"><code>catalog searched
+  → result selected
+  → OAuth completed
+  → install completed
+  → first preview
+  → first render</code></pre>
+          </article>
+          <aside class="principle-side">
+            <h3>Launch dashboard</h3>
+            <div class="rule-list">
+              <div class="rule"><strong>Discovery</strong><span>Search-to-selection conversion and result-rank distribution.</span></div>
+              <div class="rule"><strong>Acquisition</strong><span>Selection-to-OAuth completion and auth drop-off.</span></div>
+              <div class="rule"><strong>Activation</strong><span>Install-to-preview and preview-to-first-render conversion.</span></div>
+              <div class="rule"><strong>Quality</strong><span>Time to first preview/render plus bounded failure rates by primitive and CLI version.</span></div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="acceptance">
+          <h3>Measurement acceptance</h3>
+          <p>
+            A test journey that searches anonymously, authenticates, resumes the same selection, installs, previews, and renders must produce one ordered funnel with a stable <code>funnel_id</code>, correctly stitched identities, no duplicate success events, and no user-authored content in any PostHog payload.
+          </p>
+        </div>
+      </section>
+
       <section class="section" id="scope">
         <div class="section-heading">
           <h2>Start with one thin seam.</h2>
@@ -1161,7 +1224,7 @@
               <li>Let catalog install materialize user data into the copied source file.</li>
               <li>Keep existing scalar variables for common Studio controls.</li>
               <li>Preserve the current HyperFrames runtime, GSAP contract, lint, check, and render path.</li>
-              <li>Measure local query to Smart click, OAuth completion, install, and first render.</li>
+              <li>Ship and verify the PostHog journey from anonymous catalog search through authenticated first render.</li>
             </ul>
           </article>
           <article class="scope-panel defer">
@@ -1187,7 +1250,7 @@
 
     <footer>
       <span>Source-first primitives architecture brief</span>
-      <span>Current behavior, proposed seam, migration map, and V1 scope</span>
+      <span>Current behavior, proposed seam, migration map, PostHog funnel, and V1 scope</span>
     </footer>
 
     <script>
