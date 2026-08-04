@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Source-first video primitives | HyperFrames</title>
+    <title>Video primitives implementation mirror | HyperFrames</title>
     <meta
       name="description"
-      content="A visual architecture brief for making HyperFrames video primitives fully editable while preserving optional structured inputs."
+      content="A versioned implementation mirror of the canonical HeyGenVerse design for fully editable HyperFrames video primitives."
     />
     <!-- Repository icon source: packages/studio/public/favicon.svg -->
     <style>
@@ -846,6 +846,7 @@
           <span>HyperFrames primitives</span>
         </a>
         <div class="nav-links">
+          <a href="https://www.heygenverse.com/a/21c28523-7487-43e1-927d-43a7fe855859" target="_blank" rel="noreferrer">Canonical design</a>
           <a href="#contract">Contract</a>
           <a href="#flow">User journey</a>
           <a href="#migration">Migration</a>
@@ -858,15 +859,17 @@
     <main id="top">
       <section class="hero">
         <div class="hero-copy">
-          <p class="kicker">Decision: source-first</p>
+          <p class="kicker">Implementation mirror · source-first</p>
           <h1>Video primitives without a ceiling.</h1>
           <p>The installed HTML, CSS, and JavaScript are the interface. Structured inputs accelerate creation without limiting it.</p>
           <div class="hero-actions">
-            <a class="button" href="#contract">See the contract</a>
-            <a class="button secondary" href="#migration">Map current primitives</a>
+            <a class="button" href="https://www.heygenverse.com/a/21c28523-7487-43e1-927d-43a7fe855859" target="_blank" rel="noreferrer">Open canonical HeyGenVerse design</a>
+            <a class="button secondary" href="#contract">See the implementation contract</a>
           </div>
           <p class="decision-note">
-            This is more open than a React component. Users can change the data, markup, styles, timing, layout, effects, and rendering logic.
+            <strong>Source of truth:</strong>
+            <a href="https://www.heygenverse.com/a/21c28523-7487-43e1-927d-43a7fe855859" target="_blank" rel="noreferrer">the HeyGenVerse artifact</a>.
+            This repository HTML is a versioned implementation mirror. It must follow that design while translating it into buildable contracts, tests, and release slices.
           </p>
         </div>
 
@@ -1116,7 +1119,7 @@
         <div class="flow-shell">
           <div class="flow" role="img" aria-label="First primitive implementation sequence">
             <div class="flow-node"><strong>Catalog result</strong><span>thread-message-stack selected with the original query preserved.</span></div>
-            <div class="flow-node accent"><strong>Install</strong><span>Copy the canonical HTML, then replace its JSON data block.</span></div>
+            <div class="flow-node accent"><strong>Install</strong><span>Copy the primitive HTML, then replace its JSON data block.</span></div>
             <div class="flow-node"><strong>Preview</strong><span>All requested messages render in authored sequence with no truncation.</span></div>
             <div class="flow-node"><strong>Own source</strong><span>User edits data, DOM, CSS, GSAP, or JavaScript directly.</span></div>
           </div>
