@@ -41,7 +41,7 @@ type Commit = (
 /** Renders the hook and hands its commit function to the caller via a ref callback. */
 function renderHookWith(
   animations: GsapAnimation[],
-  onMutation: (mutation: Record<string, unknown>, label: string) => void,
+  onMutation: (mutation: Record<string, unknown>, label: string) => void | Promise<void>,
   onReady: (commit: Commit) => void,
 ) {
   function Harness() {
@@ -65,7 +65,13 @@ function renderCommitHook(
   mutations: Array<Record<string, unknown>>,
   onReady: (commit: Commit) => void,
 ) {
-  return renderHookWith([keyframedAnim], (mutation) => mutations.push(mutation), onReady);
+  return renderHookWith(
+    [keyframedAnim],
+    (mutation) => {
+      mutations.push(mutation);
+    },
+    onReady,
+  );
 }
 
 // Regression (#1808): a "3D transform" / design-panel property edit on an
@@ -74,6 +80,59 @@ function renderCommitHook(
 // off, it must shift the whole tween instead of adding/updating a keyframe
 // at the playhead.
 describe("useAnimatedPropertyCommit — autoKeyframeEnabled toggle (#1808)", () => {
+  it.each([
+    {
+      label: "helper-authored",
+      animation: {
+        ...keyframedAnim,
+        provenance: { kind: "helper", fn: "slide", callSite: 1 },
+      } as GsapAnimation,
+      reason: "unroll-required",
+    },
+    {
+      label: "runtime-computed",
+      animation: { ...keyframedAnim, hasUnresolvedKeyframes: true } as GsapAnimation,
+      reason: "source-uneditable",
+    },
+  ])("blocks $label property source before mutation", async ({ animation, reason }) => {
+    const mutations: Array<Record<string, unknown>> = [];
+    let commit!: Commit;
+    const root = renderHookWith(
+      [animation],
+      (mutation) => {
+        mutations.push(mutation);
+      },
+      (fn) => (commit = fn),
+    );
+
+    await expect(commit(selection, { x: 50 })).rejects.toMatchObject({ reason });
+    expect(mutations).toEqual([]);
+    act(() => root.unmount());
+  });
+
+  it("rejects when the underlying source mutation rejects", async () => {
+    const error = new Error("write failed");
+    let commit!: Commit;
+    const bumpGsapCache = vi.fn();
+    function Harness() {
+      const hook = useAnimatedPropertyCommit({
+        selectedGsapAnimations: [keyframedAnim],
+        gsapCommitMutation: vi.fn().mockRejectedValue(error),
+        addGsapAnimation: vi.fn(),
+        convertToKeyframes: vi.fn(),
+        previewIframeRef: { current: null },
+        bumpGsapCache,
+      });
+      commit = hook.commitAnimatedProperties;
+      return null;
+    }
+    const root = mountReactHarness(<Harness />);
+
+    await expect(commit(selection, { x: 50 })).rejects.toBe(error);
+    expect(bumpGsapCache).toHaveBeenCalledTimes(1);
+    act(() => root.unmount());
+  });
+
   it("shifts the whole tween instead of updating a keyframe when the toggle is off", async () => {
     usePlayerStore.setState({ autoKeyframeEnabled: false, currentTime: 0 });
     const mutations: Array<Record<string, unknown>> = [];
@@ -125,7 +184,9 @@ describe("commitStaticSet group routing", () => {
   ) {
     return renderHookWith(
       [positionSet],
-      (mutation, label) => committed.push({ mutation, label }),
+      (mutation, label) => {
+        committed.push({ mutation, label });
+      },
       onReady,
     );
   }
@@ -173,7 +234,9 @@ describe("commitStaticSet group routing", () => {
     let commit!: Commit;
     renderHookWith(
       [positionSet, instantSizeHold],
-      (mutation, label) => committed.push({ mutation, label }),
+      (mutation, label) => {
+        committed.push({ mutation, label });
+      },
       (c) => (commit = c),
     );
 
