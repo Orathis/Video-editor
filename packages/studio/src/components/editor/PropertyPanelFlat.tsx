@@ -258,7 +258,7 @@ export function PropertyPanelFlat({
   const showMotionEffects = gsapEffectHandlers !== null;
   const showMotionGroup = showMotionTiming || showMotionEffects;
 
-  const volumeAutomation = useVolumeAutomation(element, onSetAttribute);
+  const volumeAutomation = useVolumeAutomation(element, onSetAttributeQuiet ?? onSetAttributeLive);
 
   const groups: FlatGroupDescriptor[] = [];
   if (isTextEditable) {
@@ -440,6 +440,7 @@ export function PropertyPanelFlat({
         <AudioFxGroup
           element={element}
           onSetAttributeQuiet={onSetAttributeQuiet ?? onSetAttributeLive}
+          onSetAttributeLive={onSetAttributeLive}
         />
       ),
     });
