@@ -33,6 +33,7 @@ import {
   writeProjectConfig,
 } from "../utils/projectConfig.js";
 import { copyToClipboard } from "../utils/clipboard.js";
+import { authorizeThreadMessageStackInstall } from "../registry/threadMessageStackAuthorization.js";
 
 // ── Target-path resolution ──────────────────────────────────────────────────
 // `registry-item.json` files specify `target` paths relative to the project
@@ -113,7 +114,8 @@ export class AddError extends Error {
       | "wrong-type"
       | "install-failed"
       | "example-type"
-      | "incompatible-cli",
+      | "incompatible-cli"
+      | "oauth-required",
   ) {
     super(message);
     this.name = "AddError";
@@ -174,6 +176,19 @@ export async function runAdd(opts: RunAddArgs): Promise<RunAddResult> {
   if (!hasConfig && existsSync(resolve(projectDir, "index.html"))) {
     writeProjectConfig(projectDir, DEFAULT_PROJECT_CONFIG);
     config = DEFAULT_PROJECT_CONFIG;
+  }
+
+  // This source-owned primitive is not downloadable through generic registry
+  // credentials. Gate its named command boundary before registry resolution so
+  // an API key, cancellation, or failed OAuth cannot fetch even its manifest.
+  if (opts.name === "thread-message-stack") {
+    const authorization = await authorizeThreadMessageStackInstall();
+    if (authorization !== "authorized") {
+      throw new AddError(
+        `thread-message-stack requires verified HeyGen OAuth (${authorization}); no source was downloaded or materialized.`,
+        "oauth-required",
+      );
+    }
   }
 
   // 2. Resolve the requested item and its transitive registryDependencies.

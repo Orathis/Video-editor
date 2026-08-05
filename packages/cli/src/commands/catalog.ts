@@ -24,7 +24,11 @@ import {
   filterPrimitiveCatalogItems,
   resumePrimitiveInstallExactlyOnce,
 } from "./catalog-resume.js";
-import { AuthClient, startAuthorizationCodeFlow, tryResolveCredential } from "../auth/index.js";
+import {
+  AuthClient,
+  startAuthorizationCodeFlow,
+  tryResolveOAuthCredential,
+} from "../auth/index.js";
 import { PrimitiveFunnel } from "../telemetry/primitive-funnel.js";
 import { writePrimitiveFunnelContext } from "../telemetry/primitive-funnel-state.js";
 import {
@@ -156,22 +160,24 @@ export default defineCommand({
         funnel.selected();
         const outcome = await resumePrimitiveInstallExactlyOnce(intent, {
           store: createFilePrimitiveInstallStateStore(),
-          isAuthenticated: async () => (await tryResolveCredential()) !== null,
+          isAuthenticated: async () => {
+            const credential = await tryResolveOAuthCredential();
+            if (!credential) return false;
+            try {
+              await new AuthClient().getCurrentUser(credential);
+              return true;
+            } catch {
+              return false;
+            }
+          },
           authenticate: async () => {
             funnel.authRequired();
             try {
               await startAuthorizationCodeFlow();
-              const credential = await tryResolveCredential();
-              if (credential) {
-                try {
-                  const user = await new AuthClient().getCurrentUser(credential);
-                  funnel.authCompleted(user.email ?? user.username);
-                } catch {
-                  funnel.authCompleted();
-                }
-              } else {
-                funnel.authCompleted();
-              }
+              const credential = await tryResolveOAuthCredential();
+              if (!credential) return "failed";
+              const user = await new AuthClient().getCurrentUser(credential);
+              funnel.authCompleted(user.email ?? user.username);
               return true;
             } catch {
               return "failed";
