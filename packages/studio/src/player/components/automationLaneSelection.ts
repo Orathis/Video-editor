@@ -42,7 +42,10 @@ function anchor(
 function decimateEvenly<T>(items: readonly T[], budget: number): T[] {
   if (budget <= 0) return [];
   if (items.length <= budget) return [...items];
-  if (budget === 1) return [items[0]!];
+  if (budget === 1) {
+    const item = items[0];
+    return item ? [item] : [];
+  }
   const out: T[] = [];
   const step = (items.length - 1) / (budget - 1);
   for (let i = 0; i < budget; i += 1) {
