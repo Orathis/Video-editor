@@ -22,6 +22,10 @@ import {
   type RegistryItem,
   type RegistryManifest,
 } from "@hyperframes/core";
+import {
+  parseHeyGenVerseCatalogProjection,
+  type HeyGenVerseCatalogProjection,
+} from "./heygenverseCatalog.js";
 
 export const DEFAULT_REGISTRY_URL =
   "https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry";
@@ -99,6 +103,19 @@ export async function fetchRegistryManifest(
   } catch {
     return undefined;
   }
+}
+
+/** Fetch and validate the immutable HeyGenVerse export projection. */
+export async function fetchHeyGenVerseCatalogProjection(
+  baseUrl: string = DEFAULT_REGISTRY_URL,
+): Promise<HeyGenVerseCatalogProjection> {
+  const response = await fetch(`${baseUrl}/heygenverse-catalog.json`, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+  if (!response.ok) {
+    throw new Error(`HeyGenVerse catalog projection fetch failed — HTTP ${response.status}`);
+  }
+  return parseHeyGenVerseCatalogProjection(await response.text());
 }
 
 /**
