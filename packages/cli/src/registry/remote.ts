@@ -107,9 +107,11 @@ export async function fetchRegistryManifest(
 
 /** Fetch and validate the immutable HeyGenVerse export projection. */
 export async function fetchHeyGenVerseCatalogProjection(
-  baseUrl: string = DEFAULT_REGISTRY_URL,
+  _baseUrl: string = DEFAULT_REGISTRY_URL,
 ): Promise<HeyGenVerseCatalogProjection> {
-  const response = await fetch(`${baseUrl}/heygenverse-catalog.json`, {
+  // Keep the optional parameter for API compatibility, but never let project
+  // configuration redirect this immutable source-of-truth projection.
+  const response = await fetch(`${DEFAULT_REGISTRY_URL}/heygenverse-catalog.json`, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   if (!response.ok) {

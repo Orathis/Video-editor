@@ -29,7 +29,6 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, resolve, dirname } from "node:path";
-import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 // Import from source — bun workspace linking doesn't resolve for scripts outside packages/.
 import {
@@ -44,6 +43,7 @@ import {
 } from "../packages/producer/src/index.js";
 import { compileForRender } from "../packages/producer/src/services/htmlCompiler.js";
 import { resolveContainedCopies } from "./registry-target-paths.mjs";
+import { createCatalogPreviewTempDir } from "./catalog-preview-temp.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
@@ -167,8 +167,7 @@ function normalizePrimitiveDataForPreview(content: string): string {
 }
 
 async function prepareProjectDir(item: CatalogItem): Promise<string> {
-  const tmpDir = join(tmpdir(), `hf-catalog-${item.name}-${Date.now()}`);
-  mkdirSync(tmpDir, { recursive: true });
+  const tmpDir = createCatalogPreviewTempDir(item.name);
   cpSync(item.sourceDir, tmpDir, { recursive: true });
   mirrorRegistryTargets(tmpDir);
 
