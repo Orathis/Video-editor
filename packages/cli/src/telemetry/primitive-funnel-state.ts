@@ -20,6 +20,7 @@ function isContext(value: unknown): value is PrimitiveFunnelContext {
   return [
     "funnelId",
     "installId",
+    "primitiveId",
     "artifactId",
     "versionId",
     "catalogVersion",
@@ -31,8 +32,24 @@ export function readPrimitiveFunnelContext(projectDir: string): PrimitiveFunnelC
   try {
     const value: unknown = JSON.parse(readFileSync(statePath(projectDir), "utf8"));
     if (!isContext(value)) return null;
-    const { funnelId, installId, artifactId, versionId, catalogVersion, queryFingerprint } = value;
-    return { funnelId, installId, artifactId, versionId, catalogVersion, queryFingerprint };
+    const {
+      funnelId,
+      installId,
+      primitiveId,
+      artifactId,
+      versionId,
+      catalogVersion,
+      queryFingerprint,
+    } = value;
+    return {
+      funnelId,
+      installId,
+      primitiveId,
+      artifactId,
+      versionId,
+      catalogVersion,
+      queryFingerprint,
+    };
   } catch {
     return null;
   }

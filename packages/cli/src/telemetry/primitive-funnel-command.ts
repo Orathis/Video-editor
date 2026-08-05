@@ -13,28 +13,34 @@ function emitProjectTerminal(
   emit(new PrimitiveFunnel(context), eventId);
 }
 
-export function trackPrimitivePreviewSucceeded(projectDir: string): void {
-  emitProjectTerminal(projectDir, "preview", (funnel, eventId) => funnel.previewSucceeded(eventId));
+export function trackPrimitivePreviewSucceeded(projectDir: string, durationMs: number): void {
+  emitProjectTerminal(projectDir, "preview", (funnel, eventId) =>
+    funnel.previewSucceeded(eventId, durationMs),
+  );
 }
 
 export function trackPrimitivePreviewFailed(
   projectDir: string,
   errorCode: PrimitiveFunnelErrorCode,
+  durationMs: number,
 ): void {
   emitProjectTerminal(projectDir, "preview", (funnel, eventId) =>
-    funnel.previewFailed(eventId, errorCode),
+    funnel.previewFailed(eventId, errorCode, durationMs),
   );
 }
 
-export function trackPrimitiveRenderSucceeded(projectDir: string): void {
-  emitProjectTerminal(projectDir, "render", (funnel, eventId) => funnel.renderSucceeded(eventId));
+export function trackPrimitiveRenderSucceeded(projectDir: string, durationMs: number): void {
+  emitProjectTerminal(projectDir, "render", (funnel, eventId) =>
+    funnel.renderSucceeded(eventId, durationMs),
+  );
 }
 
 export function trackPrimitiveRenderFailed(
   projectDir: string,
   errorCode: PrimitiveFunnelErrorCode,
+  durationMs: number,
 ): void {
   emitProjectTerminal(projectDir, "render", (funnel, eventId) =>
-    funnel.renderFailed(eventId, errorCode),
+    funnel.renderFailed(eventId, errorCode, durationMs),
   );
 }
