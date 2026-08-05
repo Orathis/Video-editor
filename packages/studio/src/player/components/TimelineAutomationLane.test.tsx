@@ -805,6 +805,74 @@ describe("TimelineAutomationLane stretch", () => {
     expect(t1).toBeLessThanOrEqual(4);
   });
 
+  it("retimes identically whether the right edge arrives in one move or several", () => {
+    // moveEdge must always retime from the points snapshotted at arm time,
+    // never from the live draft — retimeRange is a RELATIVE transform (it
+    // scales the lane's OWN current point positions by newSpan/oldSpan), so
+    // feeding it the live draft on every pointermove compounds the scale
+    // factor instead of applying it once. A real drag fires dozens of moves;
+    // this asserts the FINAL preview is identical regardless of how many.
+    const onPreviewSingle = vi.fn();
+    const single = mount(stretchable, {
+      rangeSelection: { t0: 0.5, t1: 2.5 },
+      onPreview: onPreviewSingle,
+    });
+    fire(single.svg, "pointerdown", at(2.5, 0.5));
+    fire(single.svg, "pointermove", at(3.3, 0.5));
+    const singleShot = (onPreviewSingle.mock.calls.at(-1)?.[0] as HfAutomation | undefined)
+      ?.lanes[0]?.points;
+    expect(singleShot).toBeDefined();
+
+    const onPreviewMulti = vi.fn();
+    const multi = mount(stretchable, {
+      rangeSelection: { t0: 0.5, t1: 2.5 },
+      onPreview: onPreviewMulti,
+    });
+    fire(multi.svg, "pointerdown", at(2.5, 0.5));
+    // At least 3 separate pointermoves crossing the same span, not one jump.
+    fire(multi.svg, "pointermove", at(2.7, 0.5));
+    fire(multi.svg, "pointermove", at(2.9, 0.5));
+    fire(multi.svg, "pointermove", at(3.1, 0.5));
+    fire(multi.svg, "pointermove", at(3.3, 0.5));
+    const afterFourMoves = (onPreviewMulti.mock.calls.at(-1)?.[0] as HfAutomation | undefined)
+      ?.lanes[0]?.points;
+    expect(afterFourMoves).toBeDefined();
+
+    // Both interior points (t=1, t=2) land exactly where a single-shot retime
+    // puts them — not compounded, and not dropped.
+    expect(afterFourMoves).toEqual(singleShot);
+    expect(afterFourMoves?.length).toBe(6);
+    expect(afterFourMoves?.some((p) => Math.abs(p.t - 1.2) < 0.001 && p.v === 0.5)).toBe(true);
+    expect(afterFourMoves?.some((p) => Math.abs(p.t - 2.6) < 0.001 && p.v === 0.8)).toBe(true);
+  });
+
+  it("retimes identically whether the left edge arrives in one move or several", () => {
+    const onPreviewSingle = vi.fn();
+    const single = mount(stretchable, {
+      rangeSelection: { t0: 1, t1: 3 },
+      onPreview: onPreviewSingle,
+    });
+    fire(single.svg, "pointerdown", at(1, 0.5));
+    fire(single.svg, "pointermove", at(0.2, 0.5));
+    const singleShot = (onPreviewSingle.mock.calls.at(-1)?.[0] as HfAutomation | undefined)
+      ?.lanes[0]?.points;
+    expect(singleShot).toBeDefined();
+
+    const onPreviewMulti = vi.fn();
+    const multi = mount(stretchable, {
+      rangeSelection: { t0: 1, t1: 3 },
+      onPreview: onPreviewMulti,
+    });
+    fire(multi.svg, "pointerdown", at(1, 0.5));
+    fire(multi.svg, "pointermove", at(0.7, 0.5));
+    fire(multi.svg, "pointermove", at(0.4, 0.5));
+    fire(multi.svg, "pointermove", at(0.2, 0.5));
+    const afterThreeMoves = (onPreviewMulti.mock.calls.at(-1)?.[0] as HfAutomation | undefined)
+      ?.lanes[0]?.points;
+    expect(afterThreeMoves).toBeDefined();
+    expect(afterThreeMoves).toEqual(singleShot);
+  });
+
   it("shows a resize cursor when hovering an edge with nothing else live", () => {
     const { svg } = mount(ramp, { rangeSelection: { t0: 1, t1: 3 } });
     fire(svg, "pointermove", at(3, 0.5)); // near the right edge, nothing pressed

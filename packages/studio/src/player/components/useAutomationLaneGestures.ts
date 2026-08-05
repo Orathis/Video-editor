@@ -12,7 +12,11 @@
  */
 
 import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import type { AutomationRange, HfAutomationLane } from "@hyperframes/core/audio-automation";
+import type {
+  AutomationRange,
+  HfAutomationLane,
+  HfAutomationPoint,
+} from "@hyperframes/core/audio-automation";
 import {
   applyShiftConstraint,
   curveForDrag,
@@ -125,12 +129,17 @@ export function useAutomationLaneGestures({
    *  into an actual range, rather than a click that should just clear one. */
   const rangeCrossed = useRef(false);
   /** An edge-stretch drag in progress: which edge, the selection it started
-   *  from (kept fixed as the retime's untouched anchor), and the edge's own
-   *  live position. */
+   *  from (kept fixed as the retime's untouched anchor), the edge's own live
+   *  position, and the lane's points as they stood at arm time. `retimeRange`
+   *  is a RELATIVE transform — it scales a lane's own current point positions
+   *  by newSpan/oldSpan — so it must always run against this fixed snapshot,
+   *  never against the live draft: retiming from the draft would compound the
+   *  scale factor on every pointermove instead of applying it once. */
   const [edgeDrag, setEdgeDrag] = useState<{
     edge: "t0" | "t1";
     origin: { t0: number; t1: number };
     current: number;
+    points: HfAutomationPoint[];
   } | null>(null);
   /** Cursor hint: hovering a stretch handle with nothing else live. */
   const [edgeHover, setEdgeHover] = useState(false);
@@ -210,6 +219,7 @@ export function useAutomationLaneGestures({
           edge,
           origin: rangeSelection,
           current: edge === "t0" ? rangeSelection.t0 : rangeSelection.t1,
+          points: lane.points,
         });
         return;
       }
@@ -222,7 +232,7 @@ export function useAutomationLaneGestures({
       rangeCrossed.current = false;
       setRangeDrag({ from: t, to: t });
     },
-    [edgeAt, rangeSelection, onRangeSelect, pointAt, duration, snapTimes],
+    [edgeAt, rangeSelection, onRangeSelect, pointAt, duration, snapTimes, lane],
   );
 
   const onPointerDown = useCallback(
@@ -310,20 +320,32 @@ export function useAutomationLaneGestures({
   const moveEdge = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>): void => {
       if (edgeDrag === null) return;
-      const { edge, origin } = edgeDrag;
+      const { edge, origin, points } = edgeDrag;
       const raw = pointAt(e.clientX, e.clientY).t;
       const clamped = Math.min(duration, Math.max(0, raw));
       const current =
         edge === "t0"
           ? Math.min(clamped, origin.t1 - POINT_MERGE_SEC)
           : Math.max(clamped, origin.t0 + POINT_MERGE_SEC);
-      setEdgeDrag({ edge, origin, current });
+      setEdgeDrag({ edge, origin, current, points });
       const newT0 = edge === "t0" ? current : origin.t0;
       const newT1 = edge === "t1" ? current : origin.t1;
       setHint(`${newT0.toFixed(2)}s → ${newT1.toFixed(2)}s`);
-      commitPoints(retimeRange({ lane, range, t0: origin.t0, t1: origin.t1, newT0, newT1 }), false);
+      // Retime from the snapshot taken at arm time, never from `lane` (the
+      // live draft) — see the state comment above for why.
+      commitPoints(
+        retimeRange({
+          lane: { target: lane.target, points },
+          range,
+          t0: origin.t0,
+          t1: origin.t1,
+          newT0,
+          newT1,
+        }),
+        false,
+      );
     },
-    [edgeDrag, pointAt, duration, lane, range, commitPoints],
+    [edgeDrag, pointAt, duration, lane.target, range, commitPoints],
   );
 
   /** Update the live range-drag as the pointer moves, firing `onRangeSelect`
