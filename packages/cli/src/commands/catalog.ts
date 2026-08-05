@@ -164,7 +164,8 @@ export default defineCommand({
             const credential = await tryResolveOAuthCredential();
             if (!credential) return false;
             try {
-              await new AuthClient().getCurrentUser(credential);
+              const user = await new AuthClient().getCurrentUser(credential);
+              funnel.authCompleted(user.email ?? user.username);
               return true;
             } catch {
               return false;

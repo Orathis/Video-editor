@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   startAuthorizationCodeFlow: vi.fn(),
   getCurrentUser: vi.fn(),
   runAdd: vi.fn(),
+  trackEvent: vi.fn(),
+  shouldTrack: vi.fn(),
 }));
 
 vi.mock("@clack/prompts", () => ({
@@ -23,6 +25,13 @@ vi.mock("../auth/index.js", () => ({
   },
 }));
 vi.mock("./add.js", () => ({ runAdd: mocks.runAdd }));
+vi.mock("../telemetry/client.js", () => ({
+  trackEvent: mocks.trackEvent,
+  shouldTrack: mocks.shouldTrack,
+}));
+vi.mock("../telemetry/config.js", () => ({
+  readConfig: () => ({ anonymousId: "anonymous-test-id" }),
+}));
 vi.mock("../registry/resolver.js", () => ({
   listRegistryItems: vi.fn(async () => [
     { name: "thread-message-stack", type: "hyperframes:block" },
@@ -39,16 +48,6 @@ vi.mock("../registry/resolver.js", () => ({
       files: [],
     },
   ]),
-}));
-vi.mock("../telemetry/primitive-funnel.js", () => ({
-  PrimitiveFunnel: class {
-    searched = vi.fn();
-    selected = vi.fn();
-    authRequired = vi.fn();
-    authCompleted = vi.fn();
-    installFailed = vi.fn();
-    installSucceeded = vi.fn();
-  },
 }));
 vi.mock("../telemetry/primitive-funnel-state.js", () => ({
   writePrimitiveFunnelContext: vi.fn(),
@@ -78,6 +77,8 @@ describe("interactive catalog verified OAuth boundary", () => {
     mocks.tryResolveOAuthCredential.mockReset().mockResolvedValue(null);
     mocks.startAuthorizationCodeFlow.mockReset().mockResolvedValue(undefined);
     mocks.getCurrentUser.mockReset().mockResolvedValue({ email: "verified@example.com" });
+    mocks.trackEvent.mockReset();
+    mocks.shouldTrack.mockReset().mockReturnValue(true);
     mocks.runAdd.mockReset().mockResolvedValue({
       ok: true,
       name: "thread-message-stack",
@@ -104,6 +105,65 @@ describe("interactive catalog verified OAuth boundary", () => {
 
     expect(mocks.startAuthorizationCodeFlow).toHaveBeenCalledTimes(1);
     expect(mocks.getCurrentUser).toHaveBeenCalledWith(expect.objectContaining({ type: "oauth" }));
+    expect(mocks.runAdd).toHaveBeenCalledTimes(1);
+  });
+
+  it("stitches an already verified OAuth session exactly once before install", async () => {
+    mocks.tryResolveOAuthCredential.mockResolvedValue({
+      type: "oauth",
+      access_token: "existing-oauth-token",
+      source: "file_json",
+      refreshable: false,
+    });
+    mocks.runAdd.mockImplementationOnce(async () => {
+      const identify = mocks.trackEvent.mock.calls.filter(([name]) => name === "$identify");
+      const authCompleted = mocks.trackEvent.mock.calls.filter(
+        ([name]) => name === "primitive_auth_completed",
+      );
+      expect(identify).toHaveLength(1);
+      expect(authCompleted).toHaveLength(1);
+      expect(identify[0]?.[1].funnel_id).toBe(authCompleted[0]?.[1].funnel_id);
+      return {
+        ok: true,
+        name: "thread-message-stack",
+        type: "hyperframes:block",
+        written: [],
+        warnings: [],
+        snippet: "",
+      };
+    });
+
+    await catalogCommand.run!({
+      args: { "human-friendly": true },
+      rawArgs: [],
+      cmd: catalogCommand,
+    } as never);
+
+    expect(mocks.startAuthorizationCodeFlow).not.toHaveBeenCalled();
+    expect(mocks.trackEvent.mock.calls.filter(([name]) => name === "$identify")).toHaveLength(1);
+    expect(
+      mocks.trackEvent.mock.calls.filter(([name]) => name === "primitive_auth_completed"),
+    ).toHaveLength(1);
+    expect(mocks.runAdd).toHaveBeenCalledTimes(1);
+  });
+
+  it("emits no identity or auth-completed events when opted out", async () => {
+    mocks.shouldTrack.mockReturnValue(false);
+    mocks.tryResolveOAuthCredential.mockResolvedValue({
+      type: "oauth",
+      access_token: "existing-oauth-token",
+      source: "file_json",
+      refreshable: false,
+    });
+
+    await catalogCommand.run!({
+      args: { "human-friendly": true },
+      rawArgs: [],
+      cmd: catalogCommand,
+    } as never);
+
+    expect(mocks.startAuthorizationCodeFlow).not.toHaveBeenCalled();
+    expect(mocks.trackEvent).not.toHaveBeenCalled();
     expect(mocks.runAdd).toHaveBeenCalledTimes(1);
   });
 });
