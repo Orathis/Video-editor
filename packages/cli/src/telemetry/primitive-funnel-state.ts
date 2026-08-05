@@ -1,10 +1,11 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { closeSync, mkdirSync, openSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import type { PrimitiveFunnelContext } from "./primitive-funnel.js";
 
 const FUNNEL_STATE_DIR = ".hyperframes";
 const FUNNEL_STATE_FILE = "primitive-funnel.json";
+const FUNNEL_CLAIM_DIR = "primitive-funnel-claims";
 
 interface PersistedPrimitiveFunnelContext extends PrimitiveFunnelContext {
   emittedEventIds: string[];
@@ -12,6 +13,19 @@ interface PersistedPrimitiveFunnelContext extends PrimitiveFunnelContext {
 
 function statePath(projectDir: string): string {
   return join(projectDir, FUNNEL_STATE_DIR, FUNNEL_STATE_FILE);
+}
+
+function createClaimMarker(projectDir: string, eventId: string): boolean {
+  const directory = join(projectDir, FUNNEL_STATE_DIR, FUNNEL_CLAIM_DIR);
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
+  const digest = createHash("sha256").update(eventId).digest("hex");
+  try {
+    const descriptor = openSync(join(directory, `${digest}.claim`), "wx", 0o600);
+    closeSync(descriptor);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function isContext(value: unknown): value is PrimitiveFunnelContext {
@@ -88,7 +102,13 @@ export function claimPrimitiveFunnelEvent(projectDir: string, eventId: string): 
     if (emittedEventIds.includes(eventId)) return false;
     const context = readPrimitiveFunnelContext(projectDir);
     if (!context) return false;
-    writeState(projectDir, { ...context, emittedEventIds: [...emittedEventIds, eventId] });
+    if (!createClaimMarker(projectDir, eventId)) return false;
+    try {
+      writeState(projectDir, { ...context, emittedEventIds: [...emittedEventIds, eventId] });
+    } catch {
+      // The permanent O_EXCL marker is the authoritative claim. Retaining it
+      // fails closed if the compatibility state rewrite cannot complete.
+    }
     return true;
   } catch {
     return false;

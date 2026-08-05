@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -13,6 +14,56 @@ vi.mock("./client.js", () => ({
 const { PrimitiveFunnel } = await import("./primitive-funnel.js");
 const { claimPrimitiveFunnelEvent, readPrimitiveFunnelContext, writePrimitiveFunnelContext } =
   await import("./primitive-funnel-state.js");
+
+async function runSynchronizedClaims(
+  projectDir: string,
+  eventId: string,
+  processCount: number,
+): Promise<number> {
+  const workerPath = join(projectDir, "primitive-funnel-claim.worker.ts");
+  const gatePath = join(projectDir, "primitive-funnel-claim.gate");
+  const stateModuleUrl = new URL("./primitive-funnel-state.ts", import.meta.url).href;
+  writeFileSync(
+    workerPath,
+    [
+      'import { existsSync, writeFileSync } from "node:fs";',
+      `import { claimPrimitiveFunnelEvent } from ${JSON.stringify(stateModuleUrl)};`,
+      "const [projectDir, eventId, gatePath, readyPath] = process.argv.slice(2);",
+      "writeFileSync(readyPath, String(process.pid));",
+      "while (!existsSync(gatePath)) await Bun.sleep(1);",
+      'process.stdout.write(claimPrimitiveFunnelEvent(projectDir, eventId) ? "true" : "false");',
+    ].join("\n"),
+  );
+
+  const readyPaths = Array.from({ length: processCount }, (_, index) =>
+    join(projectDir, `primitive-funnel-claim.ready-${index}`),
+  );
+  const exits = readyPaths.map((readyPath) => {
+    const child = spawn("bun", [workerPath, projectDir, eventId, gatePath, readyPath], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
+    return new Promise<string>((resolve, reject) => {
+      child.on("error", reject);
+      child.on("close", (code) => {
+        if (code === 0) resolve(Buffer.concat(stdout).toString("utf8"));
+        else reject(new Error(`claim worker exited ${code}: ${Buffer.concat(stderr)}`));
+      });
+    });
+  });
+
+  const readinessDeadline = Date.now() + 10_000;
+  while (!readyPaths.every((path) => existsSync(path))) {
+    if (Date.now() >= readinessDeadline) throw new Error("claim workers did not become ready");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  writeFileSync(gatePath, "go");
+  const outputs = await Promise.all(exits);
+  return outputs.filter((output) => output === "true").length;
+}
 
 // Funnel contract assertions intentionally share one mocked telemetry boundary.
 // fallow-ignore-next-line unit-size
@@ -146,4 +197,31 @@ describe("primitive discovery funnel", () => {
     );
     rmSync(dir, { recursive: true, force: true });
   });
+
+  it("repeatedly claims one shared preview and render event across independent processes", async () => {
+    for (const suffix of ["preview", "render"] as const) {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const dir = mkdtempSync(join(tmpdir(), `hf-funnel-${suffix}-race-`));
+        try {
+          const installId = `race-install-${suffix}-${attempt}`;
+          writePrimitiveFunnelContext(dir, {
+            funnelId: `race-funnel-${suffix}-${attempt}`,
+            installId,
+            primitiveId: "thread-message-stack",
+            artifactId: "race-artifact",
+            versionId: "race-version",
+            catalogVersion: "race-catalog",
+            queryFingerprint: "sha256:race",
+          });
+          const trueCount = await runSynchronizedClaims(dir, `${installId}:${suffix}`, 32);
+          console.log(
+            `primitive-funnel ${suffix} race ${attempt} observed true-count=${trueCount}`,
+          );
+          expect(trueCount).toBe(1);
+        } finally {
+          rmSync(dir, { recursive: true, force: true });
+        }
+      }
+    }
+  }, 30_000);
 });

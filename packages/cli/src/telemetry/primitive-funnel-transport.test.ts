@@ -69,6 +69,7 @@ describe("primitive funnel queued transport boundary", () => {
     writePrimitiveFunnelContext(projectDir, context);
     funnel.installCompleted("install-transport:install-completed", 7);
     trackPrimitivePreviewSucceeded(projectDir, 11);
+    trackPrimitivePreviewSucceeded(projectDir, 99);
     trackPrimitiveRenderSucceeded(projectDir, 13);
 
     await flush();
@@ -92,6 +93,7 @@ describe("primitive funnel queued transport boundary", () => {
       "primitive_render_succeeded",
     ]);
     expect(events.filter(({ event }) => event === "$identify")).toHaveLength(1);
+    expect(events.filter(({ event }) => event === "primitive_preview_succeeded")).toHaveLength(1);
     expect(events.every(({ properties }) => properties.funnel_id === "funnel-transport")).toBe(
       true,
     );
