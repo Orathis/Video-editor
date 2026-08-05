@@ -630,7 +630,12 @@ export async function publishProjectArchive(
       projectId,
     ));
   // Remember the server's id + url so the next publish of this directory updates in place.
-  if (credential) {
+  // Both halves are load-bearing. A credential is necessary but NOT sufficient:
+  // `tryResolveCredential` also returns API keys, which the server does not accept as
+  // ownership — it falls back to an anonymous publish and mints a throwaway project.
+  // Recording that throwaway would overwrite the real link this directory published to
+  // before, losing the only local record of it. Ownership is what the RESPONSE says.
+  if (credential && result.claimed) {
     writeProjectLink(projectDir, { projectId: result.projectId, url: result.url });
   }
   return result;

@@ -786,6 +786,43 @@ describe("publishProjectArchive", () => {
     }
   });
 
+  it("does not persist a link when a credential is present but the server publishes anonymously", async () => {
+    // The uncovered state that shipped the bug: `tryResolveCredential` also returns API
+    // keys, which the server does not accept as ownership — it ignores the stable id and
+    // mints a throwaway project instead. Persisting that would clobber the real link this
+    // directory published to before, so ownership must be read off the RESPONSE.
+    authMocks.tryResolveCredential.mockResolvedValue({
+      type: "api_key",
+      key: "test-key",
+      source: "file_json",
+      refreshable: false,
+    });
+    const dir = makeProjectDir();
+    const fetchMock = stagedFetch({
+      project_id: "hfp_throwaway",
+      url: "https://hyperframes.dev/p/hfp_throwaway",
+      claim_token: "claim-token",
+      claimed: false,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      writeFileSync(join(dir, "index.html"), "<html></html>", "utf-8");
+
+      const result = await publishProjectArchive(dir, { projectId: "hfp_stable" });
+
+      // The id is still sent — a credential was present, and the server decides.
+      const completeBody = JSON.parse(fetchMock.mock.calls[2]![1].body);
+      expect(completeBody.project_id).toBe("hfp_stable");
+      // But the server minted a different, unclaimed project, so nothing is remembered.
+      expect(result.claimed).toBe(false);
+      expect(result.projectId).toBe("hfp_throwaway");
+      expect(linkMocks.writeProjectLink).not.toHaveBeenCalled();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   async function publishWithTeamSpace(authed: boolean) {
     // Set explicitly (not just for the authed case) so calling this twice in one test —
     // authed then anonymous — doesn't leak the credential mock across calls.

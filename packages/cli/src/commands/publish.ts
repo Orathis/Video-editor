@@ -140,8 +140,9 @@ export default defineCommand({
     // Team space: explicit --space wins, else the committed space id, else the personal space.
     const spaceId = spaceOverride ?? committedTeam?.spaceId;
 
-    // Continuity cue: if this directory was published before, show where it lives so the
-    // user knows a re-publish updates that same link (when logged in).
+    // Continuity cue: if this directory was published before, show where it lives. Whether
+    // the re-publish actually lands there is only known from the response, so this cue is a
+    // promise the result must reconcile — the anonymous branch below retracts it by name.
     const priorLink = readProjectLink(dir);
     if (priorLink?.url) {
       console.log();
@@ -235,6 +236,16 @@ export default defineCommand({
           );
           console.log(
             `  ${c.dim("Run 'hyperframes auth login' again, then re-publish to update in place.")}`,
+          );
+        } else if (priorLink?.url) {
+          // This directory had a link and the publish still came back anonymous, so the
+          // link above is NOT that one. Without this the run reads as continuous: the
+          // "Previously published at …" cue prints before the publish and nothing ever
+          // retracts it. Name the abandoned URL — it is the only remaining record of it,
+          // since an anonymous publish no longer overwrites the stored link.
+          console.log(`  ${c.error(`This is a NEW url — ${priorLink.url} was not updated.`)}`);
+          console.log(
+            `  ${c.dim("Publishing without an accepted login always mints a fresh project. Run 'hyperframes auth login', then re-publish to update a link in place.")}`,
           );
         } else {
           console.log(
