@@ -8,7 +8,10 @@ const projectionSource = readFileSync(
   "utf8",
 );
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  delete process.env["HYPERFRAMES_LOCAL_REGISTRY"];
+});
 
 describe("canonical HeyGenVerse projection fetch", () => {
   it("cannot be redirected by a project registry URL", async () => {
@@ -20,6 +23,18 @@ describe("canonical HeyGenVerse projection fetch", () => {
     ).resolves.toMatchObject({ schemaVersion: 1 });
     expect(fetchMock).toHaveBeenCalledWith(
       `${DEFAULT_REGISTRY_URL}/heygenverse-catalog.json`,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it("supports the exact checked-out projection through the fixed loopback developer endpoint", async () => {
+    process.env["HYPERFRAMES_LOCAL_REGISTRY"] = "1";
+    const fetchMock = vi.fn(async () => new Response(projectionSource, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchHeyGenVerseCatalogProjection()).resolves.toMatchObject({ schemaVersion: 1 });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:4173/heygenverse-catalog.json",
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });

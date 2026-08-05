@@ -29,6 +29,7 @@ import {
 
 export const DEFAULT_REGISTRY_URL =
   "https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry";
+const LOCAL_REGISTRY_PROJECTION_URL = "http://127.0.0.1:4173/heygenverse-catalog.json";
 
 const FETCH_TIMEOUT_MS = 10_000;
 
@@ -110,8 +111,14 @@ export async function fetchHeyGenVerseCatalogProjection(
   _baseUrl: string = DEFAULT_REGISTRY_URL,
 ): Promise<HeyGenVerseCatalogProjection> {
   // Keep the optional parameter for API compatibility, but never let project
-  // configuration redirect this immutable source-of-truth projection.
-  const response = await fetch(`${DEFAULT_REGISTRY_URL}/heygenverse-catalog.json`, {
+  // configuration redirect this immutable source-of-truth projection. An
+  // explicit developer switch may use only the fixed loopback endpoint; the
+  // projection still must pass its canonical identity and digest checks.
+  const projectionUrl =
+    process.env["HYPERFRAMES_LOCAL_REGISTRY"] === "1"
+      ? LOCAL_REGISTRY_PROJECTION_URL
+      : `${DEFAULT_REGISTRY_URL}/heygenverse-catalog.json`;
+  const response = await fetch(projectionUrl, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
   if (!response.ok) {
