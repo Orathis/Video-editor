@@ -9,6 +9,7 @@ const shouldTrack = vi.fn(() => true);
 vi.mock("./client.js", () => ({
   trackEvent: (...args: unknown[]) => trackEvent(...args),
   shouldTrack: () => shouldTrack(),
+  flush: () => Promise.resolve(true),
 }));
 
 const { PrimitiveFunnel } = await import("./primitive-funnel.js");
@@ -146,6 +147,7 @@ describe("primitive discovery funnel", () => {
         "error_code",
         "event_id",
         "funnel_id",
+        "funnel_step",
         "install_id",
         "primitive_id",
         "query_fingerprint",

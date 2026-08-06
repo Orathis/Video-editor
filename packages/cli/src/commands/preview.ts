@@ -400,7 +400,7 @@ export default defineCommand({
           browserGpuMode,
         });
       } catch (error) {
-        trackPrimitivePreviewFailed(
+        await trackPrimitivePreviewFailed(
           dir,
           "preview_failed",
           performance.now() - primitiveCommandStartedAt,
@@ -427,7 +427,7 @@ export default defineCommand({
         remoteDebuggingPort,
         browserNoGpu,
       });
-      trackPrimitivePreviewSucceeded(dir, performance.now() - primitiveCommandStartedAt);
+      await trackPrimitivePreviewSucceeded(dir, performance.now() - primitiveCommandStartedAt);
       return;
     }
 
@@ -928,7 +928,10 @@ function attachStudioReadyHandler(
 ): void {
   let detected = false;
 
-  function handleOutput(data: Buffer): void {
+  // Async because the terminal funnel event awaits delivery before its claim is
+  // considered spent. `detected` is latched before the await, so a second chunk
+  // arriving mid-flight still short-circuits.
+  async function handleOutput(data: Buffer): Promise<void> {
     const url = data.toString().match(/Local:\s+(http:\/\/localhost:\d+)/)?.[1];
     if (!url || detected) return;
 
@@ -936,15 +939,15 @@ function attachStudioReadyHandler(
     spinner.stop(c.success("Studio running"));
     printStudioSummary(projectName, url, { footer: "Press Ctrl+C to stop" });
     openStudioBrowser(url, projectName, projectDir, options);
-    trackPrimitivePreviewSucceeded(projectDir, performance.now() - primitiveCommandStartedAt);
+    await trackPrimitivePreviewSucceeded(projectDir, performance.now() - primitiveCommandStartedAt);
     child.stdout.removeListener("data", handleOutput);
     child.stderr.removeListener("data", handleOutput);
   }
 
   child.stdout.on("data", handleOutput);
   child.stderr.on("data", handleOutput);
-  child.on("error", (err) => {
-    trackPrimitivePreviewFailed(
+  child.on("error", async (err) => {
+    await trackPrimitivePreviewFailed(
       projectDir,
       "preview_failed",
       performance.now() - primitiveCommandStartedAt,
@@ -1097,7 +1100,7 @@ async function runEmbeddedMode(
       options?.browserGpuMode,
     );
   } catch (err: unknown) {
-    trackPrimitivePreviewFailed(
+    await trackPrimitivePreviewFailed(
       dir,
       "preview_failed",
       performance.now() - primitiveCommandStartedAt,
@@ -1117,7 +1120,7 @@ async function runEmbeddedMode(
       details: ["Reusing existing server. Use --force-new to start a fresh instance."],
     });
     openStudioBrowser(url, pName, dir, options);
-    trackPrimitivePreviewSucceeded(dir, performance.now() - primitiveCommandStartedAt);
+    await trackPrimitivePreviewSucceeded(dir, performance.now() - primitiveCommandStartedAt);
     return;
   }
 
@@ -1136,7 +1139,7 @@ async function runEmbeddedMode(
     footer: "Press Ctrl+C to stop",
   });
   openStudioBrowser(url, pName, dir, options);
-  trackPrimitivePreviewSucceeded(dir, performance.now() - primitiveCommandStartedAt);
+  await trackPrimitivePreviewSucceeded(dir, performance.now() - primitiveCommandStartedAt);
 
   // Block until Ctrl+C. Node would normally exit on SIGINT, but the listening
   // HTTP server keeps handles open, so the event loop stays alive after the

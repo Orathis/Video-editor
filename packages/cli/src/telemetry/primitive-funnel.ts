@@ -38,24 +38,42 @@ type PrimitiveFunnelAuthState =
   | "oauth"
   | "authenticated";
 
-/** Single source of truth for canonical lifecycle side effects and stable event-id suffixes. */
+/**
+ * Single source of truth for canonical lifecycle side effects, stable event-id
+ * suffixes, and each step's position in the canonical order.
+ *
+ * `step` exists because timestamps cannot express this order. Auth completion
+ * and install start are emitted back to back inside one command and land in the
+ * same millisecond, so ordering by timestamp resolves them arbitrarily and can
+ * report an install that began before the auth that authorized it. Consumers
+ * order by `funnel_step`; the terminal steps share no number with a step that
+ * can co-occur, so ties are impossible rather than merely unlikely.
+ *
+ * Failure steps carry the number of the step they terminate, since a funnel
+ * either reaches that step or fails at it. Never renumber a shipped step:
+ * historical events keep the number they were emitted with.
+ */
 const PRIMITIVE_FUNNEL_SIDE_EFFECTS = {
-  catalogSearched: { event: "primitive_catalog_searched", suffix: "catalog-searched" },
+  catalogSearched: { event: "primitive_catalog_searched", suffix: "catalog-searched", step: 1 },
   catalogResultSelected: {
     event: "primitive_catalog_result_selected",
     suffix: "catalog-result-selected",
+    step: 2,
   },
-  authStarted: { event: "primitive_auth_started", suffix: "auth-started" },
-  authCompleted: { event: "primitive_auth_completed", suffix: "auth-completed" },
-  authFailed: { event: "primitive_auth_failed", suffix: "auth-failed" },
-  installStarted: { event: "primitive_install_started", suffix: "install-started" },
-  installCompleted: { event: "primitive_install_completed", suffix: "install-completed" },
-  installFailed: { event: "primitive_install_failed", suffix: "install-failed" },
-  previewSucceeded: { event: "primitive_preview_succeeded", suffix: "preview" },
-  previewFailed: { event: "primitive_preview_failed", suffix: "preview" },
-  renderSucceeded: { event: "primitive_render_succeeded", suffix: "render" },
-  renderFailed: { event: "primitive_render_failed", suffix: "render" },
+  authStarted: { event: "primitive_auth_started", suffix: "auth-started", step: 3 },
+  authCompleted: { event: "primitive_auth_completed", suffix: "auth-completed", step: 4 },
+  authFailed: { event: "primitive_auth_failed", suffix: "auth-failed", step: 4 },
+  installStarted: { event: "primitive_install_started", suffix: "install-started", step: 5 },
+  installCompleted: { event: "primitive_install_completed", suffix: "install-completed", step: 6 },
+  installFailed: { event: "primitive_install_failed", suffix: "install-failed", step: 6 },
+  previewSucceeded: { event: "primitive_preview_succeeded", suffix: "preview", step: 7 },
+  previewFailed: { event: "primitive_preview_failed", suffix: "preview", step: 7 },
+  renderSucceeded: { event: "primitive_render_succeeded", suffix: "render", step: 8 },
+  renderFailed: { event: "primitive_render_failed", suffix: "render", step: 8 },
 } as const;
+
+type PrimitiveFunnelSideEffect =
+  (typeof PRIMITIVE_FUNNEL_SIDE_EFFECTS)[keyof typeof PRIMITIVE_FUNNEL_SIDE_EFFECTS];
 
 const MAX_RESULT_COUNT = 1_000;
 const MAX_DURATION_MS = 86_400_000;
@@ -113,6 +131,7 @@ export class PrimitiveFunnel {
     const properties = {
       ...this.#base,
       event_id: `${this.#base.funnel_id}:${PRIMITIVE_FUNNEL_SIDE_EFFECTS.authCompleted.suffix}`,
+      funnel_step: PRIMITIVE_FUNNEL_SIDE_EFFECTS.authCompleted.step,
       auth_state: authState,
       duration_ms: boundedInteger(durationMs, 0, MAX_DURATION_MS),
     };
@@ -128,7 +147,7 @@ export class PrimitiveFunnel {
 
   authFailed(eventId: string, errorCode: PrimitiveFunnelErrorCode, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.authFailed.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.authFailed,
       eventId,
       "oauth_required",
       durationMs,
@@ -144,7 +163,7 @@ export class PrimitiveFunnel {
 
   installCompleted(eventId: string, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.installCompleted.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.installCompleted,
       eventId,
       "authenticated",
       durationMs,
@@ -153,7 +172,7 @@ export class PrimitiveFunnel {
 
   installFailed(eventId: string, errorCode: PrimitiveFunnelErrorCode, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.installFailed.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.installFailed,
       eventId,
       "authenticated",
       durationMs,
@@ -163,7 +182,7 @@ export class PrimitiveFunnel {
 
   previewSucceeded(eventId: string, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.previewSucceeded.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.previewSucceeded,
       eventId,
       "authenticated",
       durationMs,
@@ -172,7 +191,7 @@ export class PrimitiveFunnel {
 
   previewFailed(eventId: string, errorCode: PrimitiveFunnelErrorCode, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.previewFailed.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.previewFailed,
       eventId,
       "authenticated",
       durationMs,
@@ -182,7 +201,7 @@ export class PrimitiveFunnel {
 
   renderSucceeded(eventId: string, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.renderSucceeded.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.renderSucceeded,
       eventId,
       "authenticated",
       durationMs,
@@ -191,7 +210,7 @@ export class PrimitiveFunnel {
 
   renderFailed(eventId: string, errorCode: PrimitiveFunnelErrorCode, durationMs: number): void {
     this.#trackTerminal(
-      PRIMITIVE_FUNNEL_SIDE_EFFECTS.renderFailed.event,
+      PRIMITIVE_FUNNEL_SIDE_EFFECTS.renderFailed,
       eventId,
       "authenticated",
       durationMs,
@@ -199,20 +218,18 @@ export class PrimitiveFunnel {
     );
   }
 
-  #track(
-    sideEffect: { event: string; suffix: string },
-    properties: Record<string, string | number>,
-  ): void {
+  #track(sideEffect: PrimitiveFunnelSideEffect, properties: Record<string, string | number>): void {
     if (!shouldTrack()) return;
     trackEvent(sideEffect.event, {
       ...this.#base,
       event_id: `${this.#base.funnel_id}:${sideEffect.suffix}`,
+      funnel_step: sideEffect.step,
       ...properties,
     });
   }
 
   #trackTerminal(
-    name: string,
+    sideEffect: PrimitiveFunnelSideEffect,
     eventId: string,
     authState: PrimitiveFunnelAuthState,
     durationMs: number,
@@ -220,9 +237,10 @@ export class PrimitiveFunnel {
   ): void {
     if (!shouldTrack() || this.#terminalEventIds.has(eventId)) return;
     this.#terminalEventIds.add(eventId);
-    trackEvent(name, {
+    trackEvent(sideEffect.event, {
       ...this.#base,
       event_id: eventId,
+      funnel_step: sideEffect.step,
       auth_state: authState,
       duration_ms: boundedInteger(durationMs, 0, MAX_DURATION_MS),
       ...(errorCode ? { error_code: errorCode } : {}),

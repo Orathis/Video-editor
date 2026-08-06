@@ -68,19 +68,24 @@ describe("primitive funnel queued transport boundary", () => {
     funnel.installStarted();
     writePrimitiveFunnelContext(projectDir, context);
     funnel.installCompleted("install-transport:install-completed", 7);
-    trackPrimitivePreviewSucceeded(projectDir, 11);
-    trackPrimitivePreviewSucceeded(projectDir, 99);
-    trackPrimitiveRenderSucceeded(projectDir, 13);
+    // Terminal steps flush themselves, because they must know whether the send
+    // landed before their single-use claim counts as spent. So the journey is
+    // delivered across several batches; what has to hold is the ORDER, not the
+    // batch count.
+    await trackPrimitivePreviewSucceeded(projectDir, 11);
+    await trackPrimitivePreviewSucceeded(projectDir, 99);
+    await trackPrimitiveRenderSucceeded(projectDir, 13);
 
     await flush();
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
-    const events = body.batch as Array<{
+    type DeliveredEvent = {
       event: string;
       distinct_id: string;
       properties: Record<string, unknown>;
-    }>;
+    };
+    const bodies = fetchMock.mock.calls.map((call) => JSON.parse(String(call?.[1]?.body)));
+    const events = bodies.flatMap((body) => body.batch as DeliveredEvent[]);
+    const body = { batch: events };
     expect(events.map(({ event }) => event)).toEqual([
       "primitive_catalog_searched",
       "primitive_catalog_result_selected",
@@ -94,6 +99,16 @@ describe("primitive funnel queued transport boundary", () => {
     ]);
     expect(events.filter(({ event }) => event === "$identify")).toHaveLength(1);
     expect(events.filter(({ event }) => event === "primitive_preview_succeeded")).toHaveLength(1);
+
+    // Timestamps cannot carry this order: auth completion and install start are
+    // emitted back to back and land in the same millisecond, so a consumer that
+    // sorts by time can report the install beginning before the auth that
+    // authorized it. funnel_step is what makes the order recoverable.
+    const steps = events
+      .filter(({ event }) => event !== "$identify")
+      .map(({ properties }) => properties.funnel_step as number);
+    expect(steps).toEqual([...steps].sort((a, b) => a - b));
+    expect(steps).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(events.every(({ properties }) => properties.funnel_id === "funnel-transport")).toBe(
       true,
     );
