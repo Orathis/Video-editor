@@ -132,7 +132,7 @@ describe("buildChromeArgs browser GPU mode", () => {
     expect(args).not.toContain("--enable-gpu-rasterization");
   });
 
-  it("disables GPU compositing only for software BeginFrame capture", () => {
+  it("disables GPU compositing for all software capture modes (#2550, #3049)", () => {
     const softwareBeginFrame = buildChromeArgs(
       { ...base, captureMode: "beginframe" },
       { browserGpuMode: "software" },
@@ -145,10 +145,27 @@ describe("buildChromeArgs browser GPU mode", () => {
       { ...base, captureMode: "beginframe", platform: "linux" },
       { browserGpuMode: "hardware" },
     );
+    const hardwareScreenshot = buildChromeArgs(
+      { ...base, captureMode: "screenshot", platform: "linux" },
+      { browserGpuMode: "hardware" },
+    );
 
     expect(softwareBeginFrame).toContain("--disable-gpu-compositing");
-    expect(softwareScreenshot).not.toContain("--disable-gpu-compositing");
+    expect(softwareScreenshot).toContain("--disable-gpu-compositing");
     expect(hardwareBeginFrame).not.toContain("--disable-gpu-compositing");
+    expect(hardwareScreenshot).not.toContain("--disable-gpu-compositing");
+  });
+
+  it("appends PRODUCER_EXTRA_CHROME_ARGS when set", () => {
+    process.env.PRODUCER_EXTRA_CHROME_ARGS =
+      "--disable-partial-raster --force-gpu-mem-available-mb=4096";
+    try {
+      const args = buildChromeArgs(base);
+      expect(args).toContain("--disable-partial-raster");
+      expect(args).toContain("--force-gpu-mem-available-mb=4096");
+    } finally {
+      delete process.env.PRODUCER_EXTRA_CHROME_ARGS;
+    }
   });
 
   it("uses Metal-backed ANGLE for hardware browser GPU mode on macOS", () => {

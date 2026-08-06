@@ -910,20 +910,21 @@ export function buildChromeArgs(
     chromeArgs.push(WEBGPU_FLAG);
   }
 
+  // SwiftShader's GPU compositor can retain a transformed layer across frames,
+  // producing phantom duplicate content at regular vertical offsets (HF#2550,
+  // HF#3049). The artefact appears in BOTH BeginFrame and Page.captureScreenshot
+  // capture modes: a band of page content is duplicated at exactly
+  // renderHeight/4 in the alpha channel, and static DOM elements (SVG lines,
+  // rects) are affected equally. Routing compositing through Chrome's software
+  // path eliminates the stale-layer retention. Hardware-GPU captures keep their
+  // existing compositor path. Remove this workaround once the pinned
+  // chrome-headless-shell includes https://issues.chromium.org/issues/535256667.
+  if (browserGpuMode === "software") {
+    chromeArgs.push("--disable-gpu-compositing");
+  }
+
   // BeginFrame flags — only when using chrome-headless-shell on Linux
   if (options.captureMode !== "screenshot") {
-    // SwiftShader's GPU compositor can retain a transformed layer for several
-    // sequential frames after a GSAP yoyo/reversal. The DOM and timeline are
-    // already at the requested time, but both BeginFrame and
-    // Page.captureScreenshot read the stale surface (the duplicate is present
-    // in the raw JPEG before encoding). Keep deterministic BeginFrame capture,
-    // but route compositing through Chrome's software path when the browser is
-    // already in software-GPU mode. Hardware-GPU and screenshot captures keep
-    // their existing compositor paths. Remove this workaround once the pinned
-    // chrome-headless-shell includes https://issues.chromium.org/issues/535256667.
-    if (browserGpuMode === "software") {
-      chromeArgs.push("--disable-gpu-compositing");
-    }
     chromeArgs.push(
       "--deterministic-mode",
       "--enable-begin-frame-control",
@@ -940,6 +941,12 @@ export function buildChromeArgs(
   if (gpuDisabled) {
     chromeArgs.push("--disable-gpu");
   }
+
+  const extraArgs = process.env.PRODUCER_EXTRA_CHROME_ARGS;
+  if (extraArgs) {
+    chromeArgs.push(...extraArgs.split(/\s+/).filter(Boolean));
+  }
+
   return chromeArgs;
 }
 
