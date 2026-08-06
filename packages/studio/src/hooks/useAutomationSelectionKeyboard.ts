@@ -5,21 +5,32 @@
  * start (or the playhead) onto the selected clip's lane. Sibling of
  * useKeyframeKeyboard and copies its contract: capture phase so playback
  * shortcuts cannot swallow keys we act on, inert while any text input has
- * focus, and a key is only consumed when it does something — paste in
- * particular must fall through untouched when no lane can take it, so
- * clip-level paste keeps working.
+ * focus, and a key is only consumed when it does something.
+ *
+ * Falling through is NOT enough to keep clip-level copy/paste working:
+ * useAppHotkeys listens on `window` with capture, so it always runs before this
+ * document-level listener and `stopImmediatePropagation` here comes too late.
+ * `automationOwnsKey` below is the arbitration that actually works — the
+ * central dispatcher asks it first and stands down.
  */
 import { useEffect } from "react";
 import { usePlayerStore, type TimelineElement } from "../player/store/playerStore";
 import { laneFor, withLane } from "../player/components/automationLaneGeometry";
 import { replaceRange } from "../player/components/automationLaneSelection";
-import { copyRange, pastePoints, readClipboard } from "../player/components/automationClipboard";
+import {
+  copyRange,
+  isLastPasteSpan,
+  markLastPaste,
+  pastePoints,
+  readClipboard,
+} from "../player/components/automationClipboard";
 import {
   resolveAutomationRange,
   type AutomationRange,
   type HfAutomation,
   type HfAutomationLane,
 } from "@hyperframes/core/audio-automation";
+import { clampNumber } from "../utils/studioHelpers";
 import type { AutomationSelection } from "../player/store/automationSelectionSlice";
 import type {
   AutomationLaneBinding,
@@ -35,9 +46,15 @@ function isTextInput(el: Element | null): boolean {
   return el instanceof HTMLElement && el.isContentEditable;
 }
 
-/** Clamp `v` to `[min, max]`, tolerating an inverted range (max < min). */
-function clamp(v: number, min: number, max: number): number {
-  return Math.min(Math.max(v, min), Math.max(min, max));
+/**
+ * A Cmd/Ctrl+<letter> chord. `e.key` is normalised because CapsLock makes it
+ * "V"/"C", and useAppHotkeys already lowercases — a raw `e.key === "v"` test
+ * would silently drop the keystroke here while that dispatcher still acted on
+ * it. Shift and Alt are excluded for the same parity reason (useAppHotkeys
+ * gates its own copy/paste on `!shiftKey && !altKey`).
+ */
+function isChord(e: KeyboardEvent, letter: string): boolean {
+  return (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === letter;
 }
 
 /** A `TimelineElement`'s identity as the selection and lane bindings key by. */
@@ -113,7 +130,18 @@ function pasteTargetName(
 
 /**
  * Where Cmd+V lands, or null when nothing is selected, the clip's lanes are
- * read-only, or it has no automation lane to fall back to.
+ * read-only, it has no automation lane to fall back to, or the dom-edit layer
+ * would write the result to a DIFFERENT clip.
+ *
+ * That last guard is the one with teeth. `binding.onCommit` persists through
+ * handleDomAttributeQuietCommit, which targets whatever the dom-edit layer
+ * currently has selected — not the element `bind()` was handed (see the
+ * doc-comment on `onSelect` in useAutomationLanes). Selecting a clip in the
+ * timeline sets `selectedElementId` synchronously but resolves the dom-edit
+ * selection asynchronously, so clicking clip B and immediately pressing Cmd+V
+ * would serialize B's automation onto A. Every other lane path is a pointer
+ * gesture on the lane itself, which cannot run before the selection lands;
+ * paste is the only one that can, so it refuses rather than write blind.
  */
 function resolvePasteTarget(
   state: PlayerState,
@@ -132,6 +160,7 @@ function resolvePasteTarget(
   const elementKey = elementKeyOf(element);
   const binding = lanes.bind(element, true);
   if (binding.readOnly) return null;
+  if (binding.commitTargetKey !== elementKey) return null;
   const target = pasteTargetName(binding, elementKey, sel);
   if (!target) return null;
   const range = resolveAutomationRange(target, binding.chain ?? undefined);
@@ -139,11 +168,58 @@ function resolvePasteTarget(
   return { elementKey, element, target, binding, lane: laneFor(binding.automation, target), range };
 }
 
+/** Is the playhead over this clip? Mirrors TimelineAutomationLaneSlot's own
+ *  in-clip test, which is what decides a lane draws a playhead at all. */
+function playheadInClip(state: PlayerState, element: TimelineElement): boolean {
+  return (
+    state.currentTime >= element.start && state.currentTime <= element.start + element.duration
+  );
+}
+
 /**
- * Cmd/Ctrl+V: paste the clipboard onto the selected clip's lane, at the
- * active selection's start or the playhead. Returns false (untouched event)
- * when the combo doesn't match, there is nothing to paste, or no lane can
- * take it — clip-level paste needs the fall-through in that last case.
+ * Clip-local seconds a `span`-wide paste should start at, or null when nothing
+ * can anchor it.
+ *
+ * Three refusals, all of which used to be silent mispastes:
+ * - A span wider than the clip has nowhere to go. Clamping the start to 0 still
+ *   writes breakpoints past the clip's end and leaves a selection whose far
+ *   edge can never be grabbed again.
+ * - A playhead outside the clip is not an anchor. It used to collapse to the
+ *   clip's own t=0, so a playhead at 0:00 pasted into the head of a clip
+ *   starting at 0:30.
+ * - No selection on this clip and no in-clip playhead means no anchor at all.
+ *
+ * A repeated Cmd+V chains. Paste leaves its own span selected (the user's only
+ * feedback that it landed), so anchoring at `sel.t0` unconditionally made the
+ * second press overwrite the first. When the live selection is exactly the mark
+ * the last paste left, anchor at its END; a selection the user drew themselves
+ * still pastes at its start.
+ */
+function pasteAnchor(
+  state: PlayerState,
+  element: TimelineElement,
+  span: number,
+  sel: AutomationSelection | null,
+): number | null {
+  if (span > element.duration) return null;
+  const onThisElement = sel !== null && sel.elementKey === elementKeyOf(element);
+  const raw = onThisElement
+    ? isLastPasteSpan(sel)
+      ? sel.t1
+      : sel.t0
+    : playheadInClip(state, element)
+      ? state.currentTime - element.start
+      : null;
+  if (raw === null) return null;
+  // Keeps the whole pasted span inside the clip — including a chain that has
+  // walked to the end — so its own selection stays grabbable.
+  return clampNumber(raw, 0, element.duration - span);
+}
+
+/**
+ * Cmd/Ctrl+V: paste the clipboard onto the selected clip's lane, at the active
+ * selection or the playhead. Returns false (untouched event) when the chord
+ * doesn't match, there is nothing to paste, or no lane can take it.
  * Checked ahead of the "no selection" guard in the handler below: paste must
  * work from the playhead with no active selection at all.
  */
@@ -152,17 +228,15 @@ function handlePaste(
   state: PlayerState,
   lanes: UseAutomationLanesResult,
 ): boolean {
-  if (!((e.metaKey || e.ctrlKey) && e.key === "v")) return false;
-  const clip = readClipboard();
+  if (!isChord(e, "v")) return false;
+  const clip = readClipboard(state.timelineProjectId);
   if (!clip) return false;
   const sel = state.automationSelection;
   const paste = resolvePasteTarget(state, lanes, sel);
   if (!paste) return false;
+  const atT = pasteAnchor(state, paste.element, clip.span, sel);
+  if (atT === null) return false;
 
-  const atT =
-    sel && sel.elementKey === paste.elementKey
-      ? sel.t0
-      : clamp(state.currentTime - paste.element.start, 0, paste.element.duration - clip.span);
   const t1 = atT + clip.span;
   const inner = pastePoints(clip, paste.range, atT);
   const points = replaceRange({ lane: paste.lane, range: paste.range, t0: atT, t1, inner });
@@ -170,27 +244,61 @@ function handlePaste(
   e.preventDefault();
   e.stopImmediatePropagation();
   paste.binding.onCommit(withLane(paste.binding.automation, { target: paste.target, points }));
-  // Covers the pasted span so an immediate second Cmd+V chains right after
-  // this one instead of overwriting it.
-  state.setAutomationSelection({ elementKey: paste.elementKey, target: paste.target, t0: atT, t1 });
+  // Select the pasted span — the only feedback that it landed — and mark it, so
+  // an immediate second Cmd+V recognises this selection as the paste's own and
+  // chains right after it instead of overwriting it.
+  const mark = { elementKey: paste.elementKey, target: paste.target, t0: atT, t1 };
+  state.setAutomationSelection(mark);
+  markLastPaste(mark);
   return true;
 }
 
-/** Cmd/Ctrl+C on the active selection. Returns false when the combo doesn't
- *  match or the selection no longer resolves to a copyable lane. */
+/** Cmd/Ctrl+C on the active selection. Returns false when the chord doesn't
+ *  match, the selection no longer resolves to a copyable lane, or the lane is
+ *  empty so there is no shape to capture. */
 function handleCopy(
   e: KeyboardEvent,
   state: PlayerState,
   lanes: UseAutomationLanesResult,
   sel: AutomationSelection,
 ): boolean {
-  if (!((e.metaKey || e.ctrlKey) && e.key === "c")) return false;
+  if (!isChord(e, "c")) return false;
   const ctx = resolveSelectionContext(state, lanes, sel);
   if (!ctx) return false;
-  copyRange(ctx.lane, ctx.range, sel.t0, sel.t1);
+  if (!copyRange(state.timelineProjectId, ctx.lane, ctx.range, sel.t0, sel.t1)) return false;
   e.preventDefault();
   e.stopImmediatePropagation();
   return true;
+}
+
+/**
+ * Will an automation range claim this keystroke? Asked by useAppHotkeys, which
+ * listens on `window` with capture and therefore always runs BEFORE this
+ * hook's document listener — so `stopImmediatePropagation` cannot arbitrate and
+ * the dispatcher has to stand down of its own accord. Without it Cmd+C armed
+ * both clipboards and Cmd+V ran the whole clip-duplication path (read file →
+ * insert → save with history → reload preview) alongside the automation write:
+ * two async read-modify-writes of one file from one keypress.
+ *
+ * Store and clipboard only, no lane binding, so the dispatcher can call it
+ * without holding the binding factory. That leaves one accepted residual: the
+ * predicate cannot see a read-only lane, an unresolvable target, or the
+ * dom-edit target mismatch `resolvePasteTarget` guards, so in those rare cases
+ * the keystroke is a no-op instead of falling through to clip copy/paste. A
+ * dead key beats today's double write.
+ */
+export function automationOwnsKey(e: KeyboardEvent): boolean {
+  if (isTextInput(document.activeElement)) return false;
+  const state = usePlayerStore.getState();
+  if (isChord(e, "c")) return state.automationSelection !== null;
+  if (!isChord(e, "v")) return false;
+  const clip = readClipboard(state.timelineProjectId);
+  if (!clip) return false;
+  const element = findElement(state.elements, state.selectedElementId);
+  if (!element) return false;
+  // Same anchor resolution the handler uses, so predicate and handler cannot
+  // disagree about whether the paste has somewhere to land.
+  return pasteAnchor(state, element, clip.span, state.automationSelection) !== null;
 }
 
 /** Delete/Backspace on the active selection. Returns false when the key
@@ -219,6 +327,13 @@ export function useAutomationSelectionKeyboard({
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
       if (isTextInput(document.activeElement)) return;
+      // Somebody upstream already claimed this key. useAppHotkeys is on
+      // window/capture so it always runs first, and it deliberately lets a
+      // keyframe selection outrank an automation range on Delete — without
+      // this, that keystroke deleted the keyframes there AND emptied the range
+      // here, two edits from one press. preventDefault does not stop
+      // propagation, so the claim has to be read, not assumed.
+      if (e.defaultPrevented) return;
       const state = usePlayerStore.getState();
       if (handlePaste(e, state, lanes)) return;
 
