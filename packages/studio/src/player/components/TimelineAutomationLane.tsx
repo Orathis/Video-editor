@@ -301,7 +301,7 @@ export function TimelineAutomationLane({
         onPointerDown={gestures.onPointerDown}
         onPointerMove={gestures.onPointerMove}
         onPointerUp={gestures.endDrag}
-        onPointerCancel={gestures.endDrag}
+        onPointerCancel={gestures.cancelDrag}
         onDoubleClick={gestures.onDoubleClick}
         onContextMenu={onSvgContextMenu}
         role="group"
