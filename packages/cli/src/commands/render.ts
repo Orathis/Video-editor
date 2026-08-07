@@ -70,6 +70,7 @@ import {
   type HyperframesConfig,
 } from "../telemetry/config.js";
 import { shouldTrack } from "../telemetry/client.js";
+import { isCanaryEnabled } from "../telemetry/canary.js";
 import { renderJobObservabilityTelemetryPayload } from "../telemetry/renderObservability.js";
 import { bytesToMb } from "../telemetry/system.js";
 import { VERSION } from "../version.js";
@@ -1137,6 +1138,16 @@ function isDeParallelRouterTrialBlocked(config: HyperframesConfig): boolean {
     deParallelRouterTrialFiredThisProcess ||
     Boolean(config.deParallelRouterTrialFired) ||
     overRenderCap ||
+    // The rollout slice. Previously every eligible install armed the trial,
+    // which is what produced the soak — but it is also an unbounded blast
+    // radius the moment the router changes. Ramping through the registry
+    // makes the exposed fraction an explicit, revertible number instead of
+    // all-or-nothing, and the per-install breaker below still bounds each
+    // enrolled install to one bad render.
+    //
+    // Set to 0 in the registry = nobody arms, which is the safe default if
+    // this ever needs to be switched off without a release.
+    !isCanaryEnabled("de-parallel-router") ||
     !config.telemetryEnabled ||
     !shouldTrack() ||
     // cli.ts shows the first-run telemetry disclosure via a fire-and-forget,

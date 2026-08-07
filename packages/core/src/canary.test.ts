@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { canaryBucket, evaluateCanary, parseCanaryOverride, type CanaryInput } from "./canary.js";
 import { CANARIES, canaryEnvVar, findCanary, overdueCanaries } from "./canaryRegistry.js";
 import {
@@ -293,10 +295,24 @@ describe("registry", () => {
 
   // The registry is data, so a ramp is a one-line edit with no code review
   // surface. This canary's own description says "ramp only alongside the
-  // per-install circuit breaker" — without an assertion, bumping it to 5
-  // before that wiring lands would go green.
-  it("keeps de-parallel-router at 0% until the circuit breaker is wired", () => {
-    expect(findCanary("de-parallel-router")?.percentage).toBe(0);
+  // per-install circuit breaker", and the previous version of this test
+  // enforced that by pinning the percentage to 0 — which blocks the ramp
+  // forever and never actually checks the wiring it names.
+  //
+  // Assert the wiring instead: a non-zero percentage is allowed only while
+  // the CLI render path really gates on this canary. Ramping without that
+  // gate would enrol nobody (silently useless) or everybody (unbounded),
+  // depending on which side the mistake fell.
+  it("only ramps de-parallel-router while the CLI render path gates on it", () => {
+    const pct = findCanary("de-parallel-router")?.percentage ?? 0;
+    if (pct === 0) return;
+    const renderSrc = readFileSync(
+      join(import.meta.dirname, "..", "..", "cli", "src", "commands", "render.ts"),
+      "utf8",
+    );
+    expect(renderSrc).toContain('isCanaryEnabled("de-parallel-router")');
+    // And the per-install breaker the description names is still consulted.
+    expect(renderSrc).toContain("deParallelRouterTrialFired");
   });
 
   it("has in-range percentages and a parseable sunset date", () => {

@@ -47,6 +47,10 @@ const trackingState = vi.hoisted(() => ({
   // `.ts` source under vitest — mocked here so the CLI-trial tests can
   // control it directly instead of inheriting that environment quirk.
   shouldTrack: true,
+  // The rollout slice. The trial only arms for installs the canary enrolled,
+  // so these tests control enrolment directly rather than depending on where
+  // the test machine's bucketSeed happens to land.
+  canaryEnabled: true,
   renderObservations: [] as Array<Record<string, unknown>>,
 }));
 
@@ -170,6 +174,10 @@ vi.mock("../telemetry/config.js", () => ({
 
 vi.mock("../telemetry/client.js", () => ({
   shouldTrack: vi.fn(() => trackingState.shouldTrack),
+}));
+
+vi.mock("../telemetry/canary.js", () => ({
+  isCanaryEnabled: vi.fn(() => trackingState.canaryEnabled),
 }));
 
 vi.mock("../telemetry/events.js", () => ({
@@ -779,6 +787,39 @@ describe("renderLocal — DE parallel-router CLI trial", () => {
       deParallelRouterTrialFired: false,
       telemetryNoticeShown: true,
     };
+    await renderLocal("/tmp/project", "/tmp/out.mp4", baseOptions);
+    expect(process.env.HF_DE_PARALLEL_ROUTER).toBe("true");
+  });
+
+  // The rollout slice. Before this, every eligible install armed the trial —
+  // good for the soak, but an unbounded blast radius the moment the router
+  // regresses. 0.7.60-0.7.64 is the precedent: every unclamped render
+  // reverted for five releases, silently.
+  it("does not arm for an install the canary did not enrol", async () => {
+    trackingState.canaryEnabled = false;
+    configState.disk = {
+      telemetryEnabled: true,
+      deParallelRouterTrialFired: false,
+      telemetryNoticeShown: true,
+    };
+    await renderLocal("/tmp/project", "/tmp/out.mp4", baseOptions);
+    expect(process.env.HF_DE_PARALLEL_ROUTER).toBeUndefined();
+  });
+
+  // Setting the registry percentage to 0 must switch the rollout off for
+  // everyone without needing a code change — that is the revert path.
+  it("arms only when enrolled, so the registry percentage is the kill switch", async () => {
+    configState.disk = {
+      telemetryEnabled: true,
+      deParallelRouterTrialFired: false,
+      telemetryNoticeShown: true,
+    };
+
+    trackingState.canaryEnabled = false;
+    await renderLocal("/tmp/project", "/tmp/out.mp4", baseOptions);
+    expect(process.env.HF_DE_PARALLEL_ROUTER).toBeUndefined();
+
+    trackingState.canaryEnabled = true;
     await renderLocal("/tmp/project", "/tmp/out.mp4", baseOptions);
     expect(process.env.HF_DE_PARALLEL_ROUTER).toBe("true");
   });

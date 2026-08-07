@@ -83,7 +83,17 @@ export const CANARIES: readonly CanaryDefinition[] = [
   // ── Real rollouts ────────────────────────────────────────────────────────
   {
     name: "de-parallel-router",
-    percentage: 0,
+    // Ramp 5 -> 25 -> 100. Calibration validated the bucketer first: accuracy
+    // 9.62%/49.76% against 10%/50% targets at n=13,547, overrides and the CI
+    // population both attributable, and sustained cohort flips at 0.10% —
+    // an order of magnitude under this feature's own ~2.79% revert rate, so
+    // cohort noise cannot corrupt the read.
+    //
+    // At each step, split revert rate by cpu_count and is_docker. Those are
+    // the two segments the opt-in trial never covered (~12% of eligible
+    // renders between them), and worker-count-dependent failure is exactly
+    // how 0.7.60-0.7.64 broke silently for five releases.
+    percentage: 5,
     description:
       "Route auto multi-worker renders to verified parallel drawElement streaming (HF_DE_PARALLEL_ROUTER). Ramp only alongside the per-install circuit breaker.",
     owner: "vance",
