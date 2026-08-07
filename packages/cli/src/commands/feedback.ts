@@ -14,7 +14,11 @@ import { submitFeedback } from "../utils/submitFeedback.js";
 import { buildIssueUrl, HYPERFRAMES_REPO_URL } from "../utils/feedbackIssue.js";
 import { VERSION } from "../version.js";
 import { c } from "../ui/colors.js";
-import { parseFeedbackRating } from "../utils/feedbackRating.js";
+import {
+  FEEDBACK_RATING_ANCHOR,
+  FEEDBACK_RATING_SCALE,
+  parseFeedbackRating,
+} from "../utils/feedbackRating.js";
 import { lintFeedbackComment, type FeedbackLintInput } from "../utils/feedbackLint.js";
 
 export const examples: Example[] = [
@@ -155,7 +159,7 @@ export default defineCommand({
   args: {
     rating: {
       type: "string",
-      description: "Likelihood to recommend (0=not likely, 10=extremely likely)",
+      description: `Likelihood to recommend (${FEEDBACK_RATING_ANCHOR}; a clean run is a ${FEEDBACK_RATING_SCALE})`,
       required: true,
     },
     comment: {
@@ -181,7 +185,11 @@ export default defineCommand({
   async run({ args }) {
     const rating = parseFeedbackRating(args.rating);
     if (rating === null) {
-      console.error(c.error("Rating must be an integer between 0 and 10"));
+      console.error(
+        c.error(
+          `Rating must be an integer between 0 and ${FEEDBACK_RATING_SCALE} (${FEEDBACK_RATING_ANCHOR})`,
+        ),
+      );
       failCommand();
     }
 

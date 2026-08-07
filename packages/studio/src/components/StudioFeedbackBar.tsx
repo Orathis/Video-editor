@@ -181,6 +181,9 @@ export const StudioFeedbackBar = memo(function StudioFeedbackBar() {
       ) : (
         <>
           <span className="text-neutral-500 flex-shrink-0">Recommend HyperFrames?</span>
+          {/* Endpoint labels: the row is 0-10, and an unlabelled numeric row
+              reads as a 5-star scale to anyone (or any agent) used to one. */}
+          <span className="text-neutral-600 text-[10px] flex-shrink-0">not likely</span>
           <div className="flex items-center gap-0.5">
             {Array.from({ length: 11 }, (_, n) => n).map((n) => (
               <button
@@ -192,6 +195,7 @@ export const StudioFeedbackBar = memo(function StudioFeedbackBar() {
               </button>
             ))}
           </div>
+          <span className="text-neutral-600 text-[10px] flex-shrink-0">extremely likely</span>
           <div className="flex-1" />
           <button
             onClick={handleDismiss}

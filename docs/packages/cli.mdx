@@ -1037,7 +1037,9 @@ npx hyperframes feedback --rating 7 --comment "render succeeded but GSAP timelin
 npx hyperframes feedback --rating 3 --comment "GSAP timeline froze on seek" --file-issue
 ```
 
-`--rating` is required, 0–10. `--comment` adds free text. `--file-issue`
+`--rating` is required, 0–10, where 0 is "not likely to recommend" and 10 is
+"extremely likely", so a clean run is a 10. The scale was 1–5 until mid-2026,
+which puts 5 at the midpoint instead of the top. `--comment` adds free text. `--file-issue`
 also opens a GitHub issue, `--dir` picks the project published as its repro
 (default: current directory), and `--yes, -y` skips the consent prompt for
 scripts.

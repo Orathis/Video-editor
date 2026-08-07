@@ -32,6 +32,14 @@ export const VISUAL_DEFECT_KEYWORDS: readonly string[] = [
  */
 export const COMPOSITION_STRUCTURE_RATING_CEILING = 7;
 
+/**
+ * Bottom half of the scale. A score at or below the midpoint with no comment
+ * is either an unactionable complaint or — far more often — a caller still
+ * rating on the old 1-5 scale, where `5` meant "perfect" and now lands as a
+ * mediocre 5/10. Both cases deserve the same nudge.
+ */
+export const UNEXPLAINED_RATING_CEILING = Math.floor(FEEDBACK_RATING_SCALE / 2);
+
 const REPRO_MARKER = "REPRO COMMAND:";
 const STRUCTURE_MARKER = "COMPOSITION_STRUCTURE:";
 
@@ -41,8 +49,26 @@ export interface FeedbackLintInput {
 }
 
 export interface FeedbackLintWarning {
-  code: "missing-repro-command" | "missing-composition-structure";
+  code: "missing-repro-command" | "missing-composition-structure" | "unexplained-low-rating";
   message: string;
+}
+
+/**
+ * Bare bottom-half score, no comment. Reminds the caller which end of the
+ * scale is good — the range doubled from 1-5 to 0-10 and `5` survived as a
+ * legal value, so this is what a stale "5 = perfect" habit looks like on the
+ * wire.
+ */
+function unexplainedLowRating(rating: number): FeedbackLintWarning {
+  return {
+    code: "unexplained-low-rating",
+    message: [
+      `${rating}/${FEEDBACK_RATING_SCALE} with no comment is unactionable —`,
+      `ratings run 0-${FEEDBACK_RATING_SCALE} where ${FEEDBACK_RATING_SCALE} is a clean run`,
+      `(the scale used to be 1-5, so ${UNEXPLAINED_RATING_CEILING} is now the midpoint, not the top).`,
+      `Rerun with --comment "<what went wrong>", or --rating ${FEEDBACK_RATING_SCALE} if the run was clean.`,
+    ].join(" "),
+  };
 }
 
 /**
@@ -53,18 +79,21 @@ export interface FeedbackLintWarning {
  *
  * Rules:
  *  1. `rating === 10` — no check. A perfect run doesn't need a repro packet.
- *  2. Comment missing / empty — no check. `feedback --rating 6` with no
- *     comment is a valid quick vote; the maintainer sees rating drift without
- *     the reporter having to synthesize a fake repro.
- *  3. Comment present + rating < 10 + no `REPRO COMMAND:` — warn.
- *  4. Comment present + rating ≤ 7 + visual-defect keyword + no
- *     `COMPOSITION_STRUCTURE:` — warn (in addition to any #3 warning).
+ *  2. Comment missing / empty + rating above the midpoint — no check.
+ *     `feedback --rating 6` with no comment is a valid quick vote; the
+ *     maintainer sees rating drift without a synthesized repro.
+ *  3. Comment missing / empty + rating ≤ 5 — warn. Restate which end of the
+ *     scale is good: an unexplained bottom-half score is usually a caller
+ *     still rating out of 5.
+ *  4. Comment present + rating < 10 + no `REPRO COMMAND:` — warn.
+ *  5. Comment present + rating ≤ 7 + visual-defect keyword + no
+ *     `COMPOSITION_STRUCTURE:` — warn (in addition to any #4 warning).
  */
 export function lintFeedbackComment(input: FeedbackLintInput): FeedbackLintWarning[] {
   const { rating, comment } = input;
   if (rating === FEEDBACK_RATING_SCALE) return [];
   const trimmed = comment?.trim();
-  if (!trimmed) return [];
+  if (!trimmed) return rating <= UNEXPLAINED_RATING_CEILING ? [unexplainedLowRating(rating)] : [];
 
   // Marker checks are case-insensitive to match `mentionsVisualDefect`'s
   // normalization. A reporter who writes `Repro command:` shouldn't get warned

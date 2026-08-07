@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   COMPOSITION_STRUCTURE_RATING_CEILING,
+  UNEXPLAINED_RATING_CEILING,
   VISUAL_DEFECT_KEYWORDS,
   lintFeedbackComment,
   mentionsVisualDefect,
@@ -14,10 +15,26 @@ describe("lintFeedbackComment", () => {
     );
   });
 
-  it("returns no warnings when the comment is missing or blank", () => {
+  it("returns no warnings for a bare above-midpoint vote", () => {
     expect(lintFeedbackComment({ rating: 6, comment: undefined })).toEqual([]);
     expect(lintFeedbackComment({ rating: 6, comment: "" })).toEqual([]);
     expect(lintFeedbackComment({ rating: 6, comment: "   \n  " })).toEqual([]);
+  });
+
+  it.each([undefined, "", "   \n  "])(
+    "warns on a bare bottom-half score (comment %j) and restates the scale",
+    (comment) => {
+      const warnings = lintFeedbackComment({ rating: UNEXPLAINED_RATING_CEILING, comment });
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]?.code).toBe("unexplained-low-rating");
+      // The 1-5 → 0-10 migration is the reason a bare `5` shows up at all.
+      expect(warnings[0]?.message).toContain("1-5");
+      expect(warnings[0]?.message).toContain("--rating 10");
+    },
+  );
+
+  it("does not warn on a bare 10 — a clean run needs no comment", () => {
+    expect(lintFeedbackComment({ rating: 10, comment: undefined })).toEqual([]);
   });
 
   it("warns on non-10 comments missing REPRO COMMAND:", () => {

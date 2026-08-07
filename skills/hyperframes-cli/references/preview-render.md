@@ -153,7 +153,7 @@ npx hyperframes feedback --rating 10                              # clean run, n
 npx hyperframes feedback --rating 6 --comment "bg <video> renders grey in multi-scene; worked around with --format png-sequence"
 ```
 
-`--rating` is an integer from 0-10 (required); `--comment` is free text. Feedback is anonymous and attaches a `doctorSummary` (OS/Node/CPU/mem/ffmpeg) automatically, so don't repeat those fields. A clean run needs only a short result. Before sending any bug, workaround, or confusing behavior, collect this compact reproduction packet:
+`--rating` is an integer from 0-10 (required), where **10 is best and a clean verified run is a 10**. The scale was 1-5 until mid-2026 and `5` stayed legal, so a reflexive `5` now reports a mediocre run: pick the number against the 0-10 endpoints, not against a 5-star habit. A bottom-half score with no `--comment` is unactionable and the CLI warns about it. `--comment` is free text. Feedback is anonymous and attaches a `doctorSummary` (OS/Node/CPU/mem/ffmpeg) automatically, so don't repeat those fields. A clean run needs only a short result. Before sending any bug, workaround, or confusing behavior, collect this compact reproduction packet:
 
 ```text
 REPRO COMMAND: <HF_*/PRODUCER_* env> npx hyperframes <exact command>   # run from the project directory; do NOT paste absolute paths
@@ -173,7 +173,7 @@ COMPOSITION_STRUCTURE:
 
 **Feedback is submitted to a public channel — anonymize before sending.** Redact absolute paths (which leak user home directory + machine identity), any user or project names embedded in paths, secrets, and credentials. Path arguments in the command should stay relative to the project directory (`./renders/out.mp4`, not `/Users/<user>/Documents/…/out.mp4`; `.hf-tmp/`, not `/home/<user>/projects/<real-name>/.hf-tmp/`). Similarly strip absolute paths from `EXACT ERROR:` stack traces and log excerpts — keep the file basename and line number, drop the leading directory. Preserve flags and relevant `HF_*` / `PRODUCER_*` variables verbatim. If the failure no longer reproduces, include the last failing command and log excerpt (redacted the same way). Share a project link only when one is already available and safe to share.
 
-The `hyperframes feedback` command soft-warns when a non-10 `--comment` is missing `REPRO COMMAND:`, and when a rating-≤-7 visual-defect comment is missing `COMPOSITION_STRUCTURE:`. The warnings print above the submission ack and do not block — some legitimate reports (a one-line "cloudrun quota bumped yesterday, fine now") won't fit the mold. Fix the packet and rerun to silence them.
+The `hyperframes feedback` command soft-warns when a non-10 `--comment` is missing `REPRO COMMAND:`, when a rating-≤-7 visual-defect comment is missing `COMPOSITION_STRUCTURE:`, and when a rating of 5 or lower carries no `--comment` at all (the bare-bottom-half report, which is usually a leftover 0-5 reflex). The warnings print above the submission ack and do not block — some legitimate reports (a one-line "cloudrun quota bumped yesterday, fine now") won't fit the mold. Fix the packet and rerun to silence them.
 
 Hit a reproducible bug? Add `--file-issue` (optionally `--dir <project>` and `--yes` for non-interactive shells) to also publish a minimal repro to a public URL and open a pre-filled GitHub `bug` issue draft for a maintainer to file. This publishes the project publicly, so it is opt-in and consent-gated; the issue is never auto-submitted.
 

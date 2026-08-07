@@ -4,7 +4,11 @@ import { shouldTrack } from "./client.js";
 import { trackRenderFeedback } from "./events.js";
 import { detectAgentRuntime } from "./agent_runtime.js";
 import { c } from "../ui/colors.js";
-import { parseFeedbackRating } from "../utils/feedbackRating.js";
+import {
+  FEEDBACK_RATING_ANCHOR,
+  FEEDBACK_RATING_PLACEHOLDER,
+  parseFeedbackRating,
+} from "../utils/feedbackRating.js";
 
 const DEFAULT_FEEDBACK_INTERVAL = 15;
 
@@ -51,7 +55,7 @@ export async function maybePromptRenderFeedback(opts: {
     console.log(
       c.dim("  [hyperframes] ") +
         c.dim("Agent feedback: ") +
-        c.accent('hyperframes feedback --rating <0-10> --comment "..."'),
+        c.accent(`hyperframes feedback --rating ${FEEDBACK_RATING_PLACEHOLDER} --comment "..."`),
     );
     return;
   }
@@ -67,7 +71,7 @@ export async function maybePromptRenderFeedback(opts: {
   writeConfig(config);
 
   const answer = await askQuestion(
-    `  ${c.dim("How likely are you to recommend HyperFrames?")} ${c.accent("[0=not likely 10=extremely likely, enter to skip]")} `,
+    `  ${c.dim("How likely are you to recommend HyperFrames?")} ${c.accent(`[${FEEDBACK_RATING_ANCHOR}, enter to skip]`)} `,
   );
 
   const rating = parseFeedbackRating(answer);
