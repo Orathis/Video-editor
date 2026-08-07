@@ -6,6 +6,9 @@ import {
   analyseCarveDynamics,
   carveBandsToChain,
   carveProfile,
+  classifyAudioName,
+  mixCarveSources,
+  couldBeCarveSource,
   DEFAULT_CARVE,
   normalizeCarveSettings,
 } from "./audioCarve.js";
@@ -456,5 +459,101 @@ describe("analyseCarveDynamics", () => {
       2,
     );
     expect(analyseCarveDynamics(new Float32Array(0), SR, [BAND])).toEqual([]);
+  });
+});
+
+describe("classifyAudioName", () => {
+  it("reads a track's kind from its id and its filename together", () => {
+    // Either can be the informative one: elements named a1/a2 may still have
+    // narration.mp3 and bgm.mp3 behind them.
+    expect(classifyAudioName("narration")).toBe("voice");
+    expect(classifyAudioName("a1", "voiceover-take3.wav")).toBe("voice");
+    expect(classifyAudioName("music-bed")).toBe("music");
+    expect(classifyAudioName("a2", "bgm_loop.m4a")).toBe("music");
+    expect(classifyAudioName("sfx-explosion")).toBe("sfx");
+    expect(classifyAudioName("whoosh-01")).toBe("sfx");
+  });
+
+  it("says nothing about a name that says nothing", () => {
+    // The common case, and the reason nothing downstream may treat "unknown" as
+    // "not a voice": it would hide the one track somebody needs to pick.
+    expect(classifyAudioName("a1")).toBe("unknown");
+    expect(classifyAudioName("clip-2", "0f9c1a.mp3")).toBe("unknown");
+    expect(classifyAudioName(undefined, null)).toBe("unknown");
+  });
+
+  it("prefers voice when a name carries both hints", () => {
+    // A file called voiceover-over-music-bed.wav is the voiceover, and a track
+    // matching both is better offered than hidden.
+    expect(classifyAudioName("voiceover-over-music-bed.wav")).toBe("voice");
+  });
+
+  it("offers speech and unnamed tracks as carve sources, never music or effects", () => {
+    expect(couldBeCarveSource("recap-audio")).toBe(true);
+    expect(couldBeCarveSource("a1")).toBe(true);
+    expect(couldBeCarveSource("music-bed")).toBe(false);
+    expect(couldBeCarveSource("sfx-explosion")).toBe(false);
+  });
+});
+
+describe("mixCarveSources", () => {
+  const tone = (seconds: number, level: number, sampleRate = 48000) =>
+    new Float32Array(Math.round(seconds * sampleRate)).fill(level);
+
+  it("places every voice where it starts on the bed's clock", () => {
+    // Three people talking at different times is still one question — where and
+    // when is speech masking this bed — so they become one signal.
+    const mixed = mixCarveSources(
+      [
+        { samples: tone(1, 0.5), offsetSeconds: 1 },
+        { samples: tone(1, 0.25), offsetSeconds: 3 },
+      ],
+      48000,
+    );
+    expect(mixed.length).toBe(4 * 48000);
+    const at = (t: number) => mixed[Math.round(t * 48000)];
+    expect(at(0.5)).toBe(0); // before anyone speaks
+    expect(at(1.5)).toBeCloseTo(0.5, 5);
+    expect(at(2.5)).toBe(0); // the gap between them
+    expect(at(3.5)).toBeCloseTo(0.25, 5);
+  });
+
+  it("sums voices that overlap, because two at once mask more than one", () => {
+    const mixed = mixCarveSources(
+      [
+        { samples: tone(1, 0.3), offsetSeconds: 0 },
+        { samples: tone(1, 0.3), offsetSeconds: 0 },
+      ],
+      48000,
+    );
+    expect(mixed[0]).toBeCloseTo(0.6, 5);
+  });
+
+  it("drops the part of a voice that plays before the bed starts", () => {
+    // It masks nothing there, and folding it in at zero would put a cut where
+    // there is no voice.
+    const mixed = mixCarveSources([{ samples: tone(1, 0.5), offsetSeconds: -0.5 }], 48000);
+    expect(mixed.length).toBe(0.5 * 48000);
+    expect(mixed[0]).toBeCloseTo(0.5, 5);
+  });
+
+  it("has nothing to mix when there are no voices", () => {
+    expect(mixCarveSources([], 48000)).toHaveLength(0);
+  });
+});
+
+describe("carve settings written before this took a list of voices", () => {
+  it("reads a single `source` as a one-voice list, and forgets `dynamic`", () => {
+    // Every carve is dynamic now: a static one thinned the bed through every pause,
+    // and nobody wanted that once they had heard both.
+    const read = normalizeCarveSettings({ source: "vo", strength: 0.4, dynamic: false } as never);
+    expect(read.sources).toEqual(["vo"]);
+    expect(read.strength).toBe(0.4);
+    expect("dynamic" in read).toBe(false);
+  });
+
+  it("drops empty ids rather than carrying a source that names nothing", () => {
+    expect(normalizeCarveSettings({ sources: ["", "vo", ""] } as never).sources).toEqual(["vo"]);
+    expect(normalizeCarveSettings({ source: "" } as never).sources).toEqual([]);
   });
 });
