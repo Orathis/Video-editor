@@ -7,8 +7,28 @@ const SAMPLE_RATE = 4000;
 const PEAK_COUNT = 4000;
 const WAVEFORM_CACHE_VERSION = "v2";
 
-export function buildWaveformCacheKey(assetPath: string): string {
-  return `${WAVEFORM_CACHE_VERSION}_${assetPath.replace(/[/\\]/g, "_")}.json`;
+/**
+ * Cache filename for one asset's peaks, keyed on its content as well as its name.
+ *
+ * The path alone is not an identity. An asset rebuilt in place — a bed
+ * re-encoded without its ducking, a plate swapped for the right one — keeps its
+ * name and gets new samples, and a path-keyed entry then served the old peaks
+ * for the rest of the project's life: the timeline drew a duck that was no
+ * longer in the file, which reads as the render having done it. Size and mtime
+ * are what a rebuild always changes, and both are already on the stat the route
+ * takes to check the file exists.
+ *
+ * Without a fingerprint it falls back to the old path-only key, so a caller that
+ * cannot stat still gets caching rather than an error.
+ */
+export function buildWaveformCacheKey(
+  assetPath: string,
+  fingerprint?: { size: number; mtimeMs: number },
+): string {
+  const name = assetPath.replace(/[/\\]/g, "_");
+  if (!fingerprint) return `${WAVEFORM_CACHE_VERSION}_${name}.json`;
+  const stamp = `${fingerprint.size}-${Math.round(fingerprint.mtimeMs)}`;
+  return `${WAVEFORM_CACHE_VERSION}_${name}_${stamp}.json`;
 }
 
 function computePeaks(floats: Float32Array, count: number): number[] {
