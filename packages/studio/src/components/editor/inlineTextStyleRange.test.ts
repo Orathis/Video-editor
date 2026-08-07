@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { applyInlineStyle, readInlineStyle } from "./inlineTextStyleRange";
 
 afterEach(() => {
+  vi.restoreAllMocks();
   document.body.innerHTML = "";
 });
 
@@ -503,5 +504,55 @@ describe("applyInlineStyle survives a control that fires repeatedly", () => {
     applyInlineStyle(rangeOver(host, 5, 8), { color: "red" });
 
     expect(document.getSelection()?.toString()).toBe("cde");
+  });
+});
+
+/**
+ * A colour that does not paint is the same to the user as one that did not save.
+ *
+ * `-webkit-text-fill-color` inherits and paints the glyph fill, so a composition
+ * that sets it on a text element wins over any `color` the editor puts on a run
+ * inside it. The run saved correctly and rendered in someone else's colour,
+ * which reads as the colour picker being broken.
+ */
+describe("applyInlineStyle when something else is painting the glyphs", () => {
+  function stubFill(fill: string | null) {
+    const real = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation(((element: Element) => {
+      const computed = real(element as HTMLElement);
+      return new Proxy(computed, {
+        get: (target, key) => {
+          if (key === "webkitTextFillColor") return fill ?? undefined;
+          if (key === "color") return (element as HTMLElement).style.color || "rgb(0, 0, 0)";
+          return Reflect.get(target, key);
+        },
+      });
+    }) as typeof window.getComputedStyle);
+  }
+
+  it("mirrors the colour into the fill when an ancestor is overpainting", () => {
+    const host = mount("Hello world");
+    stubFill("rgb(255, 255, 255)");
+    applyInlineStyle(rangeOver(host, 6, 11), { color: "rgb(255, 0, 149)" });
+
+    expect(host.innerHTML).toContain("-webkit-text-fill-color: rgb(255, 0, 149)");
+    expect(host.innerHTML).toContain("color: rgb(255, 0, 149)");
+  });
+
+  it("leaves the markup alone when nothing is overpainting", () => {
+    const host = mount("Hello world");
+    stubFill("rgb(255, 0, 149)");
+    applyInlineStyle(rangeOver(host, 6, 11), { color: "rgb(255, 0, 149)" });
+
+    expect(host.innerHTML).not.toContain("-webkit-text-fill-color");
+    expect(host.innerHTML).toContain("color: rgb(255, 0, 149)");
+  });
+
+  it("says nothing about a run that carries no colour", () => {
+    const host = mount("Hello world");
+    stubFill("rgb(255, 255, 255)");
+    applyInlineStyle(rangeOver(host, 6, 11), { "font-weight": "700" });
+
+    expect(host.innerHTML).not.toContain("-webkit-text-fill-color");
   });
 });
