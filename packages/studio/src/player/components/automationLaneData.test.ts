@@ -4,6 +4,7 @@ import {
   automationLaneLabel,
   automationLaneLabelParts,
   elementAutomation,
+  laneGroupKey,
   elementFxChain,
 } from "./automationLaneData";
 import type { TimelineElement } from "../store/timelineElement";
@@ -157,5 +158,50 @@ describe("automationLaneData", () => {
       // Volume is one word with no effect behind it, so there is no second line.
       expect(automationLaneLabelParts("volume", chain)).toEqual({ name: "Volume", param: "" });
     });
+  });
+});
+
+describe("laneGroupKey", () => {
+  // Two clips, each with their OWN chain, both automating a 1 kHz peaking Q. Node
+  // ids are minted per chain, so the ids collide across clips while meaning
+  // different things — and match across clips while meaning the same thing.
+  const clipA = parseChain({
+    version: 1,
+    nodes: [
+      { type: "lowpass", id: "n1", params: { frequency: 8000, q: 0.7, poles: "2" } },
+      { type: "peaking", id: "n2", params: { frequency: 1000, gain: -3, q: 1.4 } },
+    ],
+  });
+  const clipB = parseChain({
+    version: 1,
+    nodes: [{ type: "peaking", id: "n1", params: { frequency: 1000, gain: -6, q: 1.4 } }],
+  });
+
+  it("groups the same property of the same effect across clips", () => {
+    // The whole point: one row for "Peaking EQ 1 kHz · Q", whichever clip it is on.
+    expect(laneGroupKey("fx.n2.q", clipA)).toBe(laneGroupKey("fx.n1.q", clipB));
+  });
+
+  it("does not group by lane target, which collides across chains", () => {
+    // `fx.n1.q` is a low-pass on one clip and a peaking EQ on the other. Grouping by
+    // target would put those two envelopes in one row.
+    expect(laneGroupKey("fx.n1.q", clipA)).not.toBe(laneGroupKey("fx.n1.q", clipB));
+  });
+
+  it("separates parameters, and the same parameter on different bands", () => {
+    expect(laneGroupKey("fx.n2.q", clipA)).not.toBe(laneGroupKey("fx.n2.gain", clipA));
+    const twoBands = parseChain({
+      version: 1,
+      nodes: [
+        { type: "peaking", id: "n1", params: { frequency: 400, gain: -6, q: 1.4 } },
+        { type: "peaking", id: "n2", params: { frequency: 1600, gain: -6, q: 1.4 } },
+      ],
+    });
+    expect(laneGroupKey("fx.n1.gain", twoBands)).not.toBe(laneGroupKey("fx.n2.gain", twoBands));
+  });
+
+  it("groups volume with volume, and nothing with an unresolvable target", () => {
+    expect(laneGroupKey("volume", clipA)).toBe(laneGroupKey("volume", clipB));
+    expect(laneGroupKey("fx.gone.gain", clipA)).toBeNull();
   });
 });

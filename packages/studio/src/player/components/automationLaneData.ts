@@ -168,6 +168,27 @@ export function automationLaneLabelParts(
   return { name: name || param, param: name ? param : "" };
 }
 
+/**
+ * What makes two lanes, on two different clips, the same lane row.
+ *
+ * A lane is a property over time, not a clip's private strip: four narration slices
+ * on one track that each automate a 1 kHz peaking Q belong in ONE row, each drawing
+ * its envelope over its own span.
+ *
+ * The key cannot be the lane target. Targets are `fx.<nodeId>.<param>` and node ids
+ * are minted per chain, so `fx.n1.q` on one clip and `fx.n1.q` on another may be
+ * different effects entirely — grouping by target would put unrelated envelopes in
+ * one row and split matching ones apart. So the key is what identifies the parameter
+ * to a reader: the effect, whatever distinguishes it from its siblings (a filter's
+ * frequency), and the parameter. Which is exactly what the label already says, so
+ * the row's identity and its name cannot drift apart.
+ *
+ * Null when the target does not resolve, the same condition that stops it drawing.
+ */
+export function laneGroupKey(target: string, chain: HfAudioFxChain | null): string | null {
+  return automationLaneLabel(target, chain);
+}
+
 /** The whole label on one line, for a tooltip or an accessible name. */
 export function automationLaneLabel(target: string, chain: HfAudioFxChain | null): string | null {
   const parts = automationLaneLabelParts(target, chain);
