@@ -2432,6 +2432,7 @@ async function executeRenderPipeline(input: {
           audios: composition.audios,
           abortSignal: executionSignal,
           assertNotAborted,
+          log,
         }),
     );
     const { audioOutputPath, hasAudio } = audioResult;
