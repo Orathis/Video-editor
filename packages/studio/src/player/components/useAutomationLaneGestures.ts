@@ -4,7 +4,7 @@
  * Its own hook because the lane component sits at the studio's file ceiling and
  * because these are the parts worth testing on their own: which of a press,
  * a drag and a modifier resolves to moving a point, bending a segment,
- * stretching a selection's edge, or nothing at all.
+ * drawing a selection box, or nothing at all.
  *
  * Modifiers follow Ableton's, since that is the muscle memory an automation lane
  * inherits: Shift locks a drag to one axis and fines the value down, Alt over a
@@ -15,14 +15,19 @@ import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent }
 import type { AutomationRange, HfAutomationLane } from "@hyperframes/core/audio-automation";
 import {
   applyShiftConstraint,
+  dominantDragAxis,
   curveForDrag,
   formatValue,
   GRAB_PX,
+  MIN_POINT_GAP_SEC,
   POINT_MERGE_SEC,
   snapLaneTime,
 } from "./automationLaneGeometry";
+import { pointInSelection } from "./automationLaneSelection";
 import { capturePointer } from "./automationLanePointer";
-import { useAutomationEdgeStretch } from "./useAutomationEdgeStretch";
+
+/** How far a press may travel and still count as a click rather than a drag. */
+const CLICK_SLOP_PX = 3;
 
 /** Snap radius in clip seconds. Tight on purpose: a lane is often a few seconds
  *  wide, where a generous radius makes a point unplaceable between two beats. */
@@ -49,12 +54,12 @@ export interface UseAutomationLaneGesturesInput {
   snapTimes?: readonly number[] | undefined;
   readOnly?: boolean | undefined;
   onSelect?: (() => void) | undefined;
-  /** Live range-select callbacks; absent = background drags do nothing (read-only lanes). */
-  onRangeSelect?: ((t0: number, t1: number) => void) | undefined;
+  /** Live box-select callbacks; absent = background drags do nothing (read-only lanes). */
+  onRangeSelect?: ((t0: number, t1: number, v0: number, v1: number) => void) | undefined;
   onRangeClear?: (() => void) | undefined;
-  duration: number; // clamp bound for range endpoints
-  /** Active selection on this lane, so its edges have something to grab. */
-  rangeSelection?: { t0: number; t1: number } | null | undefined;
+  duration: number; // clamp bound for box endpoints
+  /** Active selection box on this lane, so a press inside it can drag its points. */
+  rangeSelection?: { t0: number; t1: number; v0: number; v1: number } | null | undefined;
 }
 
 export interface UseAutomationLaneGesturesResult {
@@ -62,11 +67,6 @@ export interface UseAutomationLaneGesturesResult {
   dragIndex: number | null;
   /** Segment being bent, identified by the point that owns its curve. */
   curveIndex: number | null;
-  /** Edge being stretched, for the cursor. */
-  edgeDrag: "t0" | "t1" | null;
-  /** Whether the pointer sits over a stretch handle with no gesture live —
-   *  the col-resize cursor hint before a press commits to the drag. */
-  edgeHover: boolean;
   /** Value readout to show while a gesture is live. */
   hint: string | null;
   hitIndex(clientX: number, clientY: number): number | null;
@@ -74,9 +74,6 @@ export interface UseAutomationLaneGesturesResult {
   onPointerDown(e: ReactPointerEvent<SVGSVGElement>): void;
   onPointerMove(e: ReactPointerEvent<SVGSVGElement>): void;
   endDrag(e: ReactPointerEvent<SVGSVGElement>): void;
-  /** The browser took the gesture away (`pointercancel`): a stretch reverts
-   *  rather than persisting whatever partial retime it had reached. */
-  cancelDrag(e: ReactPointerEvent<SVGSVGElement>): void;
   /** Adds a point, opens the value field on one, or straightens a segment. */
   onDoubleClick(e: ReactPointerEvent<SVGSVGElement>): void;
   /** The point whose value is being typed, and the text so far. */
@@ -107,28 +104,65 @@ export function useAutomationLaneGestures({
   const [hint, setHint] = useState<string | null>(null);
   /** Where a point drag began, so Shift can lock an axis and fine the value. */
   const dragOrigin = useRef<{ t: number; v: number } | null>(null);
+  /**
+   * The set a group drag moves, snapshotted on the press.
+   *
+   * Snapshotted rather than recomputed per move for two reasons: every point is
+   * moving, so "which ones are selected" has to mean what it meant when the
+   * gesture started, and the deltas have to accumulate from the original
+   * positions or a rounded move would drift on every pointermove.
+   */
+  const groupDrag = useRef<{
+    points: HfAutomationLane["points"];
+    indices: number[];
+    anchor: { t: number; v: number };
+    selection: { t0: number; t1: number; v0: number; v1: number };
+  } | null>(null);
   /** Point whose value is being typed, and the text so far. */
   const [editing, setEditing] = useState<{ index: number; text: string } | null>(null);
-  /** A background drag in progress: its start and live end, in clip seconds. */
-  const [rangeDrag, setRangeDrag] = useState<{ from: number; to: number } | null>(null);
+  /** A background drag in progress: the two corners of the box it is drawing,
+   *  each a clip-local time and a parameter value. */
+  const [rangeDrag, setRangeDrag] = useState<{
+    from: { t: number; v: number };
+    to: { t: number; v: number };
+  } | null>(null);
   /** Whether the live drag has crossed the pixel threshold that turns a press
-   *  into an actual range, rather than a click that should just clear one. */
+   *  into an actual box, rather than a click that should just clear one. */
   const rangeCrossed = useRef(false);
+  /** Where a press on a point landed, and whether it has travelled since. A press
+   *  that goes nowhere is a click, which is a different gesture from a drag even
+   *  though both start the same way — see the Shift branch in `endDrag`. */
+  const pressAt = useRef<{ x: number; y: number } | null>(null);
+  const pressTravelled = useRef(false);
+  /**
+   * The axis Shift locked, decided on the gesture's first travel and held until
+   * the drag ends or Shift is let go. Deciding per event followed whichever way
+   * the last move leaned, so a drifting hand unlocked the axis mid-drag.
+   */
+  const shiftAxis = useRef<"time" | "value" | null>(null);
 
-  const stretch = useAutomationEdgeStretch({
-    getBox,
-    lane,
-    range,
-    pointAt,
-    xOf,
-    commitPoints,
-    duration,
-    readOnly,
-    rangeSelection,
-    onRangeSelect,
-    onRangeClear,
-    onHint: setHint,
-  });
+  // The value field's own handlers, above the gestures that close it: a press on the
+  // lane applies whatever was typed, so onPointerDown lists commitEdit as a
+  // dependency and cannot be declared before it.
+  const setEditingText = useCallback((text: string): void => {
+    setEditing((current) => (current ? { index: current.index, text } : null));
+  }, []);
+
+  const cancelEdit = useCallback((): void => setEditing(null), []);
+
+  /** Apply a typed value, or drop the edit when it is not a number. */
+  const commitEdit = useCallback((): void => {
+    const active = editing;
+    setEditing(null);
+    if (!active) return;
+    const typed = Number(active.text);
+    if (!Number.isFinite(typed)) return;
+    const clamped = Math.min(range.max, Math.max(range.min, typed));
+    commitPoints(
+      lane.points.map((p, i) => (i === active.index ? { ...p, v: clamped } : p)),
+      true,
+    );
+  }, [editing, lane, range, commitPoints]);
 
   /** Index of a point under the pointer, or null. */
   const hitIndex = useCallback(
@@ -173,22 +207,40 @@ export function useAutomationLaneGestures({
   );
 
   /**
-   * What a press on the lane's empty background arms: a new range selection,
-   * and only when a caller wants to hear about one — a read-only lane never
-   * reaches here at all.
+   * A corner of the selection box under the pointer.
+   *
+   * Time is clamped to the clip and snaps to the grid, because the box's span is
+   * also what a shape insert or a paste acts over and those want beat-aligned
+   * edges. The value is taken as it lies: there is no grid on a parameter axis,
+   * and rounding a dB bound would move which points the box catches.
+   */
+  const boxCornerAt = useCallback(
+    (e: ReactPointerEvent<SVGSVGElement>): { t: number; v: number } => {
+      const raw = pointAt(e.clientX, e.clientY);
+      const clamped = Math.min(duration, Math.max(0, raw.t));
+      return {
+        t: e.altKey ? clamped : snapLaneTime(clamped, snapTimes ?? [], SNAP_SEC),
+        v: raw.v,
+      };
+    },
+    [pointAt, duration, snapTimes],
+  );
+
+  /**
+   * What a press on the lane's empty background arms: a new selection box, and
+   * only when a caller wants to hear about one — a read-only lane never reaches
+   * here at all.
    */
   const armRangeDrag = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>): void => {
       if (!onRangeSelect) return;
       e.preventDefault();
       capturePointer(e);
-      const raw = pointAt(e.clientX, e.clientY).t;
-      const clamped = Math.min(duration, Math.max(0, raw));
-      const t = e.altKey ? clamped : snapLaneTime(clamped, snapTimes ?? [], SNAP_SEC);
+      const corner = boxCornerAt(e);
       rangeCrossed.current = false;
-      setRangeDrag({ from: t, to: t });
+      setRangeDrag({ from: corner, to: corner });
     },
-    [onRangeSelect, pointAt, duration, snapTimes],
+    [onRangeSelect, boxCornerAt],
   );
 
   const onPointerDown = useCallback(
@@ -198,18 +250,22 @@ export function useAutomationLaneGestures({
       // timeline's own gesture (scrub / marquee / clip drag), which then eats the
       // rest of the sequence — including the second half of a double-click.
       e.stopPropagation();
+      // A press anywhere on the lane closes the value field, applying what was
+      // typed — the same thing Enter and a blur do. It cannot rely on the blur: the
+      // gesture branches below call preventDefault to keep the timeline from
+      // scrubbing, and that suppresses the focus change the blur would come from,
+      // so the field sat open until Enter however far away the next click landed.
+      if (editing) commitEdit();
       if (readOnly) {
         // The lane sits below the clip bar, so the timeline's selection handler
-        // never sees this press; selecting here is the only way in.
+        // never sees this press; selecting here is the only way in. The press then
+        // goes on to arm a range drag rather than being spent on the selection: a
+        // press that only selected made the first drag over any lane do nothing
+        // visible, so a range took two gestures and looked broken on the first.
         onSelect?.();
+        armRangeDrag(e);
         return;
       }
-      // An active selection's edge outranks a point sitting on it. Every range
-      // operation — stretch, delete, shape insert — leaves a breakpoint exactly
-      // on the edge it just created, so a point-first rule meant the second
-      // stretch of the same edge resolved to a point-drag and the feature was
-      // not repeatable. Clear the selection to reach that point again.
-      if (stretch.arm(e)) return;
       const gesture = gestureAt(e);
       if (!gesture) {
         armRangeDrag(e);
@@ -222,9 +278,39 @@ export function useAutomationLaneGestures({
         return;
       }
       dragOrigin.current = originOf(lane.points[gesture.index]);
+      // Pressing one of a selected set drags the whole set. Pressing a point
+      // outside the selection is an ordinary single-point drag, selection or no.
+      const pressed = lane.points[gesture.index];
+      const indices =
+        rangeSelection && pressed && pointInSelection(pressed, rangeSelection)
+          ? lane.points.flatMap((p, i) => (pointInSelection(p, rangeSelection) ? [i] : []))
+          : [];
+      groupDrag.current =
+        indices.length > 1 && pressed
+          ? {
+              points: lane.points.map((p) => ({ ...p })),
+              indices,
+              anchor: { t: pressed.t, v: pressed.v },
+              selection: rangeSelection ? { ...rangeSelection } : { t0: 0, t1: 0, v0: 0, v1: 0 },
+            }
+          : null;
+      pressAt.current = { x: e.clientX, y: e.clientY };
+      pressTravelled.current = false;
       setDragIndex(gesture.index);
     },
-    [gestureAt, lane, readOnly, onSelect, armRangeDrag, stretch],
+    [
+      gestureAt,
+      lane,
+      readOnly,
+      onSelect,
+      armRangeDrag,
+      editing,
+      commitEdit,
+      // The press decides whether it starts a group drag, so it has to see the
+      // selection as it is now — captured stale, a point pressed straight after
+      // selecting a range read the previous selection, or none.
+      rangeSelection,
+    ],
   );
 
   /** Bend the segment under the pointer, which is what Alt-dragging the line does. */
@@ -235,85 +321,189 @@ export function useAutomationLaneGestures({
       const b = lane.points[curveIndex + 1];
       if (!a || !b) return;
       const { t, v } = pointAt(clientX, clientY);
-      const curve = curveForDrag({ range, a, b, t, v });
-      if (curve === null) return;
-      setHint(`curve ${curve.toFixed(2)}`);
+      const bend = curveForDrag({ range, a, b, t, v });
+      if (bend === null) return;
+      // Read out where the bend now sits along the segment, which is what the
+      // pointer is choosing: a percentage means more here than a curve exponent
+      // the author never types.
+      setHint(`bend ${Math.round(bend.viaX * 100)}%`);
       commitPoints(
-        lane.points.map((p, i) => (i === curveIndex ? { ...p, curve } : p)),
+        // `curve` is dropped rather than carried: the via point supersedes it, and
+        // leaving a stale exponent behind would make the segment's shape depend on
+        // which of the two the reader happened to honour.
+        lane.points.map((p, i) =>
+          i === curveIndex ? { ...p, curve: undefined, viaX: bend.viaX, viaY: bend.viaY } : p,
+        ),
         false,
       );
     },
     [curveIndex, lane, pointAt, range, commitPoints],
   );
 
+  /**
+   * Move a selected set by one delta, taken from the point under the pointer.
+   *
+   * The whole group has to stop when its first member reaches a boundary, not
+   * each point on its own: clamping individually squashes the shape flat against
+   * the edge, and the gesture is meant to preserve it. Deltas are in the
+   * parameter's own units, so on a logarithmic axis a group moves by Hz rather
+   * than by octaves — the same as dragging one point does.
+   */
+  const moveGroup = useCallback(
+    (e: ReactPointerEvent<SVGSVGElement>, group: NonNullable<typeof groupDrag.current>): void => {
+      const raw = pointAt(e.clientX, e.clientY);
+      const moving = group.indices.map((i) => group.points[i]!);
+      let dt = raw.t - group.anchor.t;
+      let dv = raw.v - group.anchor.v;
+      if (e.shiftKey) {
+        // The axis lock, as a single-point drag has it: keep whichever the pointer
+        // has travelled further along and drop the other.
+        const alongTime = Math.abs(dt * (xOf(1) - xOf(0)));
+        const alongValue = Math.abs(
+          (dv * (yOf(range.min) - yOf(range.max))) / (range.max - range.min),
+        );
+        if (alongTime >= alongValue) dv = 0;
+        else dt = 0;
+      } else if (!e.altKey) {
+        // Snap the point under the pointer, and move the set by that same amount.
+        const others = group.points.filter((_, i) => !group.indices.includes(i)).map((p) => p.t);
+        dt =
+          snapLaneTime(group.anchor.t + dt, [...(snapTimes ?? []), ...others], SNAP_SEC) -
+          group.anchor.t;
+      }
+      const times = moving.map((p) => p.t);
+      const values = moving.map((p) => p.v);
+      // No member may cross a point that is staying put. Only stationary
+      // neighbours constrain: two selected points travel together, so the gap
+      // between them never changes. Per member rather than per end of the group,
+      // because a box can select a non-contiguous set — the peaks of an envelope
+      // and not the dip between them.
+      const gapTo = (step: 1 | -1): number[] =>
+        group.indices.flatMap((i) => {
+          const neighbour = group.points[i + step];
+          if (!neighbour || group.indices.includes(i + step)) return [];
+          // Short of the neighbour, not onto it — the lane collapses points that
+          // share a time, and a group drag must not consume what it runs into.
+          return [Math.max(0, Math.abs(neighbour.t - group.points[i]!.t) - MIN_POINT_GAP_SEC)];
+        });
+      dt = Math.min(
+        Math.max(dt, -Math.min(Math.min(...times), ...gapTo(-1))),
+        Math.min(duration - Math.max(...times), ...gapTo(1)),
+      );
+      dv = Math.min(Math.max(dv, range.min - Math.min(...values)), range.max - Math.max(...values));
+
+      // No re-sort: clamped to the neighbours, the lane's order cannot change
+      // under a drag, so the point under the pointer keeps its index.
+      const next = group.points.map((p, i) =>
+        group.indices.includes(i) ? { ...p, t: p.t + dt, v: p.v + dv } : p,
+      );
+      // The box travels with the points — both axes, or a vertical nudge would
+      // slide its own points out of the box that caught them and a second nudge
+      // would move fewer of them.
+      onRangeSelect?.(
+        group.selection.t0 + dt,
+        group.selection.t1 + dt,
+        group.selection.v0 + dv,
+        group.selection.v1 + dv,
+      );
+      setHint(`${group.indices.length} points ${dt >= 0 ? "+" : ""}${dt.toFixed(2)}s`);
+      commitPoints(next, false);
+    },
+    [commitPoints, duration, onRangeSelect, pointAt, range, snapTimes, xOf, yOf],
+  );
+
   /** Move the point being dragged, honouring the modifiers held with it. */
   const movePoint = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>): void => {
       if (dragIndex === null) return;
+      const group = groupDrag.current;
+      if (group) {
+        moveGroup(e, group);
+        return;
+      }
       const raw = pointAt(e.clientX, e.clientY);
       const origin = dragOrigin.current;
-      let { t, v } =
-        e.shiftKey && origin ? applyShiftConstraint({ range, origin, raw, xOf, yOf }) : raw;
+      if (!e.shiftKey) shiftAxis.current = null;
+      let { t, v } = raw;
+      if (e.shiftKey && origin) {
+        shiftAxis.current ??= dominantDragAxis({ origin, raw, xOf, yOf });
+        ({ t, v } = applyShiftConstraint({
+          range,
+          origin,
+          raw,
+          xOf,
+          yOf,
+          axis: shiftAxis.current,
+        }));
+      }
       // Shift is a deliberate free-hand move as much as Alt is, so neither snaps.
       if (!e.altKey && !e.shiftKey) {
         const neighbours = lane.points.filter((_, i) => i !== dragIndex).map((p) => p.t);
         t = snapLaneTime(t, [...(snapTimes ?? []), ...neighbours], SNAP_SEC);
       }
+      // A breakpoint cannot cross another in time, and cannot land exactly on one
+      // either: the lane collapses points that share a `t`, so arriving on top of a
+      // neighbour deletes it. It stops a hair short instead, which reads as touching
+      // and keeps both points. Applied after the snap, which can itself put the
+      // point on a beat past a neighbour.
+      const floor = (lane.points[dragIndex - 1]?.t ?? -Infinity) + MIN_POINT_GAP_SEC;
+      const ceiling = (lane.points[dragIndex + 1]?.t ?? Infinity) - MIN_POINT_GAP_SEC;
+      const held = lane.points[dragIndex]?.t ?? t;
+      t =
+        ceiling >= floor
+          ? Math.min(ceiling, Math.max(floor, Math.min(duration, Math.max(0, t))))
+          : // Neighbours closer together than the gap leave nowhere to go, so the
+            // point stays where it is rather than being flung to one side.
+            held;
       const next = lane.points.map((p, i) => (i === dragIndex ? { ...p, t, v } : p));
-      // Re-sort so dragging a point past a neighbour behaves, and keep the
-      // dragged one addressable by following where it landed.
-      const moved = next[dragIndex];
-      next.sort((a, b) => a.t - b.t);
-      if (moved) setDragIndex(next.indexOf(moved));
       setHint(`${formatValue(range, v)} @ ${t.toFixed(2)}s`);
       commitPoints(next, false);
     },
-    [dragIndex, lane, pointAt, range, commitPoints, snapTimes, xOf, yOf],
+    [dragIndex, duration, lane, pointAt, range, commitPoints, snapTimes, xOf, yOf, moveGroup],
   );
 
-  /** Update the live range-drag as the pointer moves, firing `onRangeSelect`
-   *  once it has covered enough pixels to count as an actual range rather
-   *  than a click that should just clear one. */
+  /** Update the live box-drag as the pointer moves, firing `onRangeSelect` once
+   *  it has covered enough pixels along EITHER axis to count as an actual box
+   *  rather than a click that should just clear one. */
   const moveRangeDrag = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>): void => {
       if (rangeDrag === null) return;
-      const raw = pointAt(e.clientX, e.clientY).t;
-      const clamped = Math.min(duration, Math.max(0, raw));
-      const t = e.altKey ? clamped : snapLaneTime(clamped, snapTimes ?? [], SNAP_SEC);
-      setRangeDrag({ from: rangeDrag.from, to: t });
-      if (Math.abs(xOf(t) - xOf(rangeDrag.from)) <= 3) return;
+      const to = boxCornerAt(e);
+      const { from } = rangeDrag;
+      setRangeDrag({ from, to });
+      const travelled = Math.max(
+        Math.abs(xOf(to.t) - xOf(from.t)),
+        Math.abs(yOf(to.v) - yOf(from.v)),
+      );
+      if (travelled <= 3) return;
       rangeCrossed.current = true;
-      onRangeSelect?.(Math.min(rangeDrag.from, t), Math.max(rangeDrag.from, t));
+      onRangeSelect?.(
+        Math.min(from.t, to.t),
+        Math.max(from.t, to.t),
+        Math.min(from.v, to.v),
+        Math.max(from.v, to.v),
+      );
     },
-    [rangeDrag, pointAt, duration, snapTimes, xOf, onRangeSelect],
+    [rangeDrag, boxCornerAt, xOf, yOf, onRangeSelect],
   );
 
   const onPointerMove = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>): void => {
-      if (stretch.edge !== null) {
-        e.stopPropagation();
-        // A capture lost without a `pointercancel` — the child it was taken on
-        // unmounted, or the browser handed the gesture elsewhere — leaves no
-        // gesture-end event at all, and every later hover would keep retiming.
-        // A move with no button held is the only signal left that it is over.
-        if (e.buttons === 0) stretch.cancel();
-        else stretch.move(e);
-        return;
-      }
       if (rangeDrag !== null) {
         e.stopPropagation();
         moveRangeDrag(e);
         return;
       }
-      if (curveIndex === null && dragIndex === null) {
-        stretch.updateHover(e);
-        return;
-      }
+      if (curveIndex === null && dragIndex === null) return;
       e.stopPropagation();
+      const from = pressAt.current;
+      if (from && Math.hypot(e.clientX - from.x, e.clientY - from.y) > CLICK_SLOP_PX) {
+        pressTravelled.current = true;
+      }
       if (curveIndex !== null) bendSegment(e.clientX, e.clientY);
       else movePoint(e);
     },
-    [stretch, rangeDrag, moveRangeDrag, curveIndex, dragIndex, bendSegment, movePoint],
+    [rangeDrag, moveRangeDrag, curveIndex, dragIndex, bendSegment, movePoint],
   );
 
   /** A sub-threshold press clears the selection rather than leaving a
@@ -326,11 +516,6 @@ export function useAutomationLaneGestures({
 
   const endDrag = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>): void => {
-      if (stretch.edge !== null) {
-        e.stopPropagation();
-        stretch.finish();
-        return;
-      }
       if (rangeDrag !== null) {
         e.stopPropagation();
         finishRangeDrag();
@@ -338,28 +523,28 @@ export function useAutomationLaneGestures({
       }
       if (dragIndex === null && curveIndex === null) return;
       e.stopPropagation();
+      const index = dragIndex;
+      const shiftClicked = index !== null && e.shiftKey && !pressTravelled.current;
       setDragIndex(null);
       setCurveIndex(null);
       dragOrigin.current = null;
+      groupDrag.current = null;
+      shiftAxis.current = null;
+      pressAt.current = null;
       setHint(null);
-      commitPoints(lane.points, true);
-    },
-    [stretch, rangeDrag, finishRangeDrag, curveIndex, dragIndex, lane, commitPoints],
-  );
-
-  /** `pointercancel`: the browser abandoned the gesture, so a stretch reverts
-   *  instead of persisting the partial retime `endDrag` would have committed.
-   *  Anything else ends the way a release ends it. */
-  const cancelDrag = useCallback(
-    (e: ReactPointerEvent<SVGSVGElement>): void => {
-      if (stretch.edge !== null) {
-        e.stopPropagation();
-        stretch.cancel();
+      // Shift+click removes the point. Decided on RELEASE, not on the press: Shift
+      // held through a drag is the axis lock, and acting on the press would take
+      // that gesture away. A press that never travelled was a click.
+      if (shiftClicked) {
+        commitPoints(
+          lane.points.filter((_, i) => i !== index),
+          true,
+        );
         return;
       }
-      endDrag(e);
+      commitPoints(lane.points, true);
     },
-    [stretch, endDrag],
+    [rangeDrag, finishRangeDrag, curveIndex, dragIndex, lane, commitPoints],
   );
 
   const onDoubleClick = useCallback(
@@ -399,38 +584,15 @@ export function useAutomationLaneGestures({
     [lane, pointAt, commitPoints, readOnly, hitIndex, segmentIndex],
   );
 
-  const setEditingText = useCallback((text: string): void => {
-    setEditing((current) => (current ? { index: current.index, text } : null));
-  }, []);
-
-  const cancelEdit = useCallback((): void => setEditing(null), []);
-
-  /** Apply a typed value, or drop the edit when it is not a number. */
-  const commitEdit = useCallback((): void => {
-    const active = editing;
-    setEditing(null);
-    if (!active) return;
-    const typed = Number(active.text);
-    if (!Number.isFinite(typed)) return;
-    const clamped = Math.min(range.max, Math.max(range.min, typed));
-    commitPoints(
-      lane.points.map((p, i) => (i === active.index ? { ...p, v: clamped } : p)),
-      true,
-    );
-  }, [editing, lane, range, commitPoints]);
-
   return {
     dragIndex,
     curveIndex,
-    edgeDrag: stretch.edge,
-    edgeHover: stretch.hover,
     hint,
     hitIndex,
     segmentIndex,
     onPointerDown,
     onPointerMove,
     endDrag,
-    cancelDrag,
     onDoubleClick,
     editing,
     setEditingText,
