@@ -6,6 +6,7 @@ import { slugifyDesignInput } from "../../utils/designInputTracking";
 import { isTextEditableSelection } from "./domEditing";
 import type { PropertyPanelFlatProps } from "./propertyPanelFlatProps";
 import { formatPxMetricValue } from "./propertyPanelHelpers";
+import { audioFxSummary } from "./audioFxSummary";
 import { PropertyPanelFlatHeader } from "./PropertyPanelFlatHeader";
 import { PropertyPanelFlatFooter } from "./PropertyPanelFlatFooter";
 import { FlatGroupHeader } from "./propertyPanelFlatPrimitives";
@@ -13,11 +14,9 @@ import { FlatTextSection } from "./propertyPanelFlatTextSection";
 import { FlatStyleSection } from "./propertyPanelFlatStyleSections";
 import { FlatLayoutSection } from "./propertyPanelFlatLayoutSection";
 import { FlatMotionSection } from "./propertyPanelFlatMotionSection";
-import { parseAudioFxChain } from "@hyperframes/core/audio-fx";
 import { AudioFxGroup } from "./propertyPanelAudioFxGroup.js";
 import { useVolumeAutomation } from "./useVolumeAutomation";
 import { FlatMediaSection } from "./propertyPanelFlatMediaSection";
-import type { DomEditSelection } from "./domEditing";
 import { deriveElementTiming } from "./propertyPanelFlatTimingDerivation";
 import { createGsapLivePreview } from "./gsapLivePreview";
 import { formatTextFieldPreview } from "./propertyPanelSections";
@@ -535,22 +534,4 @@ export function PropertyPanelFlat({
       </div>
     </DesignPanelInputProvider>
   );
-}
-
-/** Chain length at a glance, so the collapsed group says whether anything is on. */
-function audioFxSummary(element: DomEditSelection): string {
-  const raw = element.dataAttributes?.["fx-chain"];
-  const carve = element.dataAttributes?.["fx-carve"];
-  let count = 0;
-  if (raw) {
-    try {
-      count = parseAudioFxChain(raw).nodes.filter((n) => n.enabled !== false).length;
-    } catch {
-      return "unreadable";
-    }
-  }
-  const parts: string[] = [];
-  if (count > 0) parts.push(`${count} effect${count === 1 ? "" : "s"}`);
-  if (carve) parts.push("carve");
-  return parts.length > 0 ? parts.join(" + ") : "none";
 }
