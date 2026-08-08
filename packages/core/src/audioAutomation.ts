@@ -15,6 +15,9 @@ import { getAudioFxDef, type HfAudioFxChain } from "./audioFx.js";
 
 export const HF_AUDIO_AUTOMATION_ATTR = "data-automation";
 
+/** The same attribute as a `dataset` / `dataAttributes` key. See `HF_AUDIO_FX_DATA_KEY`. */
+export const HF_AUDIO_AUTOMATION_DATA_KEY = HF_AUDIO_AUTOMATION_ATTR.slice("data-".length);
+
 /** Automation files are versioned; a reader must refuse a version it doesn't know. */
 export const HF_AUDIO_AUTOMATION_VERSION = 1;
 
