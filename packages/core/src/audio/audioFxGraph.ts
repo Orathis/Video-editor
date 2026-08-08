@@ -9,6 +9,7 @@
  */
 
 import {
+  enabledAudioFxNodes,
   getAudioFxDef,
   normalizeAudioFxParams,
   type HfAudioFxChain,
@@ -480,8 +481,7 @@ export interface FxChainHandle {
  * into the running nodes; when it changes, the caller rebuilds.
  */
 function shapeOf(chain: HfAudioFxChain): string {
-  return chain.nodes
-    .filter((node) => node.enabled !== false)
+  return enabledAudioFxNodes(chain)
     .map((node) => {
       const p = normalizeAudioFxParams(node.type, node.params);
       const poles = p.poles !== undefined ? `:${p.poles}` : "";
@@ -506,8 +506,7 @@ export function buildFxChain(ctx: BaseAudioContext, chain: HfAudioFxChain): FxCh
   const handles: { id?: string; type: string; handle: FxNodeHandle }[] = [];
 
   let tail: AudioNode = input;
-  for (const node of chain.nodes) {
-    if (node.enabled === false) continue;
+  for (const node of enabledAudioFxNodes(chain)) {
     const handle = buildFxNode(ctx, node.type, node.params ?? {});
     tail.connect(handle.input);
     tail = handle.output;
@@ -515,7 +514,7 @@ export function buildFxChain(ctx: BaseAudioContext, chain: HfAudioFxChain): FxCh
   }
   tail.connect(output);
 
-  let shape = shapeOf(chain);
+  const shape = shapeOf(chain);
 
   return {
     input,
@@ -523,8 +522,7 @@ export function buildFxChain(ctx: BaseAudioContext, chain: HfAudioFxChain): FxCh
     nodes: handles,
     update(next) {
       if (shapeOf(next) !== shape) return false;
-      const active = next.nodes.filter((node) => node.enabled !== false);
-      active.forEach((node, i) => {
+      enabledAudioFxNodes(next).forEach((node, i) => {
         const held = handles[i];
         if (!held) return;
         held.handle.update(normalizeAudioFxParams(node.type, node.params));
@@ -537,7 +535,9 @@ export function buildFxChain(ctx: BaseAudioContext, chain: HfAudioFxChain): FxCh
         if (node.id === undefined) delete held.id;
         else held.id = node.id;
       });
-      shape = shapeOf(next);
+      // `shape` is not reassigned: the early return above already established
+      // that `shapeOf(next)` equals it, so recomputing was a whole normalise +
+      // join per observer tick to write back the string that was already there.
       return true;
     },
     dispose() {
