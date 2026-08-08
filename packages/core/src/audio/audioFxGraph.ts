@@ -515,7 +515,17 @@ export function buildFxChain(ctx: BaseAudioContext, chain: HfAudioFxChain): FxCh
       if (shapeOf(next) !== shape) return false;
       const active = next.nodes.filter((node) => node.enabled !== false);
       active.forEach((node, i) => {
-        handles[i]?.handle.update(normalizeAudioFxParams(node.type, node.params));
+        const held = handles[i];
+        if (!held) return;
+        held.handle.update(normalizeAudioFxParams(node.type, node.params));
+        // The id follows the position, because the params just did. Reordering
+        // two effects of the same type leaves the shape identical, so the graph
+        // is updated in place — but a lane addresses its effect BY id, and an id
+        // captured at build time then names whichever effect used to be here.
+        // The scheduler would drive `fx.n2.frequency` into the band that is now
+        // n1: exactly what HfAudioFxNode.id documents itself as preventing.
+        if (node.id === undefined) delete held.id;
+        else held.id = node.id;
       });
       shape = shapeOf(next);
       return true;
