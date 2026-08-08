@@ -308,7 +308,12 @@ export function TimelineAutomationLane({
 
   return (
     <div
-      className="hf-automation-lane absolute"
+      // Spans the whole row so the separator below can, but takes no pointer
+      // events itself: clips sharing a row each mount one of these over the
+      // full width, so a band that accepted the pointer would let whichever
+      // clip rendered last swallow every sibling's envelope — hover, drag and
+      // all. Only the drawn parts opt back in.
+      className="hf-automation-lane pointer-events-none absolute"
       style={{ top: topPx, left: 0, right: 0, height: h }}
       data-automation-lane={target}
     >
@@ -327,7 +332,7 @@ export function TimelineAutomationLane({
           envelope it described and scrolled horizontally away from its own row. */}
       <svg
         ref={svgRef}
-        className="hf-automation-svg absolute"
+        className="hf-automation-svg pointer-events-auto absolute"
         style={{
           left: leftPx - PAD_X,
           top: 0,
