@@ -438,3 +438,26 @@ describe("automatable parameters", () => {
     expect(onePole.automation?.frequency).toBeUndefined();
   });
 });
+
+describe("phaser automation targets", () => {
+  /**
+   * `in_gain` and `out_gain` trim the signal entering and leaving the effect,
+   * which the builder drives through inTrim/outTrim while pinning wet and dry
+   * to 1. The automation map used to aim both lanes at wet/dry — so an envelope
+   * modulated a constant, the trim it was supposed to move stayed frozen, and
+   * "fade the phaser out" left the dry leg playing at full level.
+   *
+   * Asserted by VALUE rather than by node identity: the trims are internal, and
+   * the only honest question is whether the param a lane would drive is the one
+   * the knob sets.
+   */
+  it("drives the trims a lane is named for, not the pinned wet/dry pair", () => {
+    const handle = buildFxNode(ctx() as unknown as BaseAudioContext, "phaser", {
+      ...defaultAudioFxParams("phaser"),
+      in_gain: 0.25,
+      out_gain: 0.5,
+    });
+    expect(handle.automation?.in_gain?.[0]?.param.value).toBeCloseTo(0.25, 6);
+    expect(handle.automation?.out_gain?.[0]?.param.value).toBeCloseTo(0.5, 6);
+  });
+});
