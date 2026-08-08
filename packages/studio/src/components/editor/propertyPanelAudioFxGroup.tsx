@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import {
   defaultAudioFxParams,
   HF_AUDIO_FX_ATTR,
+  HF_AUDIO_FX_DATA_KEY,
   mintAudioFxNodeId,
   parseAudioFxChain,
   serializeAudioFxChain,
@@ -41,6 +42,7 @@ import {
   automatedTargetsOf,
   automationAttrValue,
   HF_AUDIO_AUTOMATION_ATTR,
+  HF_AUDIO_AUTOMATION_DATA_KEY,
   readPanelAutomation,
   resolveAutomationRange,
   withoutLane,
@@ -109,7 +111,7 @@ export function AudioFxGroup({
   onSetAttributeLive: (attr: string, value: string | null) => void | Promise<void>;
 }) {
   const chain = ((): HfAudioFxChain => {
-    const raw = element.dataAttributes?.["fx-chain"];
+    const raw = element.dataAttributes?.[HF_AUDIO_FX_DATA_KEY];
     if (!raw) return { version: 1, nodes: [] };
     try {
       return parseAudioFxChain(raw);
@@ -120,7 +122,10 @@ export function AudioFxGroup({
     }
   })();
 
-  const automation = readPanelAutomation(element.dataAttributes?.["automation"], chain);
+  const automation = readPanelAutomation(
+    element.dataAttributes?.[HF_AUDIO_AUTOMATION_DATA_KEY],
+    chain,
+  );
   const automatedTargets = automatedTargetsOf(automation);
 
   /**
