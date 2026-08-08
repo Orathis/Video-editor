@@ -1,4 +1,4 @@
-import { attachElementFxChain } from "./audioFx.js";
+import { attachElementFxChain, type ElementFxHandle } from "./audioFx.js";
 import type { AutomationTiming } from "../audio/audioFxAutomation.js";
 import { swallow } from "./diagnostics";
 import { getDebugSurface } from "./globals.js";
@@ -63,7 +63,7 @@ export type ScheduledSource = {
   sourceNode: AudioBufferSourceNode;
   gainNode: GainNode;
   /** FX chain spliced between source and gain, when the element carries one. */
-  fx?: { dispose(): void } | null;
+  fx?: ElementFxHandle | null;
   compositionStart: number;
   mediaStart: number;
   scheduledAt: number;
@@ -274,6 +274,14 @@ export class WebAudioTransport {
    * `getTime()` stays continuous across the change. Sources scheduled to
    * start in the future keep their original wallclock start time — callers
    * that need rate-correct future starts should `stopAll()` and reschedule.
+   *
+   * Each source's FX automation is re-aimed too. Lanes are committed to
+   * absolute context times when the source is scheduled, so bumping only
+   * `playbackRate` left every automated parameter running its original plan
+   * over audio moving at a different speed. The `stopAll()`+reschedule recovery
+   * in the runtime is no help here: it only fires for bounded sources, and a
+   * project-level music bed with no `data-duration` is unbounded, so it never
+   * recovered at all.
    */
   setRate(rate: number): boolean {
     const safeRate = normalizeRate(rate);
@@ -286,6 +294,7 @@ export class WebAudioTransport {
     for (const source of this._activeSources) {
       try {
         source.sourceNode.playbackRate.value = safeRate;
+        source.fx?.setRate(safeRate);
       } catch (err) {
         swallow("webAudioTransport.setRate", err);
       }
