@@ -129,6 +129,7 @@ export function useDomEditSession({
     buildDomSelectionForTimelineElement,
     handleTimelineElementSelect,
     refreshDomEditSelectionFromPreview,
+    refreshDomEditGroupSelectionsFromPreview,
     applyMarqueeSelection,
   } = useDomSelection({
     projectId,
@@ -386,6 +387,8 @@ export function useDomEditSession({
     activeCompPath,
     domEditSelection,
     domEditSelectionRef,
+    domEditGroupSelectionsRef,
+    refreshDomEditGroupSelectionsFromPreview,
     previewIframeRef,
     previewIframe,
     captionEditMode,
