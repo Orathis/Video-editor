@@ -22,6 +22,7 @@ import {
   type HfAutomationLane,
 } from "@hyperframes/core/audio-automation";
 import { parseAudioFxChain, type HfAudioFxChain } from "@hyperframes/core/audio-fx";
+import { isAudioTimelineElement } from "../../utils/timelineInspector";
 import type { TimelineElement } from "../store/playerStore";
 
 const EMPTY: HfAutomation = { version: 1, lanes: [] };
@@ -187,6 +188,66 @@ export function automationLaneLabelParts(
  */
 export function laneGroupKey(target: string, chain: HfAudioFxChain | null): string | null {
   return automationLaneLabel(target, chain);
+}
+
+/** One clip's envelope inside a shared row: the clip, and the lane it draws. */
+export interface AutomationLaneGroupEntry {
+  element: TimelineElement;
+  lane: HfAutomationLane;
+}
+
+/** A lane row on a track: one property, and every clip that automates it. */
+export interface AutomationLaneGroup {
+  /** {@link laneGroupKey} — the row's identity, and also its whole label. */
+  key: string;
+  /** The label's two lines, as {@link automationLaneLabelParts} splits them. */
+  name: string;
+  param: string;
+  /** In track order. A clip that does not automate this property is simply
+   *  absent, leaving its stretch of the row empty. */
+  entries: AutomationLaneGroupEntry[];
+}
+
+/**
+ * The lane rows a TRACK shows, unioned over the clips sharing it.
+ *
+ * Several clips on one row (four narration slices, say) each carry their own
+ * chain and their own envelopes. Drawing only the selected clip's made a per-clip
+ * lane read as governing the whole row, and swapped which envelopes were visible
+ * whenever the selection moved. So the row is keyed by the property — a clip
+ * draws into the row for `Peaking EQ 1 kHz · Q` over its own span, and clips that
+ * automate nothing there leave it empty.
+ *
+ * Row order is first-seen: each clip's lanes are already in draw order (the
+ * spectrum, top down), so the first clip to carry a property fixes its row and
+ * later clips only append properties nobody has shown yet.
+ *
+ * Non-audio elements contribute nothing, matching `automationLaneCountOf` — the
+ * row's reserved height and its drawn lanes have to count the same clips.
+ */
+export function groupAutomationLanes(elements: readonly TimelineElement[]): AutomationLaneGroup[] {
+  const groups = new Map<string, AutomationLaneGroup>();
+  for (const element of elements) {
+    if (!isAudioTimelineElement(element)) continue;
+    const chain = elementFxChain(element);
+    for (const lane of elementAutomationLanes(element)) {
+      const key = laneGroupKey(lane.target, chain);
+      const parts = automationLaneLabelParts(lane.target, chain);
+      // Null on both together: an unresolvable target draws no lane either.
+      if (!key || !parts) continue;
+      const group = groups.get(key);
+      if (group) group.entries.push({ element, lane });
+      else {
+        groups.set(key, {
+          key,
+          name: parts.name,
+          param: parts.param,
+          entries: [{ element, lane }],
+        });
+      }
+    }
+  }
+  return [...groups.values()];
 }
 
 /** The whole label on one line, for a tooltip or an accessible name. */
