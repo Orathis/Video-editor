@@ -166,22 +166,3 @@ export function parseSsimAll(stderr: string): number | null {
   }
   return value;
 }
-
-/**
- * ffmpeg arguments that measure structural similarity between two same-sized
- * images — the standard number, no reimplementation.
- */
-export function ssimFfmpegArgs(referencePath: string, replicaPath: string): string[] {
-  return [
-    "-hide_banner",
-    "-i",
-    referencePath,
-    "-i",
-    replicaPath,
-    "-lavfi",
-    "[0:v][1:v]ssim",
-    "-f",
-    "null",
-    "-",
-  ];
-}

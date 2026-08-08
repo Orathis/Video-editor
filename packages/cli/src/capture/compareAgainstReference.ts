@@ -27,7 +27,6 @@ import {
   meanSignedDiff,
   parseSsimAll,
   redCyanOverlayRaw,
-  ssimFfmpegArgs,
   type BoundsDeviation,
 } from "../utils/referenceDiff.js";
 
@@ -155,9 +154,21 @@ async function frameSsim(
   referencePath: string,
   replicaPath: string,
 ): Promise<number | null> {
+  // ffmpeg's own ssim filter, rather than a reimplementation of the standard.
   const result = await runFfmpegOnce(
     ffmpegPath,
-    ssimFfmpegArgs(referencePath, replicaPath),
+    [
+      "-hide_banner",
+      "-i",
+      referencePath,
+      "-i",
+      replicaPath,
+      "-lavfi",
+      "[0:v][1:v]ssim",
+      "-f",
+      "null",
+      "-",
+    ],
     FFMPEG_TIMEOUT_MS,
   );
   if (result.timedOut || result.code !== 0) return null;

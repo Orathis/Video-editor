@@ -200,7 +200,6 @@ export function parseReferenceCompareArgs(
   args: {
     _?: readonly unknown[];
     against?: unknown;
-    labels?: unknown;
     out?: unknown;
     at?: unknown;
     "fail-under"?: unknown;
@@ -219,7 +218,7 @@ export function parseReferenceCompareArgs(
 
   return {
     variant: {
-      label: parseLabels(args.labels, 1)?.[0] ?? defaultLabelForPath(input),
+      label: defaultLabelForPath(input),
       inputPath: resolveFromBase(cwd, input),
       displayPath: displayPathFromInput(cwd, input),
     },

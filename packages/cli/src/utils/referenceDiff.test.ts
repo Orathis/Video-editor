@@ -6,7 +6,6 @@ import {
   meanSignedDiff,
   parseSsimAll,
   redCyanOverlayRaw,
-  ssimFfmpegArgs,
 } from "./referenceDiff.js";
 
 /** Dark canvas with one bright rectangle of ink. */
@@ -95,14 +94,5 @@ describe("parseSsimAll", () => {
 
   it("returns null when ffmpeg printed no SSIM line", () => {
     expect(parseSsimAll("Invalid argument\n")).toBeNull();
-  });
-});
-
-describe("ssimFfmpegArgs", () => {
-  it("feeds both inputs into the ssim filter", () => {
-    const args = ssimFfmpegArgs("/ref.png", "/rep.png");
-    expect(args).toContain("/ref.png");
-    expect(args).toContain("/rep.png");
-    expect(args[args.indexOf("-lavfi") + 1]).toBe("[0:v][1:v]ssim");
   });
 });
