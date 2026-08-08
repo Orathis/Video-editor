@@ -30,8 +30,12 @@
  * against, and a role name on the wire is a channel that silently does nothing.
  */
 
-/** One state's worth of styling. Every channel optional; an absent channel means "leave it alone". */
-export interface CaptionChannels {
+/**
+ * Channels a TWEEN END may carry — things that can be interpolated frame by frame.
+ *
+ * Every channel optional; an absent channel means "leave it alone".
+ */
+export interface CaptionAnimatableChannels {
   color?: string;
   backgroundColor?: string;
   /** 0–1. */
@@ -45,15 +49,43 @@ export interface CaptionChannels {
   translateY?: number;
   /** px. Typography is not resolution-scaled here; a renderer fits its own type. */
   fontSize?: number;
+  /**
+   * Multiplier on the rendered brightness; 1 is unchanged.
+   *
+   * Present because pacific's motion captions already carry it on both static states and tween
+   * ends. Omitting it from the canonical set would not make it go away — it would strand every
+   * draft that authored it, silently, which is the failure this schema exists to prevent.
+   */
+  brightness?: number;
+}
+
+/**
+ * Channels that only make sense held CONSTANT for a whole state.
+ *
+ * Split out structurally rather than policed at runtime: a font family or style has no meaningful
+ * midpoint, so a tween end that could carry one is a shape that invites nonsense and then needs a
+ * check to reject it. pacific reached the same conclusion independently and enforces it the same
+ * way — its `WordAnimatable` simply lacks these keys.
+ *
+ * `fontSize` is deliberately NOT here: it interpolates cleanly and templates already animate it.
+ */
+export interface CaptionStaticChannels {
   fontWeight?: number | string;
   fontFamily?: string;
   fontStyle?: "normal" | "italic";
 }
 
-/** `active` is a tween, so it carries both ends. Absent states are left to the composition. */
+/** One state's worth of styling: a static state may carry either kind. */
+export interface CaptionChannels extends CaptionAnimatableChannels, CaptionStaticChannels {}
+
+/**
+ * `active` is a tween, so it carries both ends — and only animatable channels, by construction.
+ *
+ * Absent states are left to the composition.
+ */
 export interface CaptionWordStates {
   upcoming?: CaptionChannels;
-  active?: { from?: CaptionChannels; to?: CaptionChannels };
+  active?: { from?: CaptionAnimatableChannels; to?: CaptionAnimatableChannels };
   spoken?: CaptionChannels;
 }
 
@@ -103,7 +135,7 @@ const STATE_PATHS = ["upcoming", "active.from", "active.to", "spoken"] as const;
 function writeChannel(
   states: CaptionWordStates,
   path: (typeof STATE_PATHS)[number],
-  channels: CaptionChannels,
+  channels: CaptionChannels | CaptionAnimatableChannels,
 ): void {
   if (Object.keys(channels).length === 0) return;
   if (path === "upcoming" || path === "spoken") {
@@ -129,13 +161,19 @@ function mergeStates(base: CaptionWordStates, over: CaptionWordStates): CaptionW
 }
 
 /** Shorthand channels that map straight across, with no unit change. */
-const PASSTHROUGH_CHANNELS: ReadonlyArray<
-  readonly [keyof LegacyCaptionOverride, keyof CaptionChannels]
+const PASSTHROUGH_ANIMATABLE: ReadonlyArray<
+  readonly [keyof LegacyCaptionOverride, keyof CaptionAnimatableChannels]
 > = [
   ["scale", "scale"],
   ["rotation", "rotationDeg"],
   ["opacity", "opacity"],
   ["fontSize", "fontSize"],
+] as const;
+
+/** Shorthand channels that reach the static states only — see CaptionStaticChannels. */
+const PASSTHROUGH_STATIC: ReadonlyArray<
+  readonly [keyof LegacyCaptionOverride, keyof CaptionStaticChannels]
+> = [
   ["fontWeight", "fontWeight"],
   ["fontFamily", "fontFamily"],
 ] as const;
@@ -147,15 +185,33 @@ const PASSTHROUGH_CHANNELS: ReadonlyArray<
  * `spoken` instead would let the word revert the moment it is read -- the same trap that makes
  * hiding a word write opacity 0 to all four paths.
  */
-function constantChannels(input: LegacyCaptionOverride, frame: CaptionFrame): CaptionChannels {
+function constantAnimatable(
+  input: LegacyCaptionOverride,
+  frame: CaptionFrame,
+): CaptionAnimatableChannels {
   const out: Record<string, unknown> = {};
-  for (const [from, to] of PASSTHROUGH_CHANNELS) {
+  for (const [from, to] of PASSTHROUGH_ANIMATABLE) {
     const value = input[from];
     if (value !== undefined) out[to] = value;
   }
   if (input.x !== undefined && frame.width > 0) out.translateX = input.x / (frame.width / 2);
   if (input.y !== undefined && frame.height > 0) out.translateY = input.y / (frame.height / 2);
-  return out as CaptionChannels;
+  return out as CaptionAnimatableChannels;
+}
+
+/**
+ * Static constants reach `upcoming` and `spoken` only.
+ *
+ * Writing a font family onto a tween end was always meaningless — the applier sets typography once,
+ * statically — but the flat shape let it look intentional. Now it cannot be expressed.
+ */
+function constantStatic(input: LegacyCaptionOverride): CaptionStaticChannels {
+  const out: Record<string, unknown> = {};
+  for (const [from, to] of PASSTHROUGH_STATIC) {
+    const value = input[from];
+    if (value !== undefined) out[to] = value;
+  }
+  return out as CaptionStaticChannels;
 }
 
 /** Expand the two-colour shorthand: dim is worn before AND after, active is a tween's two ends. */
@@ -181,8 +237,11 @@ export function normalizeCaptionOverride(
   frame: CaptionFrame,
 ): CanonicalCaptionOverride {
   const states: CaptionWordStates = {};
-  const constant = constantChannels(input, frame);
-  for (const path of STATE_PATHS) writeChannel(states, path, constant);
+  const animatable = constantAnimatable(input, frame);
+  for (const path of STATE_PATHS) writeChannel(states, path, animatable);
+  const staticChannels = constantStatic(input);
+  writeChannel(states, "upcoming", staticChannels);
+  writeChannel(states, "spoken", staticChannels);
   writeShorthandColors(states, input);
 
   return {
