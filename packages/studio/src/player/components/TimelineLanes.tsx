@@ -177,6 +177,12 @@ export function TimelineLanes({
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
           const rowExpanded = isTrackRowExpanded(els, expandedClipIds);
+          // How tall a clip BAR is drawn. An expanded row is mostly lanes, and a
+          // clip left to fill it painted its waveform straight over them — so the
+          // bar is capped for every clip on the row, not just the one whose
+          // property lanes are showing. Undefined means "fill the row", which is
+          // right only while it is collapsed and the row is nothing but bar.
+          const clipBarHeight = rowExpanded ? TRACK_H - 2 * CLIP_Y : undefined;
           // The clips whose envelopes this row draws, at their dragged positions.
           // Once per row, not once per clip in the map below.
           const automationElements = els.map(getPreviewElement);
@@ -350,7 +356,7 @@ export function TimelineLanes({
                         el={previewElement}
                         pps={pps}
                         clipY={CLIP_Y}
-                        clipHeight={showsLanes ? TRACK_H - 2 * CLIP_Y : undefined}
+                        clipHeight={clipBarHeight}
                         isSelected={isSelected}
                         isHovered={hoveredClip === clipKey}
                         isDragging={false}
@@ -500,7 +506,7 @@ export function TimelineLanes({
                           <TimelineClipDiamonds
                             keyframesData={keyframeCache.get(elementKey)!}
                             clipWidthPx={Math.max(previewElement.duration * pps, 4)}
-                            clipHeightPx={rowHeight - 2 * CLIP_Y}
+                            clipHeightPx={clipBarHeight ?? rowHeight - 2 * CLIP_Y}
                             clipDuration={previewElement.duration}
                             beatsActive={beatStripOnTrack}
                             accentColor={clipStyle.accent}
