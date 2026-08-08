@@ -360,8 +360,13 @@ const allpassPhaser: Builder = (ctx, p) => {
     // frequency at once — not one knob, one param — so they stay unautomated.
     automation: {
       speed: [{ param: lfo.frequency }],
-      in_gain: [{ param: dry.gain }],
-      out_gain: [{ param: wet.gain }],
+      // The trims, not wet/dry. apply() drives inTrim/outTrim from these knobs
+      // and pins wet and dry to 1 — so a lane aimed at wet/dry modulated a
+      // constant and left the trim frozen, and the next values-only edit slammed
+      // it back over the running envelope. The comment above records that this
+      // wiring was already moved once; the automation map was missed.
+      in_gain: [{ param: inTrim.gain }],
+      out_gain: [{ param: outTrim.gain }],
     },
     dispose: () => {
       try {
