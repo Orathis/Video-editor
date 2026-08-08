@@ -7,7 +7,11 @@ import { TimelineAutomationLaneSlot } from "./TimelineAutomationLane";
 import { useAutomationLanes } from "./useAutomationLanes";
 import { useAutomationSelectionKeyboard } from "../../hooks/useAutomationSelectionKeyboard";
 import { TimelineTrackHeader } from "./TimelineTrackHeader";
-import { resolveTrackKeyframeClip, trackShowsBeatStrip } from "./useTimelineTrackLayout";
+import {
+  isTrackRowExpanded,
+  resolveTrackKeyframeClip,
+  trackShowsBeatStrip,
+} from "./useTimelineTrackLayout";
 import { trackDisplayNumber, trackDisplaySuffix } from "./timelineTrackDisplay";
 import { clipTimingStart } from "../../hooks/gsapShared";
 import { getTimelineEditCapabilities, resolveBlockedTimelineEditIntent } from "./timelineEditing";
@@ -97,11 +101,17 @@ export function TimelineLanes({
   const expandedClipIds = usePlayerStore((s) => s.expandedClipIds);
   const automationLanes = useAutomationLanes();
   useAutomationSelectionKeyboard({ lanes: automationLanes });
-  const toggleClipExpanded = usePlayerStore((s) => s.toggleClipExpanded);
-  const toggleClipExpandedTracked = (key: string) => {
-    const willExpand = !expandedClipIds.has(key);
+  const expandClips = usePlayerStore((s) => s.expandClips);
+  const setClipExpanded = usePlayerStore((s) => s.setClipExpanded);
+  // The caret belongs to the ROW, so it opens and closes every clip on it at
+  // once. Toggling only the active clip left the row's state depending on which
+  // sibling happened to be selected: expand one, click another, and the row
+  // collapsed under a caret that still pointed down.
+  const toggleRowExpandedTracked = (keys: readonly string[]) => {
+    const willExpand = !keys.some((key) => expandedClipIds.has(key));
     trackStudioKeyframeLaneExpand({ expanded: willExpand });
-    toggleClipExpanded(key);
+    if (willExpand) expandClips(keys);
+    else for (const key of keys) setClipExpanded(key, false);
   };
   const multiDragDelta =
     multiDragPreview && isMultiDragActive(multiDragPreview)
@@ -166,8 +176,10 @@ export function TimelineLanes({
             selectedElementIds,
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
-          const keyframeClipExpanded =
-            keyframeClipKey != null && expandedClipIds.has(keyframeClipKey);
+          const rowExpanded = isTrackRowExpanded(els, expandedClipIds);
+          // The clips whose envelopes this row draws, at their dragged positions.
+          // Once per row, not once per clip in the map below.
+          const automationElements = els.map(getPreviewElement);
           // Minted here because this is the only place that sees BOTH ends of
           // the disclosure: the caret in the sticky header and the diamond lanes
           // on the canvas. Keyed by display row, not by `trackNum`, which is a
@@ -219,17 +231,17 @@ export function TimelineLanes({
                 lanesId={lanesId}
                 contentOrigin={contentOrigin}
                 keyframeClip={keyframeClip}
+                trackElements={els}
                 clipCount={els.length}
-                isExpanded={keyframeClipExpanded}
+                isExpanded={rowExpanded}
                 animations={keyframeClipKey ? (gsapAnimations.get(keyframeClipKey) ?? []) : []}
                 currentTime={currentTime}
                 isTrackHidden={isTrackHidden}
                 isAudioTrack={isAudioTrack}
                 theme={theme}
                 onToggleClipExpanded={() => {
-                  if (keyframeClipKey) {
-                    toggleClipExpandedTracked(keyframeClipKey);
-                  }
+                  const keys = els.map(getTimelineElementIdentity);
+                  if (keys.length > 0) toggleRowExpandedTracked(keys);
                 }}
                 onToggleTrackHidden={onToggleTrackHidden}
                 onTogglePropertyGroupKeyframe={onTogglePropertyGroupKeyframe}
@@ -303,7 +315,7 @@ export function TimelineLanes({
                     // other clips (incl. siblings on a shared track) show compact
                     // diamonds on their own bar instead.
                     const isTrackKeyframeClip = elementKey === keyframeClipKey;
-                    const showsLanes = isTrackKeyframeClip && keyframeClipExpanded;
+                    const showsLanes = isTrackKeyframeClip && rowExpanded;
                     const capabilities = getTimelineEditCapabilities(el);
                     const isSelected =
                       selectedElementId === elementKey || selectedElementIds.has(elementKey);
@@ -554,10 +566,15 @@ export function TimelineLanes({
                         }
                         suppressClickRef={suppressClickRef}
                         footer={
-                          showsLanes && isAudioTimelineElement(el) ? (
+                          showsLanes ? (
+                            // Every clip on the row, not this one: the lanes are
+                            // the TRACK's, one row per automated property.
                             <TimelineAutomationLaneSlot
-                              element={previewElement}
-                              isSelected={isSelected}
+                              elements={automationElements}
+                              isSelected={(element) => {
+                                const key = getTimelineElementIdentity(element);
+                                return selectedElementId === key || selectedElementIds.has(key);
+                              }}
                               lanes={automationLanes}
                               pps={pps}
                               laneCount={laneCounts.get(elementKey) ?? 0}

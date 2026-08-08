@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import { animationLaneGroups } from "./TimelinePropertyLanes";
 import { isAudioTimelineElement } from "../../utils/timelineInspector";
-import { elementAutomationLanes } from "./automationLaneData";
+import { elementAutomationLanes, groupAutomationLanes } from "./automationLaneData";
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import type { DraggedClipState } from "./timelineClipDragTypes";
 import { useTimelineTrackDerivations } from "./useTimelineTrackDerivations";
@@ -44,6 +44,30 @@ export function trackShowsBeatStrip(
  */
 export function automationLaneCountOf(element: TimelineElement): number {
   return isAudioTimelineElement(element) ? elementAutomationLanes(element).length : 0;
+}
+
+/**
+ * Automation rows a TRACK reserves: the union over the clips sharing it, since
+ * clips on one row share a lane row per property. Counting only the active clip's
+ * lanes reserved a height that changed with the selection.
+ */
+export function trackAutomationLaneCount(elements: readonly TimelineElement[]): number {
+  return groupAutomationLanes(elements).length;
+}
+
+/**
+ * Is this row disclosed? Expansion is stored per clip, but it reads as a property
+ * of the ROW: the active clip changes with the selection, so asking only about it
+ * collapsed the row the moment you clicked a sibling. Any expanded clip on the
+ * track holds the row open — and the caret expands and collapses all of them
+ * together (see TimelineLanes), so the two can only disagree on state predating
+ * this rule or written by the keyframe auto-expand.
+ */
+export function isTrackRowExpanded(
+  elements: readonly TimelineElement[],
+  expandedClipIds: ReadonlySet<string>,
+): boolean {
+  return elements.some((element) => expandedClipIds.has(element.key ?? element.id));
 }
 
 /**
@@ -112,8 +136,9 @@ function useTimelineRowHeights(
   const expandedClipIds = usePlayerStore((s) => s.expandedClipIds);
   const { laneCounts, rowGeometry } = useMemo(() => {
     const laneCounts = computeLaneCounts(tracks, gsapAnimations);
-    // Row height follows only the active keyframe clip, so a track with several
+    // Keyframe lanes follow only the active clip, so a track with several
     // keyframed elements never reserves empty lanes for the ones not shown.
+    // Automation lanes follow the whole row: they are shared per property.
     const heightTracks: TimelineTrackHeightClip[][] = tracks.map(([, elements]) => {
       const active = resolveTrackKeyframeClip(
         elements,
@@ -123,11 +148,18 @@ function useTimelineRowHeights(
       );
       if (!active) return [];
       const clipId = active.key ?? active.id;
+      // `trackHeights` gates the reserved lanes on this id being expanded, and the
+      // row is expanded when ANY of its clips is — so hand it whichever clip holds
+      // the row open, while the lane counts stay the active clip's (keyframes) and
+      // the track's (automation, shared across the row).
+      const holdingOpen = elements.find((element) =>
+        expandedClipIds.has(element.key ?? element.id),
+      );
       return [
         {
-          clipId,
+          clipId: holdingOpen ? (holdingOpen.key ?? holdingOpen.id) : clipId,
           laneCount: laneCounts.get(clipId) ?? 0,
-          automationLaneCount: automationLaneCountOf(active),
+          automationLaneCount: trackAutomationLaneCount(elements),
         },
       ];
     });
