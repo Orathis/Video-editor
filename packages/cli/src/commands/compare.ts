@@ -170,8 +170,28 @@ export function parseCompareArgs(
 
 const MAX_REFERENCE_TIMES = 8;
 
-function parseReferenceTimes(value: unknown): number[] {
-  const raw = readOptionalString(value);
+/**
+ * Raw citty args for the `--against` route. String flags arrive as strings and
+ * boolean flags as booleans, so the parse below narrows values rather than
+ * type-testing them.
+ */
+export interface ReferenceCompareCliArgs {
+  _?: readonly string[];
+  against?: string;
+  out?: string;
+  at?: string;
+  "fail-under"?: string;
+  json?: boolean;
+  timeout?: string;
+}
+
+function trimmed(value: string | undefined): string | undefined {
+  const text = value?.trim();
+  return text ? text : undefined;
+}
+
+function parseReferenceTimes(value: string | undefined): number[] {
+  const raw = trimmed(value);
   if (!raw) return [0];
   const times = raw.split(",").map((entry) => {
     const parsed = Number(entry.trim());
@@ -186,8 +206,8 @@ function parseReferenceTimes(value: unknown): number[] {
   return times;
 }
 
-function parseFailUnder(value: unknown): number | undefined {
-  const raw = readOptionalString(value);
+function parseFailUnder(value: string | undefined): number | undefined {
+  const raw = trimmed(value);
   if (!raw) return undefined;
   const parsed = Number(raw);
   if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
@@ -197,22 +217,14 @@ function parseFailUnder(value: unknown): number | undefined {
 }
 
 export function parseReferenceCompareArgs(
-  args: {
-    _?: readonly unknown[];
-    against?: unknown;
-    out?: unknown;
-    at?: unknown;
-    "fail-under"?: unknown;
-    json?: unknown;
-    timeout?: unknown;
-  },
+  args: ReferenceCompareCliArgs,
   cwd = process.cwd(),
 ): ParsedReferenceCompareArgs {
-  const paths = parsePathArgs(args);
+  const paths = (args._ ?? []).map((value) => value.trim()).filter(Boolean);
   if (paths.length !== 1) {
     throw new Error("--against compares exactly one composition path against the reference");
   }
-  const reference = readOptionalString(args.against);
+  const reference = trimmed(args.against);
   if (!reference) throw new Error("--against needs a reference video or image path");
   const input = paths[0]!;
 
@@ -225,12 +237,10 @@ export function parseReferenceCompareArgs(
     referencePath: resolveFromBase(cwd, reference),
     displayReferencePath: displayPathFromInput(cwd, reference),
     times: parseReferenceTimes(args.at),
-    outPath: resolveFromBase(cwd, readOptionalString(args.out) ?? "compare.png"),
+    outPath: resolveFromBase(cwd, trimmed(args.out) ?? "compare.png"),
     failUnder: parseFailUnder(args["fail-under"]),
     json: args.json === true,
-    timeoutMs:
-      Number.parseInt(readOptionalString(args.timeout) ?? "", 10) ||
-      DEFAULT_RENDER_READY_TIMEOUT_MS,
+    timeoutMs: Number.parseInt(trimmed(args.timeout) ?? "", 10) || DEFAULT_RENDER_READY_TIMEOUT_MS,
   };
 }
 
@@ -570,7 +580,7 @@ export default defineCommand({
   async run({ args }) {
     const jsonRequested = args.json === true;
     try {
-      if (readOptionalString(args.against)) {
+      if (trimmed(args.against)) {
         const parsed = parseReferenceCompareArgs(args);
         if (!parsed.json) {
           console.log(
