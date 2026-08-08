@@ -277,20 +277,21 @@ async function prepareProjectDir(item: CatalogItem): Promise<string> {
   return tmpDir;
 }
 
+/** Pull a `data-<attr>` pixel value out of the wrapper markup, or fall back. */
+function wrapperDimension(html: string, attr: "width" | "height", fallback: number): number {
+  const match = html.match(new RegExp(`data-${attr}="(\\d+)"`))?.[1];
+  return match ? parseInt(match, 10) : fallback;
+}
+
 async function generateThumbnail(item: CatalogItem, projectDir: string): Promise<void> {
   const outDir = outputDir(item.kind);
   mkdirSync(outDir, { recursive: true });
 
   // Read dimensions from the wrapper index.html (which may differ from native
   // dimensions for portrait overlays that are scaled to fit landscape).
-  let width = 1920;
-  let height = 1080;
-  const wrapperPath = join(projectDir, "index.html");
-  const wrapperHtml = readFileSync(wrapperPath, "utf-8");
-  const wMatch = wrapperHtml.match(/data-width="(\d+)"/);
-  const hMatch = wrapperHtml.match(/data-height="(\d+)"/);
-  if (wMatch) width = parseInt(wMatch[1], 10);
-  if (hMatch) height = parseInt(hMatch[1], 10);
+  const wrapperHtml = readFileSync(join(projectDir, "index.html"), "utf-8");
+  const width = wrapperDimension(wrapperHtml, "width", 1920);
+  const height = wrapperDimension(wrapperHtml, "height", 1080);
 
   const framesDir = join(projectDir, "_thumb_frames");
   mkdirSync(framesDir, { recursive: true });
