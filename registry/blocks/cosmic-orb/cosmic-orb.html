@@ -78,37 +78,52 @@
         var W = 1920;
         var H = 1080;
 
-        var V = (window.__hyperframes && window.__hyperframes.getVariables()) || {};
-        var CS = getComputedStyle(document.getElementById("co-root"));
+        var ROOT = document.getElementById("co-root");
+        var CS = getComputedStyle(ROOT);
 
-        // The runtime defines every declared variable as `--<id>` on the root,
-        // so a host stylesheet can override one there too. Read the custom
-        // property first, fall back to the declared value when it is unset.
+        // `data-composition-variables` is the single owner of every declared
+        // default — parse it rather than repeating each default a second time
+        // in JS. `window.__hyperframes` is NOT guaranteed to exist yet when this
+        // inline script runs, so it can only ever be an override, never the
+        // source. Precedence: host CSS custom property, runtime variable bag,
+        // declared default.
+        var DECL = {};
+        JSON.parse(ROOT.getAttribute("data-composition-variables") || "[]").forEach(function (v) {
+          DECL[v.id] = v.default;
+        });
+        var HF = window.__hyperframes;
+        var V = (HF && HF.getVariables && HF.getVariables()) || {};
+
         function raw(id) {
           var css = CS.getPropertyValue("--" + id.toLowerCase()).trim();
-          return css !== "" ? css : V[id];
+          if (css !== "") return css;
+          if (V[id] !== undefined && V[id] !== "") return V[id];
+          return DECL[id];
         }
-        function num(id, fallback) {
+        function num(id) {
           var n = parseFloat(raw(id));
-          return isFinite(n) ? n : fallback;
+          return isFinite(n) ? n : 0;
+        }
+        function str(id) {
+          var s = raw(id);
+          return typeof s === "string" ? s.trim() : "";
         }
 
-        var HUE = num("hue", 268);
-        var ACCENT = num("accent", 196);
-        var SPIN = num("spin", 0.035);
-        var STARS = num("stars", 1);
-        var GLOW = num("glow", 1);
-        var SIZE = num("size", 0.86);
-        var PULSE = num("pulse", 0);
-        var BACKDROP =
-          typeof raw("backdrop") === "string" && raw("backdrop") ? raw("backdrop") : "#04040a";
+        var HUE = num("hue");
+        var ACCENT = num("accent");
+        var SPIN = num("spin");
+        var STARS = num("stars");
+        var GLOW = num("glow");
+        var SIZE = num("size");
+        var PULSE = num("pulse");
+        var BACKDROP = str("backdrop");
 
         document.getElementById("co-backdrop").style.background = BACKDROP;
 
         // Beat hook. A precomputed envelope (comma-separated 0-1 samples spread
         // evenly across the clip) is sampled closed-form at time t — no audio
         // analysis, no accumulator. Empty envelope => the flat `pulse` value.
-        var ENV = String(raw("pulseEnvelope") || "")
+        var ENV = str("pulseEnvelope")
           .split(",")
           .map(function (s) {
             return parseFloat(s);
