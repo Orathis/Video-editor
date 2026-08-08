@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   buildCompareSuccessPayload,
@@ -151,7 +151,8 @@ describe("parseReferenceCompareArgs", () => {
   it("defaults to a single sample at t=0", () => {
     const parsed = parseReferenceCompareArgs({ _: ["."], against: "ref.mp4" }, "/tmp");
     expect(parsed.times).toEqual([0]);
-    expect(parsed.referencePath).toBe("/tmp/ref.mp4");
+    // resolve(), not a literal: Windows turns "/tmp" into "D:\tmp".
+    expect(parsed.referencePath).toBe(resolve("/tmp", "ref.mp4"));
     expect(parsed.failUnder).toBeUndefined();
   });
 
