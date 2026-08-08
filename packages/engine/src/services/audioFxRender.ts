@@ -205,6 +205,14 @@ export async function applyAudioFxChain(
 
   const { samples, sampleRate, channels } = readWav(inputWav);
   const planes = deinterleave(samples, channels);
+  // An empty track has nothing to process — and an OfflineAudioContext of zero
+  // length throws, which is fatal for the WHOLE render rather than this track:
+  // the error travels past the mixer's per-track failure collector. ffmpeg
+  // writes an empty but structurally valid WAV whenever a clip's trim starts
+  // past the end of its source, so one mis-set `data-media-start` used to take
+  // the render down. Guarded here as well as in the runtime so an empty track
+  // never costs a browser.
+  if ((planes[0]?.length ?? 0) === 0) return inputWav;
 
   // Audio processing needs no GPU or special capture mode; a plain sandboxed
   // browser is enough, and the lease pool reuses one across tracks.
