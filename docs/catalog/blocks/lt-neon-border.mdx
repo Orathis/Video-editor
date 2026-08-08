@@ -1,0 +1,57 @@
+---
+title: "Neon Border"
+description: "Two arcs of light travel the edge of a rounded panel and snap corner to corner, trailing a soft three-layer bloom. A lower third for a name and role."
+---
+
+<video className="w-full aspect-video rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" src="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/lt-neon-border.mp4" poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/lt-neon-border.png" autoPlay muted loop playsInline />
+
+## Install
+
+```bash Terminal
+npx hyperframes add lt-neon-border
+```
+
+That writes one file: `compositions/lt-neon-border.html`.
+
+## Add it to your video
+
+It runs for 4.8 seconds at 1920×1080. Paste this into your composition:
+
+```html index.html
+<div
+  data-composition-id="lt-neon-border"
+  data-composition-src="compositions/lt-neon-border.html"
+  data-start="0"
+  data-duration="4.8"
+  data-track-index="1"
+  data-width="1920"
+  data-height="1080"
+></div>
+```
+
+Move it in time with `data-start`. Put it on a different timeline row with
+`data-track-index`. See [data attributes](/concepts/data-attributes) for the rest.
+
+## Change how it looks
+
+Set these CSS variables on the block:
+
+- `undefined` — Name. Defaults to `Dr. Maya Chen`.
+- `undefined` — Role. Defaults to `Host · Neuroscientist`.
+- `undefined` — Accent. Defaults to `#cc9149`.
+- `undefined` — Movement. Defaults to `step`. Options: `step`, `glide`.
+- `undefined` — Speed. Defaults to `1.6`.
+- `undefined` — Corner radius. Defaults to `26`.
+- `undefined` — Thickness. Defaults to `5`.
+- `undefined` — Arc length. Defaults to `22`.
+- `undefined` — Glow. Defaults to `1`.
+
+{/* hf:generated-footer */}
+
+Tagged `lower-third` `glow` `loop` `video-primitive`.
+
+## Related topics
+
+- [Browse the complete Catalog](/catalog)
+- [Add assets and Catalog items in Studio](/studio/assets-and-blocks)
+- [Build a richer composition](/go-further)

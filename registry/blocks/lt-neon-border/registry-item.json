@@ -1,98 +1,106 @@
 {
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
-  "name": "cosmic-orb",
+  "name": "lt-neon-border",
   "type": "hyperframes:block",
-  "title": "Cosmic Orb",
-  "description": "An iridescent soap-bubble planet: a slowly spinning sphere of nebula bands, dust lanes and twinkling stars wrapped in a refracting glass limb with chromatic aberration at the edge.",
+  "title": "Neon Border",
+  "description": "Two arcs of light travel the edge of a rounded panel and snap corner to corner, trailing a soft three-layer bloom. A lower third for a name and role.",
   "stability": "experimental",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 10,
-  "tags": ["webgl", "shader", "background", "showcase", "3d"],
+  "duration": 4.8,
+  "tags": ["lower-third", "glow", "loop", "video-primitive"],
   "files": [
     {
-      "path": "cosmic-orb.html",
-      "target": "compositions/cosmic-orb.html",
-      "type": "hyperframes:composition"
+      "path": "lt-neon-border.html",
+      "type": "hyperframes:block"
     }
   ],
   "params": [
     {
-      "key": "hue",
-      "label": "Nebula hue",
-      "type": "number",
-      "default": "268",
-      "min": 0,
-      "max": 360,
-      "step": 1
+      "id": "name",
+      "type": "string",
+      "label": "Name",
+      "default": "Dr. Maya Chen"
     },
     {
-      "key": "accent",
-      "label": "Accent hue",
-      "type": "number",
-      "default": "196",
-      "min": 0,
-      "max": 360,
-      "step": 1
+      "id": "role",
+      "type": "string",
+      "label": "Role",
+      "default": "Host \u00b7 Neuroscientist"
     },
     {
-      "key": "spin",
-      "label": "Spin rate (turns per second)",
-      "type": "number",
-      "default": "0.035",
-      "min": 0,
-      "max": 0.5,
-      "step": 0.005
-    },
-    {
-      "key": "stars",
-      "label": "Star density",
-      "type": "number",
-      "default": "1",
-      "min": 0,
-      "max": 2,
-      "step": 0.05
-    },
-    {
-      "key": "glow",
-      "label": "Glow intensity",
-      "type": "number",
-      "default": "1",
-      "min": 0,
-      "max": 2,
-      "step": 0.05
-    },
-    {
-      "key": "size",
-      "label": "Orb size (fraction of frame height)",
-      "type": "number",
-      "default": "0.86",
-      "min": 0.2,
-      "max": 1.2,
-      "step": 0.01
-    },
-    {
-      "key": "pulse",
-      "label": "Beat pulse (0-1, flat value when no envelope is set)",
-      "type": "number",
-      "default": "0",
-      "min": 0,
-      "max": 1,
-      "step": 0.01
-    },
-    {
-      "key": "pulseEnvelope",
-      "label": "Beat pulse envelope: comma-separated 0-1 samples spread evenly across the clip",
-      "type": "text",
-      "default": ""
-    },
-    {
-      "key": "backdrop",
-      "label": "Backdrop",
+      "id": "accent",
       "type": "color",
-      "default": "#04040a"
+      "label": "Accent",
+      "default": "#cc9149"
+    },
+    {
+      "id": "movement",
+      "type": "enum",
+      "label": "Movement",
+      "default": "step",
+      "options": [
+        {
+          "value": "step",
+          "label": "Step (snap at corners)"
+        },
+        {
+          "value": "glide",
+          "label": "Glide (smooth)"
+        }
+      ]
+    },
+    {
+      "id": "speed",
+      "type": "number",
+      "label": "Speed",
+      "default": 1.6,
+      "min": 0.2,
+      "max": 6,
+      "step": 0.1,
+      "unit": "corners/s"
+    },
+    {
+      "id": "cornerRadius",
+      "type": "number",
+      "label": "Corner radius",
+      "default": 26,
+      "min": 0,
+      "max": 90,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "thickness",
+      "type": "number",
+      "label": "Thickness",
+      "default": 5,
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "id": "arcLength",
+      "type": "number",
+      "label": "Arc length",
+      "default": 22,
+      "min": 5,
+      "max": 100,
+      "step": 1,
+      "unit": "%"
+    },
+    {
+      "id": "glow",
+      "type": "number",
+      "label": "Glow",
+      "default": 1,
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "unit": "x"
     }
   ]
 }

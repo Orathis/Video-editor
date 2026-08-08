@@ -827,21 +827,6 @@
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/cosmic-orb.png"
   },
   {
-    "name": "cosmic-orb",
-    "type": "block",
-    "title": "Cosmic Orb",
-    "description": "An iridescent soap-bubble planet: a slowly spinning sphere of nebula bands, dust lanes and twinkling stars wrapped in a refracting glass limb with chromatic aberration at the edge.",
-    "tags": [
-      "webgl",
-      "shader",
-      "background",
-      "showcase",
-      "3d"
-    ],
-    "href": "/catalog/blocks/cosmic-orb",
-    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/cosmic-orb.png"
-  },
-  {
     "name": "cross-warp-morph",
     "type": "block",
     "title": "Cross Warp Morph",
@@ -1407,6 +1392,20 @@
     ],
     "href": "/catalog/blocks/lt-mask-reveal",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/lt-mask-reveal.png"
+  },
+  {
+    "name": "lt-neon-border",
+    "type": "block",
+    "title": "Neon Border",
+    "description": "Two arcs of light travel the edge of a rounded panel and snap corner to corner, trailing a soft three-layer bloom. A lower third for a name and role.",
+    "tags": [
+      "lower-third",
+      "glow",
+      "loop",
+      "video-primitive"
+    ],
+    "href": "/catalog/blocks/lt-neon-border",
+    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/lt-neon-border.png"
   },
   {
     "name": "lt-side-rule",
