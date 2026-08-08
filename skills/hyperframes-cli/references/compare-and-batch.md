@@ -5,6 +5,7 @@ Use these commands for deliberate visual comparison or variable-driven template 
 ## Contents
 
 - [Compare projects or variants](#compare-projects-or-variants)
+- [Measure against a reference](#measure-against-a-reference)
 - [Compare color grades](#compare-color-grades)
 - [Batch template renders](#batch-template-renders)
 
@@ -31,7 +32,47 @@ Useful options:
 
 One sheet accepts at most 16 variants. Extra inputs are truncated with a warning; split larger comparisons into several runs.
 
-`compare` is a visual review surface, not a quality gate. Run it when checking a baseline against a candidate, comparing implementation variants, or verifying that a repair preserves the intended look. Inspect the generated image; do not treat command success as visual approval.
+Without `--against`, `compare` is a visual review surface, not a quality gate. Run it when checking a baseline against a candidate, comparing implementation variants, or verifying that a repair preserves the intended look. Inspect the generated image; do not treat command success as visual approval.
+
+## Measure against a reference
+
+Every other gate in the CLI is self-referential: `lint` and `check` audit the composition against its own rules, so a scene that renders nothing like the artifact it is supposed to reproduce still passes them. When a reference artifact exists (the video being rebuilt, an approved cut, a design still, yesterday's render), measure against it:
+
+```bash
+npx hyperframes compare <project> \
+  --against reference.mp4 \
+  --at 0,4,10,21 \
+  --out compare.png \
+  --json
+```
+
+Exactly one composition path is allowed with `--against`. The reference may be a video (frames are pulled at each `--at` time) or a still image (the same target at every time). Up to 8 times per run; `--at` defaults to `0`.
+
+Each run produces three instruments:
+
+| Artifact                     | Where                  | Reads as                                                                        |
+| ---------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| Reference-over-replica sheet | `--out` path           | Row 1 reference, row 2 replica, one column per sampled time                     |
+| Red/cyan deviation overlay   | `<out>-overlay-NN.png` | Agreement grey, reference-only ink red, replica-only ink cyan                   |
+| Numbers                      | stdout and `--json`    | `ssim`, `meanAbsDiff`, and ink-box deltas `dw` / `dh` / `dcx` / `dcy` / `scale` |
+
+How to read them:
+
+- **`ssim`** is full-frame structural similarity, 1.0 = identical. A graphics-only composition measured against its own render lands at 0.998–0.999, so treat anything below ~0.99 on a self-comparison as a real difference, not measurement noise.
+- **Ink-box deltas** answer "is my title the right size and in the right place": `dw`/`dh` are the replica's ink bounding box minus the reference's in reference pixels, `dcx`/`dcy` the centre offset, `scale` the width ratio. They are meaningful for type and graphic frames; a full-bleed photograph makes every pixel ink and the box degenerates to the whole canvas.
+- **The overlay** localizes the deviation the numbers only total up. A uniform tint across the whole frame is a global level shift (encode quality, grade); localized red/cyan ghosting is a position, size or timing error.
+
+Gate on it with `--fail-under <ssim>`, which exits non-zero when the worst sampled SSIM falls below the threshold:
+
+```bash
+npx hyperframes compare . --against reference.mp4 --at 0,4,10,21 --fail-under 0.95
+```
+
+There is no default threshold, deliberately: pick one from a measured baseline (compare a known-good state first, then gate slightly below it). A threshold guessed before measuring passes everything and gates nothing.
+
+Caveat for video-backed compositions: a composition whose scenes play `<video>` will not reproduce its own render exactly, because live seek and the render pipeline do not always land the same source frame. Measure those against the composition's own rendered output to size the floor before choosing `--fail-under`, or sample times away from video-heavy scenes.
+
+`--against` needs FFmpeg on PATH.
 
 ## Compare color grades
 

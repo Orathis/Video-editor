@@ -729,6 +729,29 @@ npx hyperframes compare ./variant-a ./variant-b --labels "A,B"
 | `--timeout` | Render-ready timeout per variant (default 5000 ms) |
 | `--json`    | Machine-readable results                           |
 
+With `--against`, `compare` measures one composition against an external
+reference video or still instead of against sibling variants. `lint` and
+`check` only ever audit a composition against its own rules, so this is the
+gate that catches a scene which passes everything and still looks nothing like
+the thing it reproduces.
+
+```bash
+npx hyperframes compare . --against reference.mp4 --at 0,4,10,21 --fail-under 0.95
+```
+
+| Flag           | Description                                                                    |
+| -------------- | ------------------------------------------------------------------------------ |
+| `--against`    | Reference video or image to measure against (requires FFmpeg)                  |
+| `--at`         | Up to 8 comma-separated sample times, sampled in both reference and replica    |
+| `--fail-under` | Exit non-zero when the worst sampled SSIM falls below this threshold           |
+| `--out`        | Contact sheet path; overlays are written next to it as `<out>-overlay-NN.png`  |
+
+Each run writes a reference-over-replica contact sheet, a red/cyan deviation
+overlay per sampled time (agreement grey, reference-only ink red, replica-only
+ink cyan), and per-time numbers: `ssim`, `meanAbsDiff`, and ink bounding-box
+deltas `dw` / `dh` / `dcx` / `dcy` / `scale`. There is no default threshold:
+measure a known-good state first, then gate slightly below it.
+
 `grade-compare` does the same for colour: candidate grades or LUTs applied to
 one reference frame.
 
