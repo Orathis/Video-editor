@@ -294,22 +294,48 @@ function restyle(
   const text = runs.map((run) => run.text).join("");
   const perChar = charRuns(runs);
   const next: StyledRun[] = [];
-
+  // Indexed by UTF-16 unit, not by code point: `perChar`, `start` and `end` all
+  // count units, and spreading the string would count a surrogate pair once and
+  // slide every index after an emoji.
   for (let index = 0; index < text.length; index += 1) {
-    const inside = index >= start && index < end;
-    const previous = perChar[index]?.style ?? {};
-    const style = inside ? withDelta(previous, delta) : previous;
-    const origin = perChar[index]?.origin ?? null;
-    const identity = perChar[index]?.identity ?? "";
-    const last = next[next.length - 1];
-    // Merged as it is built, so equal neighbours never become two spans. Two
-    // that the design panel tracks as separate layers stay apart even when
-    // they now look identical, because merging them deletes one of them.
-    if (last && last.identity === identity && sameStyle(last.style, style))
-      last.text += text[index];
-    else next.push({ text: text[index] ?? "", style, origin, identity });
+    appendChar(
+      next,
+      text[index] ?? "",
+      charAfter(perChar[index], index >= start && index < end, delta),
+    );
   }
   return next;
+}
+
+/** What one character is styled with once the delta has been applied to it. */
+function charAfter(
+  at: Omit<StyledRun, "text"> | undefined,
+  inside: boolean,
+  delta: InlineStyleDelta,
+): Omit<StyledRun, "text"> {
+  const style = at?.style ?? {};
+  return {
+    style: inside ? withDelta(style, delta) : style,
+    origin: at?.origin ?? null,
+    identity: at?.identity ?? "",
+  };
+}
+
+/**
+ * One character onto the run list, merged into the run before it when they
+ * belong together.
+ *
+ * Merged as it is built, so equal neighbours never become two spans. Two that
+ * the design panel tracks as separate layers stay apart even when they now look
+ * identical, because merging them deletes one of them.
+ */
+function appendChar(runs: StyledRun[], char: string, at: Omit<StyledRun, "text">): void {
+  const last = runs[runs.length - 1];
+  if (last && last.identity === at.identity && sameStyle(last.style, at.style)) {
+    last.text += char;
+    return;
+  }
+  runs.push({ text: char, ...at });
 }
 
 function withDelta(style: Record<string, string>, delta: InlineStyleDelta): Record<string, string> {
@@ -360,24 +386,35 @@ function runNodes(doc: Document, runs: StyledRun[]): Node[] {
   // origin is a new layer and is written as one.
   const claimed = new Set<Element>();
   for (const run of runs) {
-    const key = styleKey(run.style);
     const carried =
       run.origin && !claimed.has(run.origin) ? preservedAttributes(run.origin) : new Map();
     if (carried.size > 0 && run.origin) claimed.add(run.origin);
-    for (const [index, piece] of run.text.split(BREAK).entries()) {
-      if (index > 0) nodes.push(doc.createElement("br"));
-      if (!piece) continue;
-      if (!key && carried.size === 0) {
-        nodes.push(doc.createTextNode(piece));
-        continue;
-      }
-      const span = doc.createElement("span");
-      for (const [name, value] of carried) span.setAttribute(name, value);
-      if (key) span.setAttribute("style", key);
-      span.textContent = piece;
-      nodes.push(span);
-      carried.clear();
+    nodes.push(...runNode(doc, run, carried));
+  }
+  return nodes;
+}
+
+/**
+ * One run's nodes: its line breaks as `<br>`, and its text as bare text when it
+ * has nothing to carry or a span when it has. The identity goes on the first
+ * piece only, so a run broken across lines does not claim it twice.
+ */
+function runNode(doc: Document, run: StyledRun, carried: Map<string, string>): Node[] {
+  const key = styleKey(run.style);
+  const nodes: Node[] = [];
+  for (const [index, piece] of run.text.split(BREAK).entries()) {
+    if (index > 0) nodes.push(doc.createElement("br"));
+    if (!piece) continue;
+    if (!key && carried.size === 0) {
+      nodes.push(doc.createTextNode(piece));
+      continue;
     }
+    const span = doc.createElement("span");
+    for (const [name, value] of carried) span.setAttribute(name, value);
+    if (key) span.setAttribute("style", key);
+    span.textContent = piece;
+    nodes.push(span);
+    carried.clear();
   }
   return nodes;
 }
@@ -425,23 +462,37 @@ function laysOutItsChildren(host: Element): boolean {
 
 /** Where a DOM position falls, counted in characters from the element's start. */
 function offsetOf(host: Element, container: Node, containerOffset: number): number | null {
-  let count = 0;
-  const walker = host.ownerDocument.createTreeWalker(host, NodeFilter.SHOW_TEXT | 1);
+  // A position between children, expressed as a child index.
   if (container === host) {
-    // A position between children, expressed as a child index.
-    for (const child of Array.from(host.childNodes).slice(0, containerOffset)) {
-      count += (child.textContent ?? "").length || (nodeName(child) === "BR" ? 1 : 0);
-    }
-    return count;
+    return Array.from(host.childNodes)
+      .slice(0, containerOffset)
+      .reduce((count, child) => count + subtreeCharLength(child), 0);
   }
+  let count = 0;
+  const walker = host.ownerDocument.createTreeWalker(
+    host,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
   let node = walker.nextNode();
   while (node) {
     if (node === container) return count + containerOffset;
-    if (node.nodeType === 3) count += (node.textContent ?? "").length;
-    else if (nodeName(node) === "BR") count += 1;
+    count += charLength(node);
     node = walker.nextNode();
   }
   return null;
+}
+
+/** How many character positions a node occupies itself: its own text, or one
+ *  for a break. An element contributes nothing; the walk visits its text. */
+function charLength(node: Node): number {
+  if (node.nodeType === 3) return (node.textContent ?? "").length;
+  return nodeName(node) === "BR" ? 1 : 0;
+}
+
+/** The same count for a child and everything inside it, for a position given as
+ *  a child index rather than a place in a text node. */
+function subtreeCharLength(node: Node): number {
+  return (node.textContent ?? "").length || (nodeName(node) === "BR" ? 1 : 0);
 }
 
 function nodeName(node: Node): string {
