@@ -481,11 +481,24 @@ export function AudioFxGroup({
   const analyse = async (active: HfCarveSettings | null = carve): Promise<void> => {
     if (!active?.sources.length) return;
     const doc = element.element?.ownerDocument;
+    if (!doc) return;
     // Every named voice that is actually there with something to decode. A source
     // naming a deleted track is skipped rather than failing the whole analysis.
-    const voices = active.sources
-      .map((id) => doc?.getElementById(id) as HTMLAudioElement | null)
-      .filter((el): el is HTMLAudioElement => Boolean(el?.getAttribute("src")));
+    //
+    // Read out to plain values here rather than carrying elements around: it is
+    // what lets the src and the start be non-null by construction downstream
+    // instead of by assertion.
+    const voices: { src: string; start: string | null }[] = [];
+    for (const id of active.sources) {
+      const el = doc.getElementById(id);
+      // By tag name, not `instanceof HTMLAudioElement`: these elements belong to
+      // the composition's iframe document, so the constructor they were made
+      // from is not this realm's and the instanceof is false for every one.
+      if (el?.tagName !== "AUDIO") continue;
+      const src = el.getAttribute("src");
+      if (!src) continue;
+      voices.push({ src, start: el.getAttribute("data-start") });
+    }
     if (voices.length === 0) return;
     setAnalysing(true);
     try {
@@ -498,7 +511,7 @@ export function AudioFxGroup({
           .webkitOfflineAudioContext;
       if (!Ctor) return;
       const decode = async (relative: string): Promise<AudioBuffer> => {
-        const res = await fetch(new URL(relative, doc!.baseURI).href);
+        const res = await fetch(new URL(relative, doc.baseURI).href);
         return new Ctor(1, 1, DECODE_SAMPLE_RATE).decodeAudioData(await res.arrayBuffer());
       };
       const bedStart = clipStart(element.dataAttributes?.["start"]);
@@ -508,9 +521,9 @@ export function AudioFxGroup({
       // is also what lets the bands and the envelopes stay a single set: the chain is
       // fixed, so there is no per-voice filter to switch between.
       const decoded = await Promise.all(
-        voices.map(async (el) => ({
-          samples: (await decode(el.getAttribute("src")!)).getChannelData(0),
-          offsetSeconds: clipStart(el.getAttribute("data-start")) - bedStart,
+        voices.map(async (voice) => ({
+          samples: (await decode(voice.src)).getChannelData(0),
+          offsetSeconds: clipStart(voice.start) - bedStart,
         })),
       );
       const voiceMix = mixCarveSources(decoded, DECODE_SAMPLE_RATE);

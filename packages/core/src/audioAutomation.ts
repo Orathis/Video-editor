@@ -11,7 +11,7 @@
  * curve, three consumers, or the picture and the sound disagree.
  */
 
-import { getAudioFxDef, type HfAudioFxChain, type HfAudioFxNumberParam } from "./audioFx.js";
+import { getAudioFxDef, type HfAudioFxChain } from "./audioFx.js";
 
 export const HF_AUDIO_AUTOMATION_ATTR = "data-automation";
 
@@ -138,15 +138,14 @@ export function resolveAutomationRange(
   const def = getAudioFxDef(node.type);
   const param = def?.params.find((p) => p.key === parsed.param);
   if (!param || param.kind !== "number") return null;
-  const p = param as HfAudioFxNumberParam;
   return {
-    min: p.min,
-    max: p.max,
-    step: p.step,
-    unit: p.unit,
-    label: `${def?.label ?? node.type} · ${p.label}`,
-    scale: p.scale === "log" && p.min > 0 ? "log" : "linear",
-    default: p.default,
+    min: param.min,
+    max: param.max,
+    step: param.step,
+    unit: param.unit,
+    label: `${def?.label ?? node.type} · ${param.label}`,
+    scale: param.scale === "log" && param.min > 0 ? "log" : "linear",
+    default: param.default,
   };
 }
 
