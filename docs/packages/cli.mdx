@@ -748,9 +748,17 @@ npx hyperframes compare . --against reference.mp4 --at 0,4,10,21 --fail-under 0.
 
 Each run writes a reference-over-replica contact sheet, a red/cyan deviation
 overlay per sampled time (agreement grey, reference-only ink red, replica-only
-ink cyan), and per-time numbers: `ssim`, `meanAbsDiff`, and ink bounding-box
-deltas `dw` / `dh` / `dcx` / `dcy` / `scale`. There is no default threshold:
-measure a known-good state first, then gate slightly below it.
+ink cyan), and per-time numbers: `ssim`, `meanAbsDiff`, `meanSignedDiff`, and
+ink bounding-box deltas `dw` / `dh` / `dcx` / `dcy` / `scale`. When
+`meanSignedDiff` is close to `meanAbsDiff` the replica is uniformly lighter or
+darker, which is a level shift from encoding or colour conversion rather than a
+defect in the composition.
+
+There is no default threshold, because the floor depends on the content. A
+composition compared against its own render scores 0.998 to 0.999 for flat
+graphics and type, but around 0.93 (0.89 at draft quality) once photographic
+video is on screen, where encode loss and browser-versus-FFmpeg colour
+conversion dominate. Measure that floor first, then gate just below it.
 
 `grade-compare` does the same for colour: candidate grades or LUTs applied to
 one reference frame.

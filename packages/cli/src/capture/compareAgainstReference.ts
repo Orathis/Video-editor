@@ -24,6 +24,7 @@ import {
   boundsDeviation,
   inkBounds,
   meanAbsDiff,
+  meanSignedDiff,
   parseSsimAll,
   redCyanOverlayRaw,
   ssimFfmpegArgs,
@@ -60,6 +61,8 @@ export interface ReferenceSample {
   /** Full-frame SSIM (1 = identical); null when ffmpeg could not measure it. */
   ssim: number | null;
   meanAbsDiff: number;
+  /** Signed counterpart of meanAbsDiff; close to it means a uniform level shift. */
+  meanSignedDiff: number;
   deviation: BoundsDeviation;
   overlay: string;
 }
@@ -230,6 +233,7 @@ export async function compareAgainstReference(
         time,
         ssim: await frameSsim(ffmpegPath, referenceFrame, normalized),
         meanAbsDiff: meanAbsDiff(referenceGray, replicaGray),
+        meanSignedDiff: meanSignedDiff(referenceGray, replicaGray),
         deviation: boundsDeviation(
           inkBounds(referenceGray, width, height),
           inkBounds(replicaGray, width, height),

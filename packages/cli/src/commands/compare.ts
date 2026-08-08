@@ -440,6 +440,7 @@ interface ReferenceComparePayload {
     time: number;
     ssim: number | null;
     meanAbsDiff: number;
+    meanSignedDiff: number;
     deviation: BoundsDeviation;
     overlay: string;
   }[];
@@ -481,6 +482,7 @@ async function runReferenceCompare(
         time: sample.time,
         ssim: sample.ssim,
         meanAbsDiff: Number(sample.meanAbsDiff.toFixed(4)),
+        meanSignedDiff: Number(sample.meanSignedDiff.toFixed(4)),
         deviation: sample.deviation,
         overlay: sample.overlay,
       })),
@@ -496,8 +498,9 @@ function printReferenceReport(payload: ReferenceComparePayload): void {
   for (const sample of payload.samples) {
     const { dw, dh, dcx, dcy, scale } = sample.deviation;
     const ssim = sample.ssim === null ? "n/a" : sample.ssim.toFixed(4);
+    const signed = sample.meanSignedDiff * 100;
     console.log(
-      `  t=${sample.time}s  SSIM ${ssim}  diff ${(sample.meanAbsDiff * 100).toFixed(1)}%`,
+      `  t=${sample.time}s  SSIM ${ssim}  diff ${(sample.meanAbsDiff * 100).toFixed(1)}% (bias ${signed >= 0 ? "+" : ""}${signed.toFixed(1)}%)`,
     );
     console.log(
       c.dim(

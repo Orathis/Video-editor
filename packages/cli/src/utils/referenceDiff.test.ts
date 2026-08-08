@@ -3,6 +3,7 @@ import {
   boundsDeviation,
   inkBounds,
   meanAbsDiff,
+  meanSignedDiff,
   parseSsimAll,
   redCyanOverlayRaw,
   ssimFfmpegArgs,
@@ -59,6 +60,23 @@ describe("meanAbsDiff", () => {
     const plane = frameWithBox(8, 8, { x: 2, y: 2, w: 3, h: 3 });
     expect(meanAbsDiff(plane, plane)).toBe(0);
     expect(meanAbsDiff(new Uint8Array(64).fill(0), new Uint8Array(64).fill(255))).toBe(1);
+  });
+});
+
+describe("meanSignedDiff", () => {
+  it("matches meanAbsDiff when the replica is uniformly brighter", () => {
+    const reference = new Uint8Array(64).fill(100);
+    const replica = new Uint8Array(64).fill(110);
+    expect(meanSignedDiff(reference, replica)).toBeCloseTo(meanAbsDiff(reference, replica), 6);
+  });
+
+  it("cancels to ~0 when the deviation is localized in both directions", () => {
+    const reference = new Uint8Array(64).fill(100);
+    const replica = new Uint8Array(64).fill(100);
+    replica[0] = 200;
+    replica[1] = 0;
+    expect(meanSignedDiff(reference, replica)).toBeCloseTo(0, 6);
+    expect(meanAbsDiff(reference, replica)).toBeGreaterThan(0);
   });
 });
 

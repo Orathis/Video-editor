@@ -118,6 +118,23 @@ export function meanAbsDiff(reference: Uint8Array, replica: Uint8Array): number 
 }
 
 /**
+ * Mean *signed* luma difference (replica minus reference), normalized to -1..1.
+ *
+ * Separates the two things `meanAbsDiff` sums together. A comparison whose
+ * signed value is close to its absolute value is uniformly lighter or darker,
+ * which is a level shift from encoding or colour conversion, not a structural
+ * error. Signed near zero with a large absolute value means the deviation is
+ * real and localized.
+ */
+export function meanSignedDiff(reference: Uint8Array, replica: Uint8Array): number {
+  const length = Math.min(reference.length, replica.length);
+  if (length === 0) return 0;
+  let total = 0;
+  for (let i = 0; i < length; i++) total += replica[i]! - reference[i]!;
+  return total / (length * 255);
+}
+
+/**
  * Interleaved RGB where the reference drives red and the replica drives
  * green+blue: agreement reads neutral grey, reference-only ink glows red,
  * replica-only ink glows cyan.

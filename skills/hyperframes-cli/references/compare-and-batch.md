@@ -50,17 +50,29 @@ Exactly one composition path is allowed with `--against`. The reference may be a
 
 Each run produces three instruments:
 
-| Artifact                     | Where                  | Reads as                                                                        |
-| ---------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| Reference-over-replica sheet | `--out` path           | Row 1 reference, row 2 replica, one column per sampled time                     |
-| Red/cyan deviation overlay   | `<out>-overlay-NN.png` | Agreement grey, reference-only ink red, replica-only ink cyan                   |
-| Numbers                      | stdout and `--json`    | `ssim`, `meanAbsDiff`, and ink-box deltas `dw` / `dh` / `dcx` / `dcy` / `scale` |
+| Artifact                     | Where                  | Reads as                                                                                      |
+| ---------------------------- | ---------------------- | --------------------------------------------------------------------------------------------- |
+| Reference-over-replica sheet | `--out` path           | Row 1 reference, row 2 replica, one column per sampled time                                   |
+| Red/cyan deviation overlay   | `<out>-overlay-NN.png` | Agreement grey, reference-only ink red, replica-only ink cyan                                 |
+| Numbers                      | stdout and `--json`    | `ssim`, `meanAbsDiff`, `meanSignedDiff`, ink-box deltas `dw` / `dh` / `dcx` / `dcy` / `scale` |
 
 How to read them:
 
-- **`ssim`** is full-frame structural similarity, 1.0 = identical. A graphics-only composition measured against its own render lands at 0.998–0.999, so treat anything below ~0.99 on a self-comparison as a real difference, not measurement noise.
+- **`ssim`** is full-frame structural similarity, 1.0 = identical. What counts as good depends on the content, so read it against the floor below rather than against 1.0.
+- **`meanAbsDiff` vs `meanSignedDiff`** separates two things a single number confuses. `meanSignedDiff` is the same average without the absolute value, so when the two are close the replica is uniformly lighter or darker, which is a level shift from encoding or colour conversion and not a mistake you can fix in the composition. Signed near zero with a large absolute value means the deviation is real and localized. The CLI prints it as `diff X% (bias +Y%)`.
 - **Ink-box deltas** answer "is my title the right size and in the right place": `dw`/`dh` are the replica's ink bounding box minus the reference's in reference pixels, `dcx`/`dcy` the centre offset, `scale` the width ratio. They are meaningful for type and graphic frames; a full-bleed photograph makes every pixel ink and the box degenerates to the whole canvas.
-- **The overlay** localizes the deviation the numbers only total up. A uniform tint across the whole frame is a global level shift (encode quality, grade); localized red/cyan ghosting is a position, size or timing error.
+- **The overlay** localizes the deviation the numbers only total up. A flat tint across the whole frame is the level shift `meanSignedDiff` already quantified; localized red/cyan ghosting is a position, size or timing error.
+
+### The floor is set by content, not by your composition
+
+A replica is a live browser paint; a reference is a decoded compressed video. The gap between those two decode paths is a floor no correction can go below, and it depends entirely on what is on screen. Measured against their own renders:
+
+| Composition content       | Self-comparison SSIM                        | Why                                                                |
+| ------------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
+| Flat graphics and type    | 0.998–0.999                                 | Encodes near-losslessly; a real defect shows immediately           |
+| Photographic video layers | ~0.93 at `--quality high`, ~0.89 at `draft` | Encode loss plus browser/FFmpeg colour conversion, visible as bias |
+
+So a 0.93 on a video-backed composition can be a perfect rebuild, and a 0.98 on a typographic one is a real defect. Establish the floor before you read any number: compare the composition against its own render first, then treat that value as your zero.
 
 Gate on it with `--fail-under <ssim>`, which exits non-zero when the worst sampled SSIM falls below the threshold:
 
@@ -68,9 +80,7 @@ Gate on it with `--fail-under <ssim>`, which exits non-zero when the worst sampl
 npx hyperframes compare . --against reference.mp4 --at 0,4,10,21 --fail-under 0.95
 ```
 
-There is no default threshold, deliberately: pick one from a measured baseline (compare a known-good state first, then gate slightly below it). A threshold guessed before measuring passes everything and gates nothing.
-
-Caveat for video-backed compositions: a composition whose scenes play `<video>` will not reproduce its own render exactly, because live seek and the render pipeline do not always land the same source frame. Measure those against the composition's own rendered output to size the floor before choosing `--fail-under`, or sample times away from video-heavy scenes.
+There is no default threshold, deliberately: pick one just below the floor you measured above. A threshold guessed before measuring passes everything and gates nothing, and one copied from a graphics-only project will fail every video-backed build for no reason.
 
 `--against` needs FFmpeg on PATH.
 
