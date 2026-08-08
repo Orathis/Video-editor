@@ -461,3 +461,31 @@ describe("phaser automation targets", () => {
     expect(handle.automation?.out_gain?.[0]?.param.value).toBeCloseTo(0.5, 6);
   });
 });
+
+describe("chain update keeps ids with their effects", () => {
+  const band = (id: string, frequency: number) => ({
+    type: "peaking",
+    id,
+    enabled: true,
+    params: { ...defaultAudioFxParams("peaking"), frequency },
+  });
+
+  /**
+   * Reordering two effects of the same type leaves the shape string identical,
+   * so the chain updates in place rather than rebuilding — correct for the
+   * audio, since the params move with the position. The ids have to move too:
+   * a lane addresses its effect by id, and an id captured at build time names
+   * whichever effect used to occupy that slot. The scheduler would then drive
+   * `fx.n2.frequency` into the band that is now n1 — the exact swap that
+   * HfAudioFxNode.id documents itself as preventing, and the one the voiceover
+   * carve's all-peaking chains make easy to hit.
+   */
+  it("moves an id with its slot when same-type effects are reordered", () => {
+    const chain: HfAudioFxChain = { version: 1, nodes: [band("n1", 200), band("n2", 4000)] };
+    const handle = buildFxChain(ctx() as unknown as BaseAudioContext, chain);
+
+    const swapped: HfAudioFxChain = { version: 1, nodes: [band("n2", 4000), band("n1", 200)] };
+    expect(handle.update(swapped)).toBe(true);
+    expect(handle.nodes.map((n) => n.id)).toEqual(["n2", "n1"]);
+  });
+});
