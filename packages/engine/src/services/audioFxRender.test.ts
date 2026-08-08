@@ -342,6 +342,66 @@ describe.skipIf(!HAS_BROWSER)("browser render", () => {
     }
   }, 180_000);
 
+  it("round-trips a track larger than one transfer chunk", async () => {
+    // The PCM used to cross in a single evaluate pair, so a stereo track past
+    // ~8.7 minutes blew puppeteer's 256 MB frame cap and failed the render.
+    // It now goes a chunk at a time; this clip is 45 s stereo, so each plane
+    // spans two chunks and the seam is inside the audio rather than at its end.
+    //
+    // A ramp, not a tone: every sample is a unique position marker, so a chunk
+    // dropped, reordered or over-read shows up as a value at the wrong place
+    // instead of hiding inside a periodic signal.
+    const input = join(dir, "long-in.wav");
+    const frames = SR * 45;
+    const at = (i: number): number => -0.9 + (1.8 * i) / (frames - 1);
+    const s = new Float32Array(frames * 2);
+    for (let i = 0; i < frames; i++) {
+      s[i * 2] = at(i);
+      s[i * 2 + 1] = -at(i);
+    }
+    writeWav(input, s, SR, 2);
+
+    const outPath = join(dir, "long-out.wav");
+    await applyAudioFxChain(
+      input,
+      // Transparent: a peaking band at 0 dB is unity, so the output is the
+      // input and any difference is the transfer's doing.
+      {
+        version: 1,
+        nodes: [{ type: "peaking", enabled: true, params: { frequency: 1000, gain: 0, q: 1 } }],
+      },
+      outPath,
+      { trackId: "t" },
+    );
+
+    const out = readWav(outPath);
+    expect(out.channels).toBe(2);
+    // A dropped tail chunk shows up here first.
+    expect(out.samples.length).toBe(frames * 2);
+
+    // Probe across the whole clip and tightly around the 8 MiB seam.
+    const seam = (8 * 1024 * 1024) / 4;
+    const probes = [
+      ...Array.from({ length: 60 }, (_, k) => Math.floor((k * (frames - 1)) / 59)),
+      ...[-2, -1, 0, 1, 2].map((d) => seam + d),
+    ].filter((i) => i >= 0 && i < frames);
+    for (const i of probes) {
+      // Two 16-bit steps of tolerance: the input was quantised on the way in
+      // and the output again on the way out.
+      expect(out.samples[i * 2]).toBeCloseTo(at(i), 3);
+      expect(out.samples[i * 2 + 1]).toBeCloseTo(-at(i), 3);
+    }
+
+    // The ramp only ever rises, so this reads every sample and fails on a
+    // chunk reordered, duplicated or over-read anywhere in the file — not just
+    // at the points probed above.
+    let breaks = 0;
+    for (let i = 1; i < frames; i++) {
+      if ((out.samples[i * 2] ?? 0) < (out.samples[(i - 1) * 2] ?? 0)) breaks += 1;
+    }
+    expect(breaks).toBe(0);
+  }, 180_000);
+
   it("renders a multi-effect chain including reverb", async () => {
     const input = join(dir, "in.wav");
     tone(input);
