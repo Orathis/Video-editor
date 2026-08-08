@@ -203,17 +203,21 @@ export async function applyAudioFxChain(
   // never costs a browser.
   if ((planes[0]?.length ?? 0) === 0) return inputWav;
 
-  // Audio processing needs no GPU or special capture mode; a plain sandboxed
-  // browser is enough, and the lease pool reuses one across tracks.
-  const lease = await acquireBrowser([
-    "--no-sandbox",
-    "--autoplay-policy=no-user-gesture-required",
-  ]);
+  // Both resources are taken INSIDE the try that releases them. The lease used
+  // to be acquired above it, with the mkdtemp between — so a failure there
+  // (a full disk, a read-only tmpdir) leaked a pooled browser, and a pool with
+  // no leases left hangs every later render rather than failing one.
   const hostDir = mkdtempSync(join(tmpdir(), "hf-fx-host-"));
+  let lease: Awaited<ReturnType<typeof acquireBrowser>> | null = null;
   try {
+    // Audio processing needs no GPU or special capture mode; a plain sandboxed
+    // browser is enough, and the lease pool reuses one across tracks.
+    // Checked before the lease, not after: an already-cancelled track has no
+    // reason to take a browser out of the pool just to hand it straight back.
     if (options.signal?.aborted) {
       throw new AudioFxRenderError(`Audio FX cancelled for track ${options.trackId}`);
     }
+    lease = await acquireBrowser(["--no-sandbox", "--autoplay-policy=no-user-gesture-required"]);
     const page = await lease.browser.newPage();
     try {
       // AudioWorklet is only exposed in a secure context, and about:blank is
@@ -299,7 +303,7 @@ export async function applyAudioFxChain(
     );
   } finally {
     rmSync(hostDir, { recursive: true, force: true });
-    await lease.release().catch(() => undefined);
+    await lease?.release().catch(() => undefined);
   }
 }
 
