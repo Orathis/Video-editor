@@ -60,11 +60,13 @@ class HfCompressor extends AudioWorkletProcessor {
     this.p = o.processorOptions || {};
     this.env = new EnvBank(this.p.attack ?? 20, this.p.release ?? 250);
     this.port.onmessage = (e) => {
+      if (e.data && e.data.__hfDispose) { this.dead = true; return; }
       this.p = { ...this.p, ...e.data };
       this.env.set(this.p.attack ?? 20, this.p.release ?? 250);
     };
   }
   process(inputs, outputs) {
+    if (this.dead) return false;
     const i = inputs[0], o = outputs[0];
     if (!i || !i.length) return true;
     const p = this.p;
@@ -105,11 +107,13 @@ class HfLimiter extends AudioWorkletProcessor {
     this.p = o.processorOptions || {};
     this.env = new EnvBank(this.p.attack ?? 5, this.p.release ?? 50);
     this.port.onmessage = (e) => {
+      if (e.data && e.data.__hfDispose) { this.dead = true; return; }
       this.p = { ...this.p, ...e.data };
       this.env.set(this.p.attack ?? 5, this.p.release ?? 50);
     };
   }
   process(inputs, outputs) {
+    if (this.dead) return false;
     const i = inputs[0], o = outputs[0];
     if (!i || !i.length) return true;
     const ceiling = dbToLin(this.p.limit ?? -1);
@@ -136,11 +140,13 @@ class HfGate extends AudioWorkletProcessor {
     this.env = new EnvBank(this.p.attack ?? 1, this.p.release ?? 100);
     this.gains = [];
     this.port.onmessage = (e) => {
+      if (e.data && e.data.__hfDispose) { this.dead = true; return; }
       this.p = { ...this.p, ...e.data };
       this.env.set(this.p.attack ?? 1, this.p.release ?? 100);
     };
   }
   process(inputs, outputs) {
+    if (this.dead) return false;
     const i = inputs[0], o = outputs[0];
     if (!i || !i.length) return true;
     const p = this.p;
@@ -184,10 +190,12 @@ class HfBitcrush extends AudioWorkletProcessor {
     this.holds = [];
     this.held = [];
     this.port.onmessage = (e) => {
+      if (e.data && e.data.__hfDispose) { this.dead = true; return; }
       this.p = { ...this.p, ...e.data };
     };
   }
   process(inputs, outputs) {
+    if (this.dead) return false;
     const i = inputs[0], o = outputs[0];
     if (!i || !i.length) return true;
     const p = this.p;
