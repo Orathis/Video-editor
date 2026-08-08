@@ -183,7 +183,9 @@ class HfBitcrush extends AudioWorkletProcessor {
     this.p = o.processorOptions || {};
     this.holds = [];
     this.held = [];
-    this.port.onmessage = (e) => { this.p = { ...this.p, ...e.data }; };
+    this.port.onmessage = (e) => {
+      this.p = { ...this.p, ...e.data };
+    };
   }
   process(inputs, outputs) {
     const i = inputs[0], o = outputs[0];
@@ -243,7 +245,16 @@ export function ensureAudioFxWorklets(ctx: BaseAudioContext): Promise<void> {
       )}`;
       await ctx.audioWorklet.addModule(url);
       readyContexts.add(ctx);
-    })();
+    })().catch((err: unknown) => {
+      // A failed registration must not be remembered. `readyContexts` is only
+      // written on success, so callers correctly keep asking — and every ask
+      // replayed this same rejected promise, leaving the limiter, compressor,
+      // gate and bitcrush silent for the life of the context with no way back.
+      // One transient failure (a slow module load, a context still warming up)
+      // permanently disabled half the rack.
+      registered.delete(ctx);
+      throw err;
+    });
     registered.set(ctx, modulePromise);
   }
   return modulePromise;
