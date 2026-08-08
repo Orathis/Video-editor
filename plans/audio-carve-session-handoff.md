@@ -206,7 +206,10 @@ swaps which envelopes are visible. The lane SVG itself is already confined to it
 one row **share a lane row when it is the same property of the same effect**, each
 drawing its envelope over its own span.
 
-Remaining steps, in order:
+Implemented in `1e21d763b`, plus a fifth the first four needed: disclosure
+was stored against the active clip, so expanding one slice and clicking a
+sibling collapsed the row. The caret now toggles every clip on the row and any
+expanded clip holds it open. The steps as planned were:
 
 1. `TimelineAutomationLaneSlot` binds one element today. Give it the clips on the row,
    their chains, and the union of their lanes grouped by `laneGroupKey`, so lanes stop

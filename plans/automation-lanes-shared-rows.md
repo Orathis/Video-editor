@@ -1,6 +1,6 @@
 # Shared automation lane rows on a track
 
-Decision taken 2026-08-07. Not yet implemented.
+Decision taken 2026-08-07. Implemented in `1e21d763b`.
 
 ## The bug
 
