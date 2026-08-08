@@ -591,6 +591,15 @@ describe("Timeline provider boundary", () => {
     // One shared volume row, and BOTH clips hold it open.
     expectTrackExpansion(row, ["narration-1", "narration-2"], TRACK_H + AUTOMATION_LANE_H);
 
+    // Every clip bar on the row is capped to one track height. Only the clip
+    // owning the property lanes used to be, so its siblings stretched the whole
+    // expanded row and painted their waveforms over the envelopes below.
+    expect(
+      ["narration-1", "narration-2"].map(
+        (id) => host.querySelector<HTMLElement>(`[data-el-id="${id}"]`)?.style.height,
+      ),
+    ).toEqual([`${TRACK_H - 2 * CLIP_Y}px`, `${TRACK_H - 2 * CLIP_Y}px`]);
+
     act(() => caret()?.click());
     expectTrackExpansion(row, [], TRACK_H);
     act(() => root.unmount());
