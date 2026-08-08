@@ -166,7 +166,7 @@ describe("applyAudioFxChain", () => {
       join(dir, "out.wav"),
       { trackId: "t" },
     );
-    expect(out).toBe(input);
+    expect(out).toEqual({ path: input, envelopeBaked: false });
     expect(existsSync(join(dir, "out.wav"))).toBe(false);
   });
 
@@ -199,7 +199,7 @@ describe.skipIf(!HAS_BROWSER)("browser render", () => {
       outPath,
       { trackId: "t" },
     );
-    expect(result).toBe(outPath);
+    expect(result).toEqual({ path: outPath, envelopeBaked: false });
     const before = readWav(input).samples;
     const after = readWav(outPath).samples;
     expect(after.length).toBe(before.length);
@@ -269,6 +269,79 @@ describe.skipIf(!HAS_BROWSER)("browser render", () => {
     expect(tail).toBeGreaterThan(head + 15);
   }, 180_000);
 
+  it("ducks a hot chain before quantising it, not after", async () => {
+    // A +6 dB peaking band on a 0.9 tone leaves the chain output around 1.8 —
+    // well past full scale — and the volume lane immediately halves it. Baking
+    // the envelope into the float samples lands that at ~0.9 intact. Letting
+    // writeWav clamp first and ducking the file afterwards lands at ~0.5 with
+    // the tops sheared off: distortion the render bakes in and preview, which
+    // is float all the way through, never has.
+    //
+    // Stereo with a step partway through, so the same run also proves the
+    // envelope is walked per frame across all channels rather than per channel:
+    // one walker restarted for a second plane would hand it the tail gain for
+    // its whole length.
+    const input = join(dir, "hot-in.wav");
+    const frames = Math.floor(SR * 0.3);
+    const s = new Float32Array(frames * 2);
+    for (let i = 0; i < frames; i++) {
+      const v = 0.9 * Math.sin((2 * Math.PI * 440 * i) / SR);
+      s[i * 2] = v;
+      s[i * 2 + 1] = v;
+    }
+    writeWav(input, s, SR, 2);
+
+    const outPath = join(dir, "hot-out.wav");
+    const result = await applyAudioFxChain(
+      input,
+      {
+        version: 1,
+        nodes: [{ type: "peaking", enabled: true, params: { frequency: 440, gain: 6, q: 1 } }],
+      },
+      outPath,
+      {
+        trackId: "t",
+        envelope: {
+          // 0.5 for the first 150 ms, then 0.25 — the step is a segment
+          // advance, which is what the walker's cursor exists for.
+          keyframes: [
+            { time: 0, volume: 0.5 },
+            { time: 0.15, volume: 0.5 },
+            { time: 0.1501, volume: 0.25 },
+            { time: 0.3, volume: 0.25 },
+          ],
+          trackStart: 0,
+          baseVolume: 1,
+        },
+      },
+    );
+    expect(result.envelopeBaked).toBe(true);
+
+    const out = readWav(outPath);
+    expect(out.channels).toBe(2);
+    const channel = (c: number): Float32Array =>
+      Float32Array.from({ length: frames }, (_, i) => out.samples[i * 2 + c] ?? 0);
+    const window = (s: Float32Array, from: number, to: number): Float32Array =>
+      s.slice(Math.floor(from * SR), Math.floor(to * SR));
+
+    for (const c of [0, 1]) {
+      const plane = channel(c);
+      // Past the filter's settling transient, before the step.
+      const loud = window(plane, 0.1, 0.14);
+      const peak = Math.max(...Array.from(loud, Math.abs));
+      // ~0.9. Clamped-then-ducked gives 0.5; a dropped envelope gives 1.0; a
+      // walker restarted per plane gives channel 1 the 0.25 tail gain.
+      expect(peak).toBeGreaterThan(0.8);
+      expect(peak).toBeLessThan(0.95);
+      // And still a sine, not a squared-off one: clipping 1.8 down to 1.0 pulls
+      // the crest factor from 1.41 towards 1.15.
+      expect(peak / rms(loud)).toBeGreaterThan(1.35);
+      // The step landed, so the envelope was sampled over time, not once.
+      const quiet = window(plane, 0.2, 0.29);
+      expect(Math.max(...Array.from(quiet, Math.abs))).toBeCloseTo(peak / 2, 1);
+    }
+  }, 180_000);
+
   it("renders a multi-effect chain including reverb", async () => {
     const input = join(dir, "in.wav");
     tone(input);
@@ -297,7 +370,7 @@ describe("an empty track", () => {
     // — and without paying for a browser to decide it.
     await expect(
       applyAudioFxChain(input, chainOf("peaking"), output, { trackId: "t" }),
-    ).resolves.toBe(input);
+    ).resolves.toEqual({ path: input, envelopeBaked: false });
     expect(existsSync(output)).toBe(false);
   });
 });

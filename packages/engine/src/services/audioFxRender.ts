@@ -20,6 +20,8 @@ import { getAudioFxRuntimeScript } from "@hyperframes/core/audio-fx-runtime";
 import { enabledAudioFxNodes, type HfAudioFxChain } from "@hyperframes/core/audio-fx";
 import { serializeAutomation, type HfAutomation } from "@hyperframes/core/audio-automation";
 import { acquireBrowser } from "./browserManager.js";
+import { createEnvelopeWalker } from "./audioVolumeEnvelope.js";
+import type { AudioVolumeKeyframe } from "./audioMixer.types.js";
 
 export class AudioFxRenderError extends Error {
   constructor(message: string) {
@@ -184,9 +186,36 @@ function interleave(planes: readonly Float32Array[]): Float32Array {
 }
 
 /**
+ * Multiply every channel by the envelope, in place, one gain per frame.
+ *
+ * Frame-outer rather than plane-outer on purpose: the walker's cursor only
+ * moves forward, so restarting each channel at t=0 would hand the second one
+ * the tail gain for its whole length.
+ */
+function applyEnvelopeToPlanes(
+  planes: readonly Float32Array[],
+  sampleRate: number,
+  gainAt: (time: number) => number,
+): void {
+  const frames = planes[0]?.length ?? 0;
+  for (let frame = 0; frame < frames; frame += 1) {
+    const gain = gainAt(frame / sampleRate);
+    for (const plane of planes) plane[frame] = (plane[frame] ?? 0) * gain;
+  }
+}
+
+/**
  * Run a chain over `inputWav`, writing `outputWav`. Resolves to the path to use
- * downstream: `outputWav` when the chain did something, `inputWav` untouched
- * when the chain was empty.
+ * downstream — `outputWav` when the chain did something, `inputWav` untouched
+ * when the chain was empty — plus whether the volume envelope was baked here.
+ *
+ * The envelope is applied to the float samples the chain produced, BEFORE
+ * `writeWav` quantises them. Leaving it to the mixer's second pass meant a
+ * chain that overshoots full scale was destructively clipped to ±1 and only
+ * then ducked, so a track the lane pulls 12 dB down still rendered the
+ * distortion — which preview, working in float throughout, never had.
+ * `writeWav`'s clamp stays: it is the correct last resort for a signal that is
+ * still hot after the duck.
  *
  * Failure is fatal to the caller rather than a soft per-track warning: quietly
  * rendering the dry signal ships a mix that sounds plausible and is not what
@@ -196,9 +225,14 @@ export async function applyAudioFxChain(
   inputWav: string,
   chain: HfAudioFxChain,
   outputWav: string,
-  options: { trackId: string; signal?: AbortSignal; automation?: HfAutomation },
-): Promise<string> {
-  if (enabledAudioFxNodes(chain).length === 0) return inputWav;
+  options: {
+    trackId: string;
+    signal?: AbortSignal;
+    automation?: HfAutomation;
+    envelope?: { keyframes: AudioVolumeKeyframe[]; trackStart: number; baseVolume: number };
+  },
+): Promise<{ path: string; envelopeBaked: boolean }> {
+  if (enabledAudioFxNodes(chain).length === 0) return { path: inputWav, envelopeBaked: false };
   if (!existsSync(inputWav)) {
     throw new AudioFxRenderError(`Audio FX input is missing: ${inputWav}`);
   }
@@ -212,7 +246,7 @@ export async function applyAudioFxChain(
   // past the end of its source, so one mis-set `data-media-start` used to take
   // the render down. Guarded here as well as in the runtime so an empty track
   // never costs a browser.
-  if ((planes[0]?.length ?? 0) === 0) return inputWav;
+  if ((planes[0]?.length ?? 0) === 0) return { path: inputWav, envelopeBaked: false };
 
   // Both resources are taken INSIDE the try that releases them. The lease used
   // to be acquired above it, with the mkdtemp between — so a failure there
@@ -302,8 +336,19 @@ export async function applyAudioFxChain(
       if (outPlanes.length === 0 || (outPlanes[0]?.length ?? 0) === 0) {
         throw new AudioFxRenderError(`Audio FX produced no samples for track ${options.trackId}`);
       }
+      // Null when the keyframes normalise away to nothing — then the mixer's
+      // own paths still own this track's gain, so say so rather than claiming
+      // a bake that never happened.
+      const gainAt = options.envelope
+        ? createEnvelopeWalker(
+            options.envelope.keyframes,
+            options.envelope.trackStart,
+            options.envelope.baseVolume,
+          )
+        : null;
+      if (gainAt) applyEnvelopeToPlanes(outPlanes, sampleRate, gainAt);
       writeWav(outputWav, interleave(outPlanes), sampleRate, outPlanes.length);
-      return outputWav;
+      return { path: outputWav, envelopeBaked: gainAt !== null };
     } finally {
       await page.close().catch(() => undefined);
     }
