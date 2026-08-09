@@ -178,6 +178,7 @@ describe("orientedOverlayRect — rotation gate (perf fix, V15 18a/18b)", () => 
    * parent got an upright box.
    */
   const SCALE_1_2_MATRIX = "matrix(1.2, 0, 0, 1.2, 0, 0)";
+  const MIRROR_X_MATRIX = "matrix(-1, 0, 0, 1, 0, 0)";
 
   it("sizes the box by the accumulated transform, not the element's own", () => {
     const { overlayEl, iframe, el } = buildHarness();
@@ -204,6 +205,24 @@ describe("orientedOverlayRect — rotation gate (perf fix, V15 18a/18b)", () => 
     const rect = orientedOverlayRect(overlayEl, iframe, el);
 
     expect(rect!.angle).toBeCloseTo(30, 3);
+  });
+
+  it("does not misread a mirrored ancestor as a 180-degree rotation", () => {
+    const { overlayEl, iframe, el } = buildHarness();
+    el.parentElement!.style.transform = MIRROR_X_MATRIX;
+
+    const rect = orientedOverlayRect(overlayEl, iframe, el);
+
+    expect(rect?.angle ?? 0).toBe(0);
+  });
+
+  it("stops transform composition at the composition root", () => {
+    const { overlayEl, iframe, el } = buildHarness();
+    iframe.contentDocument!.body.style.transform = ROTATE_30DEG_MATRIX;
+
+    const rect = orientedOverlayRect(overlayEl, iframe, el);
+
+    expect(rect?.angle ?? 0).toBe(0);
   });
 
   it("preserves an ordinary element's rotation through the group-aware entry point", () => {

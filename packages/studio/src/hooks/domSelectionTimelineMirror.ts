@@ -5,6 +5,7 @@ import { logSelect } from "../utils/selectDebug";
 
 interface TimelineMirrorDeps {
   timelineElements: TimelineElement[];
+  getTimelineSelectionSet: () => ReadonlySet<string>;
   setSelectedTimelineElementId: (id: string | null, options?: SelectElementOptions) => void;
   setTimelineSelectionSet: (ids: Set<string>) => void;
 }
@@ -27,7 +28,12 @@ export function announceTimelineSelection(
   group: DomEditSelection[],
   primary: DomEditSelection | null,
 ): void {
-  const { timelineElements, setSelectedTimelineElementId, setTimelineSelectionSet } = deps;
+  const {
+    timelineElements,
+    getTimelineSelectionSet,
+    setSelectedTimelineElementId,
+    setTimelineSelectionSet,
+  } = deps;
   if (!primary) {
     setTimelineSelectionSet(new Set());
     setSelectedTimelineElementId(null);
@@ -51,10 +57,11 @@ export function announceTimelineSelection(
     anchor,
     anchorPublished: anchor != null && members.includes(anchor),
   });
-  // Only a real multi-selection publishes members. A single selection keeps the
-  // older contract on purpose: anchoring with preserveSet holds a live set the
-  // element already belongs to (a late async primary must not collapse a group)
-  // and collapses otherwise, which is what a fresh click means.
-  if (group.length > 1) setTimelineSelectionSet(new Set(members));
+  // A late async primary that already belongs to the live set must preserve the
+  // group. A fresh single click does not belong to it, so publish the singleton
+  // first; otherwise `preserveSet` clears the set and sync wipes the canvas.
+  if (group.length > 1 || !anchor || !getTimelineSelectionSet().has(anchor)) {
+    setTimelineSelectionSet(new Set(members));
+  }
   setSelectedTimelineElementId(anchor, { preserveSet: true });
 }

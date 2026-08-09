@@ -91,6 +91,69 @@ function replaceHash(nextHash: string) {
   window.history.replaceState(null, "", nextHash);
 }
 
+interface ResolveUrlSelectionsParams {
+  doc: Document;
+  primaryElement: HTMLElement;
+  selection: StudioUrlSelectionState;
+  group: StudioUrlSelectionTarget[];
+  activeCompPath: string | null;
+  isCurrent: () => boolean;
+  buildDomSelection: UseStudioUrlStateParams["buildDomSelectionFromTarget"];
+}
+
+function findUrlSelectionElement(
+  doc: Document,
+  target: StudioUrlSelectionTarget,
+  fallbackSourceFile: string,
+  activeCompPath: string | null,
+): HTMLElement | null {
+  return findElementForSelection(
+    doc,
+    {
+      sourceFile: target.sourceFile ?? fallbackSourceFile,
+      id: target.id,
+      selector: target.selector,
+      selectorIndex: target.selectorIndex,
+    },
+    activeCompPath,
+  );
+}
+
+async function buildOptionalDomSelection(
+  element: HTMLElement | null,
+  buildDomSelection: UseStudioUrlStateParams["buildDomSelectionFromTarget"],
+): Promise<DomEditSelection | null> {
+  if (!element) return null;
+  return buildDomSelection(element, { preferClipAncestor: false });
+}
+
+async function resolveUrlSelections({
+  doc,
+  primaryElement,
+  selection,
+  group,
+  activeCompPath,
+  isCurrent,
+  buildDomSelection,
+}: ResolveUrlSelectionsParams): Promise<DomEditSelection[] | null> {
+  const primary = await buildDomSelection(primaryElement, { preferClipAncestor: false });
+  if (!isCurrent()) return null;
+  if (!primary) return [];
+  const members = [primary];
+  for (const member of group) {
+    const element = findUrlSelectionElement(
+      doc,
+      member,
+      selection.sourceFile ?? "",
+      activeCompPath,
+    );
+    const resolved = await buildOptionalDomSelection(element, buildDomSelection);
+    if (!isCurrent()) return null;
+    if (resolved) members.push(resolved);
+  }
+  return members;
+}
+
 export function useStudioUrlState({
   projectId,
   activeCompPath,
@@ -120,6 +183,7 @@ export function useStudioUrlState({
   const [selectionHydrated, setSelectionHydrated] = useState(initialState.selection == null);
   const pendingSelectionRef = useRef(initialState.selection);
   const stableTimeRef = useRef<number | null>(initialState.currentTime);
+  const selectionApplySeqRef = useRef(0);
 
   const buildUrlState = useCallback(
     (): StudioUrlState => ({
@@ -141,6 +205,7 @@ export function useStudioUrlState({
   // a missing element or null selection clears the selection and returns true.
   const applyUrlSelection = useCallback(
     (selection: StudioUrlSelectionState | null): boolean => {
+      const applySeq = ++selectionApplySeqRef.current;
       if (!selection) {
         applyDomSelection(null, { revealPanel: false });
         return true;
@@ -167,31 +232,22 @@ export function useStudioUrlState({
         return true;
       }
       const group = selection.group ?? [];
-      void (async () => {
-        const primary = await buildDomSelectionFromTarget(element, { preferClipAncestor: false });
+      void resolveUrlSelections({
+        doc,
+        primaryElement: element,
+        selection,
+        group,
+        activeCompPath,
+        isCurrent: () => applySeq === selectionApplySeqRef.current,
+        buildDomSelection: buildDomSelectionFromTarget,
+      }).then((members) => {
+        if (!members) return;
+        const primary = members[0];
         if (!primary) return applyDomSelection(null, { revealPanel: false });
         if (group.length === 0) return applyDomSelection(primary, { revealPanel: false });
-        // Restore the whole multi-selection, primary first so it stays the anchor.
-        // Members whose element is gone are dropped rather than failing the rest.
-        const members = [primary];
-        for (const member of group) {
-          const memberEl = findElementForSelection(
-            doc,
-            {
-              sourceFile: member.sourceFile ?? selection.sourceFile ?? "",
-              id: member.id,
-              selector: member.selector,
-              selectorIndex: member.selectorIndex,
-            },
-            activeCompPath,
-          );
-          const resolved = memberEl
-            ? await buildDomSelectionFromTarget(memberEl, { preferClipAncestor: false })
-            : null;
-          if (resolved) members.push(resolved);
-        }
+        // Missing group members are dropped without failing the rest.
         applyMarqueeSelection(members, false);
-      })();
+      });
       return true;
     },
     [

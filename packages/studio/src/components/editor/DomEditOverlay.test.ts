@@ -281,7 +281,9 @@ describe("DomEditOverlay", () => {
     const host = document.createElement("div");
     document.body.append(host);
     const root = createRoot(host);
-    const iframeRef = { current: document.createElement("iframe") as HTMLIFrameElement | null };
+    const iframeRef: { current: HTMLIFrameElement | null } = {
+      current: document.createElement("iframe"),
+    };
     const onCanvasMouseDown = vi.fn();
     const onMarqueeSelect = vi.fn();
 
@@ -321,6 +323,44 @@ describe("DomEditOverlay", () => {
     act(() => {
       root.unmount();
     });
+    HTMLDivElement.prototype.setPointerCapture = originalPointerCapture;
+    restoreRect();
+    host.remove();
+  });
+
+  it("starts a marquee from outside the composition frame", async () => {
+    const restoreRect = stubViewportRect();
+    const originalPointerCapture = HTMLDivElement.prototype.setPointerCapture;
+    const setPointerCapture = vi.fn();
+    HTMLDivElement.prototype.setPointerCapture = setPointerCapture;
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    const iframeRef: { current: HTMLIFrameElement | null } = {
+      current: document.createElement("iframe"),
+    };
+
+    act(() => {
+      root.render(
+        React.createElement(DomEditOverlay, {
+          ...createOverlayProps({
+            iframeRef,
+            selection: null,
+            hoverSelection: null,
+            onSelectionChange: () => {},
+          }),
+          onMarqueeSelect: vi.fn(),
+        }),
+      );
+    });
+    await flushOverlayRaf();
+
+    // Negative x is outside the 0..800 composition frame but still reaches the
+    // overlay in a real pointer event when the user starts in the grey margin.
+    dispatchOverlayPointerDown(getOverlay(host), -40, 100);
+    expect(setPointerCapture).toHaveBeenCalledTimes(1);
+
+    act(() => root.unmount());
     HTMLDivElement.prototype.setPointerCapture = originalPointerCapture;
     restoreRect();
     host.remove();

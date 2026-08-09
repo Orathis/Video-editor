@@ -150,9 +150,11 @@ function readElementTransformSnapshot(
     let matrix = new DOMMatrixCtor();
     for (let node: HTMLElement | null = element; node; node = node.parentElement) {
       const transform = node === element ? cs.transform : win.getComputedStyle(node).transform;
-      if (!transform || transform === "none") continue;
-      // An ancestor applies outside, so it multiplies on the left.
-      matrix = new DOMMatrixCtor(transform).multiply(matrix);
+      if (transform && transform !== "none") {
+        // An ancestor applies outside, so it multiplies on the left.
+        matrix = new DOMMatrixCtor(transform).multiply(matrix);
+      }
+      if (node.hasAttribute("data-composition-id")) break;
     }
     return { matrix, cs };
   } catch {
@@ -169,7 +171,16 @@ function readElementTransformSnapshot(
 function rotationDegreesFromMatrix(matrix: DOMMatrix): number {
   const a = Number.isFinite(matrix.a) ? matrix.a : 1;
   const b = Number.isFinite(matrix.b) ? matrix.b : 0;
-  const deg = (Math.atan2(b, a) * 180) / Math.PI;
+  const c = Number.isFinite(matrix.c) ? matrix.c : 0;
+  const d = Number.isFinite(matrix.d) ? matrix.d : 1;
+  const fromX = (Math.atan2(b, a) * 180) / Math.PI;
+  const determinant = a * d - b * c;
+  // A reflection makes one basis direction read 180° away from the authored
+  // rotation. For cursor/handle orientation those directions are equivalent;
+  // choose the representative nearest zero instead of drawing a pure mirror's
+  // rotate handle on the opposite side of the element.
+  const fromY = (Math.atan2(-c, d) * 180) / Math.PI;
+  const deg = determinant < 0 && Math.abs(fromY) < Math.abs(fromX) ? fromY : fromX;
   return Number.isFinite(deg) ? deg : 0;
 }
 

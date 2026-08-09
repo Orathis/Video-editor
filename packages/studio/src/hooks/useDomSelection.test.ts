@@ -47,6 +47,7 @@ function renderHarness(
       captionEditMode: false,
       previewIframeRef: { current: null },
       timelineElements: options.timelineElements ?? [],
+      getTimelineSelectionSet: () => new Set(),
       setSelectedTimelineElementId: timeline.setSelectedTimelineElementId,
       setTimelineSelectionSet: timeline.setTimelineSelectionSet,
       setRightCollapsed: vi.fn(),

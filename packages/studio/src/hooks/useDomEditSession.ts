@@ -31,12 +31,12 @@ interface RecordEditInput {
 export interface UseDomEditSessionParams {
   projectId: string | null;
   activeCompPath: string | null;
-  isMasterView: boolean;
   compIdToSrc: Map<string, string>;
   captionEditMode: boolean;
   compositionLoading: boolean;
   previewIframeRef: React.MutableRefObject<HTMLIFrameElement | null>;
   timelineElements: TimelineElement[];
+  getTimelineSelectionSet: () => ReadonlySet<string>;
   setSelectedTimelineElementId: (id: string | null, options?: SelectElementOptions) => void;
   setTimelineSelectionSet: (ids: Set<string>) => void;
   setRightCollapsed: (collapsed: boolean) => void;
@@ -74,12 +74,12 @@ export interface UseDomEditSessionParams {
 export function useDomEditSession({
   projectId,
   activeCompPath,
-  isMasterView,
   compIdToSrc,
   captionEditMode,
   compositionLoading,
   previewIframeRef,
   timelineElements,
+  getTimelineSelectionSet,
   setSelectedTimelineElementId,
   setTimelineSelectionSet,
   setRightCollapsed,
@@ -111,6 +111,7 @@ export function useDomEditSession({
   publishSdkSession,
   forceReloadSdkSession,
 }: UseDomEditSessionParams) {
+  const isMasterView = !activeCompPath || activeCompPath === "index.html";
   void _setRefreshKey;
   const {
     domEditSelection,
@@ -139,6 +140,7 @@ export function useDomEditSession({
     captionEditMode,
     previewIframeRef,
     timelineElements,
+    getTimelineSelectionSet,
     setSelectedTimelineElementId,
     setTimelineSelectionSet,
     setRightCollapsed,

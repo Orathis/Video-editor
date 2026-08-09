@@ -222,6 +222,56 @@ describe("studio url state", () => {
     harness.unmount();
   });
 
+  it("does not let an older async URL selection overwrite a newer hash", async () => {
+    const previewDoc = document.implementation.createHTMLDocument("preview");
+    const firstElement = previewDoc.createElement("div");
+    firstElement.id = "first";
+    const secondElement = previewDoc.createElement("div");
+    secondElement.id = "second";
+    previewDoc.body.append(firstElement, secondElement);
+    const first = { element: firstElement, id: "first", sourceFile: "index.html" };
+    const second = { element: secondElement, id: "second", sourceFile: "index.html" };
+    let resolveFirst = (_selection: typeof first) => undefined;
+    const firstResolution = new Promise<typeof first>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const applyDomSelection = vi.fn();
+    const harness = renderStudioUrlStateHarness({
+      previewIframeRef: { current: previewIframeFor(previewDoc) },
+      applyDomSelection,
+      buildDomSelectionFromTarget: (target) =>
+        target === firstElement ? firstResolution : Promise.resolve(second),
+      initialState: {
+        activeCompPath: null,
+        currentTime: null,
+        rightPanelTab: null,
+        rightCollapsed: null,
+        timelineVisible: null,
+        selection: null,
+      },
+    });
+
+    act(() => {
+      window.history.replaceState(null, "", "#project/demo?v=1&selId=first");
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      window.history.replaceState(null, "", "#project/demo?v=1&selId=second");
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(applyDomSelection).toHaveBeenCalled();
+    expect(applyDomSelection.mock.calls.every(([selection]) => selection === second)).toBe(true);
+    const appliedBeforeOlderResolution = applyDomSelection.mock.calls.length;
+
+    await act(async () => {
+      resolveFirst(first);
+      await firstResolution;
+    });
+    expect(applyDomSelection).toHaveBeenCalledTimes(appliedBeforeOlderResolution);
+    harness.unmount();
+  });
+
   it("builds a project hash with persisted studio state", () => {
     expect(
       buildStudioHash("demo", {

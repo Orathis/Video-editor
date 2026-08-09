@@ -45,6 +45,7 @@ export interface UseDomSelectionParams {
   captionEditMode: boolean;
   previewIframeRef: React.MutableRefObject<HTMLIFrameElement | null>;
   timelineElements: TimelineElement[];
+  getTimelineSelectionSet: () => ReadonlySet<string>;
   setSelectedTimelineElementId: (id: string | null, options?: SelectElementOptions) => void;
   /** Publishes a whole multi-selection to the timeline; the anchor is set separately. */
   setTimelineSelectionSet: (ids: Set<string>) => void;
@@ -109,6 +110,7 @@ export function useDomSelection({
   captionEditMode,
   previewIframeRef,
   timelineElements,
+  getTimelineSelectionSet,
   setSelectedTimelineElementId,
   setTimelineSelectionSet,
   setRightCollapsed,
@@ -149,11 +151,21 @@ export function useDomSelection({
   const announceTimelineSelection = useCallback(
     (group: DomEditSelection[], primary: DomEditSelection | null) =>
       announceSelectionToTimeline(
-        { timelineElements, setSelectedTimelineElementId, setTimelineSelectionSet },
+        {
+          timelineElements,
+          getTimelineSelectionSet,
+          setSelectedTimelineElementId,
+          setTimelineSelectionSet,
+        },
         group,
         primary,
       ),
-    [setSelectedTimelineElementId, setTimelineSelectionSet, timelineElements],
+    [
+      getTimelineSelectionSet,
+      setSelectedTimelineElementId,
+      setTimelineSelectionSet,
+      timelineElements,
+    ],
   );
 
   const applyDomSelection = useCallback(

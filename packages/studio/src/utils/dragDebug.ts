@@ -13,8 +13,10 @@ let moveN = 0;
 
 /** Per-pointermove logging, throttled: the first move then every 8th. */
 export function logDragMove(data: Record<string, unknown>): void {
-  moveN += 1;
-  if (moveN % 8 === 1) logDrag("move", { n: moveN, ...data });
+  logDrag("move", () => {
+    moveN += 1;
+    return moveN % 8 === 1 ? { n: moveN, ...data } : null;
+  });
 }
 
 export function resetDragMoveLog(): void {
@@ -74,10 +76,23 @@ export function logDragSettle(
   stage: string,
   elements: Array<{ key: string; element: HTMLElement }>,
 ): void {
-  logDrag(stage, { at: readDragPositions(elements) });
-  const win = elements[0]?.element.ownerDocument.defaultView;
-  if (!win) return;
-  win.setTimeout(() => logDrag(`${stage}+120ms`, { at: readDragPositions(elements) }), 120);
-  win.setTimeout(() => logDrag(`${stage}+400ms`, { at: readDragPositions(elements) }), 400);
-  win.setTimeout(() => logDrag(`${stage}+900ms`, { at: readDragPositions(elements) }), 900);
+  logDrag(stage, () => {
+    const at = readDragPositions(elements);
+    const win = elements[0]?.element.ownerDocument.defaultView;
+    if (win) {
+      win.setTimeout(
+        () => logDrag(`${stage}+120ms`, () => ({ at: readDragPositions(elements) })),
+        120,
+      );
+      win.setTimeout(
+        () => logDrag(`${stage}+400ms`, () => ({ at: readDragPositions(elements) })),
+        400,
+      );
+      win.setTimeout(
+        () => logDrag(`${stage}+900ms`, () => ({ at: readDragPositions(elements) })),
+        900,
+      );
+    }
+    return { at };
+  });
 }

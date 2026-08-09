@@ -26,6 +26,7 @@ export function createGroupDragMover(
   setDraftGroupOverlayItems: (items: GroupOverlayItem[]) => void,
 ) {
   let lastGroupPositions: Record<string, string> = {};
+  let lastGesture: GroupGestureState | null = null;
 
   /** Snap the group's delta to nearby edges, publishing the guides drawn for it. */
   // fallow-ignore-next-line complexity
@@ -36,7 +37,10 @@ export function createGroupDragMover(
   ) => {
     const sc = groupG.snapContext;
     if (!sc?.snapEnabled || sc.targets.length === 0) return proposed;
-    if (!snapEngagedForTravel(proposed.dx, proposed.dy)) return proposed;
+    if (!snapEngagedForTravel(proposed.dx, proposed.dy)) {
+      opts.snapGuidesRef.current = null;
+      return proposed;
+    }
     const groupBounds = resolveDomEditGroupOverlayRect(groupG.originItems.map((i) => i.rect));
     if (!groupBounds) return proposed;
     const allTargets = sc.compositionTarget ? [...sc.targets, sc.compositionTarget] : sc.targets;
@@ -67,6 +71,10 @@ export function createGroupDragMover(
 
   /** One frame of a group drag: snap the delta, redraw the boxes, move every member. */
   const moveGroupDrag = (groupG: GroupGestureState, e: React.PointerEvent<HTMLDivElement>) => {
+    if (groupG !== lastGesture) {
+      lastGesture = groupG;
+      lastGroupPositions = {};
+    }
     const { dx, dy } = snapGroupDelta(groupG, e, {
       dx: e.clientX - groupG.startX,
       dy: e.clientY - groupG.startY,

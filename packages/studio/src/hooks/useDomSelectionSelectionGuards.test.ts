@@ -67,6 +67,7 @@ function renderHarness(props: HarnessProps) {
       captionEditMode: false,
       previewIframeRef: { current: props.iframe },
       timelineElements: props.timelineElements,
+      getTimelineSelectionSet: () => usePlayerStore.getState().selectedElementIds,
       setSelectedTimelineElementId: props.setSelectedTimelineElementId ?? vi.fn(),
       setTimelineSelectionSet:
         props.setTimelineSelectionSet ?? usePlayerStore.getState().setSelectedElementIds,
@@ -239,7 +240,7 @@ describe("useDomSelection — marquee multi-select survives the late async prima
     iframe.remove();
   });
 
-  it("collapses the set when a late primary-set targets a non-member (fresh click)", async () => {
+  it("collapses the set to a fresh single-click target instead of publishing an empty set", async () => {
     const iframe = document.createElement("iframe");
     document.body.append(iframe);
     const doc = iframe.contentDocument!;
@@ -271,7 +272,7 @@ describe("useDomSelection — marquee multi-select survives the late async prima
       await pending;
     });
 
-    expect(usePlayerStore.getState().selectedElementIds.size).toBe(0);
+    expect([...usePlayerStore.getState().selectedElementIds]).toEqual(["d"]);
     expect(usePlayerStore.getState().selectedElementId).toBe("d");
     harness.cleanup();
     iframe.remove();

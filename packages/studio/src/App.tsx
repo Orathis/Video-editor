@@ -94,7 +94,6 @@ export function StudioApp() {
   const setTimelineSelectionSet = usePlayerStore((s) => s.setSelectedElementIds);
   const timelineDuration = usePlayerStore((s) => s.duration);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
-  const isMasterView = !activeCompPath || activeCompPath === "index.html";
   const effectiveTimelineDuration = useMemo(() => {
     const maxEnd =
       timelineElements.length > 0
@@ -271,12 +270,12 @@ export function StudioApp() {
   const domEditSession = useDomEditSession({
     projectId,
     activeCompPath,
-    isMasterView,
     compIdToSrc,
     captionEditMode,
     compositionLoading,
     previewIframeRef,
     timelineElements,
+    getTimelineSelectionSet: () => usePlayerStore.getState().selectedElementIds,
     setSelectedTimelineElementId,
     setTimelineSelectionSet,
     setRightCollapsed: panelLayout.setRightCollapsed,
