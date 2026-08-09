@@ -126,7 +126,10 @@ function finishUnchangedMutation(
   reloadPreview: () => void,
 ): boolean {
   if (result.changed !== false) return false;
-  if (!options.skipReload && options.instantPatch) {
+  if (
+    !options.skipReload &&
+    (instantPatchesFor(options).length > 0 || options.previewFallbackLatch?.pending)
+  ) {
     applyPreviewSync(iframe, result, options, reloadPreview);
   }
   return true;
@@ -249,10 +252,8 @@ export function applyPreviewSync(
   options: CommitMutationOptions,
   reloadPreview: () => void,
 ): void {
-  const patches = [
-    ...(options.instantPatches ?? []),
-    ...(options.instantPatch ? [options.instantPatch] : []),
-  ];
+  const patches = instantPatchesFor(options);
+  let needsFallback = options.previewFallbackLatch?.pending === true;
   if (patches.length > 0) {
     const deferSeek = options.deferPreviewSync === true;
     const missed = patches.find(
@@ -265,15 +266,23 @@ export function applyPreviewSync(
           deferSeek || index < patches.length - 1,
         ),
     );
-    // Patched in place — elements are already correct on screen; no reload needed.
-    if (!missed) return;
-    // The instant path couldn't patch in place — record the fallback so we can
-    // track how often the fast path misses before the soft/full reload below.
-    trackStudioEvent("gsap_instant_patch_fallback", { selector: missed.selector });
-    // Fall through to the soft/full reload path below.
+    if (missed) {
+      // The instant path couldn't patch in place — record the fallback so we can
+      // track how often the fast path misses before the soft/full reload below.
+      trackStudioEvent("gsap_instant_patch_fallback", { selector: missed.selector });
+      needsFallback = true;
+    }
+    // Patched in place — elements are already correct on screen; no reload needed
+    // unless an earlier deferred batch left one member unpatched.
+    if (!needsFallback) return;
   }
   // Written, but the caller has more writes to make and will render after the last.
-  if (options.deferPreviewSync) return;
+  if (options.deferPreviewSync && options.previewFallbackLatch) {
+    options.previewFallbackLatch.pending = needsFallback;
+    return;
+  }
+  if (options.deferPreviewSync && !needsFallback) return;
+  if (options.previewFallbackLatch) options.previewFallbackLatch.pending = false;
   if (options.softReload && result.scriptText) {
     // A soft-reloadable edit escalates to a full iframe remount ONLY on the
     // PERMANENT "cannot-soft-reload" result (the preview is genuinely stale/
@@ -291,6 +300,15 @@ export function applyPreviewSync(
   } else {
     reloadPreview();
   }
+}
+
+function instantPatchesFor(
+  options: CommitMutationOptions,
+): NonNullable<CommitMutationOptions["instantPatches"]> {
+  return [
+    ...(options.instantPatches ?? []),
+    ...(options.instantPatch ? [options.instantPatch] : []),
+  ];
 }
 
 // oxfmt-ignore

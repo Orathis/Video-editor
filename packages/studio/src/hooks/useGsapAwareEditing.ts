@@ -179,11 +179,13 @@ export function useGsapAwareEditing({
       // positions are already on screen, so holding the render until the last
       // member has been written costs nothing and never shows a half-moved group.
       let renderOnCommit = false;
+      const previewFallbackLatch = { pending: false };
       const withGroupOptions = (options: CommitMutationOptions): CommitMutationOptions => ({
         ...options,
         coalesceKey,
         coalesceMs: Number.POSITIVE_INFINITY,
         deferPreviewSync: !renderOnCommit,
+        previewFallbackLatch,
       });
       // Every member writes the same file. Queue their mutations and send them as
       // ONE request instead of one round trip per member: the server reads, parses

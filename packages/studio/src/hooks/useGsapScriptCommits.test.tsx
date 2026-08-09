@@ -169,6 +169,63 @@ describe("applyPreviewSync", () => {
     });
   });
 
+  it("carries a deferred patch miss into the final batch render", () => {
+    const previewFallbackLatch = { pending: false };
+    applySoftReload.mockReturnValue("applied");
+    const reloadPreview = vi.fn();
+    patchRuntimeTweenInPlace.mockReturnValueOnce(false).mockReturnValueOnce(true);
+
+    applyPreviewSync(
+      FAKE_IFRAME,
+      result({ scriptText: "SCRIPT" }),
+      {
+        label: "Move animated layer (group)",
+        softReload: true,
+        deferPreviewSync: true,
+        previewFallbackLatch,
+        instantPatch: { selector: "#missed", change: { kind: "set", props: { x: 1 } } },
+      },
+      reloadPreview,
+    );
+
+    expect(previewFallbackLatch.pending).toBe(true);
+    expect(applySoftReload).not.toHaveBeenCalled();
+
+    applyPreviewSync(
+      FAKE_IFRAME,
+      result({ scriptText: "SCRIPT" }),
+      {
+        label: "Move animated layer (group)",
+        softReload: true,
+        previewFallbackLatch,
+        instantPatch: { selector: "#final", change: { kind: "set", props: { x: 2 } } },
+      },
+      reloadPreview,
+    );
+
+    expect(previewFallbackLatch.pending).toBe(false);
+    expect(applySoftReload).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back immediately when a deferred patch miss has no final-render latch", () => {
+    patchRuntimeTweenInPlace.mockReturnValue(false);
+    applySoftReload.mockReturnValue("applied");
+
+    applyPreviewSync(
+      FAKE_IFRAME,
+      result({ scriptText: "SCRIPT" }),
+      {
+        label: "Deferred standalone write",
+        softReload: true,
+        deferPreviewSync: true,
+        instantPatch: { selector: "#missed", change: { kind: "set", props: { x: 1 } } },
+      },
+      vi.fn(),
+    );
+
+    expect(applySoftReload).toHaveBeenCalledTimes(1);
+  });
+
   it("instantPatch + patch fails: falls back to the soft reload, passing onAsyncFailure", () => {
     patchRuntimeTweenInPlace.mockReturnValue(false);
     applySoftReload.mockReturnValue("applied");
@@ -436,6 +493,41 @@ describe("runCommit — instantPatch wiring", () => {
       undefined,
       false,
     );
+    expect(deps.reloadPreview).not.toHaveBeenCalled();
+  });
+
+  it("no-op batch still applies every plural instant patch", async () => {
+    patchRuntimeTweenInPlace.mockReturnValue(true);
+    mockFetchResult({ changed: false });
+    const deps = renderCommitHook();
+    const batch = deps.api.commitMutation.batch;
+    if (!batch) throw new Error("batch capability missing");
+
+    await act(async () => {
+      await batch(
+        [
+          {
+            selection,
+            mutation: { type: "update-property", property: "x", value: 10 },
+            options: {
+              label: "Move layer",
+              instantPatch: { selector: "#a", change: { kind: "set", props: { x: 10 } } },
+            },
+          },
+          {
+            selection: { ...selection, id: "b", selector: "#b" },
+            mutation: { type: "update-property", property: "x", value: 20 },
+            options: {
+              label: "Move layer",
+              instantPatch: { selector: "#b", change: { kind: "set", props: { x: 20 } } },
+            },
+          },
+        ],
+        { label: "Move animated layer (group)" },
+      );
+    });
+
+    expect(patchRuntimeTweenInPlace.mock.calls.map((call) => call[1])).toEqual(["#a", "#b"]);
     expect(deps.reloadPreview).not.toHaveBeenCalled();
   });
 
