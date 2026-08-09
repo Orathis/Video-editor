@@ -315,11 +315,22 @@ quietest, which matters on a surface authors stare at while mixing.
 | Numbered nodes 01…06 | implicit top-to-bottom order |
 | Bypassed node: ring drawn open, wire beside it solid and unbroken | a row at 50% opacity |
 | Preset nodes gathered under a right-hand brace with its name | no grouping at all |
-| An automated parameter draws its lane shape; the value column reads `lane` | a stale number the lane already replaced |
+| An automated parameter's value reads **live at the playhead** and ticks while the transport runs, marked `~` | the stale seed the lane already replaced |
 | A measuring module gets a second ring | nothing distinguishes carve from a hand-set chain |
 
 That last pair is the static-versus-script distinction from §4, delivered as
 drawing rather than documentation.
+
+**Automated parameters show numbers, not shapes.** An earlier pass drew each
+lane's envelope inside the module; that was dropped. The lane already has a home
+in the timeline, and a second small drawing of it in the rack is decoration —
+what the rack is missing is the *current* value. The panel already receives it:
+`FxSectionProps.liveAutomationValues` exists precisely because "an automated
+parameter's stored number is only the seed the lane replaced, so a rack that
+shows it stands still while the carve is audibly working". So the row is an
+ordinary parameter row whose number is live, `~` on the label saying it is
+driven rather than set, and the marker moving with it. Stopped, the values go
+grey and hold at the playhead.
 
 **The preset menu preview is the chain** — each row previews the nodes it will
 draw as small connected rings in their family colours, so the shape you pick is
