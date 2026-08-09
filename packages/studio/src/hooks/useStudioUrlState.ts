@@ -7,6 +7,7 @@ import {
   buildStudioHash,
   parseStudioUrlStateFromHash,
   type StudioUrlSelectionState,
+  type StudioUrlSelectionTarget,
   type StudioUrlState,
 } from "../utils/studioUrlState";
 
@@ -40,6 +41,25 @@ interface UseStudioUrlStateParams {
   initialState: StudioUrlState;
 }
 
+function toPersistedTarget(selection: DomEditSelection): StudioUrlSelectionTarget | null {
+  if (!selection.id && !selection.selector) return null;
+  return {
+    sourceFile: selection.sourceFile || undefined,
+    id: selection.id || undefined,
+    selector: selection.selector || undefined,
+    selectorIndex: selection.selectorIndex ?? undefined,
+  };
+}
+
+function selectionTargetKey(selection: StudioUrlSelectionTarget): string {
+  return [
+    selection.sourceFile ?? "",
+    selection.id ?? "",
+    selection.selector ?? "",
+    selection.selectorIndex ?? "",
+  ].join("|");
+}
+
 function toPersistedSelection(
   selection: DomEditSelection | null,
   // Optional: a caller that only ever has one selection has nothing to add, and
@@ -47,18 +67,21 @@ function toPersistedSelection(
   group: DomEditSelection[] = [],
 ): StudioUrlSelectionState | null {
   if (!selection) return null;
-  if (!selection.id && !selection.selector) return null;
-  // The primary is already carried by selId; the rest ride along so the link
+  const primary = toPersistedTarget(selection);
+  if (!primary) return null;
+  // The primary is already carried by the top-level fields; the rest ride along so the link
   // reopens the same multi-selection instead of a single element.
-  const groupIds = group
-    .filter((member) => member.id && member.id !== selection.id)
-    .map((member) => member.id as string);
+  const primaryKey = selectionTargetKey(primary);
+  const members = new Map<string, StudioUrlSelectionTarget>();
+  for (const member of group) {
+    const target = toPersistedTarget(member);
+    if (!target) continue;
+    const key = selectionTargetKey(target);
+    if (key !== primaryKey) members.set(key, target);
+  }
   return {
-    sourceFile: selection.sourceFile || undefined,
-    id: selection.id || undefined,
-    selector: selection.selector || undefined,
-    selectorIndex: selection.selectorIndex ?? undefined,
-    groupIds: groupIds.length > 0 ? groupIds : undefined,
+    ...primary,
+    group: members.size > 0 ? [...members.values()] : undefined,
   };
 }
 
@@ -143,16 +166,25 @@ export function useStudioUrlState({
         applyDomSelection(null, { revealPanel: false });
         return true;
       }
-      const groupIds = selection.groupIds ?? [];
+      const group = selection.group ?? [];
       void (async () => {
         const primary = await buildDomSelectionFromTarget(element, { preferClipAncestor: false });
         if (!primary) return applyDomSelection(null, { revealPanel: false });
-        if (groupIds.length === 0) return applyDomSelection(primary, { revealPanel: false });
+        if (group.length === 0) return applyDomSelection(primary, { revealPanel: false });
         // Restore the whole multi-selection, primary first so it stays the anchor.
         // Members whose element is gone are dropped rather than failing the rest.
         const members = [primary];
-        for (const memberId of groupIds) {
-          const memberEl = doc.getElementById(memberId);
+        for (const member of group) {
+          const memberEl = findElementForSelection(
+            doc,
+            {
+              sourceFile: member.sourceFile ?? selection.sourceFile ?? "",
+              id: member.id,
+              selector: member.selector,
+              selectorIndex: member.selectorIndex,
+            },
+            activeCompPath,
+          );
           const resolved = memberEl
             ? await buildDomSelectionFromTarget(memberEl, { preferClipAncestor: false })
             : null;

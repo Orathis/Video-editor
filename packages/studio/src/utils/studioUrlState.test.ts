@@ -81,6 +81,7 @@ function renderStudioUrlStateHarness(
     applyMarqueeSelection: () => {},
     buildDomSelectionFromTarget: () => Promise.resolve(null),
     applyDomSelection: () => {},
+    setRightPanelTab: () => {},
     initialState: {
       activeCompPath: null,
       currentTime: 4.2,
@@ -118,6 +119,12 @@ function StudioUrlStateHarness(props: Parameters<typeof useStudioUrlState>[0]) {
   return null;
 }
 
+function previewIframeFor(contentDocument: Document): HTMLIFrameElement {
+  const iframe = document.createElement("iframe");
+  Object.defineProperty(iframe, "contentDocument", { value: contentDocument });
+  return iframe;
+}
+
 describe("studio url state", () => {
   it("parses persisted studio state from project hash", () => {
     const state = parseStudioUrlStateFromHash(
@@ -134,7 +141,7 @@ describe("studio url state", () => {
       id: "hero",
       selector: undefined,
       selectorIndex: undefined,
-      groupIds: undefined,
+      group: undefined,
     });
   });
 
@@ -153,17 +160,66 @@ describe("studio url state", () => {
       selection: {
         sourceFile: "index.html",
         id: "chip",
-        groupIds: ["card", "dot-b"],
+        group: [
+          { sourceFile: "index.html", id: "card" },
+          { sourceFile: "index.html", selector: ".dot", selectorIndex: 1 },
+        ],
       },
     });
 
-    expect(hash).toContain("selGroup=card%2Cdot-b");
-    expect(parseStudioUrlStateFromHash(hash).selection?.groupIds).toEqual(["card", "dot-b"]);
+    expect(parseStudioUrlStateFromHash(hash).selection?.group).toEqual([
+      { sourceFile: "index.html", id: "card" },
+      { sourceFile: "index.html", selector: ".dot", selectorIndex: 1 },
+    ]);
   });
 
   it("reads a single selection as having no group", () => {
     const hash = parseStudioUrlStateFromHash("#project/demo?v=1&selFile=index.html&selId=hero");
-    expect(hash.selection?.groupIds).toBeUndefined();
+    expect(hash.selection?.group).toBeUndefined();
+  });
+
+  it("restores selector-based multi-selection members from the hash", async () => {
+    const previewDoc = document.implementation.createHTMLDocument("preview");
+    const primaryElement = previewDoc.createElement("div");
+    primaryElement.id = "hero";
+    const memberElement = previewDoc.createElement("div");
+    memberElement.className = "dot";
+    previewDoc.body.append(primaryElement, memberElement);
+    const primary = { element: primaryElement, id: "hero", sourceFile: "index.html" };
+    const member = {
+      element: memberElement,
+      selector: ".dot",
+      selectorIndex: 0,
+      sourceFile: "index.html",
+    };
+    const applyMarqueeSelection = vi.fn();
+
+    const harness = renderStudioUrlStateHarness({
+      previewIframeRef: {
+        current: previewIframeFor(previewDoc),
+      },
+      applyMarqueeSelection,
+      buildDomSelectionFromTarget: (target) =>
+        Promise.resolve(target === primaryElement ? primary : member),
+      initialState: {
+        activeCompPath: null,
+        currentTime: null,
+        rightPanelTab: null,
+        rightCollapsed: null,
+        timelineVisible: null,
+        selection: {
+          sourceFile: "index.html",
+          id: "hero",
+          group: [{ sourceFile: "index.html", selector: ".dot", selectorIndex: 0 }],
+        },
+      },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(applyMarqueeSelection).toHaveBeenCalledWith([primary, member], false);
+    harness.unmount();
   });
 
   it("builds a project hash with persisted studio state", () => {
@@ -259,7 +315,7 @@ describe("studio url state", () => {
 
     const harness = renderStudioUrlStateHarness({
       previewIframeRef: {
-        current: { contentDocument: previewDoc } as HTMLIFrameElement,
+        current: previewIframeFor(previewDoc),
       },
       rightPanelTab: "design",
       rightCollapsed: false,
@@ -309,6 +365,31 @@ describe("studio url state", () => {
     });
     expect(window.location.hash).toContain("t=4.2");
     expect(window.location.hash).toContain("selId=hero");
+
+    const selectorMember = {
+      ...restoredSelection,
+      element: document.createElement("div"),
+      id: "",
+      selector: ".dot",
+      selectorIndex: 1,
+      label: "Dot",
+    };
+    harness.rerender({
+      currentTime: 4.2,
+      domEditSelection: restoredSelection,
+      domEditGroupSelections: [restoredSelection, selectorMember],
+    });
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(parseStudioUrlStateFromHash(window.location.hash).selection?.group).toEqual([
+      {
+        sourceFile: "index.html",
+        id: undefined,
+        selector: ".dot",
+        selectorIndex: 1,
+      },
+    ]);
 
     harness.unmount();
   });
