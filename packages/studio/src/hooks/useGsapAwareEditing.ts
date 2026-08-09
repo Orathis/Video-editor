@@ -41,6 +41,18 @@ import type { GsapAnimationFetchOptions } from "./useGsapAnimationFetchFallback"
 // into one another's undo entry (module-local counter, not Date.now()).
 let groupDragCommitCounter = 0;
 
+function firstPreflightFailure(
+  results: PromiseSettledResult<void>[],
+  updates: DomEditGroupPathOffsetCommit[],
+): { error: unknown; selection: DomEditSelection } | null {
+  for (const [index, result] of results.entries()) {
+    if (result.status !== "rejected") continue;
+    const selection = updates[index]?.selection;
+    if (selection) return { error: result.reason, selection };
+  }
+  return null;
+}
+
 export interface UseGsapAwareEditingParams {
   domEditSelection: DomEditSelection | null;
   selectedGsapAnimations: GsapAnimation[];
@@ -54,7 +66,7 @@ export interface UseGsapAwareEditingParams {
   ) => () => Promise<GsapAnimation[]>;
   trackGsapInteractionFailure: (
     error: unknown,
-    selection: DomEditSelection,
+    selection: DomEditSelection | null,
     mutationType: string,
     label: string,
   ) => void;
@@ -203,27 +215,32 @@ export function useGsapAwareEditing({
       // Every member reads the same file, and a preflight writes nothing — so run
       // them together. The parse layer shares one in-flight request per file, which
       // turns N sequential round trips into one.
-      await Promise.all(
+      const preflightResults = await Promise.allSettled(
         updates.map(async ({ selection }) => {
-          try {
-            const animations = await makeFetchFallback(selection, { failOnFetchError: true })();
-            preflightAnimations.set(selection, animations);
-            const outcome = await tryGsapDragIntercept(
-              selection,
-              { x: 0, y: 0 },
-              animations,
-              previewIframeRef.current,
-              coalescedCommit,
-              undefined,
-              { preflightOnly: true },
-            );
-            assertGsapEditPersisted(outcome);
-          } catch (error) {
-            trackGsapInteractionFailure(error, selection, "drag", "Move animated layer (group)");
-            throw error;
-          }
+          const animations = await makeFetchFallback(selection, { failOnFetchError: true })();
+          preflightAnimations.set(selection, animations);
+          const outcome = await tryGsapDragIntercept(
+            selection,
+            { x: 0, y: 0 },
+            animations,
+            previewIframeRef.current,
+            coalescedCommit,
+            undefined,
+            { preflightOnly: true },
+          );
+          assertGsapEditPersisted(outcome);
         }),
       );
+      const preflightFailure = firstPreflightFailure(preflightResults, updates);
+      if (preflightFailure) {
+        trackGsapInteractionFailure(
+          preflightFailure.error,
+          preflightFailure.selection,
+          "drag",
+          "Move animated layer (group)",
+        );
+        throw preflightFailure.error;
+      }
       for (const [index, { selection, next }] of updates.entries()) {
         renderOnCommit = index === updates.length - 1;
         try {
@@ -238,7 +255,7 @@ export function useGsapAwareEditing({
             // resolves against a file missing writes it is about to build on.
             async () => {
               await flushQueued();
-              return makeFetchFallback(selection)();
+              return makeFetchFallback(selection, { fresh: true })();
             },
             { preflightPassed: true },
           );
@@ -251,10 +268,9 @@ export function useGsapAwareEditing({
       try {
         await flushQueued();
       } catch (error) {
-        const selection = updates.at(-1)?.selection;
-        if (selection) {
-          trackGsapInteractionFailure(error, selection, "drag", "Move animated layer (group)");
-        }
+        // The aggregate write has no uniquely failing member; do not misattribute
+        // its telemetry to whichever member happened to be last in the array.
+        trackGsapInteractionFailure(error, null, "drag", "Move animated layer (group)");
         throw error;
       }
     },

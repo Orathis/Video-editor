@@ -56,12 +56,15 @@ const inFlightParses = new Map<string, Promise<ParsedGsapAnimations | null>>();
 export function fetchParsedAnimations(
   projectId: string,
   sourceFile: string,
+  options: { fresh?: boolean } = {},
 ): Promise<ParsedGsapAnimations | null> {
   const key = `${projectId}|${sourceFile}`;
+  if (options.fresh) inFlightParses.delete(key);
   const inFlight = inFlightParses.get(key);
   if (inFlight) return inFlight;
   const request = requestParsedAnimations(projectId, sourceFile).finally(() => {
-    inFlightParses.delete(key);
+    // A superseded pre-write request must not evict the fresh post-write one.
+    if (inFlightParses.get(key) === request) inFlightParses.delete(key);
   });
   inFlightParses.set(key, request);
   return request;

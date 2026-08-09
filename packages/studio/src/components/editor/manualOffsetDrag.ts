@@ -517,6 +517,7 @@ function restoreManualOffsetDragMember(member: ManualOffsetDragMember): void {
   endStudioManualEditGesture(member.element, member.gestureToken);
 }
 
+/** Roll back a FAILED drag to the exact gesture-start state. */
 export function restoreManualOffsetDragMembers(members: ManualOffsetDragMember[]): void {
   for (const member of members) {
     restoreManualOffsetDragMember(member);
@@ -553,7 +554,7 @@ export function endManualOffsetDragMembers(members: ManualOffsetDragMember[]): v
   }
 }
 
-/** Release the timelines this gesture paused, re-rendering at the playhead. */
+/** Shared timeline teardown for either the committed or restored path. */
 export function resumeGsapTimelines(element: HTMLElement): void {
   const ids = element.getAttribute("data-hf-drag-paused-timelines");
   element.removeAttribute("data-hf-drag-paused-timelines");

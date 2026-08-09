@@ -75,4 +75,34 @@ describe("fetchParsedAnimations — in-flight sharing", () => {
 
     expect(fetchStub.calls()).toBe(2);
   });
+
+  it("supersedes an in-flight pre-write parse with a fresh post-write read", async () => {
+    const releases: Array<(response: Response) => void> = [];
+    const fetch = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          releases.push(resolve);
+        }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    const response = (id: string) =>
+      ({
+        ok: true,
+        json: () => Promise.resolve({ animations: [{ id, targetSelector: `#${id}` }] }),
+      }) as Response;
+
+    const stale = fetchParsedAnimations("p", "index.html");
+    const fresh = fetchParsedAnimations("p", "index.html", { fresh: true });
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    releases[0]?.(response("stale"));
+    await stale;
+    const overlappingFreshRead = fetchParsedAnimations("p", "index.html");
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    releases[1]?.(response("fresh"));
+    const [freshResult, sharedResult] = await Promise.all([fresh, overlappingFreshRead]);
+    expect(freshResult?.animations[0]?.id).toBe("fresh");
+    expect(sharedResult?.animations[0]?.id).toBe("fresh");
+  });
 });

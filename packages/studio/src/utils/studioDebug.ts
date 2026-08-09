@@ -1,7 +1,7 @@
 // Opt-in diagnostic channels — one per question worth tracing, all off by
 // default. Turn one on for the session with `localStorage.setItem("hf-<name>-debug",
 // "1")` and reload, then grep the console for `[hf-<name>]`.
-// Live channels: reload, select, drag, resize.
+// Live channels: reload, select, drag, resize, commit.
 //
 // These exist because the interesting failures here are decisions, not crashes:
 // a preview that reloads when it should not, a shift-click that selects nothing.

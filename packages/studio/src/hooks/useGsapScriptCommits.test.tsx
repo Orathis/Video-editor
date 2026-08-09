@@ -117,6 +117,31 @@ describe("applyPreviewSync", () => {
     expect(reloadPreview).not.toHaveBeenCalled();
   });
 
+  it("applies both plural and singular patches when a caller supplies both", () => {
+    patchRuntimeTweenInPlace.mockReturnValue(true);
+
+    applyPreviewSync(
+      FAKE_IFRAME,
+      result(),
+      {
+        label: "mixed patch contract",
+        instantPatches: [
+          { selector: "#group-a", change: { kind: "set" as const, props: { x: 1 } } },
+        ],
+        instantPatch: {
+          selector: "#single-b",
+          change: { kind: "set" as const, props: { x: 2 } },
+        },
+      },
+      vi.fn(),
+    );
+
+    expect(patchRuntimeTweenInPlace.mock.calls.map((call) => [call[1], call[4]])).toEqual([
+      ["#group-a", true],
+      ["#single-b", false],
+    ]);
+  });
+
   it("instantPatches: one patch that misses falls the whole batch back to the reload", () => {
     patchRuntimeTweenInPlace.mockImplementation((_iframe, selector) => selector !== "#b");
     applySoftReload.mockReturnValue("applied");

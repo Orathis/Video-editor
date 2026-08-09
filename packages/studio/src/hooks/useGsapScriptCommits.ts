@@ -249,7 +249,10 @@ export function applyPreviewSync(
   options: CommitMutationOptions,
   reloadPreview: () => void,
 ): void {
-  const patches = options.instantPatches ?? (options.instantPatch ? [options.instantPatch] : []);
+  const patches = [
+    ...(options.instantPatches ?? []),
+    ...(options.instantPatch ? [options.instantPatch] : []),
+  ];
   if (patches.length > 0) {
     const deferSeek = options.deferPreviewSync === true;
     const missed = patches.find(
@@ -370,7 +373,8 @@ export function useGsapScriptCommits({ projectIdRef, activeCompPath, previewIfra
     const instantPatches = calls
       .map(({ options: callOptions }) => callOptions.instantPatch)
       .filter((patch) => patch !== undefined);
-    await finalizeSuccessfulMutation(pid, compositionPath, last.selection, last.mutation, targetPath, result, instantPatches.length > 0 ? { ...options, instantPatches } : options);
+    const { instantPatch: _instantPatch, ...batchOptions } = options;
+    await finalizeSuccessfulMutation(pid, compositionPath, last.selection, last.mutation, targetPath, result, instantPatches.length > 0 ? { ...batchOptions, instantPatches } : batchOptions);
   }, [showToast, finalizeSuccessfulMutation]);
 
   // Every GSAP-script commit is a read-modify-write of one file. Overlapping
