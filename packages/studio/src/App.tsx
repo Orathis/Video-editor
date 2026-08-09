@@ -65,6 +65,7 @@ import {
   readStudioUrlStateFromWindow,
   resolveMasterCompositionPath,
 } from "./utils/studioUrlState";
+const getTimelineSelectionSet = () => usePlayerStore.getState().selectedElementIds;
 // fallow-ignore-next-line complexity
 export function StudioApp() {
   const { projectId, resolving, waitingForServer } = useServerConnection();
@@ -275,7 +276,7 @@ export function StudioApp() {
     compositionLoading,
     previewIframeRef,
     timelineElements,
-    getTimelineSelectionSet: () => usePlayerStore.getState().selectedElementIds,
+    getTimelineSelectionSet,
     setSelectedTimelineElementId,
     setTimelineSelectionSet,
     setRightCollapsed: panelLayout.setRightCollapsed,
