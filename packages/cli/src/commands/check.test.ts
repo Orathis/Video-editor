@@ -830,6 +830,10 @@ function reportWithFindings(overrides: Partial<CheckReport> = {}): CheckReport {
     ok: true,
     strict: false,
     lint: { ...emptySection(), filesScanned: 0 },
+    // `reached: true` with no findings is the clean-project shape. The other
+    // value means bundling never ran, which is "unknown" rather than "none",
+    // and no test here is about that case.
+    compile: { ...emptySection(), reached: true },
     runtime: emptySection(),
     layout: {
       ...emptySection(),
