@@ -67,7 +67,16 @@ export interface CaptionAnimatableChannels {
  * check to reject it. pacific reached the same conclusion independently and enforces it the same
  * way — its `WordAnimatable` simply lacks these keys.
  *
- * `fontSize` is deliberately NOT here: it interpolates cleanly and templates already animate it.
+ * `fontSize` is deliberately NOT here — it interpolates numerically and a runtime that owns its own
+ * layout can animate it. But no caption template actually does: verified across all five
+ * hand-authored identities and the generator master, `fontSize` never appears in a tween. The master
+ * runs a fit-to-width pass per group, so an animated `fontSize` would fight the fitter with
+ * evaluation-order-dependent results.
+ *
+ * That is the difference between SCHEMA-legal and IDENTITY-supported, and they are not the same
+ * axis. A capability manifest needs to express "this channel is legal here and unsupported by this
+ * identity" as a first-class state — otherwise the only way to say it is to omit the channel, which
+ * reads as "does not exist" and strands anything that authored it.
  */
 export interface CaptionStaticChannels {
   fontWeight?: number | string;
