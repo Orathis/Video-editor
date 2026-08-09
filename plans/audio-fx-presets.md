@@ -287,6 +287,60 @@ data it needs.
 
 ---
 
+## 5f. Module identity in the rack
+
+The rack is a 292&nbsp;px column of stacked modules — which is, near enough, a
+Eurorack case. Worth leaning into: a faceplate recognised by colour and
+lettering before the label is read. Carve already gets a distinct treatment
+(`hf-fx-carve-module`); this generalises it.
+
+**Three carriers, no layout change:**
+
+1. **A 3 px rail down the left edge** in the family hue. Cheapest possible
+   signal at this width — survives collapse, reads down a stack of ten, costs
+   no room.
+2. **Lettering per family** — filters tracked-out mono caps, dynamics heavy and
+   tight, nonlinear italic serif, time light and airy, smart mono with a badge.
+   The *kind* of module is legible with the label out of focus.
+3. **A tint step per module within its family**, so two filters differ without
+   reading as two families.
+
+**Family hues**, chosen to sit on `#0C0C0E` without competing with the studio's
+`#3CE6AC` accent:
+
+| Family | Hue | Why |
+| --- | --- | --- |
+| Filter | `#4FA8FF` | the measuring family |
+| Dynamics | `#FFB443` | grips the signal |
+| Nonlinear | `#FF6B5C` | the only generative family |
+| Time | `#B98CFF` | atmosphere, not control |
+| Smart | `#3CE6AC` | the studio's own accent — reserved for modules that act on their own |
+
+**This needs almost no new plumbing.** `group` is already on every effect in the
+registry, so hue and lettering are derived, not hand-assigned. And every module
+already renders `data-fx-node="<type>"`, so the whole identity layer is CSS on
+an attribute that exists today. Only "Smart" is new, and carve already lives
+there in spirit.
+
+**Type budget is the real decision.** Fonts must be self-hosted (no CDN).
+Recommended: **two faces** — the UI sans plus one characterful display face
+split across families. One face is too subtle at 11 px; five is a bundle cost
+and starts reading as a collage on a surface authors stare at while mixing.
+
+**Preset menu**: grouped by the same families, so the colour picked in the menu
+is the colour that appears in the rack. Each row carries the number of modules
+it drops in — which quietly teaches that a preset *is* a chain. Smart entries
+say "measures" instead of a count, which is the entire static-vs-adaptive
+distinction delivered in one word.
+
+Open decisions: whether applying a preset appends or replaces (suggest append,
+replace on modifier, re-apply swapping its own `fromPreset` nodes); the type
+budget above; and whether character presets get drawn glyphs on their plates —
+the biggest step toward "fun", and the only part needing artwork rather than
+CSS.
+
+Mockup at the real panel width: published as an artifact, 2026-08-09.
+
 ## 6. Architecture
 
 Mirror colour grading, because the author already understands that surface.
