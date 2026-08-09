@@ -294,16 +294,44 @@ Eurorack case. Worth leaning into: a faceplate recognised by colour and
 lettering before the label is read. Carve already gets a distinct treatment
 (`hf-fx-carve-module`); this generalises it.
 
-**Three carriers, no layout change:**
+**Direction chosen 2026-08-09: schematic** — picked from four mocked
+alternatives (hardware silkscreen, vintage test equipment, risograph,
+schematic). Recorded with its principles in `.impeccable.md` at the repo root.
 
-1. **A 3 px rail down the left edge** in the family hue. Cheapest possible
-   signal at this width — survives collapse, reads down a stack of ten, costs
-   no room.
-2. **Lettering per family** — filters tracked-out mono caps, dynamics heavy and
-   tight, nonlinear italic serif, time light and airy, smart mono with a badge.
-   The *kind* of module is legible with the label out of focus.
-3. **A tint step per module within its family**, so two filters differ without
-   reading as two families.
+The rack is drawn as the signal path it is: numbered nodes on a dashed spine
+running from an `IN` terminal to an `OUT`, leader-dotted dimension lines,
+three-letter stage tags, family colour restricted to the node ring and the tag.
+
+**Why it won over the louder options:** it is the only one that *adds
+information*. Chain order is load-bearing — a limiter first and a limiter last
+are different sounds — and nothing in the panel communicated it. It is also the
+quietest, which matters on a surface authors stare at while mixing.
+
+**What the drawing carries that the current rack cannot say:**
+
+| Drawn as | Instead of |
+| --- | --- |
+| `IN` names the source, `OUT` names the destination and the FX tail | nothing — the tail was invisible |
+| Numbered nodes 01…06 | implicit top-to-bottom order |
+| Bypassed node: ring drawn open, wire beside it solid and unbroken | a row at 50% opacity |
+| Preset nodes gathered under a right-hand brace with its name | no grouping at all |
+| An automated parameter draws its lane shape; the value column reads `lane` | a stale number the lane already replaced |
+| A measuring module gets a second ring | nothing distinguishes carve from a hand-set chain |
+
+That last pair is the static-versus-script distinction from §4, delivered as
+drawing rather than documentation.
+
+**The preset menu preview is the chain** — each row previews the nodes it will
+draw as small connected rings in their family colours, so the shape you pick is
+the shape you get. Smart entries read `MEASURES` instead.
+
+**The empty state keeps the wire.** `IN` and `OUT` remain, connected, with "no
+effects, signal passes straight through" between them — which teaches that the
+rack is a path before the author has added anything to it.
+
+**Not carried over from the first pass:** the 3 px coloured rail down each
+module's left edge. It is the most overused device in dashboard UI, and
+forcing each direction to find another answer is what separated them.
 
 **Family hues**, chosen to sit on `#0C0C0E` without competing with the studio's
 `#3CE6AC` accent:
