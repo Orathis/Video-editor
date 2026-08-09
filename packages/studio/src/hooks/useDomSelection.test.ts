@@ -144,6 +144,33 @@ describe("useDomSelection marquee", () => {
     });
     harness.cleanup();
   });
+
+  it("uses a surviving group member as the timeline anchor when the canvas primary has no row", () => {
+    const canvasOnly = document.createElement("div");
+    canvasOnly.id = "canvas-only";
+    const card = document.createElement("div");
+    card.id = "card";
+    document.body.append(canvasOnly, card);
+    const harness = renderHarness(
+      { activeCompPath: "index.html", projectId: "project-1", refreshKey: 0 },
+      { timelineElements: [timelineElement("card")] },
+    );
+
+    act(() =>
+      harness
+        .current()
+        .applyMarqueeSelection(
+          [makeSelection("Canvas only", canvasOnly), makeSelection("Card", card)],
+          false,
+        ),
+    );
+
+    expect(harness.timeline.setTimelineSelectionSet).toHaveBeenCalledWith(new Set(["card"]));
+    expect(harness.timeline.setSelectedTimelineElementId).toHaveBeenCalledWith("card", {
+      preserveSet: true,
+    });
+    harness.cleanup();
+  });
 });
 
 /**

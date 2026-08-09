@@ -48,20 +48,26 @@ export function announceTimelineSelection(
     );
   const members = group.map(timelineIdFor).filter((id): id is string => Boolean(id));
   const anchor = timelineIdFor(primary);
+  const publishedMembers = new Set(members);
+  if (anchor) publishedMembers.add(anchor);
+  const timelineAnchor = anchor ?? members[0] ?? null;
   // A member with no timeline row of its own resolves to null and is dropped here,
   // so a group can announce fewer ids than it has — or none, which reads back as an
   // empty selection and takes the canvas selection with it.
   logSelect("announce", {
     group: group.length,
-    published: members.length,
+    published: publishedMembers.size,
     anchor,
-    anchorPublished: anchor != null && members.includes(anchor),
+    anchorPublished: anchor != null && publishedMembers.has(anchor),
   });
+  // A canvas target can be editable without owning a timeline row. Preserve that
+  // canvas-only selection when the timeline has nothing truthful to represent.
+  if (!timelineAnchor) return;
   // A late async primary that already belongs to the live set must preserve the
   // group. A fresh single click does not belong to it, so publish the singleton
   // first; otherwise `preserveSet` clears the set and sync wipes the canvas.
-  if (group.length > 1 || !anchor || !getTimelineSelectionSet().has(anchor)) {
-    setTimelineSelectionSet(new Set(members));
+  if (group.length > 1 || !getTimelineSelectionSet().has(timelineAnchor)) {
+    setTimelineSelectionSet(publishedMembers);
   }
-  setSelectedTimelineElementId(anchor, { preserveSet: true });
+  setSelectedTimelineElementId(timelineAnchor, { preserveSet: true });
 }

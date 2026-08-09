@@ -482,9 +482,11 @@ export function useDomSelection({
     [activeCompPath, announceTimelineSelection, buildDomSelectionFromTarget, previewIframeRef],
   );
 
-  refreshDomEditGroupSelectionsFromPreviewRef.current = refreshDomEditGroupSelectionsFromPreview;
-
   // ── Effects ──
+
+  useEffect(() => {
+    refreshDomEditGroupSelectionsFromPreviewRef.current = refreshDomEditGroupSelectionsFromPreview;
+  }, [refreshDomEditGroupSelectionsFromPreview]);
 
   // Clear hover unconditionally on composition/project/preview change
   // eslint-disable-next-line no-restricted-syntax
