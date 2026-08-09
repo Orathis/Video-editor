@@ -59,11 +59,12 @@ const TEMPLATE_CONFIG: Record<string, { width: number; height: number; captureTi
 };
 
 function patchTemplateHtml(dir: string, durationSeconds: number): void {
-  const htmlFiles = readdirSync(dir, { withFileTypes: true, recursive: true })
-    .filter((e) => e.isFile() && e.name.endsWith(".html"))
-    .map((e) => join(e.parentPath ?? e.path, e.name));
+  const htmlEntries = readdirSync(dir, { withFileTypes: true, recursive: true }).filter(
+    (e) => e.isFile() && e.name.endsWith(".html"),
+  );
 
-  for (const file of htmlFiles) {
+  for (const entry of htmlEntries) {
+    const file = join(entry.parentPath, entry.name);
     let content = readFileSync(file, "utf-8");
     content = content.replace(/<video[^>]*src="__VIDEO_SRC__"[^>]*>[\s\S]*?<\/video>/g, "");
     content = content.replace(/<video[^>]*src="__VIDEO_SRC__"[^>]*>/g, "");
@@ -155,7 +156,7 @@ async function generateThumbnail(templateId: string, projectDir: string): Promis
     const session = await createCaptureSession(fileServer.url, framesDir, {
       width: config.width,
       height: config.height,
-      fps: 30,
+      fps: { num: 30, den: 1 },
       format: "jpeg",
       quality: 95,
     });
