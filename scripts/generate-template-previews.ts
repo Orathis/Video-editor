@@ -29,15 +29,12 @@ import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import {
-  createFileServer,
-  createCaptureSession,
-  initializeSession,
   captureFrame,
-  getCompositionDuration,
   closeCaptureSession,
   createRenderJob,
   executeRenderJob,
 } from "@hyperframes/producer";
+import { openOpaqueCapture } from "./preview-capture.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
@@ -141,34 +138,12 @@ async function generateThumbnail(templateId: string, projectDir: string): Promis
   const config = TEMPLATE_CONFIG[templateId] ?? DEFAULT_CONFIG;
 
   const framesDir = join(projectDir, "_thumb_frames");
-  mkdirSync(framesDir, { recursive: true });
-
-  const fileServer = await createFileServer({
+  const { fileServer, session, duration } = await openOpaqueCapture({
     projectDir,
-    port: 0,
-    fps: { num: 30, den: 1 },
+    width: config.width,
+    height: config.height,
   });
   try {
-    // Opaque capture, for the reason spelled out in generate-catalog-previews.ts:
-    // `format: "png"` is the engine's TRANSPARENT mode and forces
-    // `background-image: none !important` on every composition root, silently
-    // dropping any backdrop the template paints for itself.
-    const session = await createCaptureSession(fileServer.url, framesDir, {
-      width: config.width,
-      height: config.height,
-      fps: { num: 30, den: 1 },
-      format: "jpeg",
-      quality: 95,
-    });
-    await initializeSession(session);
-
-    let duration: number;
-    try {
-      duration = await getCompositionDuration(session);
-    } catch {
-      duration = 5;
-    }
-
     const t = Math.min(config.captureTime, duration * 0.8);
     const result = await captureFrame(session, 0, t);
     execFileSync(

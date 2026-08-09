@@ -35,17 +35,14 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 // Import from source — bun workspace linking doesn't resolve for scripts outside packages/.
 import {
-  createFileServer,
-  createCaptureSession,
-  initializeSession,
   captureFrame,
-  getCompositionDuration,
   closeCaptureSession,
   createRenderJob,
   executeRenderJob,
 } from "../packages/producer/src/index.js";
 import { compileForRender } from "../packages/producer/src/services/htmlCompiler.js";
 import { resolveContainedCopies } from "./registry-target-paths.mjs";
+import { openOpaqueCapture } from "./preview-capture.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
@@ -294,36 +291,8 @@ async function generateThumbnail(item: CatalogItem, projectDir: string): Promise
   const height = wrapperDimension(wrapperHtml, "height", 1080);
 
   const framesDir = join(projectDir, "_thumb_frames");
-  mkdirSync(framesDir, { recursive: true });
-
-  const fileServer = await createFileServer({
-    projectDir,
-    port: 0,
-    fps: { num: 30, den: 1 },
-  });
+  const { fileServer, session, duration } = await openOpaqueCapture({ projectDir, width, height });
   try {
-    // `format: "png"` is the engine's TRANSPARENT capture mode: it forces
-    // `background-image: none !important` on every `[data-composition-id]`, so
-    // any block whose scene paints its own backdrop (the VS Code snippets sit
-    // on a desktop wallpaper) loses it and the poster comes out empty. These
-    // posters are opaque page images, never a compositing layer — capture
-    // opaque and transcode to the .png the catalog pages reference.
-    const session = await createCaptureSession(fileServer.url, framesDir, {
-      width,
-      height,
-      fps: { num: 30, den: 1 },
-      format: "jpeg",
-      quality: 95,
-    });
-    await initializeSession(session);
-
-    let duration: number;
-    try {
-      duration = await getCompositionDuration(session);
-    } catch {
-      duration = 5;
-    }
-
     // Capture after the treatment appears, capped for long compositions.
     const captureTime = Math.min(3.0, duration * 0.6);
     const result = await captureFrame(session, 0, captureTime);
