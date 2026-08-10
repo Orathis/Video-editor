@@ -97,6 +97,35 @@ property print as their escape sequence on the page. This cost three rounds of
 chasing what looked like three unrelated rendering bugs. The template is a plain
 literal; keep it that way, and use HTML entities for typographic characters.
 
+## Proposed: a multi-band EQ ("Tone")
+
+The clearest failure this exercise surfaced is a rack holding two *Shape One
+Range* modules doing different jobs. A multi-band EQ is the answer, and it is a
+better one than a role label because an author already understands it: bass,
+middle, treble is the most widely used audio control there is.
+
+**Its bands can be the shared vocabulary.** Three bands are Bass / Middle /
+Treble; five open up to Bass / Warmth / Middle / Clarity / Air. So using the EQ
+teaches the words the rest of the rack relies on, instead of the vocabulary
+living only on a ruler somebody has to read.
+
+**Built like the carve, not like a new effect.** Carve already owns several
+tagged nodes and presents as one module (`fromCarve`, filtered out of the
+hand-built list). An EQ does the same with `fromEq`: three bands are a low
+shelf, a peaking and a high shelf — all effects that already ship. Nothing new
+in the render, nothing new in the graph, and the nodes stay ordinary, so an
+author who opens the details finds exactly the filters they could have added by
+hand.
+
+The registry's parameter model is flat key/value, so an `eq` effect *type* with
+N bands would need array-shaped params it does not support. The composite-module
+route avoids that entirely and is the pattern this codebase already proved.
+
+Faders rather than sliders, because a row of vertical faders around a centre
+detent is what an equaliser looks like to everyone who has met one. Collapsed,
+it reads like every other module: "Bass +3, Middle −2, Treble +2", or "Flat"
+when nothing has been touched.
+
 ## What still needs deciding
 
 - Does the plain name **replace** the DSP name or sit beside it? Replacing is
