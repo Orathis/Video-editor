@@ -46,6 +46,34 @@ So one plain name per *effect* is not enough: a preset's node needs its own
 preset node as well as on the effect. This is invisible in a catalogue of cards
 and obvious the moment every preset is drawn as the chain it actually builds.
 
+## Family lettering, carried over from the first round
+
+The identity device from the first rack pass — different type per family — was
+lost when the direction moved to schematic, which lettered everything in the
+same condensed caps. It is back, inside the schematic skeleton rather than
+instead of it. You can tell what KIND of module you are looking at with the
+label out of focus, before the word registers.
+
+| Family | Treatment | Why |
+| --- | --- | --- |
+| Filter | condensed caps, wide tracking, light | measuring instruments |
+| Dynamics | condensed caps, tight, heavy | grips the signal |
+| Nonlinear | **italic serif** | the only generative family — it should not look like the others |
+| Time | condensed caps, very wide, thin | atmosphere, not control |
+| Smart | monospace, medium | it measures; it reads as a readout |
+
+Two faces, as budgeted. The condensed sans carries four families apart by
+weight, case, tracking and size; the serif is spent on the single family that
+behaves differently from the rest.
+
+Alongside it, a **tint step per module inside its family** — derived from
+position in the registry, so adding an effect never re-colours its siblings by
+hand. Two filters are visibly different modules without reading as two
+different families.
+
+The `Broadcast` preset is the test case: seven nodes across three families in
+one rack, and each one is identifiable before it is read.
+
 ## The collapsed state is a sentence
 
 Collapsed is the most-seen state by a distance: a rack of six modules is six
