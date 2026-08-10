@@ -97,6 +97,37 @@ property print as their escape sequence on the page. This cost three rounds of
 chasing what looked like three unrelated rendering bugs. The template is a plain
 literal; keep it that way, and use HTML entities for typographic characters.
 
+## The hole in the single-knob rule: picking the range
+
+`Shape One Range` has three controls — where, how much, how wide — and the
+copy nominated *how much* as the one that matters. That is incoherent, and it
+took someone asking to see it: boosting an unspecified frequency means nothing.
+**The range is the first decision, not the second.**
+
+Two ways out:
+
+**A — two controls.** Keep the module generic and make *where* a word from the
+shared vocabulary rather than a frequency field. Honest, and the ruler does the
+teaching, but it is still two decisions and the first is jargon in a friendly
+coat.
+
+**B — the range IS the module.** The add menu offers *jobs* — Reduce Mud, Add
+Clarity, Tame Harshness — each a peaking node with its frequency already
+chosen. Picking the module is picking the range, so one knob is honest rather
+than a simplification hiding the real choice.
+
+**B is the answer**, and it is the same insight as the EQ: an author does not
+want a parametric equaliser, they want to fix a thing. It also dissolves the
+duplicate-name problem at the root rather than papering it with a role label —
+`Clean Voice` reads *Remove Rumble · Reduce Mud · Even Out Loudness · Add
+Clarity · Peak Ceiling*, and nothing repeats.
+
+Option A is not wasted: its band picker is exactly the right control for moving
+the frequency under **Details**, for the author who wants to.
+
+This changes the catalogue, not just the copy: the presets should reference
+named jobs, and `EFFECT_COPY.peaking` stops being one entry.
+
 ## Proposed: a multi-band EQ ("Tone")
 
 The clearest failure this exercise surfaced is a rack holding two *Shape One
