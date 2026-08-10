@@ -46,6 +46,29 @@ So one plain name per *effect* is not enough: a preset's node needs its own
 preset node as well as on the effect. This is invisible in a catalogue of cards
 and obvious the moment every preset is drawn as the chain it actually builds.
 
+## The collapsed state is a sentence
+
+Collapsed is the most-seen state by a distance: a rack of six modules is six
+collapsed lines and nothing else. So `SUMMARY` writes each one as a phrase about
+what is happening to the sound — "Cutting everything below 80 Hz", "Evening out
+— moderate", "A medium room, lightly" — rather than the parameter that happens
+to be first. Numbers stay in, because they are what makes it checkable, but they
+arrive inside a sentence. An author should be able to read their own mix top to
+bottom.
+
+Rendering all fifteen at their defaults immediately caught one: a freshly added
+Peaking EQ sits at 0 dB, and "Lifting 1 kHz by 0 dB" describes a non-event as
+though it were a setting — while being the FIRST thing an author reads after
+adding one. It now says "Sitting on 1 kHz, doing nothing yet".
+
+## Trap: do not use String.raw here
+
+Bun escapes every non-ASCII character in a raw template literal into literal
+`\uXXXX` text, so em-dashes, curly quotes and any glyph in a CSS `content`
+property print as their escape sequence on the page. This cost three rounds of
+chasing what looked like three unrelated rendering bugs. The template is a plain
+literal; keep it that way, and use HTML entities for typographic characters.
+
 ## What still needs deciding
 
 - Does the plain name **replace** the DSP name or sit beside it? Replacing is
