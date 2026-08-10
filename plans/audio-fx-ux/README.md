@@ -128,7 +128,9 @@ the frequency under **Details**, for the author who wants to.
 This changes the catalogue, not just the copy: the presets should reference
 named jobs, and `EFFECT_COPY.peaking` stops being one entry.
 
-## Proposed: a multi-band EQ ("Tone")
+## Shipped: a multi-band EQ ("Tone")
+
+*Built in `e984a9e62` / `2eaa71cac`. The design below is what was built.*
 
 The clearest failure this exercise surfaced is a rack holding two *Shape One
 Range* modules doing different jobs. A multi-band EQ is the answer, and it is a
@@ -170,6 +172,15 @@ when nothing has been touched.
   has to analyse first and cannot preview instantly.
 
 ## Status
+
+The EQ, the named jobs and the levelling script are **built**. `copy.mts`
+itself is still a proposal — the plain-language layer over the other thirteen
+effects has not landed, and neither have the `PROFILES` figures.
+
+`copy.mts` has no entry for Tone or for the levelling module, because both
+carry their own copy in core (`audioEqSummary`, `levellingSummary`). That is
+the right home for it: a summary that has to read the chain belongs beside the
+code that writes it.
 
 `copy.mts` is a proposal, not shipped code. When it lands it wants to be
 `packages/core/src/audioFxCopy.ts` beside the registry, with the completeness

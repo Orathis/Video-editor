@@ -137,8 +137,8 @@ and/or automation lanes. **The machinery for this is already built and shipped**
 | --- | --- | --- |
 | Voice carve *(shipped)* | `analyseCarveBands` | peaking cuts + per-band lanes |
 | Auto-duck *(shipped, inside carve)* | `analyseCarveDuck` | one volume lane |
+| Leveller *(**shipped** — `audioLeveller.ts`)* | windowed RMS | lane on a `gain` node |
 | De-esser | `analyseCarveDynamics`, re-parameterised (see §5e) | lane on a peaking cut |
-| Leveller | `windowDb` walk | lane on a `gain` node |
 | Tone match | `powerSpectrum` vs a target curve | 3–5 peaking nodes |
 
 This is the strongest argument in the doc: **none of them needs new DSP** —
@@ -425,6 +425,34 @@ Four notes:
   is momentarily dry on first apply, then swaps in. Expected, not a defect.
 
 ---
+
+## 6b. What shipped
+
+| Commit | What |
+| --- | --- |
+| `a533d1677` | the preset catalogue in core — 18 presets over four shelves |
+| `de2b78047` | applying presets from the rack |
+| `29f53f935` | `label` on a node, so a chain reads as jobs rather than filter types |
+| `e984a9e62` | the multi-band EQ in core, as a composite over shipping filters |
+| `2eaa71cac` | the Tone module — faders in the rack |
+| `e723216a1` | the levelling script |
+
+Three things worth carrying forward:
+
+**`parseAudioFxChain` silently dropped `fromPreset`** until `29f53f935`. The
+round-trip test compared only node *types*, so it passed while the tag that
+lets a preset find its own nodes was being lost on every reload. Any new tag on
+a node (`fromEq`, `fromLeveller`, `label`) must be added to BOTH the parser and
+the serializer, and the round-trip test must compare it.
+
+**The single-knob rule broke on `peaking`** and it took someone asking to see
+it. "How much" cannot be the one knob when the range is the first decision. The
+answer was to make the range the module — the add menu offers *jobs* — which
+also dissolved the duplicate-name problem at the root.
+
+**The levelling target must be a level the track already reaches.** Anchoring
+it to an absolute figure turns levelling into a volume change. The 80th
+percentile of the track's own speaking windows is the figure that works.
 
 ## 7. What to build first
 
