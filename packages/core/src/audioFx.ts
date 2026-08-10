@@ -813,6 +813,17 @@ export interface HfAudioFxNode {
    * and each has to be able to find its own.
    */
   fromPreset?: string;
+  /**
+   * What the rack calls this node, when the effect's own name is not specific
+   * enough to be useful.
+   *
+   * A peaking filter is "Shape One Range" wherever it appears, so a chain that
+   * cuts mud at 250 Hz and lifts clarity at 3 kHz shows the same words twice
+   * and an author cannot tell the two apart. A preset names each node for the
+   * JOB it is doing instead — "Reduce Mud", "Add Clarity" — and the rack reads
+   * as a list of things that were done rather than a list of filter types.
+   */
+  label?: string;
   /** Absent means enabled — chain files written before the field existed still load. */
   enabled?: boolean;
   params?: HfAudioFxParamValues;
@@ -862,6 +873,8 @@ export function parseAudioFxChain(json: string): HfAudioFxChain {
       enabled?: unknown;
       params?: unknown;
       fromCarve?: unknown;
+      fromPreset?: unknown;
+      label?: unknown;
     };
     if (typeof node.type !== "string" || !BY_ID.has(node.type)) {
       throw new AudioFxChainError(`Node ${i} has unknown effect type: ${String(node.type)}`);
@@ -870,6 +883,13 @@ export function parseAudioFxChain(json: string): HfAudioFxChain {
       type: node.type,
       ...(typeof node.id === "string" && node.id ? { id: node.id } : {}),
       ...(node.fromCarve === true ? { fromCarve: true as const } : {}),
+      // Both survive the round trip or a preset stops being able to find its
+      // own nodes after a reload: re-applying would stack a second copy and
+      // the rack would lose the grouping it braces them with.
+      ...(typeof node.fromPreset === "string" && node.fromPreset
+        ? { fromPreset: node.fromPreset }
+        : {}),
+      ...(typeof node.label === "string" && node.label ? { label: node.label } : {}),
       enabled: node.enabled !== false,
       params: normalizeAudioFxParams(
         node.type,
@@ -893,6 +913,8 @@ export function serializeAudioFxChain(chain: HfAudioFxChain): string {
       type: node.type,
       ...(node.id ? { id: node.id } : {}),
       ...(node.fromCarve === true ? { fromCarve: true } : {}),
+      ...(node.fromPreset ? { fromPreset: node.fromPreset } : {}),
+      ...(node.label ? { label: node.label } : {}),
       ...(node.enabled === false ? { enabled: false } : {}),
       params: normalizeAudioFxParams(node.type, node.params),
     })),
