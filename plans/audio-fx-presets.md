@@ -454,6 +454,33 @@ also dissolved the duplicate-name problem at the root.
 it to an absolute figure turns levelling into a volume change. The 80th
 percentile of the track's own speaking windows is the figure that works.
 
+## 6c. The two scripts NOT built, and why
+
+**De-esser — deferred, not abandoned.** The leveller is its structural template:
+analysis → profile → result → remove → summary, with a mutation pass over each.
+Two constraints have to be designed for before it is written, and neither is
+visible until you try:
+
+1. `analyseCarveDynamics` cannot be reused unchanged. Its hop is
+   `max(FRAME, length / POINT_BUDGET)` — 85 ms at best, ~150 ms on a
+   real-length track — while sibilants are 50–150 ms events. At that resolution
+   the envelope cannot land on them, and its `ATTACK_S`/`RELEASE_S` are tuned
+   for musical ducking besides. Same machinery, re-parameterised for a
+   sibilance timescale.
+2. **`MAX_AUTOMATION_POINTS` is 512.** A dip needs three or four points, and a
+   long voiceover holds hundreds of sibilant events, so a naive lane blows the
+   cap and the scheduler truncates it — silently, leaving an envelope that
+   stops partway through the clip. Budget it up front: strongest-N events, or
+   merge adjacent dips.
+
+**Tone match — superseded for v1.** It existed to give a casual author a way to
+fix the tone of a track without understanding frequencies. The Tone EQ now does
+that with a control they already know, and it does it *predictably*, which
+matching against a reference clip does not. What remains is genuinely advanced
+— matching one track to another — and it carries real unknowns: which reference,
+how much correction, what to do when the two sources have different content.
+Not worth building before anyone has asked for it.
+
 ## 7. What to build first
 
 1. **Character presets** (§5c) — highest ratio of delight to risk. Pure
