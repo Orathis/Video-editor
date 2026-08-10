@@ -193,12 +193,27 @@ export function levellingResult(
     params: normalizeAudioFxParams("gain", { gain: 0 }),
   };
 
+  /**
+   * In FRONT of a trailing limiter, not after it.
+   *
+   * The likely sequence is "apply Clean Voice, then even out the levels", and
+   * Clean Voice ends in a Peak Ceiling. Appending would put up to 12 dB of lift
+   * AFTER the ceiling that exists to bound the chain — so every quiet-to-loud
+   * transition leaves residual lift on loud material sitting at -1 dBFS, and
+   * the render shears it flat. A ceiling that something is added after is not
+   * a ceiling.
+   */
+  const insertAt =
+    !existing && chain.nodes[chain.nodes.length - 1]?.type === "limiter"
+      ? chain.nodes.length - 1
+      : chain.nodes.length;
+
   return {
     chain: {
       version: HF_AUDIO_FX_CHAIN_VERSION,
       nodes: existing
         ? chain.nodes.map((n) => (n.fromLeveller ? node : n))
-        : [...chain.nodes, node],
+        : [...chain.nodes.slice(0, insertAt), node, ...chain.nodes.slice(insertAt)],
     },
     automation: {
       version: 1,
