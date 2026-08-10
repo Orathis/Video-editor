@@ -824,6 +824,14 @@ export interface HfAudioFxNode {
    * as a list of things that were done rather than a list of filter types.
    */
   label?: string;
+  /**
+   * Id of the multi-band EQ that owns this node, when it is one of its bands.
+   *
+   * Same device as `fromCarve`: the module gathers its own nodes out of the
+   * chain and presents them as one control surface, so an EQ needs no new
+   * effect type and its bands stay ordinary filters underneath.
+   */
+  fromEq?: string;
   /** Absent means enabled — chain files written before the field existed still load. */
   enabled?: boolean;
   params?: HfAudioFxParamValues;
@@ -875,6 +883,7 @@ export function parseAudioFxChain(json: string): HfAudioFxChain {
       fromCarve?: unknown;
       fromPreset?: unknown;
       label?: unknown;
+      fromEq?: unknown;
     };
     if (typeof node.type !== "string" || !BY_ID.has(node.type)) {
       throw new AudioFxChainError(`Node ${i} has unknown effect type: ${String(node.type)}`);
@@ -890,6 +899,7 @@ export function parseAudioFxChain(json: string): HfAudioFxChain {
         ? { fromPreset: node.fromPreset }
         : {}),
       ...(typeof node.label === "string" && node.label ? { label: node.label } : {}),
+      ...(typeof node.fromEq === "string" && node.fromEq ? { fromEq: node.fromEq } : {}),
       enabled: node.enabled !== false,
       params: normalizeAudioFxParams(
         node.type,
@@ -915,6 +925,7 @@ export function serializeAudioFxChain(chain: HfAudioFxChain): string {
       ...(node.fromCarve === true ? { fromCarve: true } : {}),
       ...(node.fromPreset ? { fromPreset: node.fromPreset } : {}),
       ...(node.label ? { label: node.label } : {}),
+      ...(node.fromEq ? { fromEq: node.fromEq } : {}),
       ...(node.enabled === false ? { enabled: false } : {}),
       params: normalizeAudioFxParams(node.type, node.params),
     })),
