@@ -6,6 +6,7 @@ import {
   type HfAudioFxChain,
 } from "./audioFx.js";
 import { sampleAutomationLane } from "./audioAutomation.js";
+import { applyAudioFxPreset, getAudioFxPreset } from "./audioFxPresets.js";
 import {
   analyseLevelling,
   levellerProfile,
@@ -180,6 +181,28 @@ describe("what it writes", () => {
     expect(twice.chain.nodes.filter((n) => n.fromLeveller)).toHaveLength(1);
     // Same node id, so the lane it already wrote still addresses the right stage.
     expect(twice.chain.nodes[0]!.id).toBe(once.chain.nodes[0]!.id);
+  });
+
+  it("goes in FRONT of a trailing limiter, never after it", () => {
+    // The likely sequence: apply Clean Voice, then even out the levels. Clean
+    // Voice ends in a Peak Ceiling, and up to 12 dB of lift landing after that
+    // ceiling means loud material at -1 dBFS goes over full scale and the
+    // render shears it flat. A ceiling with something after it is not a ceiling.
+    const voiced = applyAudioFxPreset(empty(), getAudioFxPreset("voice-clean")!);
+    expect(voiced.nodes[voiced.nodes.length - 1]!.type).toBe("limiter");
+
+    const result = levellingResult(
+      voiced,
+      uneven([
+        { seconds: 3, amp: 0.5 },
+        { seconds: 3, amp: 0.06 },
+      ]),
+      SR,
+    )!;
+    const types = result.chain.nodes.map((n) => n.type);
+    expect(types[types.length - 1]).toBe("limiter");
+    expect(types[types.length - 2]).toBe("gain");
+    expect(result.chain.nodes.find((n) => n.fromLeveller)).toBeTruthy();
   });
 
   it("leaves hand-added effects alone", () => {
