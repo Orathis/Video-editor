@@ -213,6 +213,13 @@ export interface CaptureSession {
   /** Count of per-frame "No cached paint record" screenshot fallbacks (telemetry). */
   deNcprFallbacks?: number;
   /**
+   * Count of drawElement frame captures that blew `HF_DE_FRAME_TIMEOUT_MS`
+   * because the renderer stopped scheduling after drawElementImage returned
+   * (PRINFRA-488). Each one aborts the drawElement attempt so the whole render
+   * retries via screenshot.
+   */
+  deFrameTimeouts?: number;
+  /**
    * drawElement init passed every gate but stopped before verification +
    * canvas injection: the session has no video-frame injector yet (probe
    * sessions initialize before extraction) and the comp has <video> elements,
@@ -3133,6 +3140,55 @@ function isNoCachedPaintRecordError(err: unknown): boolean {
   return msg.includes("No cached paint record");
 }
 
+/**
+ * Per-frame deadline for the drawElement capture round-trip.
+ *
+ * drawElementImage can return normally and then leave the renderer not draining
+ * its task queue: the `setTimeout(…, 0)` that drawAndEncode schedules to run
+ * `toDataURL` never fires, so the capture `page.evaluate` never settles.
+ * Reproduced deterministically on Chromium 152.0.7977.30, one comp, always the
+ * same frame (PRINFRA-488). Nothing below the render-level watchdog bounded
+ * this, so a single bad frame failed the ENTIRE render after a 60 s stall.
+ *
+ * This bounds the round-trip so the frame can take the same per-frame screenshot
+ * fallback the `No cached paint record` case already takes — one slow frame
+ * instead of a dead render. Tune with `HF_DE_FRAME_TIMEOUT_MS`; 0 disables.
+ */
+const DE_FRAME_TIMEOUT_MS = Number(process.env.HF_DE_FRAME_TIMEOUT_MS ?? "15000");
+
+class DeFrameTimeoutError extends Error {
+  constructor(label: string, ms: number) {
+    super(`drawElement ${label} exceeded ${ms}ms (renderer stopped scheduling; see PRINFRA-488)`);
+    this.name = "DeFrameTimeoutError";
+  }
+}
+
+function isDeFrameTimeoutError(err: unknown): boolean {
+  return err instanceof DeFrameTimeoutError;
+}
+
+/**
+ * Race `work` against a deadline. The losing promise is NOT cancellable —
+ * puppeteer cannot abort an in-flight `page.evaluate` — so its rejection is
+ * swallowed to avoid an unhandled rejection when it eventually settles (or
+ * never does).
+ */
+async function withFrameDeadline<T>(work: Promise<T>, label: string, ms: number): Promise<T> {
+  if (!(ms > 0)) return work;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const guard = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new DeFrameTimeoutError(label, ms)), ms);
+  });
+  try {
+    return await Promise.race([work, guard]);
+  } finally {
+    if (timer) clearTimeout(timer);
+    void work.catch(() => {
+      /* orphaned round-trip — see doc above */
+    });
+  }
+}
+
 async function captureFrameCore(
   session: CaptureSession,
   frameIndex: number,
@@ -3260,6 +3316,22 @@ async function captureFrameCore(
         // (display toggled / detached / freshly-shown at a clip-cut boundary). This
         // is a per-frame condition, not a whole-comp one — fall back to screenshot
         // for THIS frame instead of aborting the render. See fast-capture-limitations.md.
+        if (isDeFrameTimeoutError(err)) {
+          // Deliberately NO per-frame screenshot fallback here. When the
+          // renderer stops scheduling, it is wedged for EVERY subsequent
+          // round-trip on that page — measured: the screenshot fallback blew
+          // the same deadline. Fail fast instead and let the producer re-render
+          // the whole comp on a fresh page via the screenshot path, which is
+          // the only recovery that actually works.
+          session.deFrameTimeouts = (session.deFrameTimeouts ?? 0) + 1;
+          console.log(
+            `[engine] fast capture: frame ${frameIndex} — capture exceeded ` +
+              `${DE_FRAME_TIMEOUT_MS}ms; renderer stalled after drawElementImage ` +
+              `(PRINFRA-488). Failing the drawElement attempt so the whole render ` +
+              `retries via screenshot.`,
+          );
+          throw err;
+        }
         if (isNoCachedPaintRecordError(err)) {
           session.deNcprFallbacks = (session.deNcprFallbacks ?? 0) + 1;
           console.log(
@@ -3344,7 +3416,14 @@ export async function captureFrameToBuffer(
   frameIndex: number,
   time: number,
 ): Promise<CaptureBufferResult> {
-  const { buffer, captureTimeMs } = await captureFrameCore(session, frameIndex, time);
+  const { buffer, captureTimeMs } =
+    session.captureMode === "drawelement"
+      ? await withFrameDeadline(
+          captureFrameCore(session, frameIndex, time),
+          `frame ${frameIndex}`,
+          DE_FRAME_TIMEOUT_MS,
+        )
+      : await captureFrameCore(session, frameIndex, time);
 
   return { buffer, captureTimeMs };
 }
@@ -3951,5 +4030,6 @@ export function getCapturePerfSummary(session: CaptureSession): CapturePerfSumma
     deVerifyInitMs: session.deVerifyInitMs ?? 0,
     deBoundaryFrames: session.clipBoundaryFrames?.size ?? 0,
     deNcprFallbacks: session.deNcprFallbacks ?? 0,
+    deFrameTimeouts: session.deFrameTimeouts ?? 0,
   };
 }

@@ -1808,10 +1808,32 @@ export function shouldRetryViaPinnedFallback(args: {
   isCancellation: boolean;
   deWorkerInversion: "inverted" | "reverted" | undefined;
   deParallelRouter: "routed" | "reverted" | undefined;
+  /**
+   * The drawElement capture wedged the renderer (PRINFRA-488). Retryable on ANY
+   * routing, not just a pinned one: the failure is a property of drawElement
+   * itself, and the retry re-renders on a fresh page via screenshot — the only
+   * recovery that works once the renderer stops scheduling. Without this a comp
+   * that engaged drawElement on the ordinary single-worker path (neither
+   * inverted nor routed) had NO whole-render fallback, so one wedged frame
+   * failed the entire render.
+   */
+  isDeRendererStall?: boolean;
 }): boolean {
   if (args.isCancellation) return false;
   if (args.isVerifyError) return true;
+  if (args.isDeRendererStall === true) return true;
   return args.deWorkerInversion === "inverted" || args.deParallelRouter === "routed";
+}
+
+/**
+ * True for the drawElement per-frame deadline breach raised by the engine when
+ * the renderer stops scheduling after `drawElementImage` returns (PRINFRA-488).
+ * Matched on name+message rather than by class because the error crosses the
+ * engine/producer package boundary.
+ */
+export function isDeRendererStallError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return err.name === "DeFrameTimeoutError" || err.message.includes("renderer stopped scheduling");
 }
 
 /**
@@ -3556,6 +3578,7 @@ async function executeRenderPipeline(input: {
           // spawns on retry. See shouldRetryViaPinnedFallback for exactly
           // which errors qualify.
           const isVerifyError = isDrawElementVerificationError(err);
+          const isDeStall = isDeRendererStallError(err);
           const isCancellation =
             err instanceof RenderCancelledError || executionSignal?.aborted === true;
           if (
@@ -3564,6 +3587,7 @@ async function executeRenderPipeline(input: {
               isCancellation,
               deWorkerInversion,
               deParallelRouter,
+              isDeRendererStall: isDeStall,
             })
           )
             throw err;
@@ -3576,7 +3600,11 @@ async function executeRenderPipeline(input: {
             deFallbackFrameIndex = t.frameIndex;
             deFallbackThresholdDb = t.thresholdDb;
           } else {
-            deFallbackReason = isMemoryExhaustion ? "oom" : "capture_error";
+            deFallbackReason = isMemoryExhaustion
+              ? "oom"
+              : isDeStall
+                ? "de_renderer_stall"
+                : "capture_error";
           }
           log.warn(
             isVerifyError
