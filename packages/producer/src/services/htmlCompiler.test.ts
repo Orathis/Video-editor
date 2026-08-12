@@ -1300,6 +1300,75 @@ describe("template-wrapped sub-composition media offsets", () => {
     }
   });
 
+  async function compileRepeatedRelativeMounts(extraMediaMarkup: string) {
+    const projectDir = mkdtempSync(join(tmpdir(), "hf-repeat-relative-mount-"));
+    mkdirSync(join(projectDir, "compositions"), { recursive: true });
+    writeFileSync(
+      join(projectDir, "index.html"),
+      `<!doctype html><html><body><div data-composition-id="root" data-duration="10">
+        <div id="mount-one" data-composition-id="one" data-composition-src="compositions/scene.html" data-start="1" data-duration="3"></div>
+        <div id="mount-two" data-composition-id="two" data-composition-src="compositions/scene.html" data-start="5" data-duration="3"></div>
+      </div></body></html>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/scene.html"),
+      `<template><div data-composition-id="scene" data-duration="3">
+        <div id="anchor" data-start="0" data-duration="1"></div>
+        ${extraMediaMarkup}
+      </div></template>`,
+    );
+
+    const compiled = await compileForRender(projectDir, join(projectDir, "index.html"), projectDir);
+    const recompiled = await recompileWithResolutions(
+      compiled,
+      [
+        { id: "mount-one", duration: 3 },
+        { id: "mount-two", duration: 3 },
+      ],
+      projectDir,
+      projectDir,
+    );
+    return { compiled, recompiled };
+  }
+
+  function mediaStartsByType(result: {
+    videos: Array<{ start: number }>;
+    audios: Array<{ start: number }>;
+    images: Array<{ start: number }>;
+  }) {
+    return {
+      videos: result.videos.map((media) => media.start).sort(),
+      audios: result.audios.map((media) => media.start).sort(),
+      images: result.images.map((media) => media.start).sort(),
+    };
+  }
+
+  it("scopes repeated-mount relative references for explicitly identified timed media", async () => {
+    const results = await compileRepeatedRelativeMounts(
+      `<video id="relative-video" src="../assets/relative.mp4" data-start="anchor" data-duration="1"></video>
+       <audio id="relative-audio" src="../assets/relative.wav" data-start="anchor" data-duration="1"></audio>
+       <img id="relative-image" src="../assets/relative.png" data-start="anchor" data-duration="1">`,
+    );
+
+    expect([results.compiled, results.recompiled].map(mediaStartsByType)).toEqual([
+      { videos: [2, 6], audios: [2, 2, 6, 6], images: [2, 6] },
+      { videos: [2, 6], audios: [2, 2, 6, 6], images: [2, 6] },
+    ]);
+  });
+
+  it("scopes repeated-mount relative references for idless timed media", async () => {
+    const results = await compileRepeatedRelativeMounts(
+      `<video src="../assets/relative.mp4" data-start="anchor" data-duration="1"></video>
+       <audio src="../assets/relative.wav" data-start="anchor" data-duration="1"></audio>
+       <img src="../assets/relative.png" data-start="anchor" data-duration="1">`,
+    );
+
+    expect([results.compiled, results.recompiled].map(mediaStartsByType)).toEqual([
+      { videos: [2, 6], audios: [2, 2, 6, 6], images: [2, 6] },
+      { videos: [2, 6], audios: [2, 2, 6, 6], images: [2, 6] },
+    ]);
+  });
+
   it("applies a composition in-point to descendant media with NLE head trimming", async () => {
     const { projectDir, indexPath } = writeTemplateWrappedProject(
       'data-start="5" data-end="7" data-playback-start="1.5" data-width="640" data-height="360"',

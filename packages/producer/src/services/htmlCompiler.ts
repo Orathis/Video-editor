@@ -317,15 +317,40 @@ function extractInlinedNestedMedia(html: string): {
   const outputHtml = document.toString();
 
   const extractionDocument = parseHTML(outputHtml).document;
-  const startResolver = createRuntimeStartTimeResolver({
-    documentRef: extractionDocument as unknown as Document,
-    includeAuthoredTimingAttrs: true,
-  });
+  const resolverCache = new WeakMap<Element, ReturnType<typeof createRuntimeStartTimeResolver>>();
+  const scopedStartResolver = (scope: Element) => {
+    const cached = resolverCache.get(scope);
+    if (cached) return cached;
+    const findById = (id: string): Element | null => {
+      if (scope.getAttribute("id") === id) return scope;
+      const byId = Array.from(scope.querySelectorAll("[id]")).find(
+        (element) => element.getAttribute("id") === id,
+      );
+      if (byId) return byId;
+      if (scope.getAttribute("data-composition-id") === id) return scope;
+      return (
+        Array.from(scope.querySelectorAll("[data-composition-id]")).find(
+          (element) => element.getAttribute("data-composition-id") === id,
+        ) ?? null
+      );
+    };
+    const query = (selector: string): Element | null =>
+      scope.matches(selector) ? scope : scope.querySelector(selector);
+    const resolver = createRuntimeStartTimeResolver({
+      documentRef: {
+        getElementById: findById,
+        querySelector: query,
+      } as unknown as Document,
+      includeAuthoredTimingAttrs: true,
+    });
+    resolverCache.set(scope, resolver);
+    return resolver;
+  };
   const localStart = (element: Element, parent: Element): number =>
     Math.max(
       0,
-      startResolver.resolveStartForElement(element, 0) -
-        startResolver.resolveStartForElement(parent, 0),
+      scopedStartResolver(parent).resolveStartForElement(element, 0) -
+        scopedStartResolver(parent).resolveStartForElement(parent, 0),
     );
   const localDuration = (element: Element, start: number): number => {
     const duration = finiteAttr(element, "data-duration", Number.NaN);
