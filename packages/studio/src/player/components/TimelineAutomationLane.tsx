@@ -74,7 +74,11 @@ function pointInBox(point: HfAutomationPoint, box: SelectionBox | null | undefin
 }
 
 /** Pointer shape: a read-only lane can only be selected, a live one edited. */
-function laneCursor(readOnly: boolean | undefined, dragging: boolean): string {
+function laneCursor(readOnly: boolean | undefined, dragging: boolean, stretching: boolean): string {
+  // A stretch handle wins over everything it might also sit above: the handle is
+  // a few px wide and always overlaps whatever is under the selection edge, so
+  // any other cursor there would advertise a gesture the press will not start.
+  if (stretching) return "col-resize";
   if (readOnly) return "pointer";
   return dragging ? "grabbing" : "crosshair";
 }
@@ -229,7 +233,7 @@ export function TimelineAutomationLane({
     duration,
     rangeSelection,
   });
-  const { dragIndex, curveIndex, hint, editing } = gestures;
+  const { dragIndex, curveIndex, edgeDrag, edgeHover, hint, editing } = gestures;
 
   const removeAt = useCallback(
     (index: number): void => {
@@ -330,7 +334,11 @@ export function TimelineAutomationLane({
           top: 0,
           width: widthPx + PAD_X * 2,
           height: h,
-          cursor: laneCursor(readOnly, dragIndex !== null || curveIndex !== null),
+          cursor: laneCursor(
+            readOnly,
+            dragIndex !== null || curveIndex !== null,
+            edgeDrag !== null || edgeHover,
+          ),
           opacity: readOnly ? 0.55 : 1,
           touchAction: "none",
         }}
@@ -341,7 +349,7 @@ export function TimelineAutomationLane({
         onPointerDown={gestures.onPointerDown}
         onPointerMove={gestures.onPointerMove}
         onPointerUp={gestures.endDrag}
-        onPointerCancel={gestures.endDrag}
+        onPointerCancel={gestures.cancelDrag}
         onDoubleClick={gestures.onDoubleClick}
         onContextMenu={onSvgContextMenu}
         role="group"

@@ -94,3 +94,42 @@ export function pointInSelection(
 ): boolean {
   return point.t >= box.t0 && point.t <= box.t1 && point.v >= box.v0 && point.v <= box.v1;
 }
+/**
+ * Retime a selection: interior points scale proportionally into the new span,
+ * then replaceRange runs over the UNION of old and new spans — growing eats
+ * whatever it covers, shrinking pins anchors where the envelope re-enters.
+ *
+ * Interior is `pointsIn`, so a breakpoint sitting exactly ON an edge travels
+ * with the stretch. Deliberate: every range operation leaves a breakpoint on the
+ * edge it created, so treating that point as a fixed anchor would make the
+ * commonest stretch of all — grabbing the edge to drag that point outward —
+ * delete it instead. The price is that such a point lands on the union's own
+ * boundary, where `anchor` then stands down (one time cannot hold two values),
+ * so the segment leaving the union reshapes. That is the ONE place
+ * `replaceRange`'s outside-never-moves invariant bends, and it is pinned by name
+ * in automationLaneSelection.test.ts.
+ */
+export function retimeRange(input: {
+  lane: HfAutomationLane;
+  range: AutomationRange;
+  t0: number;
+  t1: number;
+  newT0: number;
+  newT1: number;
+}): HfAutomationPoint[] {
+  const { lane, range, t0, t1, newT0, newT1 } = input;
+  const oldSpan = t1 - t0;
+  const newSpan = newT1 - newT0;
+  if (oldSpan <= 0 || newSpan <= 0) return lane.points;
+  const inner = pointsIn(lane, t0, t1).map((p) => ({
+    ...p,
+    t: newT0 + ((p.t - t0) * newSpan) / oldSpan,
+  }));
+  return replaceRange({
+    lane,
+    range,
+    t0: Math.min(t0, newT0),
+    t1: Math.max(t1, newT1),
+    inner,
+  });
+}
