@@ -18,7 +18,6 @@ import { audioFxSummary } from "./audioFxSummary";
 import { AudioFxGroup } from "./propertyPanelAudioFxGroup";
 import { useVolumeAutomation } from "./useVolumeAutomation";
 import { FlatMediaSection } from "./propertyPanelFlatMediaSection";
-import type { DomEditSelection } from "./domEditing";
 import { deriveElementTiming } from "./propertyPanelFlatTimingDerivation";
 import { createGsapLivePreview } from "./gsapLivePreview";
 import { formatTextFieldPreview } from "./propertyPanelSections";
