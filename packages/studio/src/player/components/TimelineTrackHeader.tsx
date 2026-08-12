@@ -24,6 +24,7 @@ import {
 } from "./trackHeaderLaneState";
 import { valueReadout } from "./trackHeaderLaneValues";
 import { trackDisplaySuffix } from "./timelineTrackDisplay";
+import { timelineLogicalRowCellId, timelinePropertyRowId } from "./timelineNavigationIdentity";
 
 interface TimelineTrackHeaderProps {
   /** The track's real key: a FRACTIONAL z-order sort value. Routes callbacks;
@@ -49,6 +50,7 @@ interface TimelineTrackHeaderProps {
   currentTime: number;
   isTrackHidden: boolean;
   isAudioTrack: boolean;
+  rovingTargetId?: string | null;
   theme: TimelineTheme;
   onToggleClipExpanded: () => void;
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
@@ -202,6 +204,7 @@ function PropertyGroupNavigation({
 }
 
 function PropertyGroupHeaderRow({
+  lanesId,
   lane,
   laneIndex,
   isLastLane,
@@ -212,7 +215,9 @@ function PropertyGroupHeaderRow({
   columnWidth,
   onTogglePropertyGroupKeyframe,
   onSeek,
+  rovingTargetId = null,
 }: {
+  lanesId: string;
   lane: TimelinePropertyLane;
   laneIndex: number;
   isLastLane: boolean;
@@ -223,7 +228,9 @@ function PropertyGroupHeaderRow({
   columnWidth: number;
   onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   onSeek?: (time: number) => void;
+  rovingTargetId: string | null;
 }) {
+  const elementId = expandedElement.key ?? expandedElement.id;
   const { navigation, values, label, toggleTarget } = resolveLaneHeaderState(
     lane,
     currentTime,
@@ -232,6 +239,10 @@ function PropertyGroupHeaderRow({
 
   return (
     <div
+      id={timelineLogicalRowCellId(lanesId, timelinePropertyRowId(elementId, lane.group), "header")}
+      data-timeline-focus-id={timelinePropertyRowId(elementId, lane.group)}
+      data-timeline-element-id={elementId}
+      tabIndex={rovingTargetId === timelinePropertyRowId(elementId, lane.group) ? 0 : -1}
       data-property-group={lane.group}
       data-timeline-lane-top={getTimelineLaneTop(laneIndex)}
       className="absolute left-0 flex items-center gap-1 overflow-hidden px-1.5 text-[10px] text-white/65"
@@ -406,6 +417,7 @@ export function TimelineTrackHeader({
   onTogglePropertyGroupKeyframe,
   onRemoveAutomationLane,
   onSeek,
+  rovingTargetId = null,
 }: TimelineTrackHeaderProps) {
   const clipPercentage = keyframeClip
     ? ((currentTime - keyframeClip.start) / keyframeClip.duration) * 100
@@ -440,6 +452,8 @@ export function TimelineTrackHeader({
 
   return (
     <div
+      role="rowheader"
+      aria-colindex={1}
       className={`sticky left-0 z-[12] shrink-0 ${
         !isKeyframeLayer
           ? showTrackLabel
@@ -500,6 +514,7 @@ export function TimelineTrackHeader({
             lanes.map((lane, laneIndex) => (
               <PropertyGroupHeaderRow
                 key={lane.group}
+                lanesId={lanesId}
                 lane={lane}
                 laneIndex={laneIndex}
                 isLastLane={laneIndex === lanes.length - 1 && automationRows.length === 0}
@@ -510,6 +525,7 @@ export function TimelineTrackHeader({
                 columnWidth={showTrackLabel ? LABEL_COL_W : contentOrigin}
                 onTogglePropertyGroupKeyframe={onTogglePropertyGroupKeyframe}
                 onSeek={onSeek}
+                rovingTargetId={rovingTargetId}
               />
             ))}
           {/* Below the keyframe rows and stepping by its own height, which is how
