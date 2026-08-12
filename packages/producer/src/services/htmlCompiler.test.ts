@@ -1105,13 +1105,13 @@ describe("template-wrapped sub-composition media offsets", () => {
     expect(compiled.videos[0]).toMatchObject({
       id: "scene-video",
       start: 2,
-      end: 6,
+      end: 4,
     });
     expect(compiled.audios).toHaveLength(1);
     expect(compiled.audios[0]).toMatchObject({
       id: "scene-video-audio",
       start: 2,
-      end: 6,
+      end: 4,
     });
   });
 
@@ -1134,13 +1134,13 @@ describe("template-wrapped sub-composition media offsets", () => {
     expect(recompiled.videos[0]).toMatchObject({
       id: "scene-video",
       start: 2,
-      end: 6,
+      end: 4,
     });
     expect(recompiled.audios).toHaveLength(1);
     expect(recompiled.audios[0]).toMatchObject({
       id: "scene-video-audio",
       start: 2,
-      end: 6,
+      end: 4,
     });
   });
 
@@ -1164,6 +1164,133 @@ describe("template-wrapped sub-composition media offsets", () => {
       start: 21.5,
       end: 25.5,
     });
+  });
+
+  it("applies a composition in-point to descendant media with NLE head trimming", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-end="7" data-playback-start="1.5" data-width="640" data-height="360"',
+      'data-start="1" data-duration="4" data-media-start="2" data-playback-rate="2"',
+      `<audio id="pre" src="../assets/pre.wav" data-start="0" data-duration="1.5"></audio>
+       <audio id="boundary" src="../assets/boundary.wav" data-start="0.5" data-duration="1"></audio>
+       <audio id="late" src="../assets/late.wav" data-start="2" data-duration="1"></audio>`,
+    );
+
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+
+    expect(compiled.videos).toContainEqual(
+      expect.objectContaining({ id: "scene-video", start: 5, end: 7, mediaStart: 3 }),
+    );
+    expect(compiled.audios).not.toContainEqual(expect.objectContaining({ id: "pre" }));
+    expect(compiled.audios).not.toContainEqual(expect.objectContaining({ id: "boundary" }));
+    expect(compiled.audios).toContainEqual(
+      expect.objectContaining({ id: "late", start: 5.5, end: 6.5, mediaStart: 0 }),
+    );
+
+    const recompiled = await recompileWithResolutions(
+      compiled,
+      [{ id: "scene-host", duration: 2 }],
+      projectDir,
+      projectDir,
+    );
+    expect(recompiled.videos).toEqual(compiled.videos);
+    expect(recompiled.audios).toEqual(compiled.audios);
+  });
+
+  it("drops exact-boundary media and head-trims H=1 P=3 overlaps", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="1" data-duration="2" data-playback-start="3" data-width="640" data-height="360"',
+      'data-start="2" data-duration="2" data-media-start="5"',
+      `<audio id="boundary" src="../assets/boundary.wav" data-start="1" data-duration="2"></audio>`,
+    );
+
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+    expect(compiled.audios).not.toContainEqual(expect.objectContaining({ id: "boundary" }));
+    expect(compiled.videos).toContainEqual(
+      expect.objectContaining({ id: "scene-video", start: 1, end: 2, mediaStart: 6 }),
+    );
+  });
+
+  it("uses the canonical composition playback-start before its media-start alias", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-duration="3" data-playback-start="1" data-media-start="2" data-width="640" data-height="360"',
+      'data-start="2" data-duration="1"',
+    );
+
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+    expect(compiled.videos).toContainEqual(
+      expect.objectContaining({ id: "scene-video", start: 6, end: 7 }),
+    );
+  });
+
+  it("composes host playback rate and nested in-points for descendant media", async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), "hf-nested-inpoint-"));
+    mkdirSync(join(projectDir, "compositions"), { recursive: true });
+    writeFileSync(
+      join(projectDir, "index.html"),
+      `<!doctype html><html><body>
+        <div data-composition-id="root" data-duration="12">
+          <div data-composition-id="outer" data-composition-src="compositions/outer.html"
+            data-start="5" data-duration="4" data-playback-start="1" data-playback-rate="2"></div>
+        </div></body></html>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/outer.html"),
+      `<template><div data-composition-id="outer">
+        <div data-composition-id="inner" data-composition-src="compositions/inner.html"
+          data-start="2" data-duration="2" data-playback-start="0.5"></div>
+      </div></template>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/inner.html"),
+      `<template><div data-composition-id="inner">
+        <video id="deep" src="assets/deep.mp4" data-start="1" data-duration="1"></video>
+      </div></template>`,
+    );
+
+    const compiled = await compileForRender(projectDir, join(projectDir, "index.html"), projectDir);
+    // Inner maps to outer source 2.5; outer source maps to master
+    // 5 + (2.5 - 1) / 2 = 5.75. The one-second inner clip spans 0.5s master.
+    expect(compiled.videos).toContainEqual(
+      expect.objectContaining({ id: "deep", start: 5.75, end: 6.25 }),
+    );
+  });
+
+  it("keeps repeated and idless sub-composition mounts as distinct render media", async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), "hf-repeat-inpoint-"));
+    mkdirSync(join(projectDir, "compositions"), { recursive: true });
+    writeFileSync(
+      join(projectDir, "index.html"),
+      `<!doctype html><html><body><div data-composition-id="root" data-duration="10">
+        <div data-composition-id="one" data-composition-src="compositions/scene.html" data-start="1" data-duration="2"></div>
+        <div data-composition-id="two" data-composition-src="compositions/scene.html" data-start="5" data-duration="2"></div>
+      </div></body></html>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/scene.html"),
+      `<template><div data-composition-id="scene">
+        <video src="assets/idless.mp4" data-start="0" data-duration="1"></video>
+        <audio id="duplicate" src="assets/same.wav" data-start="0.5" data-duration="1"></audio>
+      </div></template>`,
+    );
+
+    const first = await compileForRender(projectDir, join(projectDir, "index.html"), projectDir);
+    expect(first.videos.map((video) => video.start).sort()).toEqual([1, 5]);
+    expect(new Set(first.videos.map((video) => video.id)).size).toBe(2);
+    expect(
+      first.audios
+        .filter((audio) => audio.src.endsWith("same.wav"))
+        .map((audio) => audio.start)
+        .sort(),
+    ).toEqual([1.5, 5.5]);
+    expect(
+      new Set(
+        first.audios.filter((audio) => audio.src.endsWith("same.wav")).map((audio) => audio.id),
+      ).size,
+    ).toBe(2);
+
+    const second = await recompileWithResolutions(first, [], projectDir, projectDir);
+    expect(second.videos).toEqual(first.videos);
+    expect(second.audios).toEqual(first.audios);
   });
 
   it("includes explicit audio from template-wrapped sub-compositions", async () => {
