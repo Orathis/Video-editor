@@ -144,5 +144,3 @@ export function FxParams({ def, params, onChange, disabled }: FxParamsProps) {
     </div>
   );
 }
-
-export const __testables = { toSlider, fromSlider, display };
