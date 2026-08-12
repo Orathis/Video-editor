@@ -6,6 +6,32 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { applyVolumeEnvelopeToWav } from "./audioVolumeEnvelope.js";
 import { defaultAudioFxParams, type HfAudioFxChain } from "@hyperframes/core/audio-fx";
 import { applyAudioFxChain, AudioFxRenderError, readWav, writeWav } from "./audioFxRender.js";
+import { resolveHeadlessShellPath } from "./browserManager.js";
+
+/**
+ * Whether a Chrome is actually on this machine, asked the same way the render
+ * asks — `resolveHeadlessShellPath` is what `acquireBrowser` resolves through,
+ * so this cannot drift from the thing it is guarding the way a hard-coded cache
+ * path would.
+ *
+ * The repo's `Test` job installs ffmpeg and no browser, on purpose. Without
+ * this guard the four browser cases below fail there with a spawn error that
+ * says nothing about the code under test, and the same pattern already covers
+ * the ffmpeg-dependent suites (`describe.skipIf(!HAS_FFMPEG)`).
+ *
+ * They still run wherever a browser exists — every developer machine, and any
+ * job that has run `hyperframes browser ensure`.
+ */
+const HAS_BROWSER = ((): boolean => {
+  try {
+    return Boolean(resolveHeadlessShellPath());
+  } catch {
+    // An explicitly-configured path that does not exist throws. That is a
+    // broken environment rather than an absent browser, but either way these
+    // cases cannot run.
+    return false;
+  }
+})();
 
 const SR = 48000;
 
@@ -150,7 +176,7 @@ describe("applyAudioFxChain", () => {
  * are the only place that proves the injected runtime loads and processes
  * audio, so they are worth the seconds they cost.
  */
-describe("browser render", () => {
+describe.skipIf(!HAS_BROWSER)("browser render", () => {
   it("notches out the tone it is tuned to", async () => {
     const input = join(dir, "in.wav");
     tone(input);
