@@ -275,7 +275,7 @@ function extractInlinedNestedMedia(html: string): {
   images: ImageElement[];
 } {
   const { document } = parseHTML(html);
-  const media = Array.from(document.querySelectorAll("video, audio"));
+  const media = Array.from(document.querySelectorAll("video, audio, img[data-start]"));
   const idCounts = new Map<string, number>();
   for (const element of media) {
     const id = element.getAttribute("id");
@@ -354,7 +354,9 @@ function extractInlinedNestedMedia(html: string): {
     return result;
   };
 
-  for (const element of Array.from(extractionDocument.querySelectorAll("video, audio"))) {
+  for (const element of Array.from(
+    extractionDocument.querySelectorAll("video, audio, img[data-start]"),
+  )) {
     const host = element.closest("[data-composition-file]");
     if (!host) continue;
     const transform = hostTransform(host);

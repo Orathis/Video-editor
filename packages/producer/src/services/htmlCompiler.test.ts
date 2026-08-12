@@ -1166,6 +1166,83 @@ describe("template-wrapped sub-composition media offsets", () => {
     });
   });
 
+  it("maps a nested timed image from child-local time into the host timeline", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-duration="3" data-width="640" data-height="360"',
+      'data-start="0" data-duration="1"',
+      '<img id="nested-image" src="../assets/still.png" data-start="1" data-duration="1">',
+    );
+
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+
+    expect(compiled.images).toContainEqual(
+      expect.objectContaining({ id: "nested-image", start: 6, end: 7 }),
+    );
+  });
+
+  it("maps and clips nested timed images through a composition in-point and rate", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-duration="2" data-playback-start="1" data-playback-rate="2" data-width="640" data-height="360"',
+      'data-start="0" data-duration="1"',
+      `<img id="before" src="../assets/before.png" data-start="0" data-duration="1">
+       <img id="overlap" src="../assets/overlap.png" data-start="0.5" data-duration="1">
+       <img id="mapped" src="../assets/mapped.png" data-start="2" data-duration="2">`,
+    );
+
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+
+    expect(compiled.images).not.toContainEqual(expect.objectContaining({ id: "before" }));
+    expect(compiled.images).toContainEqual(
+      expect.objectContaining({ id: "overlap", start: 5, end: 5.25 }),
+    );
+    expect(compiled.images).toContainEqual(
+      expect.objectContaining({ id: "mapped", start: 5.5, end: 6.5 }),
+    );
+  });
+
+  it("keeps repeated and idless nested timed images distinct", async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), "hf-repeat-image-inpoint-"));
+    mkdirSync(join(projectDir, "compositions"), { recursive: true });
+    writeFileSync(
+      join(projectDir, "index.html"),
+      `<!doctype html><html><body><div data-composition-id="root" data-duration="10">
+        <div data-composition-id="one" data-composition-src="compositions/scene.html" data-start="1" data-duration="2"></div>
+        <div data-composition-id="two" data-composition-src="compositions/scene.html" data-start="5" data-duration="2"></div>
+      </div></body></html>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/scene.html"),
+      `<template><div data-composition-id="scene">
+        <img src="assets/idless.png" data-start="0.5" data-duration="1">
+      </div></template>`,
+    );
+
+    const compiled = await compileForRender(projectDir, join(projectDir, "index.html"), projectDir);
+
+    expect(compiled.images.map((image) => image.start).sort()).toEqual([1.5, 5.5]);
+    expect(new Set(compiled.images.map((image) => image.id)).size).toBe(2);
+  });
+
+  it("keeps nested image timing and identity stable across non-empty recompilation", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-width="640" data-height="360"',
+      'data-start="0" data-duration="1"',
+      '<img id="nested-image" src="../assets/still.png" data-start="1" data-duration="1">',
+    );
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+    const recompiled = await recompileWithResolutions(
+      compiled,
+      [{ id: "scene-host", duration: 3 }],
+      projectDir,
+      projectDir,
+    );
+
+    expect(recompiled.images).toEqual(compiled.images);
+    expect(recompiled.images).toContainEqual(
+      expect.objectContaining({ id: "nested-image", start: 6, end: 7 }),
+    );
+  });
+
   it("applies a composition in-point to descendant media with NLE head trimming", async () => {
     const { projectDir, indexPath } = writeTemplateWrappedProject(
       'data-start="5" data-end="7" data-playback-start="1.5" data-width="640" data-height="360"',
