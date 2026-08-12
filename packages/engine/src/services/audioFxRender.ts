@@ -135,6 +135,17 @@ export function writeWav(
     const v = Math.max(-1, Math.min(1, samples[i] ?? 0));
     buf.writeInt16LE(Math.round(v * 32767), 44 + i * 2);
   }
+  // lgtm[js/insecure-temporary-file] — `path` is always inside a directory the
+  // caller made with `mkdtempSync`, never a name assembled directly under
+  // `tmpdir()`. Both routes here are covered: the browser host page writes into
+  // `mkdtempSync(join(tmpdir(), "hf-fx-host-"))` below, and the render output
+  // goes to the producer's work dir, itself created as
+  // `mkdtempSync(join(tempRoot, "producer-project-"))`. mkdtemp picks the random
+  // suffix and creates the directory 0700 in one syscall, so the predictable
+  // FILENAME inside it (`<elementId>-fx.wav`) cannot be pre-created or
+  // symlinked by another user — which is the attack this rule is about. CodeQL
+  // flags it because the dataflow reaches `tmpdir()` without seeing the mkdtemp
+  // in between.
   writeFileSync(path, buf);
 }
 
