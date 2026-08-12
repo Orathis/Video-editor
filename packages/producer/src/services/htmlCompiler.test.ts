@@ -1243,6 +1243,63 @@ describe("template-wrapped sub-composition media offsets", () => {
     );
   });
 
+  it("maps explicit local data-end for nested image, video, and audio through compile/recompile", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-width="640" data-height="360"',
+      'data-start="1" data-end="2"',
+      `<audio id="explicit-audio" src="../assets/explicit.wav" data-start="1" data-end="2"></audio>
+       <img id="explicit-image" src="../assets/explicit.png" data-start="1" data-end="2">`,
+    );
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+    const recompiled = await recompileWithResolutions(
+      compiled,
+      [{ id: "scene-host", duration: 4 }],
+      projectDir,
+      projectDir,
+    );
+
+    for (const result of [compiled, recompiled]) {
+      expect(result.videos).toContainEqual(
+        expect.objectContaining({ id: "scene-video", start: 6, end: 7 }),
+      );
+      expect(result.audios).toContainEqual(
+        expect.objectContaining({ id: "explicit-audio", start: 6, end: 7 }),
+      );
+      expect(result.images).toContainEqual(
+        expect.objectContaining({ id: "explicit-image", start: 6, end: 7 }),
+      );
+    }
+  });
+
+  it("resolves relative nested starts before in-point/rate mapping for all timed media", async () => {
+    const { projectDir, indexPath } = writeTemplateWrappedProject(
+      'data-start="5" data-playback-start="1" data-playback-rate="2" data-width="640" data-height="360"',
+      'data-start="anchor + 1" data-duration="1"',
+      `<div id="anchor" data-start="2" data-duration="1"></div>
+       <audio id="relative-audio" src="../assets/relative.wav" data-start="anchor + 1" data-duration="1"></audio>
+       <img id="relative-image" src="../assets/relative.png" data-start="anchor + 1" data-duration="1">`,
+    );
+    const compiled = await compileForRender(projectDir, indexPath, projectDir);
+    const recompiled = await recompileWithResolutions(
+      compiled,
+      [{ id: "scene-host", duration: 4 }],
+      projectDir,
+      projectDir,
+    );
+
+    for (const result of [compiled, recompiled]) {
+      expect(result.videos).toContainEqual(
+        expect.objectContaining({ id: "scene-video", start: 6.5, end: 7 }),
+      );
+      expect(result.audios).toContainEqual(
+        expect.objectContaining({ id: "relative-audio", start: 6.5, end: 7 }),
+      );
+      expect(result.images).toContainEqual(
+        expect.objectContaining({ id: "relative-image", start: 6.5, end: 7 }),
+      );
+    }
+  });
+
   it("applies a composition in-point to descendant media with NLE head trimming", async () => {
     const { projectDir, indexPath } = writeTemplateWrappedProject(
       'data-start="5" data-end="7" data-playback-start="1.5" data-width="640" data-height="360"',

@@ -34,6 +34,7 @@ import {
   readDeclaredDefaults,
   parseHostVariableValues,
 } from "@hyperframes/core/compiler";
+import { createRuntimeStartTimeResolver } from "@hyperframes/core/runtime/start-resolver";
 import {
   checkSubCompositionUsability,
   type ParsableDocumentLike,
@@ -316,6 +317,22 @@ function extractInlinedNestedMedia(html: string): {
   const outputHtml = document.toString();
 
   const extractionDocument = parseHTML(outputHtml).document;
+  const startResolver = createRuntimeStartTimeResolver({
+    documentRef: extractionDocument as unknown as Document,
+    includeAuthoredTimingAttrs: true,
+  });
+  const localStart = (element: Element, parent: Element): number =>
+    Math.max(
+      0,
+      startResolver.resolveStartForElement(element, 0) -
+        startResolver.resolveStartForElement(parent, 0),
+    );
+  const localDuration = (element: Element, start: number): number => {
+    const duration = finiteAttr(element, "data-duration", Number.NaN);
+    if (Number.isFinite(duration) && duration > 0) return duration;
+    const end = finiteAttr(element, "data-end", Number.NaN);
+    return Number.isFinite(end) && end > start ? end - start : Infinity;
+  };
   const transformCache = new Map<Element, InlinedHostTransform>();
   const hostTransform = (host: Element): InlinedHostTransform => {
     const cached = transformCache.get(host);
@@ -324,7 +341,11 @@ function extractInlinedNestedMedia(html: string): {
     const parent = parentHost
       ? hostTransform(parentHost)
       : { origin: 0, scale: 1, windowStart: Number.NEGATIVE_INFINITY, windowEnd: Infinity };
-    const hostStart = finiteAttr(host, "data-start");
+    const parentComposition =
+      parentHost ?? host.parentElement?.closest("[data-composition-id]") ?? null;
+    const hostStart = parentComposition
+      ? localStart(host, parentComposition)
+      : finiteAttr(host, "data-start");
     const inPoint = Math.max(
       0,
       finiteAttr(
@@ -334,13 +355,7 @@ function extractInlinedNestedMedia(html: string): {
     );
     const hostRate = Math.max(0.000001, finiteAttr(host, "data-playback-rate", 1));
     const slotStart = parent.origin + hostStart * parent.scale;
-    const authoredDuration = finiteAttr(host, "data-duration", Number.NaN);
-    const authoredEnd = finiteAttr(host, "data-end", Number.NaN);
-    const duration = Number.isFinite(authoredDuration)
-      ? authoredDuration
-      : Number.isFinite(authoredEnd)
-        ? authoredEnd - hostStart
-        : Infinity;
+    const duration = localDuration(host, hostStart);
     const result = {
       origin: slotStart - (inPoint * parent.scale) / hostRate,
       scale: parent.scale / hostRate,
@@ -360,11 +375,11 @@ function extractInlinedNestedMedia(html: string): {
     const host = element.closest("[data-composition-file]");
     if (!host) continue;
     const transform = hostTransform(host);
-    const localStart = finiteAttr(element, "data-start");
-    const localDuration = finiteAttr(element, "data-duration", Infinity);
-    const rawStart = transform.origin + localStart * transform.scale;
-    const rawEnd = Number.isFinite(localDuration)
-      ? transform.origin + (localStart + localDuration) * transform.scale
+    const resolvedLocalStart = localStart(element, host);
+    const resolvedLocalDuration = localDuration(element, resolvedLocalStart);
+    const rawStart = transform.origin + resolvedLocalStart * transform.scale;
+    const rawEnd = Number.isFinite(resolvedLocalDuration)
+      ? transform.origin + (resolvedLocalStart + resolvedLocalDuration) * transform.scale
       : Infinity;
     const start = Math.max(rawStart, transform.windowStart);
     const end = Math.min(rawEnd, transform.windowEnd);
