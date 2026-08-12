@@ -667,7 +667,9 @@ export function initSandboxRuntimeModular(): void {
       const hostInPoint = readCompositionInPoint(compositionHost);
       const hostPlaybackRate = readElementPlaybackRate(compositionHost);
       if (hosts.length === 1 && hostInPoint === 0 && hostPlaybackRate === 1) {
-        const hostDuration = parseNumeric(compositionHost.getAttribute("data-duration"));
+        const hostDuration = resolveDurationForElement(compositionHost, {
+          includeAuthoredTimingAttrs: true,
+        });
         const authoredDuration = parseNumeric(element.getAttribute("data-duration"));
         const hostEnd =
           hostDuration != null && hostDuration > 0 ? hostStart + hostDuration : Infinity;
@@ -693,7 +695,9 @@ export function initSandboxRuntimeModular(): void {
           );
         }, hostStart);
       windowStart = Math.max(windowStart, parentMappedSlotStart);
-      const hostDuration = parseNumeric(compositionHost.getAttribute("data-duration"));
+      const hostDuration = resolveDurationForElement(compositionHost, {
+        includeAuthoredTimingAttrs: true,
+      });
       if (hostDuration != null && hostDuration > 0) {
         const outerRate = hosts
           .slice(hosts.indexOf(compositionHost) + 1)
@@ -761,9 +765,30 @@ export function initSandboxRuntimeModular(): void {
   };
 
   window.__hfResolveMediaStartSeconds = resolveAbsoluteMediaStartSeconds;
+  const resolveMediaSourceStartSeconds = (element: HTMLVideoElement | HTMLAudioElement): number =>
+    resolveNestedMediaTiming(element)?.mediaStart ?? readElementPlaybackStart(element);
+  const resolveMediaPlaybackRate = (element: HTMLVideoElement | HTMLAudioElement): number =>
+    resolveNestedMediaTiming(element)?.playbackRate ?? readElementPlaybackRate(element);
+  const resolveMediaDurationSeconds = (element: HTMLVideoElement | HTMLAudioElement): number => {
+    const nested = resolveNestedMediaTiming(element);
+    if (nested) return Math.max(0, nested.end - nested.start);
+    return parseNumeric(element.getAttribute("data-duration")) ?? Number.POSITIVE_INFINITY;
+  };
+  window.__hfResolveMediaSourceStartSeconds = resolveMediaSourceStartSeconds;
+  window.__hfResolveMediaPlaybackRate = resolveMediaPlaybackRate;
+  window.__hfResolveMediaDurationSeconds = resolveMediaDurationSeconds;
   runtimeCleanupCallbacks.push(() => {
     if (window.__hfResolveMediaStartSeconds === resolveAbsoluteMediaStartSeconds) {
       delete window.__hfResolveMediaStartSeconds;
+    }
+    if (window.__hfResolveMediaSourceStartSeconds === resolveMediaSourceStartSeconds) {
+      delete window.__hfResolveMediaSourceStartSeconds;
+    }
+    if (window.__hfResolveMediaPlaybackRate === resolveMediaPlaybackRate) {
+      delete window.__hfResolveMediaPlaybackRate;
+    }
+    if (window.__hfResolveMediaDurationSeconds === resolveMediaDurationSeconds) {
+      delete window.__hfResolveMediaDurationSeconds;
     }
   });
 

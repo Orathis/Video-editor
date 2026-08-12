@@ -1442,6 +1442,9 @@ describe("initSandboxRuntimeModular", () => {
     // so its own 2x source has advanced by 1 second from data-media-start=2.
     window.__player?.seek(5);
     expect(window.__hfResolveMediaStartSeconds?.(video)).toBe(5);
+    expect(window.__hfResolveMediaSourceStartSeconds?.(video)).toBe(3);
+    expect(window.__hfResolveMediaPlaybackRate?.(video)).toBe(2);
+    expect(window.__hfResolveMediaDurationSeconds?.(video)).toBe(3);
     expect(video.currentTime).toBeCloseTo(3);
   });
 
@@ -1471,6 +1474,7 @@ describe("initSandboxRuntimeModular", () => {
 
     // child time = 1 + (master - 5) * 2, so child-local t=2 starts at 5.5.
     expect(window.__hfResolveMediaStartSeconds?.(audio)).toBe(5.5);
+    expect(window.__hfResolveMediaDurationSeconds?.(audio)).toBe(0.5);
   });
 
   it("keeps a standalone composition preview local despite a root playback-start", () => {
