@@ -279,6 +279,45 @@ describe("createRuntimeStartTimeResolver", () => {
       ]).toEqual([2, 6]);
     });
 
+    it("resolves a nested host's own reference in its parent mount before child shadowing", () => {
+      const root = document.createElement("div");
+      root.setAttribute("data-composition-id", "main");
+      document.body.appendChild(root);
+
+      const outerHost = document.createElement("div");
+      outerHost.setAttribute("data-composition-id", "parent");
+      outerHost.setAttribute("data-composition-file", "compositions/parent.html");
+      outerHost.setAttribute("data-start", "1");
+      root.appendChild(outerHost);
+
+      const parentAnchor = document.createElement("div");
+      parentAnchor.id = "anchor";
+      parentAnchor.setAttribute("data-start", "0");
+      parentAnchor.setAttribute("data-duration", "1");
+      outerHost.appendChild(parentAnchor);
+
+      const childHost = document.createElement("div");
+      childHost.setAttribute("data-composition-id", "child");
+      childHost.setAttribute("data-composition-file", "compositions/child.html");
+      childHost.setAttribute("data-start", "anchor");
+      outerHost.appendChild(childHost);
+
+      const childAnchor = document.createElement("div");
+      childAnchor.id = "anchor";
+      childAnchor.setAttribute("data-start", "0");
+      childAnchor.setAttribute("data-duration", "10");
+      childHost.appendChild(childAnchor);
+
+      const image = document.createElement("img");
+      image.setAttribute("data-start", "0");
+      image.setAttribute("data-duration", "1");
+      childHost.appendChild(image);
+
+      const resolver = createRuntimeStartTimeResolver({});
+      expect(resolver.resolveStartForElement(childHost)).toBe(2);
+      expect(resolver.resolveStartForElement(image)).toBe(2);
+    });
+
     it("adds the nearest composition root start for nested absolute media in inlined compositions", () => {
       const root = document.createElement("div");
       root.setAttribute("data-composition-id", "main");

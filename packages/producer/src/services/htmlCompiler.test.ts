@@ -1369,6 +1369,66 @@ describe("template-wrapped sub-composition media offsets", () => {
     ]);
   });
 
+  it("resolves nested host references in the parent mount despite child ID shadowing", async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), "hf-nested-reference-shadow-"));
+    mkdirSync(join(projectDir, "compositions"), { recursive: true });
+    writeFileSync(
+      join(projectDir, "index.html"),
+      `<!doctype html><html><body><div data-composition-id="root" data-duration="12">
+        <div id="parent-host" data-composition-id="parent" data-composition-src="compositions/parent.html" data-start="1" data-duration="10"></div>
+      </div></body></html>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/parent.html"),
+      `<template><div data-composition-id="parent" data-duration="10">
+        <div id="anchor" data-start="0" data-duration="1"></div>
+        <div id="child-one" data-composition-id="child-one" data-composition-src="compositions/child.html" data-start="anchor" data-duration="3"></div>
+        <div id="child-two" data-composition-id="child-two" data-composition-src="compositions/child.html" data-start="anchor" data-duration="3"></div>
+      </div></template>`,
+    );
+    writeFileSync(
+      join(projectDir, "compositions/child.html"),
+      `<template><div data-composition-id="child" data-duration="3">
+        <div id="anchor" data-start="0" data-duration="10"></div>
+        <video id="explicit-video" src="assets/explicit.mp4" data-start="0" data-duration="1" data-media-start="0.25" data-has-audio="true"></video>
+        <audio id="explicit-audio" src="assets/explicit.wav" data-start="0" data-end="1" data-media-start="0.5"></audio>
+        <img id="explicit-image" src="assets/explicit.png" data-start="0" data-duration="1">
+        <video src="assets/idless.mp4" data-start="0" data-duration="1" data-media-start="0.25" data-has-audio="true"></video>
+        <audio src="assets/idless.wav" data-start="0" data-end="1" data-media-start="0.5"></audio>
+        <img src="assets/idless.png" data-start="0" data-duration="1">
+      </div></template>`,
+    );
+
+    const compiled = await compileForRender(projectDir, join(projectDir, "index.html"), projectDir);
+    const recompiled = await recompileWithResolutions(
+      compiled,
+      [
+        { id: "parent-host", duration: 10 },
+        { id: "child-one", duration: 3 },
+        { id: "child-two", duration: 3 },
+      ],
+      projectDir,
+      projectDir,
+    );
+
+    for (const result of [compiled, recompiled]) {
+      expect(
+        result.videos.map(({ start, end, mediaStart }) => ({ start, end, mediaStart })),
+      ).toEqual(Array(4).fill({ start: 2, end: 3, mediaStart: 0.25 }));
+      expect(result.audios.map(({ start, end }) => ({ start, end }))).toEqual(
+        Array(8).fill({ start: 2, end: 3 }),
+      );
+      expect(result.audios.map(({ mediaStart }) => mediaStart).sort()).toEqual([
+        0.25, 0.25, 0.25, 0.25, 0.5, 0.5, 0.5, 0.5,
+      ]);
+      expect(result.images.map(({ start, end }) => ({ start, end }))).toEqual(
+        Array(4).fill({ start: 2, end: 3 }),
+      );
+      expect(new Set(result.videos.map(({ id }) => id)).size).toBe(4);
+      expect(new Set(result.images.map(({ id }) => id)).size).toBe(4);
+    }
+  });
+
   it("applies a composition in-point to descendant media with NLE head trimming", async () => {
     const { projectDir, indexPath } = writeTemplateWrappedProject(
       'data-start="5" data-end="7" data-playback-start="1.5" data-width="640" data-height="360"',

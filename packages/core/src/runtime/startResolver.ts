@@ -22,6 +22,13 @@ function parseAuthoredEndAttr(element: Element): number | null {
   return parseNumeric(element.getAttribute(AUTHORED_END_ATTR));
 }
 
+function referenceMountForSource(source: Element): Element | null {
+  if (!source.hasAttribute("data-composition-file")) {
+    return source.closest("[data-composition-file]");
+  }
+  return source.parentElement?.closest("[data-composition-file]") ?? null;
+}
+
 export function createRuntimeStartTimeResolver(params: {
   timelineRegistry?: Record<string, RuntimeTimelineLike | undefined>;
   includeAuthoredTimingAttrs?: boolean;
@@ -44,7 +51,7 @@ export function createRuntimeStartTimeResolver(params: {
   const visiting = new Set<Element>();
 
   const findReferenceTarget = (refId: string, source: Element): Element | null => {
-    const mount = source.closest("[data-composition-file]");
+    const mount = referenceMountForSource(source);
     if (mount) {
       if (
         mount.getAttribute("id") === refId ||
