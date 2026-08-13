@@ -1,7 +1,10 @@
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from "react";
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import type { DraggedClipState, ResizingClipState, BlockedClipState } from "./useTimelineClipDrag";
-import { resolveBlockedTimelineEditIntent } from "./timelineEditing";
+import {
+  resolveBlockedTimelineEditIntent,
+  type BlockedTimelineEditIntent,
+} from "./timelineEditing";
 import type { TimelineEditCapabilities } from "./timelineEditCapabilities";
 import type { TimelineEditCallbacks } from "./timelineCallbacks";
 import { CLIP_HANDLE_W } from "./timelineLayout";
@@ -27,6 +30,70 @@ export interface ClipGestureDeps {
   setDraggedClip(v: DraggedClipState | null): void;
   setSelectedElementId(id: string | null): void;
   onSelectElement?: (element: TimelineElement | null) => void;
+}
+
+/** Whether a resize-handle drag on `edge` is allowed to begin at all. */
+function canStartResize(
+  edge: "start" | "end",
+  e: ReactPointerEvent,
+  capabilities: TimelineEditCapabilities,
+  onResizeElement: ClipGestureDeps["onResizeElement"],
+): boolean {
+  if (e.button !== 0 || e.shiftKey || !onResizeElement) return false;
+  if (edge === "start") return capabilities.canTrimStart;
+  return capabilities.canTrimEnd;
+}
+
+type PointerDownAction =
+  | { kind: "ignore" }
+  | { kind: "arm-shift-click" }
+  | { kind: "block"; intent: BlockedTimelineEditIntent; rect: DOMRect }
+  | { kind: "move"; rect: DOMRect };
+
+/**
+ * A hit-tested intent is "blocked" when the pointer landed on a smaller
+ * target than the gesture it implies would need — e.g. a resize handle too
+ * narrow to grab reliably — AND that gesture is actually wired up. An intent
+ * with nowhere to go (no matching callback) is not blocking anything.
+ */
+function isIntentBlocked(
+  intent: BlockedTimelineEditIntent | null,
+  onResizeElement: ClipGestureDeps["onResizeElement"],
+  onMoveElement: ClipGestureDeps["onMoveElement"],
+): intent is BlockedTimelineEditIntent {
+  if (!intent) return false;
+  return intent === "move" ? Boolean(onMoveElement) : Boolean(onResizeElement);
+}
+
+/**
+ * What a pointerdown on a clip bar means, before any state is touched. Kept
+ * pure (no refs, no store writes) so the branching that decides move vs.
+ * resize-handle vs. blocked-by-a-smaller-hit-target lives in one place,
+ * separate from the side effects `onPointerDown` below performs for it.
+ */
+function resolvePointerDownAction(
+  e: ReactPointerEvent,
+  capabilities: TimelineEditCapabilities,
+  onResizeElement: ClipGestureDeps["onResizeElement"],
+  onMoveElement: ClipGestureDeps["onMoveElement"],
+): PointerDownAction {
+  if (e.button !== 0) return { kind: "ignore" };
+  if (usePlayerStore.getState().activeTool === "razor") return { kind: "ignore" };
+  if (e.shiftKey) return { kind: "arm-shift-click" };
+
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const intent = resolveBlockedTimelineEditIntent({
+    width: rect.width,
+    offsetX: e.clientX - rect.left,
+    handleWidth: CLIP_HANDLE_W,
+    capabilities,
+  });
+  if (isIntentBlocked(intent, onResizeElement, onMoveElement)) {
+    return { kind: "block", intent, rect };
+  }
+
+  if (!onMoveElement || !capabilities.canMove) return { kind: "ignore" };
+  return { kind: "move", rect };
 }
 
 /**
@@ -61,9 +128,7 @@ export function createClipGestureHandlers(
   } = deps;
 
   const onResizeStart = (edge: "start" | "end", e: ReactPointerEvent): void => {
-    if (e.button !== 0 || e.shiftKey || !onResizeElement) return;
-    if (edge === "start" && !capabilities.canTrimStart) return;
-    if (edge === "end" && !capabilities.canTrimEnd) return;
+    if (!canStartResize(edge, e, capabilities, onResizeElement)) return;
     e.stopPropagation();
     blockedClipRef.current = null;
     setShowPopover(false);
@@ -82,35 +147,27 @@ export function createClipGestureHandlers(
   };
 
   const onPointerDown = (e: ReactPointerEvent): void => {
-    if (e.button !== 0) return;
-    if (usePlayerStore.getState().activeTool === "razor") return;
-    if (e.shiftKey) {
+    const action = resolvePointerDownAction(e, capabilities, onResizeElement, onMoveElement);
+    if (action.kind === "ignore") return;
+
+    if (action.kind === "arm-shift-click") {
       shiftClickClipRef.current = { element: el, anchorX: e.clientX, anchorY: e.clientY };
       return;
     }
-    const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const blockedIntent = resolveBlockedTimelineEditIntent({
-      width: rect.width,
-      offsetX: e.clientX - rect.left,
-      handleWidth: CLIP_HANDLE_W,
-      capabilities,
-    });
-    if (
-      blockedIntent &&
-      ((blockedIntent === "move" && onMoveElement) || (blockedIntent !== "move" && onResizeElement))
-    ) {
+
+    if (action.kind === "block") {
       blockedClipRef.current = {
         pointerId: e.pointerId,
         element: el,
-        intent: blockedIntent,
+        intent: action.intent,
         originClientX: e.clientX,
         originClientY: e.clientY,
         started: false,
       };
       return;
     }
-    if (!onMoveElement || !capabilities.canMove) return;
+
+    const { rect } = action;
     blockedClipRef.current = null;
     setShowPopover(false);
     setRangeSelection(null);
