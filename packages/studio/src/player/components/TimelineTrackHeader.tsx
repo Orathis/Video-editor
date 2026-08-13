@@ -26,6 +26,32 @@ import { valueReadout } from "./trackHeaderLaneValues";
 import { trackDisplaySuffix } from "./timelineTrackDisplay";
 import { timelineLogicalRowCellId, timelinePropertyRowId } from "./timelineNavigationIdentity";
 
+/** One envelope's label-column row content, resolved against the FX chain. */
+interface AutomationRowInfo {
+  target: string;
+  label: string;
+  name: string;
+  param: string;
+}
+
+/**
+ * Each envelope's name, resolved against the chain the same way the lane
+ * resolves its axis — a band is named by its frequency, not by its effect. The
+ * lane list is already in drawing order, which is the order these rows have to
+ * follow: a name beside the wrong envelope is worse than an awkward order.
+ */
+function resolveAutomationRows(keyframeClip: TimelineElement | null): AutomationRowInfo[] {
+  if (!keyframeClip) return [];
+  const chain = elementFxChain(keyframeClip);
+  return elementAutomationLanes(keyframeClip).flatMap((lane) => {
+    const parts = automationLaneLabelParts(lane.target, chain);
+    const label = automationLaneLabel(lane.target, chain);
+    return parts && label
+      ? [{ target: lane.target, label, name: parts.name, param: parts.param }]
+      : [];
+  });
+}
+
 interface TimelineTrackHeaderProps {
   /** The track's real key: a FRACTIONAL z-order sort value. Routes callbacks;
    *  never shown or announced. */
@@ -434,20 +460,7 @@ export function TimelineTrackHeader({
   // left an audio clip's envelopes unreachable, since the track could not expand.
   const disclosable =
     lanes.length > 0 || (keyframeClip ? automationLaneCountOf(keyframeClip) : 0) > 0;
-  // Each envelope's name, resolved against the chain the same way the lane
-  // resolves its axis — a band is named by its frequency, not by its effect. The
-  // lane list is already in drawing order, which is the order these rows have to
-  // follow: a name beside the wrong envelope is worse than an awkward order.
-  const automationRows = keyframeClip
-    ? elementAutomationLanes(keyframeClip).flatMap((lane) => {
-        const chain = elementFxChain(keyframeClip);
-        const parts = automationLaneLabelParts(lane.target, chain);
-        const label = automationLaneLabel(lane.target, chain);
-        return parts && label
-          ? [{ target: lane.target, label, name: parts.name, param: parts.param }]
-          : [];
-      })
-    : [];
+  const automationRows = resolveAutomationRows(keyframeClip);
   const isKeyframeLayer = !!keyframeClip && disclosable;
 
   return (
