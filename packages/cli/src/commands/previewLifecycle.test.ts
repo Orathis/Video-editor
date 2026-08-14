@@ -227,6 +227,26 @@ describe("background preview lifecycle", () => {
     expect(kill).toHaveBeenCalledWith(4321);
   });
 
+  it("stops the detached wrapper as well as its reported Vite server", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    savePreviewSession(stateHome);
+    let running = true;
+    const scan = vi.fn(async () => (running ? [{ ...server, pid: "9876" }] : []));
+    const kill = vi.fn((pid: number) => {
+      if (pid === 9876) running = false;
+    });
+
+    const result = await stopBackgroundPreview(projectDir, 3002, {
+      scan,
+      kill,
+      sleep: async () => {},
+      stateHome,
+    });
+
+    expect(result).toBe(true);
+    expect(kill.mock.calls).toEqual([[9876], [4321]]);
+  });
+
   it("fails loudly when the server remains reachable after stop", async () => {
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
     writePreviewSession(

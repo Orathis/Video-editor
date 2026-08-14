@@ -268,7 +268,18 @@ export async function stopBackgroundPreview(
     return false;
   }
 
-  (dependencies.kill ?? stopProcess)(pid);
+  const kill = dependencies.kill ?? stopProcess;
+  kill(pid);
+
+  // Dev/local mode exposes Vite's PID, while the session records the detached
+  // CLI wrapper. Both must be reaped: killing only Vite closes the port but can
+  // leave the wrapper waiting on inherited stdio forever. The live matching
+  // server above is the ownership proof that makes the saved PID safe to use.
+  const wrapperPid = Number(saved?.pid);
+  if (Number.isInteger(wrapperPid) && wrapperPid > 0 && wrapperPid !== pid) {
+    kill(wrapperPid);
+  }
+
   const sleep = dependencies.sleep ?? delay;
   for (let attempt = 0; attempt < 25; attempt++) {
     if (!matchingServer(await scan(scanStart), projectDir)) {

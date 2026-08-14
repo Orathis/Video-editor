@@ -92,6 +92,10 @@ interface EmbeddedStudioOptions extends StudioLaunchOptions {
 }
 
 type StudioChildProcess = ChildProcessByStdio<null, Readable, Readable>;
+interface StudioSignalTarget {
+  once(event: "SIGINT" | "SIGTERM", listener: () => void): unknown;
+  off(event: "SIGINT" | "SIGTERM", listener: () => void): unknown;
+}
 type ContextField = "server" | "selection" | "lint" | "capabilities";
 type CompactSelectionPayload = Pick<
   StudioSelectionSnapshot,
@@ -910,17 +914,33 @@ function removeSymlinkOnExit(createdSymlink: boolean, symlinkPath: string): void
   });
 }
 
-function registerChildTreeShutdown(child: StudioChildProcess): void {
+export function waitForStudioChildClose(
+  child: StudioChildProcess,
+  signalTarget: StudioSignalTarget = process,
+): Promise<void> {
   const shutdown = (): void => {
     if (child.pid) killProcessTree(child.pid);
   };
-  process.once("SIGINT", shutdown);
-  process.once("SIGTERM", shutdown);
-}
+  signalTarget.once("SIGINT", shutdown);
+  signalTarget.once("SIGTERM", shutdown);
 
-function waitForChildClose(child: StudioChildProcess): Promise<void> {
-  return new Promise<void>((resolveClose) => {
-    child.on("close", () => resolveClose());
+  // A short-lived Vite child can exit before launch setup reaches this point.
+  // ChildProcess does not replay lifecycle events to listeners attached later,
+  // so waiting unconditionally would strand the preview wrapper forever.
+  const closed =
+    child.exitCode !== null || child.signalCode !== null
+      ? Promise.resolve()
+      : new Promise<void>((resolveClose) => {
+          // `close` waits for stdio to close too. A Vite descendant can inherit
+          // those pipes, so the wrapper must key its lifetime to process exit.
+          child.once("exit", () => resolveClose());
+        });
+
+  return closed.finally(() => {
+    // Signal listeners keep Bun's event loop alive even after Vite exits. Leaving
+    // them registered makes `preview --stop` close the port but leak the wrapper.
+    signalTarget.off("SIGINT", shutdown);
+    signalTarget.off("SIGTERM", shutdown);
   });
 }
 
@@ -992,8 +1012,7 @@ async function runDevMode(dir: string, options?: StudioLaunchOptions): Promise<v
   // would survive without explicit cleanup.
   // On Windows, killProcessTree is a no-op (pgrep/ps unavailable); Ctrl+C
   // propagates via the console process group instead.
-  registerChildTreeShutdown(child);
-  return waitForChildClose(child);
+  return waitForStudioChildClose(child);
 }
 
 /**
@@ -1041,8 +1060,7 @@ async function runLocalStudioMode(dir: string, options?: StudioLaunchOptions): P
   removeSymlinkOnExit(createdSymlink, symlinkPath);
 
   // Same tree-kill handler as dev mode. No-op on Windows (see comment above).
-  registerChildTreeShutdown(child);
-  return waitForChildClose(child);
+  return waitForStudioChildClose(child);
 }
 
 /**

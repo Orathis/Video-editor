@@ -1,8 +1,13 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
-import { previewLaunchMode, previewViteArgs, studioLandingSearch } from "./preview.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  previewLaunchMode,
+  previewViteArgs,
+  studioLandingSearch,
+  waitForStudioChildClose,
+} from "./preview.js";
 
 const tempDirs: string[] = [];
 
@@ -77,5 +82,47 @@ describe("previewLaunchMode", () => {
 
   it("pins detached Vite to the port the lifecycle scanner waits on", () => {
     expect(previewViteArgs(3032)).toEqual(["--host", "127.0.0.1", "--port", "3032"]);
+  });
+});
+
+describe("waitForStudioChildClose", () => {
+  it("resolves when the child closed before the listener was attached", async () => {
+    const signalTarget = { once: vi.fn(), off: vi.fn() };
+    const child = {
+      exitCode: 1,
+      signalCode: null,
+      once: vi.fn(),
+    } as unknown as Parameters<typeof waitForStudioChildClose>[0];
+
+    await expect(waitForStudioChildClose(child, signalTarget)).resolves.toBeUndefined();
+    expect(child.once).not.toHaveBeenCalled();
+    expect(signalTarget.once).toHaveBeenCalledTimes(2);
+    expect(signalTarget.off).toHaveBeenCalledTimes(2);
+  });
+
+  it("reaps on process exit even when stdio never emits close", async () => {
+    let exit: (() => void) | undefined;
+    const signalTarget = { once: vi.fn(), off: vi.fn() };
+    const child = {
+      exitCode: null,
+      signalCode: null,
+      once: vi.fn((event: string, listener: () => void) => {
+        if (event === "exit") exit = listener;
+      }),
+    } as unknown as Parameters<typeof waitForStudioChildClose>[0];
+
+    let resolved = false;
+    const waiting = waitForStudioChildClose(child, signalTarget).then(() => {
+      resolved = true;
+    });
+
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+    expect(child.once).toHaveBeenCalledWith("exit", expect.any(Function));
+
+    exit?.();
+    await waiting;
+    expect(resolved).toBe(true);
+    expect(signalTarget.off).toHaveBeenCalledTimes(2);
   });
 });
