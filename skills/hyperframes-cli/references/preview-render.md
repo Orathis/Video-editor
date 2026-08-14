@@ -5,7 +5,8 @@ Serve, render, and share commands.
 ## preview
 
 ```bash
-npx hyperframes preview                   # serve current directory
+npx hyperframes preview --background      # agent-safe; survives the invoking command
+npx hyperframes preview                   # interactive foreground session
 npx hyperframes preview --port 4567       # custom port (default 3002)
 npx hyperframes preview --selection --json # print the current Studio selection and exit
 npx hyperframes preview --context --json  # print compact agent context from Studio
@@ -23,7 +24,7 @@ Use the actual port and project directory name; treat `index.html` as source-cod
 
 To land the user on the **Storyboard view** instead of the timeline, put `?view=storyboard` ahead of the hash: `http://localhost:<port>/?view=storyboard#project/<project-name>`. Hand this URL whenever the storyboard is the thing to review and nothing is assembled yet — before `index.html` exists, the timeline stage has nothing to show, so the bare project URL opens on an empty player.
 
-Two ways a handed URL turns out dead — check both before handing it back: the URL is missing its `#project/<project-name>` hash (Studio loads but has no project to open), or the server is not actually running. `preview` is a long-running process — start it from the project directory as a background task, and if that task reports it exited ("completed"), the server is down: restart it, don't hand out the link.
+Two ways a handed URL turns out dead — check both before handing it back: the URL is missing its `#project/<project-name>` hash (Studio loads but has no project to open), or the server is not actually running. Agents must start it with `preview --background`: a foreground server is tied to the invoking tool session, and its exit strands the handed URL at `ERR_CONNECTION_TIMED_OUT`. Verify the URL returns HTTP 200, keep it alive for the whole review, and stop it explicitly with `npx hyperframes preview --stop` afterward.
 
 ### Agent context from Studio selection
 
