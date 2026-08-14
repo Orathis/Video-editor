@@ -83,6 +83,7 @@ interface StudioLaunchOptions extends BrowserLaunchOptions {
   projectName?: string;
   autoProxy?: boolean;
   browserGpuMode?: BrowserGpuMode;
+  port?: number;
 }
 
 interface EmbeddedStudioOptions extends StudioLaunchOptions {
@@ -121,7 +122,7 @@ export default defineCommand({
     },
     background: {
       type: "boolean",
-      description: "Start an embedded preview that remains running after the command exits",
+      description: "Start a preview that remains running after the command exits",
       default: false,
     },
     status: {
@@ -352,42 +353,13 @@ export default defineCommand({
     // modes all receive identical --proxy/--no-proxy + config semantics.
     const autoProxy = resolveAutoProxy(dir, args.proxy as boolean | undefined);
 
-    if (isDevMode()) {
-      if (args.background) {
-        clack.log.error("--background currently supports the embedded preview server only");
-        setCommandExitCode(1);
-        return;
-      }
-      return runDevMode(dir, {
-        projectName,
-        noOpen,
-        browserPath,
-        userDataDir,
-        remoteDebuggingPort,
-        browserNoGpu,
-        autoProxy,
-      });
-    }
+    const launchMode = previewLaunchMode({
+      background: Boolean(args.background),
+      devMode: isDevMode(),
+      localStudio: hasLocalStudio(dir),
+    });
 
-    // If @hyperframes/studio is installed locally, use Vite for full HMR
-    if (hasLocalStudio(dir)) {
-      if (args.background) {
-        clack.log.error("--background currently supports the embedded preview server only");
-        setCommandExitCode(1);
-        return;
-      }
-      return runLocalStudioMode(dir, {
-        projectName,
-        noOpen,
-        browserPath,
-        userDataDir,
-        remoteDebuggingPort,
-        browserNoGpu,
-        autoProxy,
-      });
-    }
-
-    if (args.background) {
+    if (launchMode === "background") {
       let background;
       try {
         background = await startBackgroundPreview(dir, startPort, {
@@ -420,6 +392,35 @@ export default defineCommand({
       return;
     }
 
+    if (launchMode === "dev") {
+      return runDevMode(dir, {
+        projectName,
+        noOpen,
+        browserPath,
+        userDataDir,
+        remoteDebuggingPort,
+        browserNoGpu,
+        autoProxy,
+        browserGpuMode,
+        port: startPort,
+      });
+    }
+
+    // If @hyperframes/studio is installed locally, use Vite for full HMR
+    if (launchMode === "local") {
+      return runLocalStudioMode(dir, {
+        projectName,
+        noOpen,
+        browserPath,
+        userDataDir,
+        remoteDebuggingPort,
+        browserNoGpu,
+        autoProxy,
+        browserGpuMode,
+        port: startPort,
+      });
+    }
+
     const forceNew = !!args["force-new"];
     return runEmbeddedMode(dir, startPort, {
       projectName,
@@ -435,8 +436,24 @@ export default defineCommand({
   },
 });
 
-// `host` is the loopback the server actually bound (Vite binds `[::1]`, embedded
-// binds `127.0.0.1`); default to IPv4 for the embedded/legacy callers.
+export type PreviewLaunchMode = "background" | "dev" | "local" | "embedded";
+
+export function previewLaunchMode(options: {
+  background: boolean;
+  devMode: boolean;
+  localStudio: boolean;
+}): PreviewLaunchMode {
+  if (options.background) return "background";
+  if (options.devMode) return "dev";
+  return options.localStudio ? "local" : "embedded";
+}
+
+export function previewViteArgs(port: number | undefined): string[] {
+  return ["--host", "127.0.0.1", ...(port === undefined ? [] : ["--port", String(port)])];
+}
+
+// All preview modes bind the same IPv4 loopback so lifecycle probes and handed
+// URLs agree on the reachable server.
 function previewBaseUrl(port: number, host = "127.0.0.1"): string {
   return `http://${host}:${port}`;
 }
@@ -956,10 +973,14 @@ async function runDevMode(dir: string, options?: StudioLaunchOptions): Promise<v
 
   // Run the new consolidated studio (single Vite dev server with API plugin)
   const studioPkgDir = join(repoRoot, "packages", "studio");
-  const child = spawn("bun", ["run", "dev"], {
+  const child = spawn("bun", ["run", "dev", "--", ...previewViteArgs(options?.port)], {
     cwd: studioPkgDir,
     stdio: ["ignore", "pipe", "pipe"],
-    env: studioProxyEnv(options?.autoProxy ?? true),
+    env: studioProxyEnv(options?.autoProxy ?? true, process.env, {
+      projectDir: dir,
+      projectName: pName,
+      browserGpuMode: options?.browserGpuMode,
+    }),
   });
 
   attachStudioReadyHandler(child, s, pName, dir, options);
@@ -1005,11 +1026,15 @@ async function runLocalStudioMode(dir: string, options?: StudioLaunchOptions): P
   const s = clack.spinner();
   s.start("Starting studio...");
 
-  const viteCommand = buildNpxCommand(["vite"]);
+  const viteCommand = buildNpxCommand(["vite", ...previewViteArgs(options?.port)]);
   const child = spawn(viteCommand.command, viteCommand.args, {
     cwd: studioPkgPath,
     stdio: ["ignore", "pipe", "pipe"],
-    env: studioProxyEnv(options?.autoProxy ?? true),
+    env: studioProxyEnv(options?.autoProxy ?? true, process.env, {
+      projectDir: dir,
+      projectName: pName,
+      browserGpuMode: options?.browserGpuMode,
+    }),
   });
 
   attachStudioReadyHandler(child, s, pName, dir, options);

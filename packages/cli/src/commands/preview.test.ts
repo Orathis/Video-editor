@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { studioLandingSearch } from "./preview.js";
+import { previewLaunchMode, previewViteArgs, studioLandingSearch } from "./preview.js";
 
 const tempDirs: string[] = [];
 
@@ -49,5 +49,33 @@ describe("studioLandingSearch", () => {
   it("lands on the timeline for fully animated boards", () => {
     const dir = projectWith(`${FRAME(1, "animated")}`, ["compositions/frames/01.html"]);
     expect(studioLandingSearch(dir)).toBe("");
+  });
+});
+
+describe("previewLaunchMode", () => {
+  it("keeps background preview persistent in monorepo dev mode", () => {
+    expect(previewLaunchMode({ background: true, devMode: true, localStudio: false })).toBe(
+      "background",
+    );
+  });
+
+  it("keeps background preview persistent with a project-local Studio", () => {
+    expect(previewLaunchMode({ background: true, devMode: false, localStudio: true })).toBe(
+      "background",
+    );
+  });
+
+  it("preserves the foreground launch preference", () => {
+    expect(previewLaunchMode({ background: false, devMode: true, localStudio: true })).toBe("dev");
+    expect(previewLaunchMode({ background: false, devMode: false, localStudio: true })).toBe(
+      "local",
+    );
+    expect(previewLaunchMode({ background: false, devMode: false, localStudio: false })).toBe(
+      "embedded",
+    );
+  });
+
+  it("pins detached Vite to the port the lifecycle scanner waits on", () => {
+    expect(previewViteArgs(3032)).toEqual(["--host", "127.0.0.1", "--port", "3032"]);
   });
 });
