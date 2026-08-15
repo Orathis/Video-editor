@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   previewLaunchMode,
+  previewLaunchModeError,
   previewViteArgs,
   studioLandingSearch,
   waitForStudioChildClose,
@@ -58,26 +59,67 @@ describe("studioLandingSearch", () => {
 });
 
 describe("previewLaunchMode", () => {
-  it("keeps background preview persistent in monorepo dev mode", () => {
-    expect(previewLaunchMode({ background: true, devMode: true, localStudio: false })).toBe(
+  it.each([
+    [
+      {
+        background: false,
+        foreground: false,
+        interactive: false,
+        devMode: false,
+        localStudio: false,
+      },
       "background",
-    );
-  });
-
-  it("keeps background preview persistent with a project-local Studio", () => {
-    expect(previewLaunchMode({ background: true, devMode: false, localStudio: true })).toBe(
-      "background",
-    );
-  });
-
-  it("preserves the foreground launch preference", () => {
-    expect(previewLaunchMode({ background: false, devMode: true, localStudio: true })).toBe("dev");
-    expect(previewLaunchMode({ background: false, devMode: false, localStudio: true })).toBe(
-      "local",
-    );
-    expect(previewLaunchMode({ background: false, devMode: false, localStudio: false })).toBe(
+    ],
+    [
+      {
+        background: false,
+        foreground: false,
+        interactive: true,
+        devMode: false,
+        localStudio: false,
+      },
       "embedded",
+    ],
+    [
+      {
+        background: false,
+        foreground: true,
+        interactive: false,
+        devMode: true,
+        localStudio: false,
+      },
+      "dev",
+    ],
+    [
+      {
+        background: false,
+        foreground: true,
+        interactive: false,
+        devMode: false,
+        localStudio: true,
+      },
+      "local",
+    ],
+    [
+      {
+        background: true,
+        foreground: false,
+        interactive: true,
+        devMode: true,
+        localStudio: true,
+      },
+      "background",
+    ],
+  ] as const)("resolves %o to %s", (options, expected) => {
+    expect(previewLaunchMode(options)).toBe(expected);
+  });
+
+  it("rejects conflicting lifecycle overrides", () => {
+    expect(previewLaunchModeError({ background: true, foreground: true })).toBe(
+      "--background and --foreground cannot be used together",
     );
+    expect(previewLaunchModeError({ background: true, foreground: false })).toBeNull();
+    expect(previewLaunchModeError({ background: false, foreground: true })).toBeNull();
   });
 
   it("pins detached Vite to the port the lifecycle scanner waits on", () => {

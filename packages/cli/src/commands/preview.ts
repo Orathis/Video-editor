@@ -13,6 +13,7 @@ export const examples: Example[] = [
   ["Use a custom port", "hyperframes preview --port 8080"],
   ["Force a new server even if one is already running", "hyperframes preview --force-new"],
   ["Keep preview running after this command exits", "hyperframes preview --background"],
+  ["Force an attached preview in a non-interactive shell", "hyperframes preview --foreground"],
   ["Show the background preview for this project", "hyperframes preview --status"],
   ["Stop the background preview for this project", "hyperframes preview --stop"],
   ["Start without opening the browser", "hyperframes preview --no-open"],
@@ -129,6 +130,11 @@ export default defineCommand({
       description: "Start a preview that remains running after the command exits",
       default: false,
     },
+    foreground: {
+      type: "boolean",
+      description: "Keep preview attached even when the shell is non-interactive",
+      default: false,
+    },
     status: {
       type: "boolean",
       description: "Show the background preview for this project and exit",
@@ -212,6 +218,16 @@ export default defineCommand({
     },
   },
   async run({ args }) {
+    const launchModeError = previewLaunchModeError({
+      background: Boolean(args.background),
+      foreground: Boolean(args.foreground),
+    });
+    if (launchModeError) {
+      clack.log.error(launchModeError);
+      setCommandExitCode(1);
+      return;
+    }
+
     const browserGpuMode = resolveLocalBrowserGpuMode(args["browser-gpu"] as boolean | undefined);
     if (args["browser-gpu"] === true) process.env.PRODUCER_BROWSER_GPU_MODE = "hardware";
     if (args["browser-gpu"] === false) process.env.PRODUCER_BROWSER_GPU_MODE = "software";
@@ -359,6 +375,8 @@ export default defineCommand({
 
     const launchMode = previewLaunchMode({
       background: Boolean(args.background),
+      foreground: Boolean(args.foreground),
+      interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY),
       devMode: isDevMode(),
       localStudio: hasLocalStudio(dir),
     });
@@ -444,12 +462,24 @@ export type PreviewLaunchMode = "background" | "dev" | "local" | "embedded";
 
 export function previewLaunchMode(options: {
   background: boolean;
+  foreground: boolean;
+  interactive: boolean;
   devMode: boolean;
   localStudio: boolean;
 }): PreviewLaunchMode {
   if (options.background) return "background";
+  if (!options.foreground && !options.interactive) return "background";
   if (options.devMode) return "dev";
   return options.localStudio ? "local" : "embedded";
+}
+
+export function previewLaunchModeError(options: {
+  background: boolean;
+  foreground: boolean;
+}): string | null {
+  return options.background && options.foreground
+    ? "--background and --foreground cannot be used together"
+    : null;
 }
 
 export function previewViteArgs(port: number | undefined): string[] {
