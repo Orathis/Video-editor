@@ -497,7 +497,10 @@ export default defineCommand({
       try {
         background = await startBackgroundPreview(dir, startPort, {
           forceNew: Boolean(args["force-new"]),
-          browserGpuMode,
+          // A bare launch promises same-project reuse, regardless of the mode
+          // the existing managed server resolved earlier. Only an explicit
+          // --browser-gpu/--no-browser-gpu request authorizes replacement.
+          browserGpuMode: args["browser-gpu"] === undefined ? undefined : browserGpuMode,
         });
       } catch (error) {
         const message = errorMessage(error);

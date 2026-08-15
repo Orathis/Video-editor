@@ -154,6 +154,26 @@ function matchingServer(
   );
 }
 
+function matchingServerAtPort(
+  servers: ActiveServer[],
+  projectDir: string,
+  port: number,
+): ActiveServer | null {
+  return matchingServer(
+    servers.filter((server) => server.port === port),
+    projectDir,
+  );
+}
+
+function sameProjectPorts(servers: ActiveServer[], projectDir: string): Set<number> {
+  const project = normalized(projectDir);
+  return new Set(
+    servers
+      .filter((server) => normalized(server.projectDir) === project)
+      .map((server) => server.port),
+  );
+}
+
 function stopProcess(pid: number): void {
   killProcessTree(pid);
   if (process.platform === "win32") {
@@ -202,12 +222,10 @@ function spawnDetachedPreview(
 function startedServer(
   servers: ActiveServer[],
   projectDir: string,
-  existing: ActiveServer | null,
-  forceNew: boolean,
+  preLaunchPorts: Set<number>,
   browserGpuMode?: BrowserGpuMode,
 ): ActiveServer | null {
-  const candidates =
-    forceNew && existing ? servers.filter((server) => server.port !== existing.port) : servers;
+  const candidates = servers.filter((server) => !preLaunchPorts.has(server.port));
   return matchingServer(candidates, projectDir, browserGpuMode);
 }
 
@@ -313,31 +331,27 @@ function ownedStopTargetPid(
   return isDescendant(liveServerPid, saved.pid) ? saved.pid : liveServerPid;
 }
 
-async function replaceOwnedPreviewForForceNew(
-  existing: ActiveServer | null,
-  saved: PreviewSession | null,
+async function stopOwnedPreviewBeforeReplacement(
+  owned: ActiveServer | null,
   projectDir: string,
   dependencies: LifecycleDependencies,
-): Promise<ActiveServer | null> {
-  if (!dependencies.forceNew || !existing || saved?.port !== existing.port) return existing;
-  const stopped = await stopBackgroundPreview(projectDir, saved.port, dependencies);
+): Promise<void> {
+  if (!owned) return;
+  const stopped = await stopBackgroundPreview(projectDir, owned.port, dependencies);
   if (!stopped) throw new Error(`managed preview could not be replaced for ${resolve(projectDir)}`);
-  return null;
 }
 
-function existingPreviewForLaunch(
+function savedOwnedPreview(
   servers: ActiveServer[],
   saved: PreviewSession | null,
   projectDir: string,
-  dependencies: LifecycleDependencies,
 ): ActiveServer | null {
-  const requested = matchingServer(servers, projectDir, dependencies.browserGpuMode);
-  if (!dependencies.forceNew || !saved) return requested;
+  if (!saved) return null;
   // Ownership comes from the saved project+port, not the replacement's GPU
   // policy. Filtering here would miss an owned hardware→software replacement
   // and overwrite the only session record while leaving the old listener live.
   const savedPortServers = servers.filter((server) => server.port === saved.port);
-  return matchingServer(savedPortServers, projectDir) ?? requested;
+  return matchingServer(savedPortServers, projectDir);
 }
 
 export async function startBackgroundPreview(
@@ -355,16 +369,29 @@ export async function startBackgroundPreview(
   // replace that owned server before recording the replacement, otherwise the
   // single per-project ownership record would orphan the old listener.
   const scanStart = saved?.port ?? startPort;
-  let existing = existingPreviewForLaunch(await scan(scanStart), saved, projectDir, dependencies);
-  if (existing && !dependencies.forceNew) {
+  const scanned = await scan(scanStart);
+  const requestedExisting = matchingServer(scanned, projectDir, dependencies.browserGpuMode);
+  const ownedExisting = savedOwnedPreview(scanned, saved, projectDir);
+  // A saved managed preview is the authoritative same-project instance. An
+  // explicit GPU-policy change replaces it; it must not silently adopt an
+  // unmanaged sibling that happens to match the new policy.
+  const reusableOwned = ownedExisting
+    ? matchingServer([ownedExisting], projectDir, dependencies.browserGpuMode)
+    : null;
+  const reusableExisting = reusableOwned ?? (ownedExisting ? null : requestedExisting);
+  if (reusableExisting && !dependencies.forceNew) {
     return {
       type: "reused",
-      port: existing.port,
-      pid: existing.pid ? Number(existing.pid) : null,
+      port: reusableExisting.port,
+      pid: reusableExisting.pid ? Number(reusableExisting.pid) : null,
       logPath: null,
     };
   }
-  existing = await replaceOwnedPreviewForForceNew(existing, saved, projectDir, dependencies);
+  await stopOwnedPreviewBeforeReplacement(ownedExisting, projectDir, dependencies);
+  // Snapshot every same-project listener in the prospective launch range only
+  // after the owned listener is gone. Readiness must identify a newly appeared
+  // server, never a pre-existing unmanaged sibling.
+  const preLaunchPorts = sameProjectPorts(await scan(startPort), projectDir);
 
   const { pid, wrapperIdentity, logPath } = spawnDetachedPreview(
     projectDir,
@@ -377,8 +404,7 @@ export async function startBackgroundPreview(
     const server = startedServer(
       await scan(startPort),
       projectDir,
-      existing,
-      dependencies.forceNew === true,
+      preLaunchPorts,
       dependencies.browserGpuMode,
     );
     if (server) {
@@ -413,7 +439,10 @@ export async function stopBackgroundPreview(
   const stateHome = dependencies.stateHome ?? defaultStateHome();
   const saved = readPreviewSession(projectDir, stateHome);
   const scanStart = saved?.port ?? startPort;
-  const server = matchingServer(await scan(scanStart), projectDir);
+  const scanned = await scan(scanStart);
+  const server = saved
+    ? matchingServerAtPort(scanned, projectDir, saved.port)
+    : matchingServer(scanned, projectDir);
   if (!server) {
     removePreviewSession(projectDir, stateHome);
     return false;
@@ -431,7 +460,7 @@ export async function stopBackgroundPreview(
 
   const sleep = dependencies.sleep ?? delay;
   for (let attempt = 0; attempt < 25; attempt++) {
-    if (!matchingServer(await scan(scanStart), projectDir)) {
+    if (!matchingServerAtPort(await scan(scanStart), projectDir, server.port)) {
       removePreviewSession(projectDir, stateHome);
       return true;
     }

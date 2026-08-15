@@ -84,7 +84,7 @@ describe("background preview lifecycle", () => {
       { pid: 4321, port: 41402, projectDir, logPath: "/tmp/custom.log" },
       stateHome,
     );
-    const customServer = { ...server, port: 41402 };
+    const customServer = { ...server, port: 41402, browserGpuMode: "software" as const };
     const scan = vi.fn(async (startPort?: number) => (startPort === 41402 ? [customServer] : []));
     const spawn = vi.fn();
 
@@ -167,35 +167,92 @@ describe("background preview lifecycle", () => {
     expect(spawn).toHaveBeenCalledOnce();
   });
 
-  it("force-new replaces a previously managed server instead of orphaning it", async () => {
+  it.each([
+    ["force-new", true],
+    ["a GPU-policy change", false],
+  ])(
+    "%s replaces a previously managed server instead of orphaning it",
+    async (_label, forceNew) => {
+      const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+      const oldServer = { ...server, port: 41490, browserGpuMode: "hardware" as const };
+      writePreviewSession(
+        { pid: 4321, port: 41490, projectDir, logPath: "/tmp/preview.log" },
+        stateHome,
+      );
+      const replacement = {
+        ...server,
+        port: 41491,
+        pid: "5432",
+        browserGpuMode: "software" as const,
+      };
+      let oldRunning = true;
+      let replacementRunning = false;
+      const scan = vi.fn(async () =>
+        oldRunning ? [oldServer] : replacementRunning ? [replacement] : [],
+      );
+      const kill = vi.fn((pid: number) => {
+        if (pid === 4321) oldRunning = false;
+      });
+      const spawn = vi.fn(() => {
+        replacementRunning = true;
+        return { pid: 5432, unref: vi.fn() };
+      });
+
+      const result = await startBackgroundPreview(projectDir, 41491, {
+        browserGpuMode: "software",
+        forceNew,
+        kill,
+        scan,
+        sleep: async () => {},
+        spawn,
+        stateHome,
+      });
+
+      expect(scan).toHaveBeenNthCalledWith(1, 41490);
+      expect(kill).toHaveBeenCalledWith(4321);
+      expect(result).toMatchObject({ type: "started", port: 41491, pid: 5432 });
+      expect(readFileSync(previewSessionPath(projectDir, stateHome), "utf8")).toContain(
+        '"port": 41491',
+      );
+    },
+  );
+
+  it("replaces the owned preview instead of reusing an unmanaged policy-matching sibling", async () => {
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
-    const oldServer = { ...server, port: 41490, browserGpuMode: "hardware" as const };
-    writePreviewSession(
-      { pid: 4321, port: 41490, projectDir, logPath: "/tmp/preview.log" },
-      stateHome,
-    );
-    const replacement = {
+    const owned = { ...server, port: 41490, browserGpuMode: "hardware" as const };
+    const sibling = {
       ...server,
       port: 41491,
+      pid: "8765",
+      browserGpuMode: "software" as const,
+    };
+    const replacement = {
+      ...server,
+      port: 41492,
       pid: "5432",
       browserGpuMode: "software" as const,
     };
-    let oldRunning = true;
-    let replacementRunning = false;
-    const scan = vi.fn(async () =>
-      oldRunning ? [oldServer] : replacementRunning ? [replacement] : [],
+    writePreviewSession(
+      { pid: 4321, port: owned.port, projectDir, logPath: "/tmp/preview.log" },
+      stateHome,
     );
+    let ownedRunning = true;
+    let replacementRunning = false;
+    const scan = vi.fn(async () => [
+      ...(ownedRunning ? [owned] : []),
+      sibling,
+      ...(replacementRunning ? [replacement] : []),
+    ]);
     const kill = vi.fn((pid: number) => {
-      if (pid === 4321) oldRunning = false;
+      if (pid === 4321) ownedRunning = false;
     });
     const spawn = vi.fn(() => {
       replacementRunning = true;
       return { pid: 5432, unref: vi.fn() };
     });
 
-    const result = await startBackgroundPreview(projectDir, 41491, {
+    const result = await startBackgroundPreview(projectDir, replacement.port, {
       browserGpuMode: "software",
-      forceNew: true,
       kill,
       scan,
       sleep: async () => {},
@@ -203,12 +260,9 @@ describe("background preview lifecycle", () => {
       stateHome,
     });
 
-    expect(scan).toHaveBeenNthCalledWith(1, 41490);
     expect(kill).toHaveBeenCalledWith(4321);
-    expect(result).toMatchObject({ type: "started", port: 41491, pid: 5432 });
-    expect(readFileSync(previewSessionPath(projectDir, stateHome), "utf8")).toContain(
-      '"port": 41491',
-    );
+    expect(spawn).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({ type: "started", port: replacement.port, pid: 5432 });
   });
 
   it("starts a replacement when the existing server uses a different GPU policy", async () => {
@@ -219,11 +273,15 @@ describe("background preview lifecycle", () => {
       pid: "5432",
       browserGpuMode: "software" as const,
     };
-    let scans = 0;
-    const scan = vi.fn(async () =>
-      ++scans < 2 ? [hardwareServer] : [hardwareServer, softwareServer],
-    );
-    const spawn = vi.fn(() => ({ pid: 5432, unref: vi.fn() }));
+    let replacementRunning = false;
+    const scan = vi.fn(async () => [
+      hardwareServer,
+      ...(replacementRunning ? [softwareServer] : []),
+    ]);
+    const spawn = vi.fn(() => {
+      replacementRunning = true;
+      return { pid: 5432, unref: vi.fn() };
+    });
 
     const result = await startBackgroundPreview(projectDir, 3002, {
       browserGpuMode: "software",
@@ -238,10 +296,13 @@ describe("background preview lifecycle", () => {
   });
 
   it("returns after a detached child becomes reachable and records its session", async () => {
-    let scans = 0;
-    const scan = vi.fn(async () => (++scans < 2 ? [] : [server]));
+    let spawned = false;
+    const scan = vi.fn(async () => (spawned ? [server] : []));
     const unref = vi.fn();
-    const spawn = vi.fn(() => ({ pid: 4321, unref }));
+    const spawn = vi.fn(() => {
+      spawned = true;
+      return { pid: 4321, unref };
+    });
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
 
     const result = await startBackgroundPreview(projectDir, 3002, {
@@ -260,13 +321,16 @@ describe("background preview lifecycle", () => {
 
   it("reports the live server PID while retaining the wrapper PID for cleanup", async () => {
     const liveServer = { ...server, pid: "9876" };
-    let scans = 0;
-    const scan = vi.fn(async () => (++scans === 1 ? [] : [liveServer]));
+    let spawned = false;
+    const scan = vi.fn(async () => (spawned ? [liveServer] : []));
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
 
     const result = await startBackgroundPreview(projectDir, 3002, {
       scan,
-      spawn: () => ({ pid: 4321, unref: vi.fn() }),
+      spawn: () => {
+        spawned = true;
+        return { pid: 4321, unref: vi.fn() };
+      },
       stateHome,
     });
 
@@ -460,5 +524,31 @@ describe("background preview lifecycle", () => {
       }),
     ).rejects.toThrow(/did not stop/i);
     expect(existsSync(previewSessionPath(projectDir, stateHome))).toBe(true);
+  });
+
+  it("verifies the owned port stopped even when another server serves the same project", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    const owned = { ...server, port: 41490 };
+    const sibling = { ...server, port: 41491, pid: "8765" };
+    writePreviewSession(
+      { pid: 4321, port: owned.port, projectDir, logPath: "/tmp/preview.log" },
+      stateHome,
+    );
+    let ownedRunning = true;
+    const scan = vi.fn(async () => [...(ownedRunning ? [owned] : []), sibling]);
+    const kill = vi.fn((pid: number) => {
+      if (pid === 4321) ownedRunning = false;
+    });
+
+    const stopped = await stopBackgroundPreview(projectDir, owned.port, {
+      kill,
+      scan,
+      sleep: async () => {},
+      stateHome,
+    });
+
+    expect(stopped).toBe(true);
+    expect(kill).toHaveBeenCalledWith(4321);
+    expect(existsSync(previewSessionPath(projectDir, stateHome))).toBe(false);
   });
 });
