@@ -48,7 +48,7 @@ describe("background preview lifecycle", () => {
     );
   });
 
-  it("builds a detached child invocation without recursively preserving --background", () => {
+  it("forces the detached child foreground without inheriting launcher-only flags", () => {
     expect(
       buildBackgroundPreviewArgs([
         "/opt/hyperframes/cli.js",
@@ -56,8 +56,9 @@ describe("background preview lifecycle", () => {
         projectDir,
         "--background",
         "--open",
+        "--json",
       ]),
-    ).toEqual(["/opt/hyperframes/cli.js", "preview", projectDir, "--no-open"]);
+    ).toEqual(["/opt/hyperframes/cli.js", "preview", projectDir, "--foreground", "--no-open"]);
   });
 
   it("reuses an already-running server for the same project", async () => {
