@@ -141,6 +141,25 @@ describe("background preview lifecycle", () => {
     expect(existsSync(previewSessionPath(projectDir, stateHome))).toBe(true);
   });
 
+  it("reaps a detached child that never becomes reachable without recording ownership", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    const kill = vi.fn();
+
+    await expect(
+      startBackgroundPreview(projectDir, 3002, {
+        scan: async () => [],
+        spawn: () => ({ pid: 4321, unref: vi.fn() }),
+        sleep: async () => {},
+        kill,
+        stateHome,
+      }),
+    ).rejects.toThrow(/did not become ready/i);
+
+    expect(kill).toHaveBeenCalledOnce();
+    expect(kill).toHaveBeenCalledWith(4321);
+    expect(existsSync(previewSessionPath(projectDir, stateHome))).toBe(false);
+  });
+
   it("removes a stale session when no matching server or process survives", async () => {
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
     writePreviewSession(
