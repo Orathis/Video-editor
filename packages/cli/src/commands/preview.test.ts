@@ -6,7 +6,9 @@ import {
   previewLaunchMode,
   previewLaunchModeError,
   previewViteArgs,
+  studioDeepLink,
   studioLandingSearch,
+  studioSummaryUrls,
   waitForStudioChildClose,
 } from "./preview.js";
 
@@ -55,6 +57,26 @@ describe("studioLandingSearch", () => {
   it("lands on the timeline for fully animated boards", () => {
     const dir = projectWith(`${FRAME(1, "animated")}`, ["compositions/frames/01.html"]);
     expect(studioLandingSearch(dir)).toBe("");
+  });
+});
+
+describe("Studio handoff URLs", () => {
+  it("hands off the exact timeline project route", () => {
+    const dir = projectWith(null);
+    expect(studioDeepLink("http://127.0.0.1:3002", "demo", dir)).toBe(
+      "http://127.0.0.1:3002/#project/demo",
+    );
+    expect(studioSummaryUrls("demo", "http://127.0.0.1:3002", dir)).toEqual({
+      serverUrl: "http://127.0.0.1:3002",
+      studioUrl: "http://127.0.0.1:3002/#project/demo",
+    });
+  });
+
+  it("hands off the exact storyboard route while a project is still planning", () => {
+    const dir = projectWith(FRAME(1, "outline"));
+    expect(studioDeepLink("http://127.0.0.1:3002", "demo", dir)).toBe(
+      "http://127.0.0.1:3002/?view=storyboard#project/demo",
+    );
   });
 });
 

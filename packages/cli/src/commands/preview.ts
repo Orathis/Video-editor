@@ -250,11 +250,9 @@ export default defineCommand({
         console.log(`\n  ${c.dim("No background preview is running for")} ${project.dir}\n`);
         return;
       }
-      console.log(`\n  ${c.success("Background preview running")}`);
-      console.log(
-        `  ${c.accent(`http://localhost:${status.port}`)} ${c.dim(`(PID ${status.pid})`)}`,
-      );
-      console.log(`  ${c.dim(status.logPath)}\n`);
+      printStudioSummary(project.name, previewBaseUrl(status.port), project.dir, {
+        details: [`Background preview running (PID ${status.pid}).`, `Log: ${status.logPath}`],
+      });
       return;
     }
 
@@ -395,7 +393,7 @@ export default defineCommand({
       }
       const url = `http://localhost:${background.port}`;
       clack.intro(c.bold("hyperframes preview"));
-      printStudioSummary(projectName, url, {
+      printStudioSummary(projectName, url, dir, {
         details: [
           background.type === "reused"
             ? "Reusing the background server already running for this project."
@@ -866,8 +864,19 @@ export function studioLandingSearch(projectDir: string): string {
 // The full Studio URL to open or hand to the user: status-aware landing view
 // plus the project hash route. `url` never carries a trailing slash (both the
 // embedded server and the Vite `Local:` match strip it).
-function studioDeepLink(url: string, projectName: string, projectDir: string): string {
+export function studioDeepLink(url: string, projectName: string, projectDir: string): string {
   return `${url}/${studioLandingSearch(projectDir)}#project/${projectName}`;
+}
+
+export function studioSummaryUrls(
+  projectName: string,
+  serverUrl: string,
+  projectDir: string,
+): { serverUrl: string; studioUrl: string } {
+  return {
+    serverUrl,
+    studioUrl: studioDeepLink(serverUrl, projectName, projectDir),
+  };
 }
 
 function openStudioBrowser(
@@ -887,12 +896,15 @@ function openStudioBrowser(
 
 function printStudioSummary(
   projectName: string,
-  url: string,
+  serverUrl: string,
+  projectDir: string,
   opts: { details?: string[]; footer?: string } = {},
 ): void {
+  const urls = studioSummaryUrls(projectName, serverUrl, projectDir);
   console.log();
   console.log(`  ${c.dim("Project")}   ${c.accent(projectName)}`);
-  console.log(`  ${c.dim("Studio")}    ${c.accent(url)}`);
+  console.log(`  ${c.dim("Studio")}    ${c.accent(urls.studioUrl)}`);
+  console.log(`  ${c.dim("Server")}    ${c.accent(urls.serverUrl)}`);
   console.log();
   for (const detail of opts.details ?? []) {
     console.log(`  ${c.dim(detail)}`);
@@ -989,7 +1001,7 @@ function attachStudioReadyHandler(
 
     detected = true;
     spinner.stop(c.success("Studio running"));
-    printStudioSummary(projectName, url, { footer: "Press Ctrl+C to stop" });
+    printStudioSummary(projectName, url, projectDir, { footer: "Press Ctrl+C to stop" });
     openStudioBrowser(url, projectName, projectDir, options);
     child.stdout.removeListener("data", handleOutput);
     child.stderr.removeListener("data", handleOutput);
@@ -1160,7 +1172,7 @@ async function runEmbeddedMode(
   if (result.type === "already-running") {
     const url = `http://localhost:${result.port}`;
     s.stop(c.success("Already running"));
-    printStudioSummary(pName, url, {
+    printStudioSummary(pName, url, dir, {
       details: ["Reusing existing server. Use --force-new to start a fresh instance."],
     });
     openStudioBrowser(url, pName, dir, options);
@@ -1174,7 +1186,7 @@ async function runEmbeddedMode(
     console.log(`  ${c.warn(`Port ${startPort} is in use, using ${result.port} instead`)}`);
     console.log();
   }
-  printStudioSummary(pName, url, {
+  printStudioSummary(pName, url, dir, {
     details: [
       "Edit with your AI agent — it has HyperFrames skills installed.",
       "Changes reload automatically in the studio.",
