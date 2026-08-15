@@ -70,6 +70,12 @@ import {
   startBackgroundPreview,
   stopBackgroundPreview,
 } from "./previewLifecycle.js";
+import {
+  lifecycleFailurePayload,
+  lifecyclePayload,
+  writeLifecycleJson,
+  type PreviewLifecycleSession,
+} from "./previewLifecycleOutput.js";
 import { resolveLocalBrowserGpuMode, type BrowserGpuMode } from "../browser/gpuPolicy.js";
 
 interface BrowserLaunchOptions {
@@ -167,7 +173,7 @@ export default defineCommand({
     },
     json: {
       type: "boolean",
-      description: "Output preview selection/context as JSON (only with --selection or --context)",
+      description: "Output selection, context, or managed lifecycle state as JSON",
       default: false,
     },
     context: {
@@ -223,7 +229,13 @@ export default defineCommand({
       foreground: Boolean(args.foreground),
     });
     if (launchModeError) {
-      clack.log.error(launchModeError);
+      if (args.json) {
+        writeLifecycleJson(
+          lifecycleFailurePayload("start", "conflicting-lifecycle-flags", launchModeError),
+        );
+      } else {
+        clack.log.error(launchModeError);
+      }
       setCommandExitCode(1);
       return;
     }
@@ -238,16 +250,50 @@ export default defineCommand({
       const project = resolveProject(args.dir);
       if (args.stop) {
         const stopped = await stopBackgroundPreview(project.dir, startPort);
-        console.log(
-          stopped
-            ? `\n  ${c.success("Stopped background preview")} ${c.dim(project.dir)}\n`
-            : `\n  ${c.dim("No background preview is running for")} ${project.dir}\n`,
-        );
+        if (args.json) {
+          writeLifecycleJson(
+            lifecyclePayload(
+              "stop",
+              stopped
+                ? { state: "stopped", projectDir: project.dir }
+                : { state: "not-running", projectDir: project.dir },
+            ),
+          );
+        } else {
+          console.log(
+            stopped
+              ? `\n  ${c.success("Stopped background preview")} ${c.dim(project.dir)}\n`
+              : `\n  ${c.dim("No background preview is running for")} ${project.dir}\n`,
+          );
+        }
         return;
       }
       const status = await readBackgroundPreviewStatus(project.dir, startPort);
       if (!status) {
-        console.log(`\n  ${c.dim("No background preview is running for")} ${project.dir}\n`);
+        if (args.json) {
+          writeLifecycleJson(
+            lifecyclePayload("status", { state: "not-running", projectDir: project.dir }),
+          );
+        } else {
+          console.log(`\n  ${c.dim("No background preview is running for")} ${project.dir}\n`);
+        }
+        return;
+      }
+      if (args.json) {
+        writeLifecycleJson(
+          lifecyclePayload(
+            "status",
+            previewLifecycleSession({
+              state: "running",
+              mode: "background",
+              projectName: project.name,
+              projectDir: project.dir,
+              port: status.port,
+              pid: status.pid,
+              logPath: status.logPath,
+            }),
+          ),
+        );
         return;
       }
       printStudioSummary(project.name, previewBaseUrl(status.port), project.dir, {
@@ -259,6 +305,25 @@ export default defineCommand({
     // --list: scan and display active servers
     if (args.list) {
       const servers = await scanActiveServers(startPort);
+      if (args.json) {
+        writeLifecycleJson(
+          lifecyclePayload("list", {
+            state: "listed",
+            sessions: servers.map((server) =>
+              previewLifecycleSession({
+                state: "running",
+                mode: "unknown",
+                projectName: server.projectName,
+                projectDir: server.projectDir,
+                port: server.port,
+                pid: server.pid ? Number(server.pid) : null,
+                host: server.host,
+              }),
+            ),
+          }),
+        );
+        return;
+      }
       if (servers.length === 0) {
         console.log("\n  No active preview servers found.\n");
         return;
@@ -278,11 +343,19 @@ export default defineCommand({
     if (args["kill-all"]) {
       const servers = await scanActiveServers(startPort);
       if (servers.length === 0) {
-        console.log("\n  No active preview servers to kill.\n");
+        if (args.json) {
+          writeLifecycleJson(lifecyclePayload("kill-all", { state: "killed-all", stopped: 0 }));
+        } else {
+          console.log("\n  No active preview servers to kill.\n");
+        }
         return;
       }
       const killed = await killActiveServers(startPort);
-      console.log(`\n  Killed ${killed} preview server${killed === 1 ? "" : "s"}.\n`);
+      if (args.json) {
+        writeLifecycleJson(lifecyclePayload("kill-all", { state: "killed-all", stopped: killed }));
+      } else {
+        console.log(`\n  Killed ${killed} preview server${killed === 1 ? "" : "s"}.\n`);
+      }
       return;
     }
 
@@ -308,7 +381,7 @@ export default defineCommand({
 
     // Kill orphaned chrome-headless-shell processes from previous crashed sessions.
     const orphansKilled = killOrphanedProcesses();
-    if (orphansKilled > 0) {
+    if (orphansKilled > 0 && !args.json) {
       console.log(
         `  ${c.dim(`Cleaned up ${orphansKilled} orphaned process${orphansKilled === 1 ? "" : "es"} from a previous session.`)}`,
       );
@@ -322,7 +395,7 @@ export default defineCommand({
 
     // Lint before starting — surface issues for the agent to fix.
     const lintResult = await lintProject(dir);
-    if (lintResult.totalErrors > 0 || lintResult.totalWarnings > 0) {
+    if (!args.json && (lintResult.totalErrors > 0 || lintResult.totalWarnings > 0)) {
       console.log();
       for (const line of formatLintFindings(lintResult)) console.log(line);
       console.log();
@@ -379,6 +452,18 @@ export default defineCommand({
       localStudio: hasLocalStudio(dir),
     });
 
+    if (args.json && launchMode !== "background") {
+      writeLifecycleJson(
+        lifecycleFailurePayload(
+          "start",
+          "foreground-json-unsupported",
+          "--json requires a managed preview; remove --foreground or use --background",
+        ),
+      );
+      setCommandExitCode(1);
+      return;
+    }
+
     if (launchMode === "background") {
       let background;
       try {
@@ -387,21 +472,43 @@ export default defineCommand({
           browserGpuMode,
         });
       } catch (error) {
-        clack.log.error(errorMessage(error));
+        const message = errorMessage(error);
+        if (args.json) {
+          writeLifecycleJson(lifecycleFailurePayload("start", "preview-start-failed", message));
+        } else {
+          clack.log.error(message);
+        }
         setCommandExitCode(1);
         return;
       }
       const url = `http://localhost:${background.port}`;
-      clack.intro(c.bold("hyperframes preview"));
-      printStudioSummary(projectName, url, dir, {
-        details: [
-          background.type === "reused"
-            ? "Reusing the background server already running for this project."
-            : `Running in the background. Log: ${background.logPath}`,
-          "Changes reload automatically in the studio.",
-        ],
-        footer: `Stop with: hyperframes preview ${JSON.stringify(dir)} --stop`,
-      });
+      if (args.json) {
+        writeLifecycleJson(
+          lifecyclePayload(
+            "start",
+            previewLifecycleSession({
+              state: background.type,
+              mode: "background",
+              projectName,
+              projectDir: dir,
+              port: background.port,
+              pid: background.pid,
+              ...(background.logPath ? { logPath: background.logPath } : {}),
+            }),
+          ),
+        );
+      } else {
+        clack.intro(c.bold("hyperframes preview"));
+        printStudioSummary(projectName, url, dir, {
+          details: [
+            background.type === "reused"
+              ? "Reusing the background server already running for this project."
+              : `Running in the background. Log: ${background.logPath}`,
+            "Changes reload automatically in the studio.",
+          ],
+          footer: `Stop with: hyperframes preview ${JSON.stringify(dir)} --stop`,
+        });
+      }
       openStudioBrowser(url, projectName, dir, {
         noOpen,
         browserPath,
@@ -876,6 +983,33 @@ export function studioSummaryUrls(
   return {
     serverUrl,
     studioUrl: studioDeepLink(serverUrl, projectName, projectDir),
+  };
+}
+
+function previewLifecycleSession(options: {
+  state: PreviewLifecycleSession["state"];
+  mode: PreviewLifecycleSession["mode"];
+  projectName: string;
+  projectDir: string;
+  port: number;
+  pid: number | null;
+  host?: string;
+  logPath?: string;
+}): PreviewLifecycleSession {
+  const host = options.host ?? "127.0.0.1";
+  const serverUrl = previewBaseUrl(options.port, host);
+  return {
+    state: options.state,
+    mode: options.mode,
+    projectName: options.projectName,
+    projectDir: options.projectDir,
+    host,
+    port: options.port,
+    pid: options.pid,
+    serverUrl,
+    studioUrl: studioDeepLink(serverUrl, options.projectName, options.projectDir),
+    ready: true,
+    ...(options.logPath ? { logPath: options.logPath } : {}),
   };
 }
 
