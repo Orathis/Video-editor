@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 
 /**
  * Find and kill orphaned Chrome processes from previous crashed sessions.
@@ -34,11 +34,20 @@ export function killOrphanedProcesses(): number {
  * depth-first so children are killed before parents, preventing
  * re-adoption races.
  *
- * No-op on Windows — process groups are managed differently and
- * the pgrep/ps utilities are not available.
+ * Windows uses taskkill's tree mode because pgrep/ps are unavailable there.
  */
 export function killProcessTree(pid: number, signal: NodeJS.Signals = "SIGTERM"): void {
-  if (process.platform === "win32") return;
+  if (process.platform === "win32") {
+    try {
+      execFileSync("taskkill", windowsProcessTreeKillArgs(pid), {
+        stdio: "ignore",
+        timeout: 5000,
+      });
+    } catch {
+      // Process already exited or taskkill could not inspect it.
+    }
+    return;
+  }
 
   const descendants = getDescendants(pid);
   const allPids = [...descendants.reverse(), pid];
@@ -65,10 +74,17 @@ export function killProcessTree(pid: number, signal: NodeJS.Signals = "SIGTERM")
   }
 }
 
+export function windowsProcessTreeKillArgs(pid: number): string[] {
+  return ["/PID", String(pid), "/T", "/F"];
+}
+
 function getDescendants(pid: number): number[] {
   let children: number[];
   try {
-    const raw = execSync(`pgrep -P ${pid}`, { encoding: "utf-8", timeout: 2000 }).trim();
+    const raw = execSync(`pgrep -P ${pid}`, {
+      encoding: "utf-8",
+      timeout: 2000,
+    }).trim();
     if (!raw) return [];
     children = raw
       .split("\n")

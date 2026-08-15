@@ -33,7 +33,7 @@ Start the live preview studio in your browser:
 
 ```bash
 npx hyperframes preview
-# Studio: http://localhost:3002/?project=%2Fabsolute%2Fpath%2Fto%2Fmy-video
+# Studio: http://localhost:3002/#project/my-video
 # Server: http://localhost:3002
 
 npx hyperframes preview --port 4567
@@ -44,7 +44,8 @@ Ctrl+C. In a non-interactive shell such as a coding-agent session, the same
 command starts a managed preview that survives after the command returns. Use
 `--background` or `--foreground` to choose explicitly, and manage persistent
 previews with `--status`, `--stop`, `--list`, and `--kill-all`. Add `--json` to
-managed lifecycle commands for machine-readable output.
+managed lifecycle commands for machine-readable output. `--foreground --json`
+prints the ready-session envelope once, then remains attached until stopped.
 
 ### `render`
 

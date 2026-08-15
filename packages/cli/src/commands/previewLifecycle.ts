@@ -6,6 +6,7 @@ import {
   mkdirSync,
   openSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -85,6 +86,43 @@ function readPreviewSession(
       !Number.isInteger(parsed.pid) ||
       parsed.pid <= 0 ||
       normalized(parsed.projectDir) !== normalized(projectDir)
+    ) {
+      throw new Error("invalid preview session");
+    }
+    return parsed;
+  } catch {
+    rmSync(path, { force: true });
+    return null;
+  }
+}
+
+function hasValidPreviewProcess(session: PreviewSession): boolean {
+  return Number.isInteger(session.pid) && session.pid > 0;
+}
+
+function hasValidPreviewEndpoint(session: PreviewSession): boolean {
+  return Number.isInteger(session.port) && session.port > 0 && session.port <= 65535;
+}
+
+function matchesPreviewSessionFile(
+  session: PreviewSession,
+  path: string,
+  stateHome: string,
+): boolean {
+  return (
+    typeof session.projectDir === "string" &&
+    typeof session.logPath === "string" &&
+    previewSessionPath(session.projectDir, stateHome) === path
+  );
+}
+
+function readPreviewSessionFile(path: string, stateHome: string): PreviewSession | null {
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf8")) as PreviewSession;
+    if (
+      !hasValidPreviewProcess(parsed) ||
+      !hasValidPreviewEndpoint(parsed) ||
+      !matchesPreviewSessionFile(parsed, path, stateHome)
     ) {
       throw new Error("invalid preview session");
     }
@@ -205,6 +243,34 @@ export async function readBackgroundPreviewStatus(
   return null;
 }
 
+export async function listBackgroundPreviewStatuses(
+  dependencies: LifecycleDependencies = {},
+): Promise<PreviewSession[]> {
+  const stateHome = dependencies.stateHome ?? defaultStateHome();
+  const directory = sessionDirectory(stateHome);
+  let files: string[];
+  try {
+    files = readdirSync(directory)
+      .filter((name) => name.endsWith(".json"))
+      .map((name) => join(directory, name));
+  } catch {
+    return [];
+  }
+
+  const saved = files
+    .map((path) => readPreviewSessionFile(path, stateHome))
+    .filter((session): session is PreviewSession => session !== null);
+  const statuses = await Promise.all(
+    saved.map((session) =>
+      readBackgroundPreviewStatus(session.projectDir, session.port, {
+        ...dependencies,
+        stateHome,
+      }),
+    ),
+  );
+  return statuses.filter((status): status is PreviewSession => status !== null);
+}
+
 export async function startBackgroundPreview(
   projectDir: string,
   startPort: number,
@@ -214,7 +280,10 @@ export async function startBackgroundPreview(
   | { type: "started"; port: number; pid: number; logPath: string }
 > {
   const scan = dependencies.scan ?? scanActiveServers;
-  const existing = matchingServer(await scan(startPort), projectDir, dependencies.browserGpuMode);
+  const stateHome = dependencies.stateHome ?? defaultStateHome();
+  const saved = readPreviewSession(projectDir, stateHome);
+  const scanStart = dependencies.forceNew ? startPort : (saved?.port ?? startPort);
+  const existing = matchingServer(await scan(scanStart), projectDir, dependencies.browserGpuMode);
   if (existing && !dependencies.forceNew) {
     return {
       type: "reused",
@@ -224,7 +293,6 @@ export async function startBackgroundPreview(
     };
   }
 
-  const stateHome = dependencies.stateHome ?? defaultStateHome();
   const { pid, logPath } = spawnDetachedPreview(projectDir, stateHome, dependencies);
 
   const sleep = dependencies.sleep ?? delay;
@@ -263,25 +331,20 @@ export async function stopBackgroundPreview(
   const saved = readPreviewSession(projectDir, stateHome);
   const scanStart = saved?.port ?? startPort;
   const server = matchingServer(await scan(scanStart), projectDir);
-  // A saved PID can be reused after a crashed preview, so only trust it while
-  // a currently reachable server proves this exact project is still running.
-  const pid = Number(server ? (server.pid ?? saved?.pid) : undefined);
-  if (!Number.isInteger(pid) || pid <= 0) {
+  if (!server) {
     removePreviewSession(projectDir, stateHome);
     return false;
+  }
+  // A saved PID can be reused after a crashed preview. The HTTP probe proves
+  // the project, but only the live server's own metadata proves which process
+  // owns it; never substitute the saved wrapper PID here.
+  const pid = Number(server.pid);
+  if (!Number.isInteger(pid) || pid <= 0) {
+    throw new Error(`preview ownership could not be proven for ${resolve(projectDir)}`);
   }
 
   const kill = dependencies.kill ?? stopProcess;
   kill(pid);
-
-  // Dev/local mode exposes Vite's PID, while the session records the detached
-  // CLI wrapper. Both must be reaped: killing only Vite closes the port but can
-  // leave the wrapper waiting on inherited stdio forever. The live matching
-  // server above is the ownership proof that makes the saved PID safe to use.
-  const wrapperPid = Number(saved?.pid);
-  if (Number.isInteger(wrapperPid) && wrapperPid > 0 && wrapperPid !== pid) {
-    kill(wrapperPid);
-  }
 
   const sleep = dependencies.sleep ?? delay;
   for (let attempt = 0; attempt < 25; attempt++) {

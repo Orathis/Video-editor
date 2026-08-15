@@ -1,13 +1,25 @@
 import { describe, it, expect } from "vitest";
 import { spawn } from "node:child_process";
-import { killProcessTree, killOrphanedProcesses } from "./orphanCleanup.js";
+import {
+  killProcessTree,
+  killOrphanedProcesses,
+  windowsProcessTreeKillArgs,
+} from "./orphanCleanup.js";
 
 const IS_UNIX = process.platform !== "win32";
+
+describe("Windows process-tree cleanup", () => {
+  it("uses taskkill recursively and forcefully for the owned PID", () => {
+    expect(windowsProcessTreeKillArgs(4321)).toEqual(["/PID", "4321", "/T", "/F"]);
+  });
+});
 
 describe.skipIf(!IS_UNIX)("killProcessTree", () => {
   it("kills a process and all its children", async () => {
     // Spawn a parent that spawns two sleeping children
-    const parent = spawn("bash", ["-c", "sleep 60 & sleep 60 & wait"], { stdio: "ignore" });
+    const parent = spawn("bash", ["-c", "sleep 60 & sleep 60 & wait"], {
+      stdio: "ignore",
+    });
     // Let children spawn
     await new Promise((r) => setTimeout(r, 200));
 
@@ -27,7 +39,9 @@ describe.skipIf(!IS_UNIX)("killProcessTree", () => {
 
   it("escalates to SIGKILL after grace period", async () => {
     // Spawn a process that traps SIGTERM
-    const proc = spawn("bash", ["-c", "trap '' TERM; sleep 60"], { stdio: "ignore" });
+    const proc = spawn("bash", ["-c", "trap '' TERM; sleep 60"], {
+      stdio: "ignore",
+    });
     await new Promise((r) => setTimeout(r, 100));
 
     const exitPromise = new Promise<void>((resolve) => proc.on("close", resolve));

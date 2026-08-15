@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ActiveServer } from "../server/portUtils.js";
 import {
   buildBackgroundPreviewArgs,
+  listBackgroundPreviewStatuses,
   previewSessionPath,
   readBackgroundPreviewStatus,
   startBackgroundPreview,
@@ -75,6 +76,77 @@ describe("background preview lifecycle", () => {
 
     expect(result).toMatchObject({ type: "reused", port: 3210 });
     expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("reuses a saved managed preview on a custom port without repeating --port", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    writePreviewSession(
+      { pid: 4321, port: 41402, projectDir, logPath: "/tmp/custom.log" },
+      stateHome,
+    );
+    const customServer = { ...server, port: 41402 };
+    const scan = vi.fn(async (startPort?: number) => (startPort === 41402 ? [customServer] : []));
+    const spawn = vi.fn();
+
+    const result = await startBackgroundPreview(projectDir, 3002, {
+      scan,
+      spawn,
+      stateHome,
+    });
+
+    expect(result).toMatchObject({ type: "reused", port: 41402, pid: 4321 });
+    expect(scan).toHaveBeenCalledWith(41402);
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("discovers managed previews outside the default port scan and removes stale records", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    const otherProjectDir = resolve("/tmp/hyperframes-preview-managed-custom-port");
+    const staleProjectDir = resolve("/tmp/hyperframes-preview-managed-stale");
+    writePreviewSession(
+      {
+        pid: 8765,
+        port: 41402,
+        projectDir: otherProjectDir,
+        logPath: "/tmp/custom.log",
+      },
+      stateHome,
+    );
+    writePreviewSession(
+      {
+        pid: 9999,
+        port: 45000,
+        projectDir: staleProjectDir,
+        logPath: "/tmp/stale.log",
+      },
+      stateHome,
+    );
+
+    const statuses = await listBackgroundPreviewStatuses({
+      stateHome,
+      scan: async (startPort) =>
+        startPort === 41402
+          ? [
+              {
+                port: 41402,
+                projectName: "managed-custom-port",
+                projectDir: otherProjectDir,
+                version: "test",
+                pid: "8765",
+              },
+            ]
+          : [],
+    });
+
+    expect(statuses).toEqual([
+      {
+        pid: 8765,
+        port: 41402,
+        projectDir: otherProjectDir,
+        logPath: "/tmp/custom.log",
+      },
+    ]);
+    expect(existsSync(previewSessionPath(staleProjectDir, stateHome))).toBe(false);
   });
 
   it("force-new waits for a different server instead of reusing the existing one", async () => {
@@ -183,7 +255,10 @@ describe("background preview lifecycle", () => {
     savePreviewSession(stateHome);
     const scan = vi.fn(async () => [server]);
 
-    const status = await readBackgroundPreviewStatus(projectDir, 3002, { scan, stateHome });
+    const status = await readBackgroundPreviewStatus(projectDir, 3002, {
+      scan,
+      stateHome,
+    });
 
     expect(status?.port).toBe(3210);
     expect(scan).toHaveBeenCalledWith(3210);
@@ -224,30 +299,28 @@ describe("background preview lifecycle", () => {
     expect(existsSync(previewSessionPath(projectDir, stateHome))).toBe(false);
   });
 
-  it("uses the saved child PID when a matching live server cannot report one", async () => {
+  it("refuses to stop when the live server cannot prove its own PID", async () => {
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
     writePreviewSession(
       { pid: 4321, port: 3210, projectDir, logPath: "/tmp/preview.log" },
       stateHome,
     );
-    let running = true;
-    const scan = vi.fn(async () => (running ? [{ ...server, pid: null }] : []));
-    const kill = vi.fn(() => {
-      running = false;
-    });
+    const scan = vi.fn(async () => [{ ...server, pid: null }]);
+    const kill = vi.fn();
 
-    const result = await stopBackgroundPreview(projectDir, 3002, {
-      scan,
-      kill,
-      sleep: async () => {},
-      stateHome,
-    });
+    await expect(
+      stopBackgroundPreview(projectDir, 3002, {
+        scan,
+        kill,
+        sleep: async () => {},
+        stateHome,
+      }),
+    ).rejects.toThrow(/ownership/i);
 
-    expect(result).toBe(true);
-    expect(kill).toHaveBeenCalledWith(4321);
+    expect(kill).not.toHaveBeenCalled();
   });
 
-  it("stops the detached wrapper as well as its reported Vite server", async () => {
+  it("does not kill an unproven saved wrapper PID when the live server reports another PID", async () => {
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
     savePreviewSession(stateHome);
     let running = true;
@@ -264,7 +337,7 @@ describe("background preview lifecycle", () => {
     });
 
     expect(result).toBe(true);
-    expect(kill.mock.calls).toEqual([[9876], [4321]]);
+    expect(kill.mock.calls).toEqual([[9876]]);
   });
 
   it("fails loudly when the server remains reachable after stop", async () => {

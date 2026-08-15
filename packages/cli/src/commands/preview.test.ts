@@ -2,7 +2,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { runCommand } from "citty";
 import {
+  default as previewCommand,
+  foregroundPreviewReadyPayload,
   previewLaunchMode,
   previewLaunchModeError,
   previewViteArgs,
@@ -16,6 +19,7 @@ const tempDirs: string[] = [];
 
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  vi.restoreAllMocks();
 });
 
 function projectWith(storyboard: string | null, frameFiles: string[] = []): string {
@@ -78,6 +82,13 @@ describe("Studio handoff URLs", () => {
       "http://127.0.0.1:3002/?view=storyboard#project/demo",
     );
   });
+
+  it("URL-encodes project names that have hash-route metacharacters", () => {
+    const dir = projectWith(null);
+    expect(studioDeepLink("http://127.0.0.1:3002", "Launch #1? 50%", dir)).toBe(
+      "http://127.0.0.1:3002/#project/Launch%20%231%3F%2050%25",
+    );
+  });
 });
 
 describe("previewLaunchMode", () => {
@@ -136,16 +147,122 @@ describe("previewLaunchMode", () => {
     expect(previewLaunchMode(options)).toBe(expected);
   });
 
-  it("rejects conflicting lifecycle overrides", () => {
-    expect(previewLaunchModeError({ background: true, foreground: true })).toBe(
-      "--background and --foreground cannot be used together",
-    );
-    expect(previewLaunchModeError({ background: true, foreground: false })).toBeNull();
-    expect(previewLaunchModeError({ background: false, foreground: true })).toBeNull();
+  it("rejects conflicting lifecycle overrides and actions", () => {
+    expect(
+      previewLaunchModeError({
+        background: true,
+        foreground: true,
+        status: false,
+        stop: false,
+        list: false,
+        killAll: false,
+      }),
+    ).toBe("--background and --foreground cannot be used together");
+    expect(
+      previewLaunchModeError({
+        background: false,
+        foreground: false,
+        status: true,
+        stop: true,
+        list: false,
+        killAll: false,
+      }),
+    ).toBe("Only one of --status, --stop, --list, or --kill-all can be used at a time");
+    expect(
+      previewLaunchModeError({
+        background: true,
+        foreground: false,
+        status: false,
+        stop: false,
+        list: false,
+        killAll: false,
+      }),
+    ).toBeNull();
   });
 
   it("pins detached Vite to the port the lifecycle scanner waits on", () => {
     expect(previewViteArgs(3032)).toEqual(["--host", "127.0.0.1", "--port", "3032"]);
+  });
+});
+
+describe("preview lifecycle JSON failures", () => {
+  it("wraps managed-start validation failures in one JSON document", async () => {
+    const dir = projectWith(null);
+    writeFileSync(join(dir, "index.html"), "<html></html>");
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runCommand(previewCommand, {
+      rawArgs: [dir, "--background", "--json", "--user-data-dir", join(dir, "profile")],
+    });
+
+    expect(log).toHaveBeenCalledOnce();
+    const [line] = log.mock.calls[0] as [string];
+    expect(JSON.parse(line)).toMatchObject({
+      schemaVersion: 1,
+      operation: "start",
+      ok: false,
+      error: { code: "preview-validation-failed" },
+    });
+  });
+
+  it("wraps stop failures in one JSON document", async () => {
+    const missing = join(tmpdir(), `hf-preview-missing-${process.pid}-${Date.now()}`);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await runCommand(previewCommand, {
+      rawArgs: [missing, "--stop", "--json"],
+    });
+
+    expect(log).toHaveBeenCalledOnce();
+    const [line] = log.mock.calls[0] as [string];
+    expect(JSON.parse(line)).toMatchObject({
+      schemaVersion: 1,
+      operation: "stop",
+      ok: false,
+      error: { code: "preview-stop-failed" },
+    });
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("wraps missing-project start failures without human stderr", async () => {
+    const missing = join(tmpdir(), `hf-preview-missing-start-${process.pid}-${Date.now()}`);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await runCommand(previewCommand, { rawArgs: [missing, "--background", "--json"] });
+
+    expect(log).toHaveBeenCalledOnce();
+    const [line] = log.mock.calls[0] as [string];
+    expect(JSON.parse(line)).toMatchObject({
+      operation: "start",
+      ok: false,
+      error: { code: "preview-start-failed" },
+    });
+    expect(error).not.toHaveBeenCalled();
+  });
+});
+
+describe("foreground preview JSON", () => {
+  it("emits the same ready session contract before remaining attached", () => {
+    const dir = projectWith(null);
+    expect(foregroundPreviewReadyPayload("Launch #1", "http://localhost:4567", dir, 4321)).toEqual({
+      schemaVersion: 1,
+      operation: "start",
+      ok: true,
+      result: {
+        state: "started",
+        mode: "foreground",
+        projectName: "Launch #1",
+        projectDir: dir,
+        host: "127.0.0.1",
+        port: 4567,
+        pid: 4321,
+        serverUrl: "http://127.0.0.1:4567",
+        studioUrl: "http://127.0.0.1:4567/#project/Launch%20%231",
+        ready: true,
+      },
+    });
   });
 });
 
