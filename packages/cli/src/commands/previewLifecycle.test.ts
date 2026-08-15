@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -167,6 +167,50 @@ describe("background preview lifecycle", () => {
     expect(spawn).toHaveBeenCalledOnce();
   });
 
+  it("force-new replaces a previously managed server instead of orphaning it", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    const oldServer = { ...server, port: 41490, browserGpuMode: "hardware" as const };
+    writePreviewSession(
+      { pid: 4321, port: 41490, projectDir, logPath: "/tmp/preview.log" },
+      stateHome,
+    );
+    const replacement = {
+      ...server,
+      port: 41491,
+      pid: "5432",
+      browserGpuMode: "software" as const,
+    };
+    let oldRunning = true;
+    let replacementRunning = false;
+    const scan = vi.fn(async () =>
+      oldRunning ? [oldServer] : replacementRunning ? [replacement] : [],
+    );
+    const kill = vi.fn((pid: number) => {
+      if (pid === 4321) oldRunning = false;
+    });
+    const spawn = vi.fn(() => {
+      replacementRunning = true;
+      return { pid: 5432, unref: vi.fn() };
+    });
+
+    const result = await startBackgroundPreview(projectDir, 41491, {
+      browserGpuMode: "software",
+      forceNew: true,
+      kill,
+      scan,
+      sleep: async () => {},
+      spawn,
+      stateHome,
+    });
+
+    expect(scan).toHaveBeenNthCalledWith(1, 41490);
+    expect(kill).toHaveBeenCalledWith(4321);
+    expect(result).toMatchObject({ type: "started", port: 41491, pid: 5432 });
+    expect(readFileSync(previewSessionPath(projectDir, stateHome), "utf8")).toContain(
+      '"port": 41491',
+    );
+  });
+
   it("starts a replacement when the existing server uses a different GPU policy", async () => {
     const hardwareServer = { ...server, browserGpuMode: "hardware" as const };
     const softwareServer = {
@@ -212,6 +256,24 @@ describe("background preview lifecycle", () => {
     expect(result).toMatchObject({ type: "started", port: 3210, pid: 4321 });
     expect(unref).toHaveBeenCalledOnce();
     expect(existsSync(previewSessionPath(projectDir, stateHome))).toBe(true);
+  });
+
+  it("reports the live server PID while retaining the wrapper PID for cleanup", async () => {
+    const liveServer = { ...server, pid: "9876" };
+    let scans = 0;
+    const scan = vi.fn(async () => (++scans === 1 ? [] : [liveServer]));
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+
+    const result = await startBackgroundPreview(projectDir, 3002, {
+      scan,
+      spawn: () => ({ pid: 4321, unref: vi.fn() }),
+      stateHome,
+    });
+
+    expect(result).toMatchObject({ type: "started", pid: 9876 });
+    expect(
+      JSON.parse(readFileSync(previewSessionPath(projectDir, stateHome), "utf8")),
+    ).toMatchObject({ pid: 4321 });
   });
 
   it("reaps a detached child that never becomes reachable without recording ownership", async () => {
@@ -320,9 +382,49 @@ describe("background preview lifecycle", () => {
     expect(kill).not.toHaveBeenCalled();
   });
 
-  it("does not kill an unproven saved wrapper PID when the live server reports another PID", async () => {
+  it("reaps the saved wrapper when the live server is proven to be its descendant", async () => {
     const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
-    savePreviewSession(stateHome);
+    writePreviewSession(
+      {
+        pid: 4321,
+        wrapperIdentity: "wrapper-birth",
+        port: 3210,
+        projectDir,
+        logPath: "/tmp/preview.log",
+      },
+      stateHome,
+    );
+    let running = true;
+    const scan = vi.fn(async () => (running ? [{ ...server, pid: "9876" }] : []));
+    const kill = vi.fn((pid: number) => {
+      if (pid === 4321) running = false;
+    });
+
+    const result = await stopBackgroundPreview(projectDir, 3002, {
+      scan,
+      kill,
+      isDescendant: (childPid, ancestorPid) => childPid === 9876 && ancestorPid === 4321,
+      identity: (pid) => (pid === 4321 ? "wrapper-birth" : null),
+      sleep: async () => {},
+      stateHome,
+    });
+
+    expect(result).toBe(true);
+    expect(kill.mock.calls).toEqual([[4321]]);
+  });
+
+  it("kills only the live server when the saved wrapper birth identity has changed", async () => {
+    const stateHome = mkdtempSync(join(tmpdir(), "hf-preview-state-"));
+    writePreviewSession(
+      {
+        pid: 4321,
+        wrapperIdentity: "original-wrapper-birth",
+        port: 3210,
+        projectDir,
+        logPath: "/tmp/preview.log",
+      },
+      stateHome,
+    );
     let running = true;
     const scan = vi.fn(async () => (running ? [{ ...server, pid: "9876" }] : []));
     const kill = vi.fn((pid: number) => {
@@ -332,6 +434,8 @@ describe("background preview lifecycle", () => {
     const result = await stopBackgroundPreview(projectDir, 3002, {
       scan,
       kill,
+      isDescendant: () => true,
+      identity: () => "reused-pid-birth",
       sleep: async () => {},
       stateHome,
     });

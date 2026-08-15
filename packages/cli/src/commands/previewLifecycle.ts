@@ -14,10 +14,11 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { scanActiveServers, type ActiveServer } from "../server/portUtils.js";
 import type { BrowserGpuMode } from "../browser/gpuPolicy.js";
-import { killProcessTree } from "../utils/orphanCleanup.js";
+import { isProcessDescendant, killProcessTree, processIdentity } from "../utils/orphanCleanup.js";
 
 export interface PreviewSession {
   pid: number;
+  wrapperIdentity?: string;
   port: number;
   projectDir: string;
   logPath: string;
@@ -41,6 +42,8 @@ interface LifecycleDependencies {
   spawn?: SpawnPreview;
   sleep?: (ms: number) => Promise<void>;
   kill?: (pid: number) => void;
+  isDescendant?: (childPid: number, ancestorPid: number) => boolean;
+  identity?: (pid: number) => string | null;
   stateHome?: string;
   forceNew?: boolean;
   browserGpuMode?: BrowserGpuMode;
@@ -168,7 +171,7 @@ function spawnDetachedPreview(
   projectDir: string,
   stateHome: string,
   dependencies: LifecycleDependencies,
-): { pid: number; logPath: string } {
+): { pid: number; wrapperIdentity: string | undefined; logPath: string } {
   const logPath = previewLogPath(projectDir, stateHome);
   mkdirSync(dirname(logPath), { recursive: true });
   const logFd = openSync(logPath, "a", 0o600);
@@ -189,7 +192,11 @@ function spawnDetachedPreview(
   }
   if (!child.pid) throw new Error("background preview child did not report a PID");
   child.unref();
-  return { pid: child.pid, logPath };
+  return {
+    pid: child.pid,
+    wrapperIdentity: (dependencies.identity ?? processIdentity)(child.pid) ?? undefined,
+    logPath,
+  };
 }
 
 function startedServer(
@@ -271,6 +278,68 @@ export async function listBackgroundPreviewStatuses(
   return statuses.filter((status): status is PreviewSession => status !== null);
 }
 
+function readyPreviewSession(
+  server: ActiveServer,
+  pid: number,
+  wrapperIdentity: string | undefined,
+  projectDir: string,
+  logPath: string,
+  dependencies: LifecycleDependencies,
+): { session: PreviewSession; publicPid: number } {
+  const identity = wrapperIdentity ?? (dependencies.identity ?? processIdentity)(pid) ?? undefined;
+  const liveServerPid = Number(server.pid);
+  return {
+    session: {
+      pid,
+      wrapperIdentity: identity,
+      port: server.port,
+      projectDir: resolve(projectDir),
+      logPath,
+    },
+    publicPid: Number.isInteger(liveServerPid) && liveServerPid > 0 ? liveServerPid : pid,
+  };
+}
+
+function ownedStopTargetPid(
+  saved: PreviewSession | null,
+  liveServerPid: number,
+  dependencies: LifecycleDependencies,
+): number {
+  if (!saved?.wrapperIdentity) return liveServerPid;
+  const identity = dependencies.identity ?? processIdentity;
+  if (identity(saved.pid) !== saved.wrapperIdentity) return liveServerPid;
+  if (saved.pid === liveServerPid) return saved.pid;
+  const isDescendant = dependencies.isDescendant ?? isProcessDescendant;
+  return isDescendant(liveServerPid, saved.pid) ? saved.pid : liveServerPid;
+}
+
+async function replaceOwnedPreviewForForceNew(
+  existing: ActiveServer | null,
+  saved: PreviewSession | null,
+  projectDir: string,
+  dependencies: LifecycleDependencies,
+): Promise<ActiveServer | null> {
+  if (!dependencies.forceNew || !existing || saved?.port !== existing.port) return existing;
+  const stopped = await stopBackgroundPreview(projectDir, saved.port, dependencies);
+  if (!stopped) throw new Error(`managed preview could not be replaced for ${resolve(projectDir)}`);
+  return null;
+}
+
+function existingPreviewForLaunch(
+  servers: ActiveServer[],
+  saved: PreviewSession | null,
+  projectDir: string,
+  dependencies: LifecycleDependencies,
+): ActiveServer | null {
+  const requested = matchingServer(servers, projectDir, dependencies.browserGpuMode);
+  if (!dependencies.forceNew || !saved) return requested;
+  // Ownership comes from the saved project+port, not the replacement's GPU
+  // policy. Filtering here would miss an owned hardware→software replacement
+  // and overwrite the only session record while leaving the old listener live.
+  const savedPortServers = servers.filter((server) => server.port === saved.port);
+  return matchingServer(savedPortServers, projectDir) ?? requested;
+}
+
 export async function startBackgroundPreview(
   projectDir: string,
   startPort: number,
@@ -282,8 +351,11 @@ export async function startBackgroundPreview(
   const scan = dependencies.scan ?? scanActiveServers;
   const stateHome = dependencies.stateHome ?? defaultStateHome();
   const saved = readPreviewSession(projectDir, stateHome);
-  const scanStart = dependencies.forceNew ? startPort : (saved?.port ?? startPort);
-  const existing = matchingServer(await scan(scanStart), projectDir, dependencies.browserGpuMode);
+  // Always inspect a saved custom port first. `--force-new --port <new>` must
+  // replace that owned server before recording the replacement, otherwise the
+  // single per-project ownership record would orphan the old listener.
+  const scanStart = saved?.port ?? startPort;
+  let existing = existingPreviewForLaunch(await scan(scanStart), saved, projectDir, dependencies);
   if (existing && !dependencies.forceNew) {
     return {
       type: "reused",
@@ -292,8 +364,13 @@ export async function startBackgroundPreview(
       logPath: null,
     };
   }
+  existing = await replaceOwnedPreviewForForceNew(existing, saved, projectDir, dependencies);
 
-  const { pid, logPath } = spawnDetachedPreview(projectDir, stateHome, dependencies);
+  const { pid, wrapperIdentity, logPath } = spawnDetachedPreview(
+    projectDir,
+    stateHome,
+    dependencies,
+  );
 
   const sleep = dependencies.sleep ?? delay;
   for (let attempt = 0; attempt < 50; attempt++) {
@@ -305,14 +382,20 @@ export async function startBackgroundPreview(
       dependencies.browserGpuMode,
     );
     if (server) {
-      const session = {
+      const ready = readyPreviewSession(
+        server,
         pid,
-        port: server.port,
-        projectDir: resolve(projectDir),
+        wrapperIdentity,
+        projectDir,
         logPath,
+        dependencies,
+      );
+      writePreviewSession(ready.session, stateHome);
+      return {
+        type: "started",
+        ...ready.session,
+        pid: ready.publicPid,
       };
-      writePreviewSession(session, stateHome);
-      return { type: "started", ...session };
     }
     await sleep(200);
   }
@@ -344,7 +427,7 @@ export async function stopBackgroundPreview(
   }
 
   const kill = dependencies.kill ?? stopProcess;
-  kill(pid);
+  kill(ownedStopTargetPid(saved, pid, dependencies));
 
   const sleep = dependencies.sleep ?? delay;
   for (let attempt = 0; attempt < 25; attempt++) {

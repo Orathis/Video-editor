@@ -1,4 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 /**
  * Find and kill orphaned Chrome processes from previous crashed sessions.
@@ -76,6 +77,100 @@ export function killProcessTree(pid: number, signal: NodeJS.Signals = "SIGTERM")
 
 export function windowsProcessTreeKillArgs(pid: number): string[] {
   return ["/PID", String(pid), "/T", "/F"];
+}
+
+/**
+ * Return a process birth token suitable for detecting PID reuse. The token is
+ * diagnostic state only: callers must still prove the live server is a
+ * descendant before treating a saved wrapper as the owned process-tree root.
+ */
+export function processIdentity(pid: number): string | null {
+  if (!Number.isInteger(pid) || pid <= 0) return null;
+  try {
+    if (process.platform === "win32") {
+      const created = execFileSync(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          `(Get-CimInstance Win32_Process -Filter 'ProcessId = ${pid}').CreationDate.ToFileTimeUtc()`,
+        ],
+        { encoding: "utf8", timeout: 2000 },
+      ).trim();
+      return created ? `windows:${created}` : null;
+    }
+
+    if (process.platform === "linux") {
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      const fields = stat
+        .slice(stat.lastIndexOf(") ") + 2)
+        .trim()
+        .split(/\s+/);
+      const startTicks = fields[19]; // field 22 overall; fields starts at process state (3)
+      return startTicks ? `linux:${startTicks}` : null;
+    }
+
+    const started = execFileSync("ps", ["-o", "lstart=", "-p", String(pid)], {
+      encoding: "utf8",
+      timeout: 2000,
+    }).trim();
+    return started ? `posix:${started}` : null;
+  } catch {
+    return null;
+  }
+}
+
+type ParentPidLookup = (pid: number) => number | null;
+
+function processParentPid(pid: number): number | null {
+  try {
+    const output =
+      process.platform === "win32"
+        ? execFileSync(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-Command",
+              `(Get-CimInstance Win32_Process -Filter 'ProcessId = ${pid}').ParentProcessId`,
+            ],
+            { encoding: "utf8", timeout: 2000 },
+          )
+        : execFileSync("ps", ["-o", "ppid=", "-p", String(pid)], {
+            encoding: "utf8",
+            timeout: 2000,
+          });
+    const parentPid = Number(output.trim());
+    return Number.isInteger(parentPid) && parentPid > 0 ? parentPid : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Prove that `childPid` currently belongs to the process tree rooted at
+ * `ancestorPid`. The walk fails closed on missing, invalid, or cyclic process
+ * metadata so a stale saved PID can never authorize terminating a new process.
+ */
+export function isProcessDescendant(
+  childPid: number,
+  ancestorPid: number,
+  parentPid: ParentPidLookup = processParentPid,
+): boolean {
+  if (childPid <= 0 || ancestorPid <= 0 || childPid === ancestorPid) return false;
+
+  const visited = new Set<number>();
+  let current = childPid;
+  for (let depth = 0; depth < 64; depth++) {
+    if (visited.has(current)) return false;
+    visited.add(current);
+    const parent = parentPid(current);
+    if (parent === ancestorPid) return true;
+    if (parent === null || parent <= 1) return false;
+    current = parent;
+  }
+  return false;
 }
 
 function getDescendants(pid: number): number[] {

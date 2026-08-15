@@ -6,9 +6,15 @@ import { runCommand } from "citty";
 import {
   default as previewCommand,
   foregroundPreviewReadyPayload,
+  handlePreviewKillAll,
+  handlePreviewList,
   previewLaunchMode,
   previewLaunchModeError,
+  previewPortError,
+  publicPreviewPid,
   previewViteArgs,
+  reportPreviewShutdown,
+  studioReadyUrl,
   studioDeepLink,
   studioLandingSearch,
   studioSummaryUrls,
@@ -20,6 +26,7 @@ const tempDirs: string[] = [];
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
   vi.restoreAllMocks();
+  process.exitCode = undefined;
 });
 
 function projectWith(storyboard: string | null, frameFiles: string[] = []): string {
@@ -178,14 +185,122 @@ describe("previewLaunchMode", () => {
         killAll: false,
       }),
     ).toBeNull();
+    expect(
+      previewLaunchModeError({
+        background: true,
+        foreground: false,
+        status: true,
+        stop: false,
+        list: false,
+        killAll: false,
+      }),
+    ).toBe("Preview launch overrides cannot be combined with lifecycle actions");
+    expect(
+      previewLaunchModeError({
+        background: false,
+        foreground: true,
+        status: false,
+        stop: false,
+        list: false,
+        killAll: true,
+      }),
+    ).toBe("Preview launch overrides cannot be combined with lifecycle actions");
+    expect(
+      previewLaunchModeError({
+        background: false,
+        foreground: false,
+        forceNew: true,
+        status: true,
+        stop: false,
+        list: false,
+        killAll: false,
+      }),
+    ).toBe("Preview launch overrides cannot be combined with lifecycle actions");
+  });
+
+  it.each([
+    [undefined, null],
+    ["3002", null],
+    ["1", null],
+    ["65535", null],
+    ["banana", "--port must be an integer between 1 and 65535"],
+    ["3002oops", "--port must be an integer between 1 and 65535"],
+    ["0", "--port must be an integer between 1 and 65535"],
+    ["65536", "--port must be an integer between 1 and 65535"],
+  ])("validates preview port %j", (value, expected) => {
+    expect(previewPortError(value)).toBe(expected);
+  });
+
+  it("prefers the live server PID over its launcher PID", () => {
+    expect(publicPreviewPid("9876", 4321)).toBe(9876);
+    expect(publicPreviewPid(null, 4321)).toBe(4321);
   });
 
   it("pins detached Vite to the port the lifecycle scanner waits on", () => {
     expect(previewViteArgs(3032)).toEqual(["--host", "127.0.0.1", "--port", "3032"]);
   });
+
+  it.each([
+    ["  Local:   http://localhost:43127/", "http://localhost:43127"],
+    ["  Local:   http://127.0.0.1:43127/", "http://127.0.0.1:43127"],
+    [
+      "\u001b[32m  Local:\u001b[0m   \u001b[36mhttp://127.0.0.1:43127/\u001b[0m",
+      "http://127.0.0.1:43127",
+    ],
+  ])("extracts the ready URL from Vite output %j", (output, expected) => {
+    expect(studioReadyUrl(output)).toBe(expected);
+  });
 });
 
 describe("preview lifecycle JSON failures", () => {
+  it.each([
+    [
+      "list",
+      () =>
+        handlePreviewList(3002, true, {
+          scan: async () => {
+            throw new Error("list probe failed");
+          },
+          listManaged: async () => [],
+        }),
+      "preview-list-failed",
+    ],
+    [
+      "kill-all",
+      () =>
+        handlePreviewKillAll(3002, true, {
+          listManaged: async () => [
+            {
+              pid: 4321,
+              port: 41402,
+              projectDir: "/tmp/managed-preview",
+              logPath: "/tmp/managed-preview.log",
+            },
+          ],
+          stopManaged: async () => {
+            throw new Error("ownership failed");
+          },
+          killScanned: async () => 0,
+        }),
+      "preview-kill-all-failed",
+    ],
+  ] as const)("wraps %s failures in one JSON document", async (operation, run, code) => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await run();
+
+    expect(log).toHaveBeenCalledOnce();
+    const [line] = log.mock.calls[0] as [string];
+    expect(JSON.parse(line)).toMatchObject({
+      schemaVersion: 1,
+      operation,
+      ok: false,
+      error: { code },
+    });
+    expect(error).not.toHaveBeenCalled();
+  });
+
   it("wraps managed-start validation failures in one JSON document", async () => {
     const dir = projectWith(null);
     writeFileSync(join(dir, "index.html"), "<html></html>");
@@ -263,6 +378,14 @@ describe("foreground preview JSON", () => {
         ready: true,
       },
     });
+  });
+
+  it("keeps embedded shutdown silent after the readiness envelope", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    reportPreviewShutdown(true);
+
+    expect(log).not.toHaveBeenCalled();
   });
 });
 

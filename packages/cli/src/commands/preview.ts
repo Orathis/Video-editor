@@ -56,6 +56,7 @@ import {
 import { lintProject } from "../utils/lintProject.js";
 import { formatLintFindings } from "../utils/lintFormat.js";
 import {
+  activeServerOnPort,
   findPortAndServe,
   scanActiveServers,
   killActiveServers,
@@ -242,6 +243,7 @@ export default defineCommand({
     const launchModeError = previewLaunchModeError({
       background: Boolean(args.background),
       foreground: Boolean(args.foreground),
+      forceNew: Boolean(args["force-new"]),
       status: Boolean(args.status),
       stop: Boolean(args.stop),
       list: Boolean(args.list),
@@ -268,6 +270,25 @@ export default defineCommand({
         clack.log.error(launchModeError);
       }
       setCommandExitCode(1);
+      return;
+    }
+
+    const portError = previewPortError(args.port);
+    if (portError) {
+      reportPreviewFailure(
+        Boolean(args.json),
+        args.status
+          ? "status"
+          : args.stop
+            ? "stop"
+            : args.list
+              ? "list"
+              : args["kill-all"]
+                ? "kill-all"
+                : "start",
+        "preview-validation-failed",
+        portError,
+      );
       return;
     }
 
@@ -348,86 +369,13 @@ export default defineCommand({
 
     // --list: scan and display active servers
     if (args.list) {
-      const [scannedServers, managedSessions] = await Promise.all([
-        scanActiveServers(startPort),
-        listBackgroundPreviewStatuses(),
-      ]);
-      const managedKeys = new Set(
-        managedSessions.map((session) => `${resolve(session.projectDir)}\0${session.port}`),
-      );
-      const servers = [
-        ...managedSessions.map((session) => ({
-          port: session.port,
-          host: "127.0.0.1",
-          projectName: basename(session.projectDir),
-          projectDir: session.projectDir,
-          version: "managed",
-          pid: String(session.pid),
-        })),
-        ...scannedServers.filter(
-          (server) => !managedKeys.has(`${resolve(server.projectDir)}\0${server.port}`),
-        ),
-      ];
-      if (args.json) {
-        writeLifecycleJson(
-          lifecyclePayload("list", {
-            state: "listed",
-            sessions: servers.map((server) =>
-              previewLifecycleSession({
-                state: "running",
-                mode: "unknown",
-                projectName: server.projectName,
-                projectDir: server.projectDir,
-                port: server.port,
-                pid: server.pid ? Number(server.pid) : null,
-                host: server.host,
-              }),
-            ),
-          }),
-        );
-        return;
-      }
-      if (servers.length === 0) {
-        console.log("\n  No active preview servers found.\n");
-        return;
-      }
-      console.log(`\n  ${c.bold("Active preview servers:")}\n`);
-      for (const s of servers) {
-        const pidStr = s.pid ? c.dim(` (PID ${s.pid})`) : "";
-        console.log(
-          `  ${c.accent(`Port ${s.port}`)}  ${s.projectName}  ${c.dim(s.projectDir)}${pidStr}`,
-        );
-      }
-      console.log(`\n  ${servers.length} server${servers.length === 1 ? "" : "s"} running.\n`);
+      await handlePreviewList(startPort, Boolean(args.json));
       return;
     }
 
     // --kill-all: kill all active servers
     if (args["kill-all"]) {
-      const managedSessions = await listBackgroundPreviewStatuses();
-      let killed = 0;
-      for (const session of managedSessions) {
-        if (await stopBackgroundPreview(session.projectDir, session.port)) killed++;
-      }
-      killed += await killActiveServers(startPort);
-      if (killed === 0) {
-        if (args.json) {
-          writeLifecycleJson(lifecyclePayload("kill-all", { state: "killed-all", stopped: 0 }));
-        } else {
-          console.log("\n  No active preview servers to kill.\n");
-        }
-        return;
-      }
-      if (args.json) {
-        writeLifecycleJson(
-          lifecyclePayload("kill-all", {
-            state: "killed-all",
-            stopped: killed,
-          }),
-        );
-      } else {
-        console.log(`\n  Killed ${killed} preview server${killed === 1 ? "" : "s"}.\n`);
-      }
+      await handlePreviewKillAll(startPort, Boolean(args.json));
       return;
     }
 
@@ -664,6 +612,7 @@ export function previewLaunchMode(options: {
 export function previewLaunchModeError(options: {
   background: boolean;
   foreground: boolean;
+  forceNew?: boolean;
   status: boolean;
   stop: boolean;
   list: boolean;
@@ -675,9 +624,28 @@ export function previewLaunchModeError(options: {
   const actionCount = [options.status, options.stop, options.list, options.killAll].filter(
     Boolean,
   ).length;
-  return actionCount > 1
-    ? "Only one of --status, --stop, --list, or --kill-all can be used at a time"
-    : null;
+  if (actionCount > 1) {
+    return "Only one of --status, --stop, --list, or --kill-all can be used at a time";
+  }
+  if (actionCount > 0 && (options.background || options.foreground || options.forceNew)) {
+    return "Preview launch overrides cannot be combined with lifecycle actions";
+  }
+  return null;
+}
+
+export function previewPortError(port: string | undefined): string | null {
+  const value = port ?? "3002";
+  if (!/^\d+$/.test(value)) return "--port must be an integer between 1 and 65535";
+  const parsed = Number(value);
+  return parsed >= 1 && parsed <= 65535 ? null : "--port must be an integer between 1 and 65535";
+}
+
+export function publicPreviewPid(
+  serverPid: string | null | undefined,
+  fallbackPid: number | null,
+): number | null {
+  const parsed = Number(serverPid);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallbackPid;
 }
 
 function reportPreviewFailure(
@@ -689,6 +657,103 @@ function reportPreviewFailure(
   if (json) writeLifecycleJson(lifecycleFailurePayload(operation, code, message));
   else clack.log.error(message);
   setCommandExitCode(1);
+}
+
+interface PreviewActionDependencies {
+  scan?: typeof scanActiveServers;
+  listManaged?: typeof listBackgroundPreviewStatuses;
+  stopManaged?: typeof stopBackgroundPreview;
+  killScanned?: typeof killActiveServers;
+}
+
+export async function handlePreviewList(
+  startPort: number,
+  json: boolean,
+  dependencies: PreviewActionDependencies = {},
+): Promise<void> {
+  try {
+    const [scannedServers, managedSessions] = await Promise.all([
+      (dependencies.scan ?? scanActiveServers)(startPort),
+      (dependencies.listManaged ?? listBackgroundPreviewStatuses)(),
+    ]);
+    const managedKeys = new Set(
+      managedSessions.map((session) => `${resolve(session.projectDir)}\0${session.port}`),
+    );
+    const servers = [
+      ...managedSessions.map((session) => ({
+        port: session.port,
+        host: "127.0.0.1",
+        projectName: basename(session.projectDir),
+        projectDir: session.projectDir,
+        version: "managed",
+        pid: String(session.pid),
+      })),
+      ...scannedServers.filter(
+        (server) => !managedKeys.has(`${resolve(server.projectDir)}\0${server.port}`),
+      ),
+    ];
+    if (json) {
+      writeLifecycleJson(
+        lifecyclePayload("list", {
+          state: "listed",
+          sessions: servers.map((server) =>
+            previewLifecycleSession({
+              state: "running",
+              mode: server.version === "managed" ? "background" : "unknown",
+              projectName: server.projectName,
+              projectDir: server.projectDir,
+              port: server.port,
+              pid: server.pid ? Number(server.pid) : null,
+              host: server.host,
+            }),
+          ),
+        }),
+      );
+      return;
+    }
+    if (servers.length === 0) {
+      console.log("\n  No active preview servers found.\n");
+      return;
+    }
+    console.log(`\n  ${c.bold("Active preview servers:")}\n`);
+    for (const server of servers) {
+      const pid = server.pid ? c.dim(` (PID ${server.pid})`) : "";
+      console.log(
+        `  ${c.accent(`Port ${server.port}`)}  ${server.projectName}  ${c.dim(server.projectDir)}${pid}`,
+      );
+    }
+    console.log(`\n  ${servers.length} server${servers.length === 1 ? "" : "s"} running.\n`);
+  } catch (error) {
+    reportPreviewFailure(json, "list", "preview-list-failed", errorMessage(error));
+  }
+}
+
+export async function handlePreviewKillAll(
+  startPort: number,
+  json: boolean,
+  dependencies: PreviewActionDependencies = {},
+): Promise<void> {
+  try {
+    const managedSessions = await (dependencies.listManaged ?? listBackgroundPreviewStatuses)();
+    let killed = 0;
+    for (const session of managedSessions) {
+      if (
+        await (dependencies.stopManaged ?? stopBackgroundPreview)(session.projectDir, session.port)
+      ) {
+        killed++;
+      }
+    }
+    killed += await (dependencies.killScanned ?? killActiveServers)(startPort);
+    if (json) {
+      writeLifecycleJson(lifecyclePayload("kill-all", { state: "killed-all", stopped: killed }));
+    } else if (killed === 0) {
+      console.log("\n  No active preview servers to kill.\n");
+    } else {
+      console.log(`\n  Killed ${killed} preview server${killed === 1 ? "" : "s"}.\n`);
+    }
+  } catch (error) {
+    reportPreviewFailure(json, "kill-all", "preview-kill-all-failed", errorMessage(error));
+  }
 }
 
 export function previewViteArgs(port: number | undefined): string[] {
@@ -1267,14 +1332,21 @@ function attachStudioReadyHandler(
 ): void {
   let detected = false;
 
-  function handleOutput(data: Buffer): void {
-    const url = data.toString().match(/Local:\s+(http:\/\/localhost:\d+)/)?.[1];
+  async function handleOutput(data: Buffer): Promise<void> {
+    const url = studioReadyUrl(data.toString());
     if (!url || detected) return;
 
     detected = true;
     if (options?.json) {
+      const port = Number(new URL(url).port);
+      const server = await activeServerOnPort(port);
       writeLifecycleJson(
-        foregroundPreviewReadyPayload(projectName, url, projectDir, child.pid ?? null),
+        foregroundPreviewReadyPayload(
+          projectName,
+          url,
+          projectDir,
+          publicPreviewPid(server?.pid, child.pid ?? null),
+        ),
       );
     } else {
       spinner.stop(c.success("Studio running"));
@@ -1287,8 +1359,8 @@ function attachStudioReadyHandler(
     child.stderr.removeListener("data", handleOutput);
   }
 
-  child.stdout.on("data", handleOutput);
-  child.stderr.on("data", handleOutput);
+  child.stdout.on("data", (data) => void handleOutput(data));
+  child.stderr.on("data", (data) => void handleOutput(data));
   child.on("error", (err) => {
     if (options?.json) {
       reportPreviewFailure(true, "start", "preview-start-failed", err.message);
@@ -1297,6 +1369,17 @@ function attachStudioReadyHandler(
       console.error(c.dim(err.message));
     }
   });
+}
+
+export function studioReadyUrl(output: string): string | null {
+  const localLine = output.split(/\r?\n/).find((line) => line.includes("Local:"));
+  return localLine?.match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/)?.[0] ?? null;
+}
+
+export function reportPreviewShutdown(json: boolean): void {
+  if (json) return;
+  console.log();
+  console.log(`  ${c.dim("Shutting down studio...")}`);
 }
 
 /**
@@ -1429,14 +1512,15 @@ async function runEmbeddedMode(
     return;
   }
 
-  const { app } = createStudioServer({
+  // Compute everything that may throw before acquiring the fs.watch handle.
+  // Once createStudioServer returns, every subsequent exit path must close it.
+  const serverBuildSignature = await loadPreviewServerBuildSignature();
+  const { app, watcher } = createStudioServer({
     projectDir: dir,
     projectName: pName,
     autoProxy: options?.autoProxy,
     browserGpuMode: options?.browserGpuMode,
   });
-  const serverBuildSignature = await loadPreviewServerBuildSignature();
-
   let result: FindPortResult;
   try {
     result = await findPortAndServe(
@@ -1449,6 +1533,7 @@ async function runEmbeddedMode(
       options?.browserGpuMode,
     );
   } catch (err: unknown) {
+    watcher.close();
     reportPreviewFailure(
       Boolean(options?.json),
       "start",
@@ -1459,8 +1544,13 @@ async function runEmbeddedMode(
   }
 
   if (result.type === "already-running") {
+    // createStudioServer acquires an fs.watch handle before port discovery.
+    // Reuse owns no local server, so release that handle before returning or
+    // the otherwise-finished CLI process remains alive indefinitely.
+    watcher.close();
     const url = `http://localhost:${result.port}`;
     if (options?.json) {
+      const server = await activeServerOnPort(result.port);
       writeLifecycleJson(
         lifecyclePayload(
           "start",
@@ -1470,7 +1560,7 @@ async function runEmbeddedMode(
             projectName: pName,
             projectDir: dir,
             port: result.port,
-            pid: null,
+            pid: publicPreviewPid(server?.pid, null),
           }),
         ),
       );
@@ -1534,8 +1624,7 @@ async function runEmbeddedMode(
       process.off("SIGINT", shutdown);
       process.off("SIGTERM", shutdown);
       rl?.close();
-      console.log();
-      console.log(`  ${c.dim("Shutting down studio...")}`);
+      reportPreviewShutdown(Boolean(options?.json));
 
       // Hard deadline: if cleanup hangs (e.g. dead Chrome never responds to
       // browser.close()), force exit. Armed before awaiting cleanup so it
@@ -1554,6 +1643,7 @@ async function runEmbeddedMode(
       cleanup()
         .catch(() => {})
         .finally(() => {
+          watcher.close();
           result.server.close(() => resolveRun());
         });
     };

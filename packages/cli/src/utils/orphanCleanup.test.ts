@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { spawn } from "node:child_process";
 import {
+  isProcessDescendant,
   killProcessTree,
   killOrphanedProcesses,
+  processIdentity,
   windowsProcessTreeKillArgs,
 } from "./orphanCleanup.js";
 
@@ -11,6 +13,31 @@ const IS_UNIX = process.platform !== "win32";
 describe("Windows process-tree cleanup", () => {
   it("uses taskkill recursively and forcefully for the owned PID", () => {
     expect(windowsProcessTreeKillArgs(4321)).toEqual(["/PID", "4321", "/T", "/F"]);
+  });
+});
+
+describe("process-tree ownership", () => {
+  it("captures a stable birth token for the current process", () => {
+    const first = processIdentity(process.pid);
+    expect(first).toMatch(/^(?:linux|posix|windows):/);
+    expect(processIdentity(process.pid)).toBe(first);
+    expect(processIdentity(-1)).toBeNull();
+  });
+
+  it("proves ancestry through every intermediate wrapper", () => {
+    const parents = new Map([
+      [400, 300],
+      [300, 200],
+      [200, 1],
+    ]);
+
+    expect(isProcessDescendant(400, 200, (pid) => parents.get(pid) ?? null)).toBe(true);
+    expect(isProcessDescendant(400, 999, (pid) => parents.get(pid) ?? null)).toBe(false);
+  });
+
+  it("fails closed on missing or cyclic process metadata", () => {
+    expect(isProcessDescendant(400, 200, () => null)).toBe(false);
+    expect(isProcessDescendant(400, 200, (pid) => (pid === 400 ? 300 : 400))).toBe(false);
   });
 });
 
