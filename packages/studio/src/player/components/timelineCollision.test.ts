@@ -452,6 +452,48 @@ describe("resolveZoneDropPlacement (the whole drop decision, no same-track overl
     ).toEqual({ track: 3, insertRow: 4 });
   });
 
+  it("reserves an adjacent audio lane instead of redirecting the drag to the bottom", () => {
+    expect(
+      resolveZoneDropPlacement({
+        ...base,
+        audioTracks: new Set([2, 3]),
+        elements: [el("visual", 0, 0, 10), el("a", 2, 0, 10), el("b", 3, 0, 10)],
+        desiredTrack: 2,
+        isAudio: true,
+      }),
+    ).toEqual({ track: 2, insertRow: 3 });
+  });
+
+  it("keeps an occupied audio insertion on the side the clip is moving toward", () => {
+    const audioBase = {
+      ...base,
+      order: [0, 1, 2, 3],
+      audioTracks: new Set([2, 3]),
+      isAudio: true,
+    };
+
+    // Bottom lane → occupied lane above: reserve ABOVE the aimed lane. This is
+    // the browser-reproduced regression that previously redirected to row 4.
+    expect(
+      resolveZoneDropPlacement({
+        ...audioBase,
+        elements: [el("occupied-above", 2, 0, 10), el("drag", 3, 0, 10)],
+        desiredTrack: 2,
+        dragKey: "drag",
+      }),
+    ).toEqual({ track: 2, insertRow: 2 });
+
+    // Top lane → occupied lane below: reserve BELOW the aimed lane.
+    expect(
+      resolveZoneDropPlacement({
+        ...audioBase,
+        elements: [el("drag", 2, 0, 10), el("occupied-below", 3, 0, 10)],
+        desiredTrack: 3,
+        dragKey: "drag",
+      }),
+    ).toEqual({ track: 3, insertRow: 4 });
+  });
+
   it("Abhai repro: audio dropped on a visual-only timeline over an occupied span → insert, no overlap (#2195)", () => {
     // No audio zone exists yet (audioTracks empty). The audio clip is aimed at the
     // sole visual lane, which is occupied at the drop time. The zone-drop must

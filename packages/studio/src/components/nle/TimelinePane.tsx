@@ -87,7 +87,9 @@ export interface TimelinePaneProps {
     files: File[],
     placement?: Pick<TimelineElement, "start" | "track">,
   ) => Promise<void> | void;
+  onDuplicateElement?: (element: TimelineElement) => Promise<void> | void;
   onDeleteElement?: (element: TimelineElement) => Promise<void> | void;
+  onAddFrameTrack?: () => Promise<void> | void;
   onAssetDrop?: (
     assetPath: string,
     placement: Pick<TimelineElement, "start" | "track">,
@@ -110,7 +112,9 @@ export function TimelinePane({
   timelineFooter,
   renderClipContent,
   onFileDrop,
+  onDuplicateElement,
   onDeleteElement,
+  onAddFrameTrack,
   onAssetDrop,
   onBlockDrop,
   onCompositionDrop,
@@ -233,6 +237,15 @@ export function TimelinePane({
     [onDeleteElement, toLocalElement],
   );
 
+  const handleDuplicateElement = useCallback(
+    (element: TimelineElement) => {
+      const basis = element.expandedParentStart;
+      if (basis === undefined) return onDuplicateElement?.(element);
+      return onDuplicateElement?.(toLocalElement(element, basis));
+    },
+    [onDuplicateElement, toLocalElement],
+  );
+
   const handleSplitElement = useCallback(
     (element: TimelineElement, splitTime: number) => {
       const basis = element.expandedParentStart;
@@ -277,7 +290,9 @@ export function TimelinePane({
             onDrillDown={handleDrillDown}
             renderClipContent={renderClipContent}
             onFileDrop={onFileDrop}
+            onDuplicateElement={handleDuplicateElement}
             onDeleteElement={handleDeleteElement}
+            onAddFrameTrack={onAddFrameTrack}
             onAssetDrop={onAssetDrop}
             onBlockDrop={onBlockDrop}
             onCompositionDrop={onCompositionDrop}

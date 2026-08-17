@@ -294,6 +294,45 @@ describe("TimelineAutomationLane", () => {
     expect(onCommit).toHaveBeenCalledTimes(1);
   });
 
+  it("exposes a Premiere-style volume line with a dB readout and keyboard gain", () => {
+    const onCommit = vi.fn();
+    const steady: HfAutomation = {
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    };
+    const { container } = render(
+      <TimelineAutomationLane {...laneProps({ automation: steady, onCommit })} />,
+    );
+    const gain = container.querySelector<SVGPathElement>("[data-volume-gain-line]")!;
+
+    expect(gain.getAttribute("role")).toBe("slider");
+    expect(gain.getAttribute("aria-valuetext")).toBe("0.0 dB");
+    expect(container.querySelector("[data-volume-gain-handle]")?.textContent).toContain("↕ 0.0 dB");
+    fire(gain, "keydown", { key: "ArrowDown" });
+
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCommit.mock.calls[0][0].lanes[0].points[0].v).toBeCloseTo(10 ** (-1 / 20), 5);
+  });
+
+  it("previews a whole-volume-line drag and persists it on release", () => {
+    const onPreview = vi.fn();
+    const onCommit = vi.fn();
+    const steady: HfAutomation = {
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 0.5 }] }],
+    };
+    const { container } = render(
+      <TimelineAutomationLane {...laneProps({ automation: steady, onPreview, onCommit })} />,
+    );
+    const gain = container.querySelector<SVGPathElement>("[data-volume-gain-line]")!;
+
+    fire(gain, "pointerdown", { clientY: 40, buttons: 1 });
+    fire(gain, "pointermove", { clientY: 20, buttons: 1 });
+    expect(onPreview.mock.calls[0][0].lanes[0].points[0].v).toBeGreaterThan(0.5);
+    fire(gain, "pointerup", { clientY: 20 });
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });
+
   it("moves the dragged point on screen without waiting for the prop", () => {
     // The live write skips the preview refresh on purpose, so `automation` does
     // not change under the pointer. Before the draft state existed the circle

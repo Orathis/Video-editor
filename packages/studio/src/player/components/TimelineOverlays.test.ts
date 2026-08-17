@@ -158,4 +158,55 @@ describe("TimelineOverlays context lifecycle", () => {
 
     expect(onDeleteAllKeyframes).toHaveBeenCalledExactlyOnceWith(current, "child-position");
   });
+
+  it("shows Duplicate directly above Delete and dispatches the current clip model", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    roots.push(root);
+    const current = { ...captured, start: 4, track: 7 };
+    const elements = [current];
+    const onDuplicateElement = vi.fn();
+
+    act(() => {
+      usePlayerStore.setState({ selectedElementId: "parent::child", timelineSessionEpoch: 2 });
+      root.render(
+        createElement(TimelineOverlays, {
+          elements,
+          elementsRef: { current: elements },
+          theme: defaultTimelineTheme,
+          showShortcutHint: false,
+          showPopover: false,
+          rangeSelection: null,
+          setShowPopover: vi.fn(),
+          setRangeSelection: vi.fn(),
+          kfContextMenu: null,
+          setKfContextMenu: vi.fn(),
+          onDeleteKeyframe: vi.fn(),
+          onDeleteAllKeyframes: vi.fn(),
+          onMoveKeyframeToPlayhead: vi.fn(),
+          clipContextMenu: { x: 10, y: 10, element: captured, sessionEpoch: 2 },
+          setClipContextMenu: vi.fn(),
+          currentTime: 4,
+          onSplitElement: vi.fn(),
+          pinZoomBeforeEdit: vi.fn(),
+          onDuplicateElement,
+          onDeleteElement: vi.fn(),
+          gapContextMenu: null,
+          onDismissGapContextMenu: vi.fn(),
+          onCloseTrackGap: vi.fn(),
+          onCloseAllTrackGaps: vi.fn(),
+          onHoverGapAction: vi.fn(),
+        }),
+      );
+    });
+
+    const labels = Array.from(document.body.querySelectorAll("button"), (button) =>
+      button.textContent?.trim(),
+    );
+    expect(labels).toEqual(["Duplicate", "Delete⌫"]);
+
+    act(() => document.body.querySelector<HTMLButtonElement>("button")?.click());
+    expect(onDuplicateElement).toHaveBeenCalledExactlyOnceWith(current);
+  });
 });

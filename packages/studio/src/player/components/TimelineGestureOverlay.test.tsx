@@ -32,7 +32,7 @@ const drag: DraggedClipState = {
 afterEach(() => document.body.replaceChildren());
 
 describe("TimelineGestureOverlay", () => {
-  it("keeps the drag actor mounted without a source-row node", () => {
+  it("renders a translucent, non-interactive drop ghost independently of source rows", () => {
     const host = document.createElement("div");
     document.body.append(host);
     const root = createRoot(host);
@@ -48,6 +48,7 @@ describe("TimelineGestureOverlay", () => {
           scrollRef={{ current: scroll }}
           pixelsPerSecond={100}
           rowHeight={42}
+          resolvedTop={220}
           selectedElementId="hero"
           currentTime={4}
           theme={defaultTimelineTheme}
@@ -56,12 +57,19 @@ describe("TimelineGestureOverlay", () => {
       );
     });
     const actor = host.querySelector<HTMLElement>('[data-timeline-gesture-actor="hero"]');
+    expect(actor?.hasAttribute("data-timeline-drop-ghost")).toBe(true);
+    expect(actor?.classList.contains("timeline-gesture-preview")).toBe(true);
     expect(actor?.style.left).toBe("780px");
-    expect(actor?.style.top).toBe("490px");
+    expect(actor?.style.top).toBe("0px");
+    expect(actor?.style.transform).toBe("translate3d(0, 220px, 0)");
+    expect(actor?.style.transition).toContain("120ms");
     expect(actor?.querySelector(".timeline-clip")).not.toBeNull();
     expect(actor?.querySelector("[data-el-id]")).toBeNull();
     expect(actor?.querySelector("[data-clip]")).toBeNull();
     expect(host.querySelector("[data-source-row]")).toBeNull();
+    expect(host.querySelector("[data-timeline-gesture-overlay]")?.className).toContain(
+      "overflow-clip",
+    );
     act(() => root.unmount());
   });
 
@@ -76,6 +84,7 @@ describe("TimelineGestureOverlay", () => {
           scrollRef={{ current: null }}
           pixelsPerSecond={100}
           rowHeight={42}
+          resolvedTop={null}
           selectedElementId={null}
           currentTime={0}
           theme={defaultTimelineTheme}

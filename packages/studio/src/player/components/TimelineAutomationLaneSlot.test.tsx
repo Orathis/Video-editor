@@ -133,21 +133,23 @@ const ROW_1 = `${getTimelineLaneTop(0) + AUTOMATION_LANE_H}px`;
 
 describe("TimelineAutomationLaneSlot shared rows", () => {
   it("draws two clips' envelopes for one property in the same row", () => {
-    // One lane track, two envelopes — same row, each over its own span. The
-    // 1 kHz peaking Q is `fx.n2.q` on one clip and `fx.n1.q` on the other.
+    // One effect row, plus the always-available Volume row. The 1 kHz peaking
+    // Q is `fx.n2.q` on one clip and `fx.n1.q` on the other; Volume spans both.
     expect(mountRow([narration1, narration2])).toEqual(
       [
         `${ROW_0} @ ${0 - PAD_X}px`,
         `${ROW_0} @ ${400 - PAD_X}px`,
+        `${ROW_1} @ ${0 - PAD_X}px`,
         `${ROW_1} @ ${400 - PAD_X}px`,
       ].sort(),
     );
   });
 
-  it("leaves a clip's stretch empty in a row it does not automate", () => {
-    // Only narration-2 has a volume envelope, so row 1 carries one curve and
-    // narration-1's half of it stays blank rather than drawing a flat line.
+  it("gives every audio-bearing clip an editable Volume baseline", () => {
+    // Narration 1 has no authored volume lane yet, but the timeline presents a
+    // unity baseline so the first dB drag is discoverable and can author it.
     expect(mountRow([narration1, narration2]).filter((row) => row.startsWith(ROW_1))).toEqual([
+      `${ROW_1} @ ${0 - PAD_X}px`,
       `${ROW_1} @ ${400 - PAD_X}px`,
     ]);
   });

@@ -1,10 +1,11 @@
 import { resolveTimelineMove, resolveTimelineResize } from "./timelineEditing";
 import type { TimelineElement } from "../store/playerStore";
 import {
-  getTimelineInsertBoundaryBand,
+  CLIP_Y,
   getTimelineRowFromY,
   getTimelineRowHeight,
   getTimelineRowPositionFromY,
+  getTimelineRowTop,
 } from "./timelineLayout";
 import { isMusicTrack, isAudioTimelineElement } from "../../utils/timelineInspector";
 import {
@@ -13,13 +14,58 @@ import {
   snapTimelineTime,
   type TimelineSnapTarget,
 } from "./timelineSnapping";
-import { resolveInsertRow, resolveZoneDropPlacement } from "./timelineCollision";
+import { resolveZoneDropPlacement } from "./timelineCollision";
 import {
   applyTimelineGroupResizePreview,
   type TimelineGroupResizeSession,
 } from "./timelineGroupEditing";
 import { clampGroupMoveDelta } from "./timelineMultiDragPreview";
 import type { DraggedClipState, ResizingClipState } from "./timelineClipDragTypes";
+
+/**
+ * Aimed-lane hysteresis in fractional rows. At the normal 48px row height this
+ * is a 6px deadband: enough to absorb pointer noise without making a deliberate
+ * lane change feel sticky.
+ */
+const TRACK_SWITCH_HYSTERESIS_ROWS = 0.125;
+
+function trackOrderPosition(track: number, trackOrder: readonly number[]): number | null {
+  const row = trackOrder.indexOf(track);
+  if (row >= 0) return row;
+  if (trackOrder.length === 0) return null;
+  const minTrack = Math.min(...trackOrder);
+  const maxTrack = Math.max(...trackOrder);
+  if (track < minTrack) return -1;
+  if (track > maxTrack) return trackOrder.length;
+  return null;
+}
+
+/**
+ * Keep a live drag on its current aimed row until the pointer clears a small
+ * deadband around the row boundary. Without this, a one-pixel wobble repeatedly
+ * changed the collision destination and made stacked audio lanes flicker.
+ */
+export function stabilizeTimelineDesiredTrack(
+  candidateTrack: number,
+  previousTrack: number,
+  rawDesiredRow: number,
+  trackOrder: readonly number[],
+): number {
+  if (candidateTrack === previousTrack) return candidateTrack;
+  const candidateRow = trackOrderPosition(candidateTrack, trackOrder);
+  const previousRow = trackOrderPosition(previousTrack, trackOrder);
+  if (candidateRow == null || previousRow == null) return candidateTrack;
+  if (Math.abs(candidateRow - previousRow) !== 1) return candidateTrack;
+
+  const boundary = (candidateRow + previousRow) / 2;
+  if (candidateRow > previousRow && rawDesiredRow < boundary + TRACK_SWITCH_HYSTERESIS_ROWS) {
+    return previousTrack;
+  }
+  if (candidateRow < previousRow && rawDesiredRow > boundary - TRACK_SWITCH_HYSTERESIS_ROWS) {
+    return previousTrack;
+  }
+  return candidateTrack;
+}
 
 /** Snap-target builder closure supplied by the hook (closes over refs + store). */
 type BuildSnapTargets = (
@@ -56,6 +102,26 @@ export function getTimelineDragOverlayPosition(
     left: drag.pointerClientX - rect.left + scroll.scrollLeft - drag.pointerOffsetX,
     top: drag.pointerClientY - rect.top + scroll.scrollTop - drag.pointerOffsetY,
   };
+}
+
+/**
+ * Content-space Y for the drag actor's resolved landing lane.
+ *
+ * The pointer still drives lane intent, but the actor itself is magnetic: it
+ * paints only on the lane that collision/zone resolution chose. In particular,
+ * an audio clip can never float through visual rows while its valid destination
+ * remains in the audio zone. `insertRow` follows the gesture direction around
+ * an occupied target, so an upward row move cannot be redirected to the bottom.
+ */
+export function getTimelineResolvedDragActorTop(
+  drag: DraggedClipState | null,
+  trackOrder: readonly number[],
+  rowHeights?: readonly number[],
+): number | null {
+  if (!drag?.started) return null;
+  const row = drag.insertRow ?? trackOrder.indexOf(drag.previewTrack);
+  if (row < 0) return null;
+  return getTimelineRowTop(row, rowHeights) + CLIP_Y;
 }
 
 /**
@@ -101,22 +167,21 @@ function resolveDropPlacement(
   ctx: DragPreviewContext,
 ): { track: number; insertRow: number | null } {
   const { scroll, trackOrder, rowHeights, elements } = ctx;
-  // rowFloat = the pointer's position in track-heights from the top lane; a
-  // near-boundary hover requests a deliberate new-track insert. Uses the
-  // shared row→y inverse so the top breathing pad is subtracted consistently.
+  // Resolve the pointer's sub-row position against the same variable-height
+  // geometry used for rendering. It still chooses which side of an occupied
+  // target receives an automatically-created lane.
   const rowPosition = scroll
     ? getTimelineRowPositionFromY(
         clientY - scroll.getBoundingClientRect().top + scroll.scrollTop,
         rowHeights,
       )
     : { rowFloat: 0, row: 0, fraction: 0, rowHeight: getTimelineRowHeight(0, rowHeights) };
-  // Geometry-exact band (the clip inset divided by this row's actual height) so
-  // an insert only arms in the visible gutter between clip bodies.
-  const rawInsertRow = resolveInsertRow(
-    rowPosition.rowFloat,
-    trackOrder.length,
-    getTimelineInsertBoundaryBand(rowPosition.rowHeight),
-  );
+  // Moving an EXISTING clip across a row divider must never toggle the preview
+  // between "land on this track" and "insert a track". That divider-triggered
+  // mode flickered once per crossed audio lane (especially on upward drags).
+  // Track creation remains available when collision/zone resolution genuinely
+  // needs one, including an out-of-range drop above or below the timeline.
+  const deliberateInsertRow = null;
   // Pointer sub-row half: when a drop must auto-create a track (aimed span
   // occupied, no free lane), open it on the side the pointer is nearer.
   const preferInsertAbove = rowPosition.fraction < 0.5;
@@ -127,7 +192,7 @@ function resolveDropPlacement(
     audioTracks,
     elements,
     desiredTrack,
-    deliberateInsertRow: rawInsertRow,
+    deliberateInsertRow,
     start: previewStart,
     duration: drag.element.duration,
     dragKey: drag.element.key ?? drag.element.id,
@@ -170,6 +235,14 @@ export function computeDragPreview(
     clientX,
     currentRow,
   );
+  const originTrackRow = Math.max(0, trackOrder.indexOf(drag.element.track));
+  const rawDesiredRow = originTrackRow + currentRow - originRow;
+  const desiredTrack = stabilizeTimelineDesiredTrack(
+    nextMove.track,
+    drag.desiredTrack ?? drag.element.track,
+    rawDesiredRow,
+    trackOrder,
+  );
   // The music track defines the beats, so it must not snap to them —
   // but it still snaps to the playhead and other clip edges.
   const targets = buildSnapTargets(
@@ -193,13 +266,20 @@ export function computeDragPreview(
     elements,
     selectedKeys,
   );
-  const { track: previewTrack, insertRow } = resolveDropPlacement(
-    drag,
-    clientY,
-    previewStart,
-    nextMove.track,
-    ctx,
-  );
+  const placement = resolveDropPlacement(drag, clientY, previewStart, desiredTrack, ctx);
+  const previewTrack = placement.track;
+  // Once an occupied aimed row chooses an insertion boundary, keep that side
+  // for as long as the pointer remains aimed at the same row. Re-evaluating the
+  // upper/lower half every frame made the line alternate at the midpoint and
+  // read as the whole audio zone jumping.
+  const insertRow =
+    drag.started &&
+    drag.desiredTrack === desiredTrack &&
+    drag.previewTrack === previewTrack &&
+    drag.insertRow != null &&
+    placement.insertRow != null
+      ? drag.insertRow
+      : placement.insertRow;
   return {
     ...drag,
     started: true,
@@ -209,7 +289,7 @@ export function computeDragPreview(
     previewTrack,
     // The lane the POINTER aims at (pre-collision): the commit reads it to tell a
     // deliberate vertical lane change from a horizontal drag merely bumped sideways.
-    desiredTrack: nextMove.track,
+    desiredTrack,
     insertRow,
     snapTime: snap.snapTime,
     snapType: snap.snapType,

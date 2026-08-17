@@ -106,7 +106,7 @@ it("pins authored keyframes outside the clip to an inspectable boundary marker",
 
   const before = host.querySelectorAll<HTMLButtonElement>('[data-keyframe-outside-clip="before"]');
   const after = host.querySelector<HTMLButtonElement>('[data-keyframe-outside-clip="after"]');
-  expect(Array.from(before, (marker) => marker.style.left)).toEqual(["-35px", "-23px"]);
+  expect(Array.from(before, (marker) => marker.style.left)).toEqual(["-23px", "-15px"]);
   expect(before[0]?.getAttribute("aria-label")).toBe("position keyframe at 6s (before clip)");
   expect(after?.style.left).toBe("201px");
   expect(after?.getAttribute("aria-label")).toBe("position keyframe at 22s (after clip)");
@@ -297,7 +297,7 @@ describe("TimelineClipDiamonds", () => {
     expect(diamonds).toHaveLength(3);
     for (const diamond of diamonds) {
       expect(Number.parseFloat(diamond.style.width)).toBeCloseTo(12);
-      expect(Number(diamond.querySelector("svg")?.getAttribute("width"))).toBe(22);
+      expect(Number(diamond.querySelector("svg")?.getAttribute("width"))).toBe(14);
     }
     act(() => root.unmount());
   });
@@ -1286,8 +1286,8 @@ describe("TimelineClipDiamonds", () => {
     const { host, root } = renderSegmentLane(false);
     const connectors = host.querySelectorAll<HTMLElement>("[data-keyframe-connector]");
 
-    expect(Array.from(connectors, (connector) => connector.style.left)).toEqual(["11px", "111px"]);
-    expect(Array.from(connectors, (connector) => connector.style.width)).toEqual(["78px", "78px"]);
+    expect(Array.from(connectors, (connector) => connector.style.left)).toEqual(["7px", "107px"]);
+    expect(Array.from(connectors, (connector) => connector.style.width)).toEqual(["86px", "86px"]);
     act(() => root.unmount());
   });
 

@@ -184,6 +184,13 @@ export function applyMediaMetadataFromElement(entry: TimelineElement, el: Elemen
   const MediaElementCtor = win.HTMLMediaElement ?? globalThis.HTMLMediaElement;
   if (typeof MediaElementCtor === "undefined" || !(mediaEl instanceof MediaElementCtor)) return;
 
+  if (entry.tag === "audio") {
+    entry.hasAudio = true;
+  } else if (entry.tag === "video") {
+    const declared = el.getAttribute("data-has-audio") ?? mediaEl.getAttribute("data-has-audio");
+    entry.hasAudio = declared !== "false" && !mediaEl.hasAttribute("muted");
+  }
+
   const sourceDurationAttr =
     el.getAttribute("data-source-duration") ?? mediaEl.getAttribute("data-source-duration");
   const sourceDuration = sourceDurationAttr ? parseFloat(sourceDurationAttr) : mediaEl.duration;

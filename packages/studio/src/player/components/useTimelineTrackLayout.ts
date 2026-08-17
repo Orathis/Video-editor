@@ -1,8 +1,8 @@
 import { useMemo, useRef } from "react";
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import { animationLaneGroups } from "./TimelinePropertyLanes";
-import { isAudioTimelineElement } from "../../utils/timelineInspector";
-import { elementAutomationLanes, groupAutomationLanes } from "./automationLaneData";
+import { hasTimelineAudio } from "../../utils/timelineInspector";
+import { elementTimelineAutomationLanes, groupTimelineAutomationLanes } from "./automationLaneData";
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import type { DraggedClipState } from "./timelineClipDragTypes";
 import { useTimelineTrackDerivations } from "./useTimelineTrackDerivations";
@@ -43,7 +43,7 @@ export function trackShowsBeatStrip(
  * a map so every caller reads the same cached parse and none can drift.
  */
 function automationLaneCountOf(element: TimelineElement): number {
-  return isAudioTimelineElement(element) ? elementAutomationLanes(element).length : 0;
+  return hasTimelineAudio(element) ? elementTimelineAutomationLanes(element).length : 0;
 }
 
 /**
@@ -52,7 +52,10 @@ function automationLaneCountOf(element: TimelineElement): number {
  * lanes reserved a height that changed with the selection.
  */
 function trackAutomationLaneCount(elements: readonly TimelineElement[]): number {
-  return groupAutomationLanes(elements).length;
+  // Visual-only rows reserve no audio placeholder: an empty "Audio preview"
+  // consumed real timeline height without representing project media.
+  if (!elements.some(hasTimelineAudio)) return 0;
+  return Math.max(1, groupTimelineAutomationLanes(elements).length);
 }
 
 /**
@@ -61,7 +64,7 @@ function trackAutomationLaneCount(elements: readonly TimelineElement[]): number 
  * collapsed the row the moment you clicked a sibling. Any expanded clip on the
  * track holds the row open — and the caret expands and collapses all of them
  * together (see TimelineLanes), so the two can only disagree on state predating
- * this rule or written by the keyframe auto-expand.
+ * this rule or retained from an earlier row-disclosure interaction.
  */
 export function isTrackRowExpanded(
   elements: readonly TimelineElement[],
@@ -134,6 +137,7 @@ function useTimelineRowHeights(
   selectedElementIds: ReadonlySet<string>,
 ) {
   const expandedClipIds = usePlayerStore((s) => s.expandedClipIds);
+  const expandedAudioClipIds = usePlayerStore((s) => s.expandedAudioClipIds);
   const { laneCounts, rowGeometry } = useMemo(() => {
     const laneCounts = computeLaneCounts(tracks, gsapAnimations);
     // Keyframe lanes follow only the active clip, so a track with several
@@ -146,8 +150,6 @@ function useTimelineRowHeights(
         selectedElementId,
         selectedElementIds,
       );
-      if (!active) return [];
-      const clipId = active.key ?? active.id;
       // `trackHeights` gates the reserved lanes on this id being expanded, and the
       // row is expanded when ANY of its clips is — so hand it whichever clip holds
       // the row open, while the lane counts stay the active clip's (keyframes) and
@@ -155,15 +157,24 @@ function useTimelineRowHeights(
       const holdingOpen = elements.find((element) =>
         expandedClipIds.has(element.key ?? element.id),
       );
+      const holdingAudioOpen = elements.find(
+        (element) =>
+          hasTimelineAudio(element) && expandedAudioClipIds.has(element.key ?? element.id),
+      );
+      if (!active && !holdingAudioOpen) return [];
+      const basis = active ?? holdingAudioOpen ?? elements[0];
+      if (!basis) return [];
+      const clipId = basis.key ?? basis.id;
       return [
         {
           clipId: holdingOpen ? (holdingOpen.key ?? holdingOpen.id) : clipId,
+          audioClipId: holdingAudioOpen ? (holdingAudioOpen.key ?? holdingAudioOpen.id) : clipId,
           laneCount: laneCounts.get(clipId) ?? 0,
           automationLaneCount: trackAutomationLaneCount(elements),
         },
       ];
     });
-    const rowHeights = trackHeights(heightTracks, expandedClipIds);
+    const rowHeights = trackHeights(heightTracks, expandedClipIds, expandedAudioClipIds);
     return {
       laneCounts,
       rowGeometry: createTimelineRowGeometry(
@@ -171,7 +182,14 @@ function useTimelineRowHeights(
         rowHeights,
       ),
     };
-  }, [expandedClipIds, gsapAnimations, tracks, selectedElementId, selectedElementIds]);
+  }, [
+    expandedAudioClipIds,
+    expandedClipIds,
+    gsapAnimations,
+    tracks,
+    selectedElementId,
+    selectedElementIds,
+  ]);
   const rowGeometryRef = useRef<TimelineRowGeometry>(rowGeometry);
   rowGeometryRef.current = rowGeometry;
   return {
@@ -224,10 +242,23 @@ function useDisplayRowHeights(
   );
 }
 
+export function resolveTimelineDisplayTrackOrder(
+  draggedClip: Pick<DraggedClipState, "started" | "previewTrack" | "insertRow"> | null,
+  trackOrder: number[],
+): number[] {
+  // A new-track preview is represented by an insertion line and the viewport
+  // drag ghost. Never add its sentinel previewTrack to the live row model: a
+  // top insert uses minTrack - 1, so sorting that synthetic row into the display
+  // order shifted every real track down while the pointer was still moving.
+  // Real rows must remain geometrically frozen until the drop commits.
+  if (draggedClip?.started && draggedClip.insertRow != null) return trackOrder;
+  if (!draggedClip?.started || trackOrder.includes(draggedClip.previewTrack)) return trackOrder;
+  return [...trackOrder, draggedClip.previewTrack].sort((a, b) => a - b);
+}
+
 function useDisplayTrackOrder(draggedClip: DraggedClipState | null, trackOrder: number[]) {
   return useMemo(() => {
-    if (!draggedClip?.started || trackOrder.includes(draggedClip.previewTrack)) return trackOrder;
-    return [...trackOrder, draggedClip.previewTrack].sort((a, b) => a - b);
+    return resolveTimelineDisplayTrackOrder(draggedClip, trackOrder);
   }, [draggedClip, trackOrder]);
 }
 

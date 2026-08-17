@@ -69,6 +69,7 @@ interface RenderLanesOptions {
   multiDragPreview?: MultiDragPreviewInput | null;
   draggedClip?: DraggedClipState | null;
   onToggleTrackHidden?: TimelineEditCallbacks["onToggleTrackHidden"];
+  onToggleTrackLocked?: TimelineEditCallbacks["onToggleTrackLocked"];
   onContextMenuLane?: (e: React.MouseEvent, track: number, time: number) => void;
 }
 
@@ -132,7 +133,6 @@ function renderLanes(options: RenderLanesOptions = {}): {
           selectedElementIds={next.selectedElementIds ?? new Set()}
           hoveredClip={null}
           draggedClip={next.draggedClip ?? null}
-          draggedElement={null}
           multiDragPreview={next.multiDragPreview ?? null}
           blockedClipRef={createRef<BlockedClipState | null>()}
           suppressClickRef={{ current: false }}
@@ -151,6 +151,8 @@ function renderLanes(options: RenderLanesOptions = {}): {
           currentTime={0}
           onContextMenuLane={next.onContextMenuLane}
           onToggleTrackHidden={next.onToggleTrackHidden}
+          onToggleTrackLocked={next.onToggleTrackLocked}
+          onRenameTrack={vi.fn()}
           onTogglePropertyGroupKeyframe={vi.fn()}
           onResizeElement={vi.fn()}
           onMoveElement={vi.fn()}
@@ -202,6 +204,24 @@ describe("TimelineLanes track numbering", () => {
     act(() => view.root.unmount());
   });
 
+  it("keeps track headers sticky to the timeline viewport while horizontally panning", () => {
+    const view = renderLanes({ elements: [element("clip-a", TRACK_A)] });
+    const rowGroup = view.host.querySelector<HTMLElement>("[data-timeline-row]");
+    const row = rowGroup?.querySelector<HTMLElement>('[role="row"]');
+    const header = row?.querySelector<HTMLElement>('[role="rowheader"]');
+
+    // overflow-hidden would become the sticky header's nearest scroll
+    // container and make the whole left rail slide away with future time.
+    expect(rowGroup?.classList.contains("overflow-clip")).toBe(true);
+    expect(rowGroup?.classList.contains("overflow-hidden")).toBe(false);
+    expect(row?.classList.contains("overflow-clip")).toBe(true);
+    expect(row?.classList.contains("overflow-hidden")).toBe(false);
+    expect(header?.classList.contains("sticky")).toBe(true);
+    expect(header?.classList.contains("left-0")).toBe(true);
+
+    act(() => view.root.unmount());
+  });
+
   // The gap menu inserts at the track it is given, so a display index here would
   // drop the new clip on the wrong lane.
   it("hands the lane context menu the real track key, not the display index", () => {
@@ -232,11 +252,7 @@ describe("TimelineLanes track numbering", () => {
 describe("TimelineLanes disclosure target", () => {
   const ANIMATIONS = new Map([["clip-a", [positionTween("clip-a")]]]);
 
-  /**
-   * `aria-controls` is an ID LIST, and the caret needs one: it reveals the
-   * active clip's keyframe lanes AND the track's automation lanes, which cannot
-   * be one element — one belongs to a clip, the other to the row.
-   */
+  /** Each category button owns the one region it reveals. */
   function ariaControlsIds(host: HTMLElement): string[] {
     const caret = host.querySelector("button[aria-controls]");
     return (caret?.getAttribute("aria-controls") ?? "").split(/\s+/).filter(Boolean);
@@ -259,8 +275,7 @@ describe("TimelineLanes disclosure target", () => {
 
     expect(target).not.toBeNull();
     expect(target?.querySelectorAll("[data-timeline-property-lane]").length).toBeGreaterThan(0);
-    // Every region it names has to exist, or the caret points at nothing.
-    expect(ariaControlsTargets(view.host).length).toBeGreaterThan(1);
+    expect(ariaControlsTargets(view.host)).toHaveLength(1);
     expect(ariaControlsTargets(view.host).every(Boolean)).toBe(true);
     act(() => view.root.unmount());
   });
@@ -271,8 +286,6 @@ describe("TimelineLanes disclosure target", () => {
 
     expect(target).not.toBeNull();
     expect(target?.querySelectorAll("[data-timeline-property-lane]")).toHaveLength(0);
-    // Including the automation region, which is mounted empty while collapsed
-    // for exactly this reason.
     expect(ariaControlsTargets(view.host).every(Boolean)).toBe(true);
     act(() => view.root.unmount());
   });
@@ -369,6 +382,42 @@ describe("TimelineLanes disclosure target", () => {
     // Node identity, not just presence: a remount replaces these nodes.
     expect(ariaControlsTarget(view.host)).toBe(before);
     expect(before?.querySelector("[data-timeline-property-lane]")).toBe(beforeLane);
+    act(() => view.root.unmount());
+  });
+});
+
+describe("TimelineLanes drag origin", () => {
+  it("keeps the real clip rendered at its source position until drop", () => {
+    const source = element("clip-a", TRACK_A);
+    const draggedClip: DraggedClipState = {
+      pointerId: 1,
+      element: source,
+      originClientX: 100,
+      originClientY: 100,
+      originScrollLeft: 0,
+      originScrollTop: 0,
+      pointerClientX: 500,
+      pointerClientY: 200,
+      pointerOffsetX: 10,
+      pointerOffsetY: 10,
+      previewStart: 5,
+      previewTrack: TRACK_B,
+      insertRow: null,
+      snapTime: null,
+      snapType: null,
+      started: true,
+    };
+    const view = renderLanes({
+      elements: [source],
+      draggedClip,
+    });
+
+    const anchored = view.host.querySelector<HTMLElement>('[data-el-id="clip-a"]');
+    expect(anchored).not.toBeNull();
+    expect(anchored?.style.left).toBe("0px");
+    expect(anchored?.classList.contains("is-dragging")).toBe(true);
+    expect(anchored?.classList.contains("is-drag-source")).toBe(true);
+    expect(anchored?.classList.contains("is-drag-ghost")).toBe(false);
     act(() => view.root.unmount());
   });
 });

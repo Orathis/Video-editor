@@ -46,6 +46,7 @@ import { shouldResumeForwardPlaybackAfterSeek, shouldStopAfterSeek } from "../li
 import { applyPreviewVariablesToUrl } from "../../hooks/previewVariablesStore";
 import { acceptStudioRuntimeMessage } from "../lib/runtimeProtocol";
 import { timelineElementsChanged } from "./timelinePlayerSync";
+import { applyTimelineTrackAudition } from "../lib/timelineTrackAudition";
 
 export function useTimelinePlayer() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -231,8 +232,16 @@ export function useTimelinePlayer() {
     } catch {}
   }, []);
   const applyPreviewAudioState = useCallback(() => {
-    const { audioMuted } = usePlayerStore.getState();
+    const { audioMuted, elements, mutedTimelineTracks, soloTimelineTracks } =
+      usePlayerStore.getState();
     setPreviewMediaMuted(iframeRef.current, audioMuted);
+    applyTimelineTrackAudition(
+      iframeRef.current,
+      elements,
+      audioMuted,
+      mutedTimelineTracks,
+      soloTimelineTracks,
+    );
   }, []);
   const play = useCallback(() => {
     stopRAFLoop();
@@ -432,15 +441,7 @@ export function useTimelinePlayer() {
       applyPreviewAudioState,
     });
   const saveSeekPosition = useCallback(() => {
-    // Never DEGRADE the saved position. Overlapping reloads (e.g. an external
-    // file drop = upload reload + insert reload back-to-back) call this while
-    // the iframe from the FIRST reload is mid-teardown: getAdapter() can still
-    // return that dying document's adapter, whose getTime() reads 0 — and the
-    // store's currentTime can lag the visual playhead. Overwriting the
-    // still-unconsumed pendingSeek with either value is exactly how the
-    // playhead used to end up at 0 after a Finder drop (verified live via a
-    // currentTime write-trace). So: while a refresh is already in flight and a
-    // save exists, keep it; otherwise trust the live adapter, then the store.
+    // Preserve an in-flight seek; a tearing-down adapter can transiently report time zero.
     const refreshInFlight = isRefreshingRef.current && pendingSeekRef.current != null;
     if (!refreshInFlight) {
       const adapter = getAdapter();
@@ -570,7 +571,10 @@ export function useTimelinePlayer() {
     return usePlayerStore.subscribe((state, prev) => {
       const playbackRateChanged = state.playbackRate !== prev.playbackRate;
       const audioMutedChanged = state.audioMuted !== prev.audioMuted;
-      if (!playbackRateChanged && !audioMutedChanged) return;
+      const trackAuditionChanged =
+        state.mutedTimelineTracks !== prev.mutedTimelineTracks ||
+        state.soloTimelineTracks !== prev.soloTimelineTracks;
+      if (!playbackRateChanged && !audioMutedChanged && !trackAuditionChanged) return;
 
       if (playbackRateChanged) {
         applyPlaybackRate(state.playbackRate);

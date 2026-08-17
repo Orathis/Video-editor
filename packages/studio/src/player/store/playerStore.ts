@@ -21,6 +21,11 @@ export type { KeyframeCacheEntry } from "./keyframeSlice";
 export { liveTime } from "./liveTime";
 
 import type { TimelineElement } from "./timelineElement";
+import {
+  resolveElementSelection,
+  updateNumberSet,
+  type TimelineElementUpdates,
+} from "./playerStoreTypes";
 
 export type { TimelineElement };
 export type ZoomMode = "fit" | "manual";
@@ -28,23 +33,6 @@ type TimelineTool = "select" | "razor";
 
 export interface SelectElementOptions {
   preserveSet?: boolean;
-}
-
-function resolveElementSelection(
-  ids: Iterable<string>,
-  anchor?: string | null,
-): { selectedElementIds: Set<string>; selectedElementId: string | null } {
-  const selectedElementIds = new Set(ids);
-  if (selectedElementIds.size === 0) {
-    return { selectedElementIds, selectedElementId: null };
-  }
-  if (anchor && selectedElementIds.has(anchor)) {
-    return { selectedElementIds, selectedElementId: anchor };
-  }
-  return {
-    selectedElementIds,
-    selectedElementId: selectedElementIds.values().next().value ?? null,
-  };
 }
 
 interface PlayerState extends KeyframeSlice, AutomationSelectionSlice, ThumbnailSlice {
@@ -62,10 +50,11 @@ interface PlayerState extends KeyframeSlice, AutomationSelectionSlice, Thumbnail
   selectedElementId: string | null;
   playbackRate: number;
   audioMuted: boolean;
+  /** Session-local NLE audition state; never rewrites the rendered mix. */
+  mutedTimelineTracks: Set<number>;
+  soloTimelineTracks: Set<number>;
   loopEnabled: boolean;
-  /** Timeline zoom: 'fit' auto-scales to viewport, 'manual' uses manualZoomPercent */
   zoomMode: ZoomMode;
-  /** Timeline zoom percent relative to the fit width when in manual mode */
   manualZoomPercent: number;
   /**
    * Bumped on every live z-index edit (handleDomZIndexReorderCommit apply AND
@@ -118,7 +107,6 @@ interface PlayerState extends KeyframeSlice, AutomationSelectionSlice, Thumbnail
    * rescaling every clip. No-op once already pinned (mode is "manual").
    */
   pinTimelineZoom: (currentPixelsPerSecond: number, fitPixelsPerSecond: number) => void;
-  /** The timeline's live pixels-per-second + fit basis, published by <Timeline>. */
   timelinePps: number;
   timelineFitPps: number;
   setTimelineScale: (pps: number, fitPps: number) => void;
@@ -132,6 +120,8 @@ interface PlayerState extends KeyframeSlice, AutomationSelectionSlice, Thumbnail
   setDuration: (duration: number) => void;
   setPlaybackRate: (rate: number) => void;
   setAudioMuted: (muted: boolean) => void;
+  setTimelineTrackMuted: (track: number, muted: boolean) => void;
+  setTimelineTrackSolo: (track: number, solo: boolean) => void;
   setLoopEnabled: (enabled: boolean) => void;
   setTimelineReady: (ready: boolean) => void;
   setBeatDragging: (dragging: boolean) => void;
@@ -139,15 +129,7 @@ interface PlayerState extends KeyframeSlice, AutomationSelectionSlice, Thumbnail
   setSelectedElementId: (id: string | null, options?: SelectElementOptions) => void;
   /** Move the selection anchor within an active multi-selection without collapsing it. */
   setSelectionAnchor: (id: string | null) => void;
-  updateElement: (
-    elementId: string,
-    updates: Partial<
-      Pick<
-        TimelineElement,
-        "start" | "duration" | "track" | "zIndex" | "hasExplicitZIndex" | "playbackStart" | "hidden"
-      >
-    >,
-  ) => void;
+  updateElement: (elementId: string, updates: TimelineElementUpdates) => void;
   setZoomMode: (mode: ZoomMode) => void;
   setManualZoomPercent: (percent: number) => void;
   bumpZEditVersion: () => void;
@@ -255,6 +237,8 @@ export function createTimelineResetState() {
     beatDragging: false,
     elements: [],
     selectedElementId: null,
+    mutedTimelineTracks: new Set<number>(),
+    soloTimelineTracks: new Set<number>(),
     zEditVersion: 0,
     inPoint: null,
     outPoint: null,
@@ -268,6 +252,7 @@ export function createTimelineResetState() {
     // paste through `sel.elementKey === paste.elementKey` to a stale t0.
     automationSelection: null,
     expandedClipIds: new Set<string>(),
+    expandedAudioClipIds: new Set<string>(),
     focusedEaseSegment: null,
     selectedElementIds: new Set<string>(),
     requestedSeekTime: null,
@@ -298,6 +283,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   selectedElementId: null,
   playbackRate: readStudioUiPreferences().playbackRate ?? 1,
   audioMuted: readStudioUiPreferences().audioMuted ?? false,
+  mutedTimelineTracks: new Set<number>(),
+  soloTimelineTracks: new Set<number>(),
   loopEnabled: false,
   zoomMode: "fit",
   manualZoomPercent: 100,
@@ -446,6 +433,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     writeStudioUiPreferences({ audioMuted: muted });
     set({ audioMuted: muted });
   },
+  setTimelineTrackMuted: (track, muted) =>
+    set((state) => ({
+      mutedTimelineTracks: updateNumberSet(state.mutedTimelineTracks, track, muted),
+    })),
+  setTimelineTrackSolo: (track, solo) =>
+    set((state) => ({
+      soloTimelineTracks: updateNumberSet(state.soloTimelineTracks, track, solo),
+    })),
   setLoopEnabled: (enabled) => set({ loopEnabled: enabled }),
   setZoomMode: (mode) => set({ zoomMode: mode }),
   clearSelectedElementIds: () => set({ selectedElementIds: new Set() }),
@@ -469,10 +464,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         timelineZoomMode: "manual",
         timelineManualZoomPercent: percent,
       });
-      return { zoomMode: "manual", manualZoomPercent: percent };
+      return {
+        zoomMode: "manual",
+        manualZoomPercent: percent,
+        timelinePps: currentPixelsPerSecond,
+      };
     }),
   setTimelineScale: (pps, fitPps) => {
     const state = get();
+    if (state.zoomMode === "manual") {
+      // Keep the absolute scale while rebasing only the UI percentage onto the new fit basis.
+      const percent = computePinnedZoomPercent(state.timelinePps, fitPps);
+      if (state.timelineFitPps === fitPps && state.manualZoomPercent === percent) return;
+      writeStudioUiPreferences({
+        timelineZoomMode: "manual",
+        timelineManualZoomPercent: percent,
+      });
+      set({ timelineFitPps: fitPps, manualZoomPercent: percent });
+      return;
+    }
     if (state.timelinePps === pps && state.timelineFitPps === fitPps) return;
     set({ timelinePps: pps, timelineFitPps: fitPps });
   },
@@ -498,9 +508,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       };
     }),
   setManualZoomPercent: (percent) =>
-    set((state) => ({
-      manualZoomPercent: clampTimelineZoomPercent(percent, state.timelineFitPps),
-    })),
+    set((state) => {
+      const manualZoomPercent = clampTimelineZoomPercent(percent, state.timelineFitPps);
+      return {
+        manualZoomPercent,
+        timelinePps: state.timelineFitPps * (manualZoomPercent / 100),
+      };
+    }),
   bumpZEditVersion: () => set((state) => ({ zEditVersion: state.zEditVersion + 1 })),
   setCurrentTime: (time) => set({ currentTime: Number.isFinite(time) ? time : 0 }),
   setDuration: (duration) => set({ duration: Number.isFinite(duration) ? duration : 0 }),

@@ -255,7 +255,6 @@ describe("useTimelineClipDrag — gesture lifecycle", () => {
   });
 
   it("commits the final drag position exactly once", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const a = el("a", { duration: 2 });
     const h = renderResizeHarness([a], []);
     h.startDrag(a, 7);
@@ -263,10 +262,6 @@ describe("useTimelineClipDrag — gesture lifecycle", () => {
     await h.dropPointer(7);
     expect(h.onMoveElement).toHaveBeenCalledTimes(1);
     expect(h.onMoveElement).toHaveBeenCalledWith(a, expect.objectContaining({ start: 0.5 }));
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("only single-clip onMoveElement wired"),
-    );
-    warnSpy.mockRestore();
     h.unmount();
   });
 
@@ -395,7 +390,10 @@ describe("useTimelineClipDrag — multi-select group resize (restored)", () => {
     expect(h.onResizeElement).not.toHaveBeenCalled();
     expect(h.storeById("a").duration).toBe(2);
     expect(h.storeById("b").duration).toBe(3);
-    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[Timeline] Failed to persist group clip resize",
+      expect.objectContaining({ message: "batch failed" }),
+    );
     errorSpy.mockRestore();
     h.unmount();
   });

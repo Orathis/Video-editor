@@ -311,8 +311,8 @@ describe("TimelinePropertyLanes", () => {
     // Diamonds are centered on their true keyframe time (0% at -half); the
     // reserved left gutter (content origin inset, tested at the Timeline level)
     // keeps the overflowing left half visible rather than clamping it inward.
-    expect(position.map((diamond) => diamond.style.left)).toEqual(["-11px", "89px", "189px"]);
-    expect(visual[0]?.style.left).toBe("39px");
+    expect(position.map((diamond) => diamond.style.left)).toEqual(["-7px", "93px", "193px"]);
+    expect(visual[0]?.style.left).toBe("43px");
     expect(
       host.querySelectorAll('[data-property-group="position"] [data-keyframe-connector]'),
     ).toHaveLength(2);
@@ -605,9 +605,9 @@ describe("TimelinePropertyLanes", () => {
     });
     const diamonds = Array.from(host.querySelectorAll<HTMLButtonElement>("button"));
 
-    // Unified keyframe-diamond size (LANE_H·ratio ≈ 22px, half 11) on collapsed
-    // clips too, so 0% sits at -11px regardless of clip-bar height.
-    expect(diamonds.map((diamond) => diamond.style.left)).toEqual(["-11px", "89px"]);
+    // Compact keyframe glyph (LANE_H·ratio = 14px, half 7) on collapsed clips,
+    // while the surrounding button keeps its larger accessible hit target.
+    expect(diamonds.map((diamond) => diamond.style.left)).toEqual(["-7px", "93px"]);
     expect(diamonds[1]?.querySelector("path:last-child")?.getAttribute("fill")).toBe("#4ba3d2");
     act(() => {
       diamonds[1]?.dispatchEvent(new MouseEvent("pointerup", { bubbles: true, button: 0 }));

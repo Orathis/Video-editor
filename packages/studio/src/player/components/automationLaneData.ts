@@ -18,11 +18,12 @@ import {
   parseAutomationTarget,
   resolveAutomation,
   resolveAutomationRange,
+  VOLUME_TARGET,
   type HfAutomation,
   type HfAutomationLane,
 } from "@hyperframes/core/audio-automation";
 import { parseAudioFxChain, type HfAudioFxChain } from "@hyperframes/core/audio-fx";
-import { isAudioTimelineElement } from "../../utils/timelineInspector";
+import { hasTimelineAudio } from "../../utils/timelineInspector";
 import type { TimelineElement } from "../store/playerStore";
 
 const EMPTY: HfAutomation = { version: 1, lanes: [] };
@@ -94,6 +95,37 @@ export function elementAutomation(element: TimelineElement): HfAutomation {
 /** Lanes in the order they are drawn, one row each. */
 export function elementAutomationLanes(element: TimelineElement): HfAutomationLane[] {
   return elementAutomation(element).lanes;
+}
+
+/**
+ * Automation as the timeline presents it.
+ *
+ * Premiere always gives an audio clip a volume rubber-band even before the
+ * editor writes its first keyframe. HyperFrames used to expose Volume only
+ * after `data-automation` already contained a lane, which made the timeline UI
+ * impossible to discover. Keep the authored parser above exact, and add the
+ * non-destructive unity/current-volume lane only at the presentation boundary.
+ * The first edit persists it through the normal automation binding.
+ */
+export function elementTimelineAutomation(element: TimelineElement): HfAutomation {
+  const automation = elementAutomation(element);
+  if (
+    !hasTimelineAudio(element) ||
+    automation.lanes.some((lane) => lane.target === VOLUME_TARGET)
+  ) {
+    return automation;
+  }
+  const volume = Number.isFinite(element.volume)
+    ? Math.min(1, Math.max(0, element.volume ?? 1))
+    : 1;
+  return {
+    ...automation,
+    lanes: [...automation.lanes, { target: VOLUME_TARGET, points: [{ t: 0, v: volume }] }],
+  };
+}
+
+export function elementTimelineAutomationLanes(element: TimelineElement): HfAutomationLane[] {
+  return elementTimelineAutomation(element).lanes;
 }
 
 /** The frequency the lane's effect sits at, when it has one. */
@@ -225,12 +257,15 @@ export interface AutomationLaneGroup {
  * Non-audio elements contribute nothing, matching `automationLaneCountOf` — the
  * row's reserved height and its drawn lanes have to count the same clips.
  */
-export function groupAutomationLanes(elements: readonly TimelineElement[]): AutomationLaneGroup[] {
+function groupLanes(
+  elements: readonly TimelineElement[],
+  lanesFor: (element: TimelineElement) => readonly HfAutomationLane[],
+): AutomationLaneGroup[] {
   const groups = new Map<string, AutomationLaneGroup>();
   for (const element of elements) {
-    if (!isAudioTimelineElement(element)) continue;
+    if (!hasTimelineAudio(element)) continue;
     const chain = elementFxChain(element);
-    for (const lane of elementAutomationLanes(element)) {
+    for (const lane of lanesFor(element)) {
       const key = laneGroupKey(lane.target, chain);
       const parts = automationLaneLabelParts(lane.target, chain);
       // Null on both together: an unresolvable target draws no lane either.
@@ -248,6 +283,18 @@ export function groupAutomationLanes(elements: readonly TimelineElement[]): Auto
     }
   }
   return [...groups.values()];
+}
+
+/** Authored automation only; used where exact source truth matters. */
+export function groupAutomationLanes(elements: readonly TimelineElement[]): AutomationLaneGroup[] {
+  return groupLanes(elements, elementAutomationLanes);
+}
+
+/** Timeline rows, including the always-available baseline Volume rubber-band. */
+export function groupTimelineAutomationLanes(
+  elements: readonly TimelineElement[],
+): AutomationLaneGroup[] {
+  return groupLanes(elements, elementTimelineAutomationLanes);
 }
 
 /** The whole label on one line, for a tooltip or an accessible name. */

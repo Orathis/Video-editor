@@ -284,6 +284,12 @@ export interface SplitElementResult {
   newId: string | null;
 }
 
+export interface DuplicateElementResult {
+  html: string;
+  matched: boolean;
+  newId: string | null;
+}
+
 function resolveElementTiming(el: Element): {
   start: number;
   duration: number;
@@ -297,6 +303,82 @@ function setElementDuration(el: Element, start: number, duration: number): void 
     start: Math.round(start * 1000) / 1000,
     duration: Math.round(duration * 1000) / 1000,
   });
+}
+
+/** Clone a timeline clip immediately after its authored range. */
+export function duplicateElementInHtml(
+  source: string,
+  target: SourceMutationTarget,
+  newId: string,
+  duplicateStart: number,
+  fallbackDuration?: number,
+): DuplicateElementResult {
+  const { document, wrappedFragment } = parseSourceDocument(source);
+  const el = findTargetElement(document, target);
+  if (!el || !isHTMLElement(el)) return { html: source, matched: false, newId: null };
+
+  const timing = resolveElementTiming(el);
+  const duration = timing.duration > 0 ? timing.duration : (fallbackDuration ?? 0);
+  if (!Number.isFinite(duplicateStart) || duplicateStart < 0 || duration <= 0) {
+    return { html: source, matched: false, newId: null };
+  }
+
+  if (document.getElementById(newId)) {
+    let suffix = 2;
+    const base = newId;
+    while (document.getElementById(newId)) newId = `${base}-${suffix++}`;
+  }
+
+  const clone = el.cloneNode(true);
+  if (!isHTMLElement(clone)) return { html: source, matched: false, newId: null };
+  clone.setAttribute("id", newId);
+  clone.removeAttribute("data-hf-id");
+  for (const node of clone.querySelectorAll("[data-hf-id]")) node.removeAttribute("data-hf-id");
+
+  const usedIds = new Set(
+    Array.from(document.querySelectorAll("[id]"), (node) => node.getAttribute("id")).filter(
+      (id): id is string => Boolean(id),
+    ),
+  );
+  usedIds.add(newId);
+  const originalDescendants = Array.from(el.querySelectorAll("[id]"));
+  const clonedDescendants = Array.from(clone.querySelectorAll("[id]"));
+  originalDescendants.forEach((originalNode, index) => {
+    const clonedNode = clonedDescendants[index];
+    const originalDescendantId = originalNode.getAttribute("id");
+    if (!clonedNode || !originalDescendantId) return;
+    const base = `${originalDescendantId}-copy`;
+    let nextId = base;
+    let suffix = 2;
+    while (usedIds.has(nextId)) nextId = `${base}-${suffix++}`;
+    usedIds.add(nextId);
+    clonedNode.setAttribute("id", nextId);
+    duplicateCssRulesForId(document, originalDescendantId, nextId);
+  });
+
+  const compositionId = clone.getAttribute("data-composition-id");
+  if (compositionId) {
+    const usedCompositionIds = new Set(
+      Array.from(document.querySelectorAll("[data-composition-id]"), (node) =>
+        node.getAttribute("data-composition-id"),
+      ),
+    );
+    const base = `${compositionId}-copy`;
+    let nextCompositionId = base;
+    let suffix = 2;
+    while (usedCompositionIds.has(nextCompositionId)) nextCompositionId = `${base}-${suffix++}`;
+    clone.setAttribute("data-composition-id", nextCompositionId);
+  }
+
+  setElementDuration(clone, duplicateStart, duration);
+  const originalId = el.getAttribute("id");
+  if (originalId) duplicateCssRulesForId(document, originalId, newId);
+
+  if (el.nextSibling) el.parentElement!.insertBefore(clone, el.nextSibling);
+  else el.parentElement!.appendChild(clone);
+
+  const html = wrappedFragment ? document.body.innerHTML || "" : document.toString();
+  return { html: ensureHfIds(html), matched: true, newId };
 }
 
 // fallow-ignore-next-line complexity

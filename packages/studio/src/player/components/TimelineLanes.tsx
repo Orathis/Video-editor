@@ -16,7 +16,6 @@ import { trackDisplayNumber, trackDisplaySuffix } from "./timelineTrackDisplay";
 import { clipTimingStart } from "../../hooks/gsapShared";
 import { getTimelineEditCapabilities } from "./timelineEditing";
 import { CLIP_Y, TRACK_H } from "./timelineLayout";
-import { usePlayerStore } from "../store/playerStore";
 import {
   isMultiDragActive,
   isMultiDragPassenger,
@@ -24,8 +23,7 @@ import {
   multiDragPassengerOffsetPx,
 } from "./timelineMultiDragPreview";
 import type { TimelineLanesProps } from "./timelineLaneProps";
-import { trackStudioKeyframeLaneExpand } from "../../telemetry/events";
-import { isAudioTimelineElement, isMusicTrack } from "../../utils/timelineInspector";
+import { hasTimelineAudio, isMusicTrack } from "../../utils/timelineInspector";
 import { createClipGestureHandlers } from "./timelineClipGestureHandlers";
 import { renderClipChildren, resolveClipRenderContext } from "./timelineClipChildren";
 import { TimelineTrackRow } from "./TimelineTrackRow";
@@ -35,6 +33,8 @@ import { getTimelineElementIdentity } from "../lib/timelineElementHelpers";
 import type { TimelineLogicalRow } from "./timelineKeyboardNavigation";
 import { timelineClipFocusId } from "./timelineNavigationIdentity";
 import { useTimelineKeyboardActor } from "./useTimelineKeyboardActor";
+import { useTimelineCategoryDisclosure } from "./useTimelineCategoryDisclosure";
+import { TimelineEmbeddedAudioRows } from "./TimelineEmbeddedAudioRows";
 
 export function TimelineLanes({
   pps,
@@ -60,7 +60,6 @@ export function TimelineLanes({
   selectedElementIds,
   hoveredClip,
   draggedClip,
-  draggedElement,
   multiDragPreview,
   blockedClipRef,
   suppressClickRef,
@@ -69,6 +68,7 @@ export function TimelineLanes({
   renderClipOverlay,
   onDrillDown,
   onSelectElement,
+  onDeleteTrack,
   setHoveredClip,
   setShowPopover,
   setRangeSelection,
@@ -92,6 +92,8 @@ export function TimelineLanes({
   onContextMenuLane,
   beatAnalysis,
   onToggleTrackHidden,
+  onToggleTrackLocked,
+  onRenameTrack,
   onTogglePropertyGroupKeyframe,
   onResizeElement,
   onMoveElement,
@@ -101,12 +103,14 @@ export function TimelineLanes({
   // ponytail: One per-instance namespace prevents aria-controls and aria-owns
   // from resolving into a second timeline that renders the same logical rows.
   const lanesIdPrefix = `timeline-lanes${useId().replaceAll(":", "")}`;
-  const expandedClipIds = usePlayerStore((s) => s.expandedClipIds);
+  const {
+    animationIds: expandedClipIds,
+    audioIds: expandedAudioClipIds,
+    toggleAnimationRow,
+    toggleAudioRow,
+  } = useTimelineCategoryDisclosure();
   const automationLanes = useAutomationLanes();
   useAutomationSelectionKeyboard({ lanes: automationLanes });
-  const expandClips = usePlayerStore((s) => s.expandClips);
-  const setClipExpanded = usePlayerStore((s) => s.setClipExpanded);
-  const toggleClipExpanded = usePlayerStore((s) => s.toggleClipExpanded);
   const logicalRowsByTrack = useMemo(() => {
     const byTrack = new Map<number, TimelineLogicalRow[]>();
     for (const logicalRow of logicalRows) {
@@ -116,21 +120,6 @@ export function TimelineLanes({
     }
     return byTrack;
   }, [logicalRows]);
-  // The caret belongs to the ROW, so it opens and closes every clip on it at
-  // once. Toggling only the active clip left the row's state depending on which
-  // sibling happened to be selected: expand one, click another, and the row
-  // collapsed under a caret that still pointed down.
-  const toggleRowExpandedTracked = (keys: readonly string[]) => {
-    const willExpand = !keys.some((key) => expandedClipIds.has(key));
-    trackStudioKeyframeLaneExpand({ expanded: willExpand });
-    if (willExpand) expandClips(keys);
-    else for (const key of keys) setClipExpanded(key, false);
-  };
-  const toggleClipExpandedTracked = (key: string) => {
-    const willExpand = !expandedClipIds.has(key);
-    trackStudioKeyframeLaneExpand({ expanded: willExpand });
-    toggleClipExpanded(key);
-  };
   const multiDragDelta =
     multiDragPreview && isMultiDragActive(multiDragPreview)
       ? multiDragDeltaSeconds(multiDragPreview)
@@ -153,7 +142,10 @@ export function TimelineLanes({
     rowGeometry,
     scrollRef,
     onToggleRow: (row) => {
-      if (row.elementId) toggleClipExpandedTracked(row.elementId);
+      const keys = (tracks.find(([track]) => track === row.physicalTrackKey)?.[1] ?? []).map(
+        getTimelineElementIdentity,
+      );
+      if (keys.length > 0) toggleAnimationRow(keys);
     },
   });
   return (
@@ -199,7 +191,9 @@ export function TimelineLanes({
             isMusicTrack,
           });
           const isTrackHidden = els.length > 0 && els.every((element) => element.hidden === true);
-          const isAudioTrack = els.length > 0 && els.some(isAudioTimelineElement);
+          const isTrackLocked =
+            els.length > 0 && els.every((element) => element.timelineLocked === true);
+          const isAudioTrack = els.length > 0 && els.some(hasTimelineAudio);
           // Only the selected/most-keyframed clip owns expanded lanes on a shared track.
           const keyframeClip = resolveTrackKeyframeClip(
             els,
@@ -209,29 +203,18 @@ export function TimelineLanes({
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
           const rowExpanded = isTrackRowExpanded(els, expandedClipIds);
-          // How tall a clip BAR is drawn. An expanded row is mostly lanes, and a
-          // clip left to fill it painted its waveform straight over them — so the
-          // bar is capped for every clip on the row, not just the one whose
-          // property lanes are showing. Undefined means "fill the row", which is
-          // right only while it is collapsed and the row is nothing but bar.
-          const clipBarHeight = rowExpanded ? TRACK_H - 2 * CLIP_Y : undefined;
+          const audioExpanded = isAudioTrack && isTrackRowExpanded(els, expandedAudioClipIds);
+          const anyCategoryExpanded = rowExpanded || audioExpanded;
+          // Expanded rows cap every clip bar so waveforms never paint over property lanes.
+          const clipBarHeight = anyCategoryExpanded ? TRACK_H - 2 * CLIP_Y : undefined;
           // The clips whose envelopes this row draws, at their dragged positions.
           // Once per row, not once per clip in the map below.
           const automationElements = els.map(getPreviewElement);
-          // Minted here because this is the only place that sees BOTH ends of
-          // the disclosure: the caret in the sticky header and the diamond lanes
-          // on the canvas. Keyed by display row, not by `trackNum`, which is a
-          // fractional sort key and would mint ids like `...-0.16666666666666666`.
+          // The display row gives the sticky disclosure and canvas lanes one stable id.
           const lanesId = `${lanesIdPrefix}-track-${row}`;
-          // The caret reveals two canvas regions now: the active clip's keyframe
-          // lanes and the track's automation lanes. They cannot be one element —
-          // one belongs to a clip, the other to the row — so the caret names both.
+          // Keyframe and automation disclosures remain separate canvas regions.
           const automationLanesId = `${lanesId}-automation`;
-          // The header's remove buttons write through the same binding the lanes
-          // themselves edit through, so a deletion persists exactly like dragging
-          // a point does — and the binding reports read-only for an unselected
-          // clip, which is what leaves the buttons off rather than offering one
-          // that cannot act.
+          // Header removal uses the same persisted binding as the automation lanes.
           const headerLanes =
             keyframeClip && keyframeClipKey
               ? automationLanes.bind(
@@ -255,9 +238,9 @@ export function TimelineLanes({
               logicalRow={logicalRow}
               propertyRows={trackLogicalRows.slice(1)}
               lanesId={lanesId}
-              headerLanesId={`${lanesId} ${automationLanesId}`}
               top={rowGeometry.getRowTop(row)}
               height={rowHeight}
+              locked={isTrackLocked}
               virtualized={rowsVirtualized}
               background={rowBackground}
               borderColor={theme.rowBorder}
@@ -274,22 +257,32 @@ export function TimelineLanes({
                   els[0]?.id ??
                   `Track${trackDisplaySuffix(displayNumber)}`
                 }
-                lanesId={`${lanesId} ${automationLanesId}`}
+                animationLanesId={lanesId}
+                audioLanesId={automationLanesId}
                 contentOrigin={contentOrigin}
                 keyframeClip={keyframeClip}
                 trackElements={els}
                 clipCount={els.length}
-                isExpanded={rowExpanded}
+                isAnimationExpanded={rowExpanded}
+                isAudioExpanded={audioExpanded}
                 animations={keyframeClipKey ? (gsapAnimations.get(keyframeClipKey) ?? []) : []}
                 currentTime={currentTime}
                 isTrackHidden={isTrackHidden}
+                isTrackLocked={isTrackLocked}
                 isAudioTrack={isAudioTrack}
                 theme={theme}
-                onToggleClipExpanded={() => {
+                onToggleAnimationExpanded={() => {
                   const keys = els.map(getTimelineElementIdentity);
-                  if (keys.length > 0) toggleRowExpandedTracked(keys);
+                  if (keys.length > 0) toggleAnimationRow(keys);
+                }}
+                onToggleAudioExpanded={() => {
+                  const keys = els.map(getTimelineElementIdentity);
+                  if (keys.length > 0) toggleAudioRow(keys);
                 }}
                 onToggleTrackHidden={onToggleTrackHidden}
+                onToggleTrackLocked={onToggleTrackLocked}
+                onRenameTrack={onRenameTrack}
+                onDeleteTrack={onDeleteTrack}
                 onTogglePropertyGroupKeyframe={onTogglePropertyGroupKeyframe}
                 onRemoveAutomationLane={removeAutomationLane}
                 onSeek={onSeek}
@@ -304,7 +297,7 @@ export function TimelineLanes({
                   opacity: isTrackHidden ? 0.35 : 1,
                   transition: "opacity 120ms ease",
                 }}
-                className="relative"
+                className="relative overflow-hidden"
                 onContextMenu={(e: React.MouseEvent) => {
                   // Clip / keyframe-diamond context menus preventDefault at the
                   // target before this bubble handler runs — respect them so a
@@ -368,14 +361,12 @@ export function TimelineLanes({
                     const capabilities = getTimelineEditCapabilities(el);
                     const isSelected =
                       selectedElementId === elementKey || selectedElementIds.has(elementKey);
+                    const isDragSource =
+                      draggedClip?.started === true &&
+                      getTimelineElementIdentity(draggedClip.element) === elementKey;
                     const isComposition = !!el.compositionSrc;
                     // Element identity stays stable across clip splices and reorders.
                     const clipKey = elementKey;
-                    const isDraggingClip =
-                      draggedClip?.started === true &&
-                      draggedElement != null &&
-                      getTimelineElementIdentity(draggedElement) === elementKey;
-                    if (isDraggingClip) return null;
                     const previewElement = getPreviewElement(el);
                     const renderContext = resolveClipRenderContext(
                       previewElement,
@@ -425,7 +416,10 @@ export function TimelineLanes({
                         clipHeight={clipBarHeight}
                         isSelected={isSelected}
                         isHovered={hoveredClip === clipKey}
-                        isDragging={false}
+                        // The source stays anchored until pointer-up, but carries
+                        // its own connected-source treatment while the darker
+                        // gesture actor forecasts the pending destination.
+                        isDragging={isDragSource}
                         isActive={isTimelineClipActive(previewElement, currentTime)}
                         hasCustomContent={!!renderClipContent}
                         capabilities={capabilities}
@@ -483,7 +477,8 @@ export function TimelineLanes({
                       <TimelinePropertyLanes
                         key={`${clipKey}-property-lanes`}
                         id={lanesId}
-                        animations={showsLanes ? (gsapAnimations.get(elementKey) ?? []) : []}
+                        animations={gsapAnimations.get(elementKey) ?? []}
+                        isExpanded={showsLanes}
                         // clipTimingStart, not the raw start: an expanded sub-comp
                         // child's start is host-absolute while its tweens are
                         // local to its own file.
@@ -548,8 +543,7 @@ export function TimelineLanes({
                     );
                   })
                 }
-                {/* The automation lanes belong to the ROW, so they are mounted
-                    here rather than under the active clip's property lanes.
+                {/* Automation belongs to the row, not the active clip.
                     Hanging off that clip meant selecting a sibling moved the
                     whole subtree into a different clip's element and remounted
                     every lane — which threw away each lane's hover state (and
@@ -562,20 +556,37 @@ export function TimelineLanes({
                     against this same relative row, so the geometry is unchanged
                     by the move. */}
                 <div id={automationLanesId}>
-                  {rowExpanded ? (
-                    <TimelineAutomationLaneSlot
-                      elements={automationElements}
-                      isSelected={(element) => {
-                        const key = getTimelineElementIdentity(element);
-                        return selectedElementId === key || selectedElementIds.has(key);
-                      }}
-                      lanes={automationLanes}
-                      pps={pps}
-                      laneCount={keyframeClipKey ? (laneCounts.get(keyframeClipKey) ?? 0) : 0}
-                      accentColor={getTrackStyle(keyframeClip?.tag ?? "").accent}
-                      currentTime={currentTime}
-                      beatTimes={beatAnalysis?.beatTimes}
-                    />
+                  {audioExpanded && isAudioTrack ? (
+                    <>
+                      <TimelineEmbeddedAudioRows
+                        elements={automationElements}
+                        pixelsPerSecond={pps}
+                        laneCount={
+                          rowExpanded && keyframeClipKey
+                            ? (laneCounts.get(keyframeClipKey) ?? 0)
+                            : 0
+                        }
+                        labelColor={getTrackStyle("audio").label}
+                        renderClipContent={renderClipContent}
+                      />
+                      <TimelineAutomationLaneSlot
+                        elements={automationElements}
+                        isSelected={(element) => {
+                          const key = getTimelineElementIdentity(element);
+                          return selectedElementId === key || selectedElementIds.has(key);
+                        }}
+                        lanes={automationLanes}
+                        pps={pps}
+                        laneCount={
+                          rowExpanded && keyframeClipKey
+                            ? (laneCounts.get(keyframeClipKey) ?? 0)
+                            : 0
+                        }
+                        accentColor={getTrackStyle(keyframeClip?.tag ?? "").accent}
+                        currentTime={currentTime}
+                        beatTimes={beatAnalysis?.beatTimes}
+                      />
+                    </>
                   ) : null}
                 </div>
               </div>

@@ -18,7 +18,7 @@ export function TimelineShortcutHint({ theme }: TimelineShortcutHintProps) {
           Shift
         </kbd>
         <span className="text-[9px]" style={{ color: theme.textSecondary }}>
-          + drag/click to edit range
+          + drag to pan timeline
         </span>
       </div>
     </div>

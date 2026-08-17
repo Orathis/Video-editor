@@ -60,8 +60,14 @@ export interface KeyframeSlice {
   expandedClipIds: Set<string>;
   toggleClipExpanded: (id: string) => void;
   setClipExpanded: (id: string, expanded: boolean) => void;
-  /** Union-expand clips (keyframed clips are expanded by default on load). */
+  /** Union-expand clips after an explicit row disclosure action. */
   expandClips: (ids: readonly string[]) => void;
+
+  /** Audio tracks whose Premiere-style volume / FX automation rows are open. */
+  expandedAudioClipIds: Set<string>;
+  toggleAudioClipExpanded: (id: string) => void;
+  setAudioClipExpanded: (id: string, expanded: boolean) => void;
+  expandAudioClips: (ids: readonly string[]) => void;
 
   /**
    * Project/session/element-scoped request. Its nonce is monotonic across store
@@ -117,6 +123,30 @@ export function createKeyframeSlice(
         const next = new Set(state.expandedClipIds);
         for (const id of ids) next.add(id);
         return { expandedClipIds: next };
+      }),
+
+    expandedAudioClipIds: new Set(),
+    toggleAudioClipExpanded: (id) =>
+      set((state) => {
+        const next = new Set(state.expandedAudioClipIds);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return { expandedAudioClipIds: next };
+      }),
+    setAudioClipExpanded: (id, expanded) =>
+      set((state) => {
+        if (state.expandedAudioClipIds.has(id) === expanded) return state;
+        const next = new Set(state.expandedAudioClipIds);
+        if (expanded) next.add(id);
+        else next.delete(id);
+        return { expandedAudioClipIds: next };
+      }),
+    expandAudioClips: (ids) =>
+      set((state) => {
+        if (ids.every((id) => state.expandedAudioClipIds.has(id))) return state;
+        const next = new Set(state.expandedAudioClipIds);
+        for (const id of ids) next.add(id);
+        return { expandedAudioClipIds: next };
       }),
 
     focusedEaseSegment: null,

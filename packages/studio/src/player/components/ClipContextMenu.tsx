@@ -11,6 +11,7 @@ interface ClipContextMenuProps {
   currentTime: number;
   onClose: () => void;
   onSplit: (element: TimelineElement, splitTime: number) => void;
+  onDuplicate: (element: TimelineElement) => void;
   onDelete: (element: TimelineElement) => void;
 }
 
@@ -21,15 +22,11 @@ export const ClipContextMenu = memo(function ClipContextMenu({
   currentTime,
   onClose,
   onSplit,
+  onDuplicate,
   onDelete,
 }: ClipContextMenuProps) {
   const menuRef = useContextMenuDismiss(onClose);
-
-  const menuWidth = 200;
-  const menuHeight = 80;
-  const overflowY = y + menuHeight - window.innerHeight;
-  const adjustedX = x + menuWidth > window.innerWidth ? x - menuWidth : x;
-  const adjustedY = overflowY > 0 ? y - overflowY - 8 : y;
+  const locked = element.timelineLocked === true;
 
   const isSplittable = canSplitElement(element) && ["video", "audio", "img"].includes(element.tag);
   const canSplit =
@@ -40,6 +37,11 @@ export const ClipContextMenu = memo(function ClipContextMenu({
     : canSplit
       ? `Split at ${currentTime.toFixed(2)}s`
       : "Split (move playhead inside clip)";
+  const menuWidth = 200;
+  const menuHeight = 80 + (splitLabel ? 40 : 0);
+  const overflowY = y + menuHeight - window.innerHeight;
+  const adjustedX = x + menuWidth > window.innerWidth ? x - menuWidth : x;
+  const adjustedY = overflowY > 0 ? y - overflowY - 8 : y;
 
   return createPortal(
     <div
@@ -73,7 +75,30 @@ export const ClipContextMenu = memo(function ClipContextMenu({
 
       <button
         type="button"
-        className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-red-400 hover:bg-neutral-800 cursor-pointer text-left"
+        disabled={locked}
+        title={locked ? "Unlock the track to duplicate this clip" : undefined}
+        className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left ${
+          locked
+            ? "text-neutral-600 cursor-not-allowed"
+            : "text-neutral-300 hover:bg-neutral-800 cursor-pointer"
+        }`}
+        onClick={() => {
+          onDuplicate(element);
+          onClose();
+        }}
+      >
+        <span>Duplicate</span>
+      </button>
+
+      <button
+        type="button"
+        disabled={locked}
+        title={locked ? "Unlock the track to delete this clip" : undefined}
+        className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left ${
+          locked
+            ? "text-neutral-600 cursor-not-allowed"
+            : "text-red-400 hover:bg-neutral-800 cursor-pointer"
+        }`}
         onClick={() => {
           onDelete(element);
           onClose();

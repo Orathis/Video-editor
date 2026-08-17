@@ -8,6 +8,7 @@ import { ImageThumbnail } from "../player/components/ImageThumbnail";
 import { encodePreviewPath, resolveMediaPreviewUrl } from "../player/components/thumbnailUtils";
 import { usePlayerStore } from "../player/store/playerStore";
 import { effectiveThumbnailMode } from "../player/lib/thumbnailPolicy";
+import { hasTimelineAudio } from "../utils/timelineInspector";
 
 export function normalizeCompositionSrc(
   compSrc: string,
@@ -69,6 +70,7 @@ function renderAudioClip(
   sessionEpoch: number,
   labelColor: string,
   context: TimelineClipRenderContext,
+  topInset = 16,
 ): ReactNode {
   const audioUrl = resolveMediaPreviewUrl(el.src ?? "", pid, window.location.origin);
   const srcRelative = resolvePreviewRelative(audioUrl, pid, window.location.origin);
@@ -87,6 +89,7 @@ function renderAudioClip(
     labelColor,
     trimStartFraction: start,
     trimEndFraction: end,
+    topInset,
     projectId: pid,
     sessionEpoch,
     priority: context.priority,
@@ -120,6 +123,16 @@ export function useRenderClipContent({
     ): ReactNode => {
       const pid = projectIdRef.current;
       if (!pid) return null;
+
+      // A video with embedded audio owns a Premiere-style child waveform row.
+      // It is still one source-backed A/V clip, so the lane asks this same
+      // renderer for the audible portion rather than manufacturing an audio
+      // element (and a second media identity) merely to draw its waveform.
+      if (context.audioOnly) {
+        return hasTimelineAudio(el)
+          ? renderAudioClip(el, pid, sessionEpoch, style.label, context, 0)
+          : null;
+      }
 
       // Thumbnail generation disabled (perf) -> plain clip bars. Audio still shows
       // its waveform (cheap, not a frame thumbnail). Toggle: timeline toolbar.
@@ -206,7 +219,7 @@ export function useRenderClipContent({
             rich: context.rich,
           });
         }
-        return createElement(VideoThumbnail, {
+        const videoThumbnail = createElement(VideoThumbnail, {
           videoSrc: mediaSrc,
           label: "",
           labelColor: style.label,
@@ -218,6 +231,21 @@ export function useRenderClipContent({
           priority: context.priority,
           rich: context.rich,
         });
+        if (!hasTimelineAudio(el)) return videoThumbnail;
+        return createElement(
+          "div",
+          { className: "absolute inset-0", "data-av-clip-content": "true" },
+          videoThumbnail,
+          createElement(
+            "div",
+            {
+              className:
+                "pointer-events-none absolute inset-x-0 bottom-0 h-3.5 overflow-hidden border-t border-sky-300/20 bg-[#09131c]/80",
+              "data-embedded-audio-waveform": "true",
+            },
+            renderAudioClip(el, pid, sessionEpoch, style.label, context, 0),
+          ),
+        );
       }
 
       if (htmlPreviewEligible) {

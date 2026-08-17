@@ -61,21 +61,18 @@ export function getTimelineLaneTop(laneIndex: number): number {
  */
 export const INSERT_BOUNDARY_BAND = CLIP_Y / TRACK_H;
 /**
- * Breathing room INSIDE the scroll area (CapCut-style), threaded through every
- * track-row y computation via {@link getTimelineRowTop} — never inline a magic
- * offset; a track row's top is always ruler + top pad + cumulative row heights.
- *
- * - TRACKS_TOP_PAD: empty space between the (sticky) ruler and the first track
- *   (~half a track height) so the first clip isn't jammed under the ruler.
- * - TRACKS_BOTTOM_PAD: empty space below the last track (~1.5 track heights),
- *   enough to comfortably drag a clip into the void to create a new bottom lane.
+ * Track rows begin directly below the ruler. Keep this named zero in the shared
+ * geometry so rendering and pointer hit-testing continue to use one formula.
  */
-export const TRACKS_TOP_PAD = 50;
+export const TRACKS_TOP_PAD = 0;
+/**
+ * Empty space below the last track (~1.5 track heights), enough to comfortably
+ * drag a clip into the void to create a new bottom lane.
+ */
 export const TRACKS_BOTTOM_PAD = Math.round(TRACK_H * 1.5);
 /**
- * Breathing room LEFT of t=0 (CapCut-style), inside the scroll content — the
- * horizontal sibling of TRACKS_TOP_PAD: empty lane surface between the sticky
- * gutter and where the ruler's 00:00 / the clips actually start, scrolling
+ * Breathing room LEFT of t=0 (CapCut-style), inside the scroll content: empty
+ * lane surface between the sticky gutter and where the ruler's 00:00 / the clips actually start, scrolling
  * WITH the content. Time↔pixel mapping: content x = GUTTER + TRACKS_LEFT_PAD
  * + t·pps, and every pointer→time inverse subtracts it symmetrically. The
  * lanes and the ruler realize it as a plain flow spacer between the sticky
@@ -86,6 +83,8 @@ export const TRACKS_LEFT_PAD = 48;
 
 export interface TimelineTrackHeightClip {
   clipId: string;
+  /** The clip holding this row's separate audio disclosure open. */
+  audioClipId?: string;
   laneCount: number;
   /** Audio automation lanes shown when expanded, reserved at their own height. */
   automationLaneCount?: number;
@@ -101,14 +100,18 @@ type TimelineTrackHeightInput = readonly (readonly TimelineTrackHeightClip[])[];
 export function trackHeights(
   tracks: TimelineTrackHeightInput,
   expandedClipIds?: ReadonlySet<string>,
+  expandedAudioClipIds: ReadonlySet<string> | undefined = expandedClipIds,
 ): number[] {
   return tracks.map((clips) => {
     let laneCount = 0;
     let automationLanes = 0;
     for (const clip of clips) {
-      if (!expandedClipIds?.has(clip.clipId)) continue;
-      laneCount = Math.max(laneCount, clip.laneCount);
-      automationLanes = Math.max(automationLanes, clip.automationLaneCount ?? 0);
+      if (expandedClipIds?.has(clip.clipId)) {
+        laneCount = Math.max(laneCount, clip.laneCount);
+      }
+      if (expandedAudioClipIds?.has(clip.audioClipId ?? clip.clipId)) {
+        automationLanes = Math.max(automationLanes, clip.automationLaneCount ?? 0);
+      }
     }
     return (
       TRACK_H + Math.max(0, Math.trunc(laneCount)) * LANE_H + automationLanes * AUTOMATION_LANE_H
@@ -243,7 +246,7 @@ function getTimelineRowOffset(row: number, rowHeights: readonly number[]): numbe
  * displayed lane). The single source of truth for row->y: the ruler height plus
  * the top breathing pad plus whole track lanes above it. Every clip/ghost/
  * placeholder/insertion top and every pointer-y->row inversion goes through this
- * (or its inverse in {@link getTimelineRowFromY}) so the pad can never drift.
+ * (or its inverse in {@link getTimelineRowFromY}) so the geometry cannot drift.
  */
 export function getTimelineRowTop(
   row: number,
@@ -508,9 +511,7 @@ export function getTimelinePlaybackFollowScrollLeft(input: {
 }
 
 export function getTimelineCanvasHeight(rowHeights: readonly number[]): number {
-  // RULER_H + top pad + lanes + bottom pad. The old TIMELINE_SCROLL_BUFFER is
-  // subsumed by TRACKS_BOTTOM_PAD (which is larger), so the drag-into-void space
-  // below the last lane is real scrollable surface, not a hidden buffer.
+  // Bottom padding is real scrollable drag-into-void surface.
   return getTimelineRowGeometry(rowHeights).canvasHeight;
 }
 
@@ -589,9 +590,7 @@ export function resolveTimelineAssetDrop(
     0,
     input.clampStartToDuration === false ? pointerStart : Math.min(input.duration, pointerStart),
   );
-  // Row from the shared row→y inverse so the top pad is honoured; a drop in the
-  // pad above the first lane floors to row 0, a drop in the bottom pad rounds
-  // past the last lane (getDefaultDroppedTrack then appends a new track).
+  // A drop in the bottom pad rounds past the last lane and appends a track.
   const rowIndex = Math.floor(getTimelineRowFromY(contentY, input.rowHeights));
   return {
     start,

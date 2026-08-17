@@ -121,6 +121,15 @@ function expectTrackExpansion(
   expect(row?.style.height).toBe(`${height}px`);
 }
 
+function expectAudioTrackExpansion(
+  row: HTMLElement | null | undefined,
+  expandedClipIds: string[],
+  height: number,
+) {
+  expect(usePlayerStore.getState().expandedAudioClipIds).toEqual(new Set(expandedClipIds));
+  expect(row?.style.height).toBe(`${height}px`);
+}
+
 function renderBasicTimeline() {
   const host = createSizedTimelineHost(640);
   usePlayerStore.setState({
@@ -134,6 +143,46 @@ function renderBasicTimeline() {
   });
   return { host, root };
 }
+
+describe("timeline track controls", () => {
+  it("keeps Shift exclusively assigned to hand-pan instead of the crosshair cursor", () => {
+    const { host, root } = renderBasicTimeline();
+    const timeline = host.querySelector<HTMLElement>('[aria-label="Timeline"]');
+
+    act(() =>
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "ShiftLeft", key: "Shift" })),
+    );
+
+    expect(timeline?.classList.contains("cursor-crosshair")).toBe(false);
+    expect(timeline?.classList.contains("cursor-default")).toBe(true);
+
+    act(() =>
+      window.dispatchEvent(new KeyboardEvent("keyup", { code: "ShiftLeft", key: "Shift" })),
+    );
+    act(() => root.unmount());
+  });
+
+  it("adds a frame track from the left-side control", () => {
+    const onAddFrameTrack = vi.fn();
+    const host = createSizedTimelineHost(640);
+    usePlayerStore.setState({
+      duration: 4,
+      timelineReady: true,
+      elements: [{ id: "clip-1", tag: "div", start: 0, duration: 2, track: 0 }],
+    });
+    const root = createRoot(host);
+    act(() => root.render(React.createElement(Timeline, { onAddFrameTrack })));
+
+    const addButton = host.querySelector<HTMLButtonElement>(
+      'button[aria-label="Add frame track at playhead"]',
+    );
+    expect(addButton).not.toBeNull();
+    act(() => addButton?.click());
+    expect(onAddFrameTrack).toHaveBeenCalledOnce();
+
+    act(() => root.unmount());
+  });
+});
 
 describe("Timeline provider boundary", () => {
   it("keeps all-collapsed horizontal positions at the gutter plus the pre-t=0 pad", () => {
@@ -389,7 +438,7 @@ describe("Timeline provider boundary", () => {
       button.click();
     });
 
-    const row = button.parentElement?.parentElement;
+    const row = button.closest('[role="row"]');
     // Row children: [TimelineTrackHeader (sticky column), time-mapped content].
     const trackContent = row?.children.item(1);
     expect(onToggleTrackHidden).toHaveBeenCalledWith(0, false);
@@ -399,6 +448,39 @@ describe("Timeline provider boundary", () => {
     }
     expect(trackContent.style.opacity).toBe("0.35");
 
+    act(() => root.unmount());
+  });
+
+  it("does not allocate an empty Audio preview lane on visual-only tracks", () => {
+    const { host, root } = renderBasicTimeline();
+    const audioButton = host.querySelector<HTMLButtonElement>(
+      'button[data-timeline-control-category="audio"]',
+    );
+
+    expect(audioButton).toBeNull();
+    expect(host.querySelector("[data-timeline-audio-empty]")).toBeNull();
+    expect(host.querySelector("[data-timeline-audio-preview]")).toBeNull();
+    act(() => root.unmount());
+  });
+
+  it("marks a locked track and its clip for the Premiere-style locked treatment", () => {
+    const host = createSizedTimelineHost(640);
+    usePlayerStore.setState({
+      duration: 4,
+      timelineReady: true,
+      elements: [
+        { id: "clip-1", tag: "div", start: 0, duration: 2, track: 0, timelineLocked: true },
+      ],
+    });
+    const root = createRoot(host);
+    act(() => root.render(React.createElement(Timeline)));
+    act(() => {});
+
+    expect(host.querySelector("[data-timeline-track-locked]")).not.toBeNull();
+    const clip = host.querySelector<HTMLElement>('[data-el-id="clip-1"]');
+    expect(clip?.className).toContain("is-locked");
+    expect(clip?.getAttribute("data-clip-locked")).toBe("true");
+    expect(host.querySelector('button[aria-label="Unlock track 1"]')).not.toBeNull();
     act(() => root.unmount());
   });
 
@@ -553,29 +635,30 @@ describe("Timeline provider boundary", () => {
       root.render(React.createElement(Timeline));
     });
 
-    // Keyframed clip-1 is expanded by default (AE/Figma default); its disclosure
-    // lives in the left column. clip-2 has no keyframes so it never shows one.
-    const collapseButton = host.querySelector<HTMLButtonElement>(
-      'button[aria-label="Collapse clip-1 keyframes"]',
+    // Keyframe rows start closed and only reserve height after an explicit click.
+    // clip-2 has no keyframes, so it never shows a disclosure control.
+    const expandButton = host.querySelector<HTMLButtonElement>(
+      'button[aria-label="Expand clip-1 keyframes"]',
     );
-    expect(collapseButton).not.toBeNull();
+    expect(expandButton).not.toBeNull();
+    expect(expandButton?.dataset.timelineControlCategory).toBe("animation");
+    expect(expandButton?.textContent).toContain("◇");
     expect(host.querySelector('button[aria-label="Expand clip-2 keyframes"]')).toBeNull();
     expect(host.querySelector('button[aria-label="Collapse clip-2 keyframes"]')).toBeNull();
 
     const clip = host.querySelector<HTMLElement>('[data-el-id="clip-1"]');
     const row = clip?.parentElement?.parentElement;
-    expectTrackExpansion(row, ["clip-1"], TRACK_H + 2 * LANE_H);
-
-    // Collapsing sticks (does not bounce back open via auto-expand).
-    act(() => collapseButton?.click());
     expectTrackExpansion(row, [], TRACK_H);
 
-    const expandButton = host.querySelector<HTMLButtonElement>(
-      'button[aria-label="Expand clip-1 keyframes"]',
-    );
-    expect(expandButton).not.toBeNull();
     act(() => expandButton?.click());
     expectTrackExpansion(row, ["clip-1"], TRACK_H + 2 * LANE_H);
+
+    const collapseButton = host.querySelector<HTMLButtonElement>(
+      'button[aria-label="Collapse clip-1 keyframes"]',
+    );
+    expect(collapseButton).not.toBeNull();
+    act(() => collapseButton?.click());
+    expectTrackExpansion(row, [], TRACK_H);
     act(() => root.unmount());
   });
 
@@ -603,12 +686,21 @@ describe("Timeline provider boundary", () => {
     const row = host.querySelector<HTMLElement>('[data-el-id="narration-1"]')?.parentElement
       ?.parentElement;
     // A row of several clips is named for the track, so the caret is too.
-    const caret = () => host.querySelector<HTMLButtonElement>('button[aria-label$=" keyframes"]');
-    expect(caret()?.getAttribute("aria-label")).toBe("Expand Track 1 keyframes");
+    const audioButton = () =>
+      host.querySelector<HTMLButtonElement>('button[data-timeline-control-category="audio"]');
+    expect(audioButton()?.getAttribute("aria-label")).toBe("Expand Track 1 audio controls");
+    expect(host.querySelector('button[data-timeline-control-category="animation"]')).toBeNull();
+    const countBadge = row?.querySelector<HTMLElement>('[aria-label="2 clips"]');
+    expect(countBadge?.className).toContain("opacity-0");
+    expect(countBadge?.className).toContain("group-hover/layer:opacity-100");
+    expect(audioButton()?.nextElementSibling?.getAttribute("aria-label")).toBe("Lock track 1");
+    expect(audioButton()?.nextElementSibling?.nextElementSibling?.getAttribute("aria-label")).toBe(
+      "Hide track 1",
+    );
 
-    act(() => caret()?.click());
+    act(() => audioButton()?.click());
     // One shared volume row, and BOTH clips hold it open.
-    expectTrackExpansion(row, ["narration-1", "narration-2"], TRACK_H + AUTOMATION_LANE_H);
+    expectAudioTrackExpansion(row, ["narration-1", "narration-2"], TRACK_H + AUTOMATION_LANE_H);
 
     // Every clip bar on the row is capped to one track height. Only the clip
     // owning the property lanes used to be, so its siblings stretched the whole
@@ -619,8 +711,8 @@ describe("Timeline provider boundary", () => {
       ),
     ).toEqual([`${TRACK_H - 2 * CLIP_Y}px`, `${TRACK_H - 2 * CLIP_Y}px`]);
 
-    act(() => caret()?.click());
-    expectTrackExpansion(row, [], TRACK_H);
+    act(() => audioButton()?.click());
+    expectAudioTrackExpansion(row, [], TRACK_H);
     act(() => root.unmount());
   });
 
@@ -647,7 +739,11 @@ describe("Timeline provider boundary", () => {
     });
     const root = createRoot(host);
     act(() => root.render(React.createElement(Timeline)));
-    act(() => host.querySelector<HTMLButtonElement>('button[aria-label$=" keyframes"]')?.click());
+    act(() =>
+      host
+        .querySelector<HTMLButtonElement>('button[data-timeline-control-category="audio"]')
+        ?.click(),
+    );
 
     const before = [...host.querySelectorAll(".hf-automation-lane")];
     expect(before).toHaveLength(2);
@@ -1229,9 +1325,9 @@ describe("resolveTimelineAssetDrop", () => {
           trackOrder: [0, 3, 7],
         },
         432, // rectLeft(100) + GUTTER(32) + 3s*100pps  (contentOrigin = GUTTER)
-        // clientY: rectTop(200) + RULER_H(24) + TRACKS_TOP_PAD(72) + TRACK_H(48)
-        // + TRACK_H/2(24) = 368 → row 1 → track 3.
-        368,
+        // clientY: rectTop(200) + RULER_H(24) + TRACK_H(48)
+        // + TRACK_H/2(24) = 296 → row 1 → track 3.
+        296,
       ),
     ).toEqual({ start: 3, track: 3 });
   });

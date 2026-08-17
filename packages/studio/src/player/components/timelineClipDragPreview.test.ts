@@ -4,10 +4,12 @@ import {
   computeDragPreview,
   computeResizePreview,
   getTimelineDragOverlayPosition,
+  getTimelineResolvedDragActorTop,
+  stabilizeTimelineDesiredTrack,
   type DragPreviewContext,
 } from "./timelineClipDragPreview";
 import type { DraggedClipState } from "./timelineClipDragTypes";
-import { LANE_H, RULER_H, TRACKS_TOP_PAD, TRACK_H } from "./timelineLayout";
+import { CLIP_Y, LANE_H, RULER_H, TRACKS_TOP_PAD, TRACK_H } from "./timelineLayout";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Regression bed for the live-reproduced BUG 1: a PLAIN HORIZONTAL drag of a clip
@@ -124,6 +126,123 @@ describe("computeDragPreview — plain horizontal drag never arms a phantom inse
       expect(next.insertRow).toBeNull();
       expect(next.previewTrack).toBe(0);
     }
+  });
+
+  it("crosses audio-row dividers without flickering into track-insert mode", () => {
+    const dragged = clip("sea-ambient", 2, 37, 35, 4, "audio");
+    const audioElements = [
+      clip("audio-1", 1, 0, 34, 2, "audio"),
+      dragged,
+      clip("audio-3", 3, 0, 34, 1, "audio"),
+    ];
+    const originClientY = yForRow(2.5);
+    const drag: DraggedClipState = {
+      pointerId: 0,
+      element: dragged,
+      originClientX: 800,
+      originClientY,
+      originScrollLeft: 0,
+      originScrollTop: 0,
+      pointerClientX: 800,
+      pointerClientY: originClientY,
+      pointerOffsetX: 0,
+      pointerOffsetY: 0,
+      previewStart: dragged.start,
+      previewTrack: dragged.track,
+      insertRow: null,
+      snapTime: null,
+      snapType: null,
+      started: true,
+    };
+    const audioContext: DragPreviewContext = {
+      ...ctx(undefined, audioElements),
+      trackOrder: [0, 1, 2, 3],
+      audioTracks: new Set([1, 2, 3]),
+    };
+
+    // One-pixel-ish movement past the divider stays on the current lane: this is
+    // the deadband that absorbs hand jitter instead of alternating destinations.
+    const upwardJitter = computeDragPreview(drag, 800, yForRow(1.98), audioContext);
+    expect(upwardJitter.desiredTrack).toBe(2);
+    expect(upwardJitter.previewTrack).toBe(2);
+    expect(upwardJitter.insertRow).toBeNull();
+
+    // A decisive movement through the deadband changes lanes without ever
+    // arming track-insert mode at the divider.
+    const upward = computeDragPreview(drag, 800, yForRow(1.85), audioContext);
+    expect(upward.desiredTrack).toBe(1);
+    expect(upward.previewTrack).toBe(1);
+    expect(upward.insertRow).toBeNull();
+
+    // Crossing the same divider downward remains a direct lane move too.
+    const downwardDrag = {
+      ...drag,
+      element: { ...dragged, track: 1 },
+      originClientY: yForRow(1.5),
+    };
+    const downwardJitter = computeDragPreview(downwardDrag, 800, yForRow(2.02), audioContext);
+    expect(downwardJitter.desiredTrack).toBe(1);
+    expect(downwardJitter.previewTrack).toBe(1);
+    expect(downwardJitter.insertRow).toBeNull();
+
+    const downward = computeDragPreview(downwardDrag, 800, yForRow(2.15), audioContext);
+    expect(downward.desiredTrack).toBe(2);
+    expect(downward.previewTrack).toBe(2);
+    expect(downward.insertRow).toBeNull();
+  });
+
+  it("holds the aimed audio row through small pointer jitter at its boundary", () => {
+    const order = [0, 1, 2, 3];
+
+    // A deliberate move clears the 6px-equivalent deadband and enters row 2.
+    expect(stabilizeTimelineDesiredTrack(2, 1, 1.7, order)).toBe(2);
+    // A one-pixel-ish wobble back across the raw midpoint stays on row 2.
+    expect(stabilizeTimelineDesiredTrack(1, 2, 1.48, order)).toBe(2);
+    // Moving decisively back clears the reverse deadband and returns to row 1.
+    expect(stabilizeTimelineDesiredTrack(1, 2, 1.3, order)).toBe(1);
+  });
+
+  it("keeps one directional reservation while hovering over an occupied audio row", () => {
+    const dragged = clip("sea-ambient", 0, 0, 10, 4, "audio");
+    const occupied = [
+      dragged,
+      clip("same-row-sibling", 0, 0, 10, 3, "audio"),
+      clip("audio-1", 1, 0, 10, 2, "audio"),
+      clip("audio-2", 2, 0, 10, 1, "audio"),
+    ];
+    const originClientY = yForRow(0.5);
+    const drag: DraggedClipState = {
+      pointerId: 0,
+      element: dragged,
+      originClientX: 800,
+      originClientY,
+      originScrollLeft: 0,
+      originScrollTop: 0,
+      pointerClientX: 800,
+      pointerClientY: originClientY,
+      pointerOffsetX: 0,
+      pointerOffsetY: 0,
+      previewStart: 0,
+      previewTrack: 0,
+      insertRow: null,
+      snapTime: null,
+      snapType: null,
+      started: true,
+    };
+    const audioContext: DragPreviewContext = {
+      ...ctx(undefined, occupied),
+      trackOrder: [0, 1, 2],
+      audioTracks: new Set([0, 1, 2]),
+    };
+
+    const upperHalf = computeDragPreview(drag, 800, yForRow(1.4), audioContext);
+    expect(upperHalf.desiredTrack).toBe(1);
+    expect(upperHalf.insertRow).toBe(1);
+
+    // Crossing the aimed row's midpoint must not flip the reserved insertion side.
+    const lowerHalf = computeDragPreview(upperHalf, 800, yForRow(1.6), audioContext);
+    expect(lowerHalf.desiredTrack).toBe(1);
+    expect(lowerHalf.insertRow).toBe(1);
   });
 
   it("aiming the gutter ABOVE the top lane arms a top insert (UX rule 2)", () => {
@@ -252,5 +371,24 @@ describe("getTimelineDragOverlayPosition", () => {
     const { drag } = horizontalDrag(moodboard, 0.5, 2);
     expect(getTimelineDragOverlayPosition({ ...drag, started: false }, fakeScroll())).toBeNull();
     expect(getTimelineDragOverlayPosition(drag, null)).toBeNull();
+  });
+});
+
+describe("getTimelineResolvedDragActorTop", () => {
+  it("locks the actor to a resolved lane instead of the pointer's visual row", () => {
+    const { drag } = horizontalDrag(moodboard, 0.5, 2);
+    expect(
+      getTimelineResolvedDragActorTop(
+        { ...drag, pointerClientY: yForRow(-4), previewTrack: 2 },
+        [0, 1, 2],
+      ),
+    ).toBe(yForRow(2) + CLIP_Y);
+  });
+
+  it("uses the empty reserved row for an occupied audio drop", () => {
+    const { drag } = horizontalDrag(moodboard, 0.5, 2);
+    expect(getTimelineResolvedDragActorTop({ ...drag, insertRow: 4 }, [0, 1, 2, 3])).toBe(
+      yForRow(4) + CLIP_Y,
+    );
   });
 });

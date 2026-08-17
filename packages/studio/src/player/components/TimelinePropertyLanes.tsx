@@ -10,6 +10,7 @@ import { TimelineDiamondLane, type TimelineDiamondKeyframe } from "./TimelineCli
 import { LANE_H, getTimelineLaneTop } from "./timelineLayout";
 import type { TimelineKeyframeTarget } from "./timelineKeyframeIdentity";
 import { timelineLogicalRowCellId, timelinePropertyRowId } from "./timelineNavigationIdentity";
+import { useTimelineDisclosurePresence } from "./useTimelineDisclosurePresence";
 
 export interface TimelinePropertyLanesProps {
   /**
@@ -35,6 +36,9 @@ export interface TimelinePropertyLanesProps {
   onContextMenuKeyframe?: (e: ReactMouseEvent, target: TimelineKeyframeTarget) => void;
   onMoveKeyframe?: (target: TimelineKeyframeTarget, toClipPercentage: number) => Promise<boolean>;
   suppressClickRef?: RefObject<boolean>;
+  /** Whether the owning track is disclosed. Exit lanes remain mounted briefly
+   *  so the row can fold around them instead of removing them in one frame. */
+  isExpanded?: boolean;
 }
 
 /**
@@ -196,7 +200,9 @@ export function TimelinePropertyLanes({
   onContextMenuKeyframe,
   onMoveKeyframe,
   suppressClickRef,
+  isExpanded = true,
 }: TimelinePropertyLanesProps) {
+  const disclosure = useTimelineDisclosurePresence(isExpanded);
   // Memoized: TimelineDiamondLane is React.memo'd, and rebuilding the lanes (and
   // a fresh keyframesData literal per lane) on every render would re-render every
   // diamond in every expanded clip on each playhead tick.
@@ -223,46 +229,53 @@ export function TimelinePropertyLanes({
   // (collapsed layer), so `id` stays resolvable in both disclosure states.
   return (
     <div id={id}>
-      {laneData.map(({ group, keyframesData }, laneIndex) => (
-        <div
-          key={group}
-          id={timelineLogicalRowCellId(id, timelinePropertyRowId(elementId, group), "content")}
-          role="group"
-          aria-label={`${group} keyframes`}
-          data-property-group={group}
-          data-timeline-element-id={elementId}
-          data-timeline-property-lane=""
-          data-timeline-lane-top={getTimelineLaneTop(laneIndex)}
-          className="absolute"
-          style={{
-            left: clipLeftPx,
-            top: getTimelineLaneTop(laneIndex),
-            width: clipWidthPx,
-            height: LANE_H,
-          }}
-        >
-          <TimelineDiamondLane
-            keyframesData={keyframesData}
-            clipWidthPx={clipWidthPx}
-            clipHeightPx={LANE_H}
-            accentColor={accentColor}
-            isSelected={isSelected}
-            currentPercentage={currentPercentage}
-            elementId={elementId}
-            clipStart={clipStart}
-            clipDuration={clipDuration}
-            selectedKeyframes={selectedKeyframes}
-            rovingTargetId={rovingTargetId}
-            onSelectSegment={onSelectSegment}
-            onClickKeyframe={onClickKeyframe}
-            onShiftClickKeyframe={onShiftClickKeyframe}
-            onContextMenuKeyframe={onContextMenuKeyframe}
-            onMoveKeyframe={onMoveKeyframe}
-            suppressClickRef={suppressClickRef}
-            groupAware
-          />
-        </div>
-      ))}
+      {disclosure.present &&
+        laneData.map(({ group, keyframesData }, laneIndex) => (
+          <div
+            key={group}
+            id={timelineLogicalRowCellId(id, timelinePropertyRowId(elementId, group), "content")}
+            role="group"
+            aria-label={`${group} keyframes`}
+            aria-hidden={!isExpanded}
+            title={`${group[0]?.toUpperCase()}${group.slice(1)} keyframes — diamonds mark changes over time; drag a diamond to retime it`}
+            data-property-group={group}
+            data-timeline-element-id={elementId}
+            data-timeline-property-lane=""
+            data-timeline-lane-top={getTimelineLaneTop(laneIndex)}
+            data-disclosure-phase={disclosure.phase}
+            className="timeline-disclosure-item timeline-property-lane absolute"
+            style={{
+              left: clipLeftPx,
+              top: getTimelineLaneTop(laneIndex),
+              width: clipWidthPx,
+              height: LANE_H,
+              pointerEvents: isExpanded ? undefined : "none",
+              transitionDelay:
+                disclosure.phase === "open" ? `${Math.min(laneIndex * 18, 72)}ms` : "0ms",
+            }}
+          >
+            <TimelineDiamondLane
+              keyframesData={keyframesData}
+              clipWidthPx={clipWidthPx}
+              clipHeightPx={LANE_H}
+              accentColor={accentColor}
+              isSelected={isSelected}
+              currentPercentage={currentPercentage}
+              elementId={elementId}
+              clipStart={clipStart}
+              clipDuration={clipDuration}
+              selectedKeyframes={selectedKeyframes}
+              rovingTargetId={rovingTargetId}
+              onSelectSegment={onSelectSegment}
+              onClickKeyframe={onClickKeyframe}
+              onShiftClickKeyframe={onShiftClickKeyframe}
+              onContextMenuKeyframe={onContextMenuKeyframe}
+              onMoveKeyframe={onMoveKeyframe}
+              suppressClickRef={suppressClickRef}
+              groupAware
+            />
+          </div>
+        ))}
     </div>
   );
 }

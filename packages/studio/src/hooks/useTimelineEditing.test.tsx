@@ -21,6 +21,76 @@ vi.mock("../components/editor/manualEditingAvailability", async (importOriginal)
   };
 });
 
+describe("timeline track source controls", () => {
+  const SOURCE = `<div data-composition-id="main" data-duration="4"><div id="clip" data-hf-id="hf-clip" data-start="0" data-duration="2" data-track-index="0"></div></div>`;
+  const sourceIframe = () => {
+    const iframe = createPreviewIframe([]);
+    if (!iframe.contentDocument) throw new Error("Expected iframe document");
+    iframe.contentDocument.body.innerHTML = SOURCE;
+    return iframe;
+  };
+
+  it("persists a track name independently from the clip label", async () => {
+    const iframe = sourceIframe();
+    const clip = timelineElement({ id: "clip", track: 0, zIndex: 1 });
+    usePlayerStore.getState().setElements([clip]);
+    const writeProjectFile = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse({ content: SOURCE })),
+    );
+    const hook = renderTimelineEditingHook({
+      timelineElements: [clip],
+      iframe,
+      onZIndexCommit: vi.fn().mockResolvedValue(undefined),
+      projectId: "p1",
+      writeProjectFile,
+      recordEdit: vi.fn(async () => {}),
+    });
+
+    await act(async () => {
+      await hook.renameTrack([clip], "B-roll");
+      await flushAsyncWork();
+    });
+
+    expect(String(writeProjectFile.mock.calls[0]?.[1])).toContain(
+      'data-timeline-track-label="B-roll"',
+    );
+    expect(usePlayerStore.getState().elements[0]?.trackLabel).toBe("B-roll");
+    hook.unmount();
+  });
+
+  it("adds a bounded frame clip on a new authored track", async () => {
+    const iframe = sourceIframe();
+    const clip = timelineElement({ id: "clip", track: 0, zIndex: 1 });
+    usePlayerStore.setState({ duration: 4, currentTime: 3, elements: [clip] });
+    const writeProjectFile = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse({ content: SOURCE })),
+    );
+    const hook = renderTimelineEditingHook({
+      timelineElements: [clip],
+      iframe,
+      onZIndexCommit: vi.fn().mockResolvedValue(undefined),
+      projectId: "p1",
+      writeProjectFile,
+      recordEdit: vi.fn(async () => {}),
+    });
+
+    await act(async () => {
+      await hook.addFrame();
+      await flushAsyncWork();
+    });
+
+    const written = String(writeProjectFile.mock.calls[0]?.[1]);
+    expect(written).toContain('data-timeline-track-label="Frame 2"');
+    expect(written).toContain('data-start="3" data-duration="1" data-track-index="1"');
+    expect(written).toContain('data-composition-id="main" data-duration="4"');
+    hook.unmount();
+  });
+});
+
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 type ZIndexEntry = {
@@ -129,6 +199,8 @@ function renderTimelineEditingHook(input: {
   groupMove: ReturnType<typeof useTimelineEditing>["handleTimelineGroupMove"];
   groupResize: ReturnType<typeof useTimelineEditing>["handleTimelineGroupResize"];
   del: ReturnType<typeof useTimelineEditing>["handleTimelineElementDelete"];
+  renameTrack: ReturnType<typeof useTimelineEditing>["handleTimelineTrackRename"];
+  addFrame: ReturnType<typeof useTimelineEditing>["handleTimelineFrameAdd"];
   unmount: () => void;
 } {
   let move: ReturnType<typeof useTimelineEditing>["handleTimelineElementMove"] | null = null;
@@ -136,6 +208,8 @@ function renderTimelineEditingHook(input: {
   let groupMove: ReturnType<typeof useTimelineEditing>["handleTimelineGroupMove"] | null = null;
   let groupResize: ReturnType<typeof useTimelineEditing>["handleTimelineGroupResize"] | null = null;
   let del: ReturnType<typeof useTimelineEditing>["handleTimelineElementDelete"] | null = null;
+  let renameTrack: ReturnType<typeof useTimelineEditing>["handleTimelineTrackRename"] | null = null;
+  let addFrame: ReturnType<typeof useTimelineEditing>["handleTimelineFrameAdd"] | null = null;
 
   function Harness() {
     const commitRef = useRef(input.onZIndexCommit);
@@ -163,6 +237,8 @@ function renderTimelineEditingHook(input: {
     groupMove = hook.handleTimelineGroupMove;
     groupResize = hook.handleTimelineGroupResize;
     del = hook.handleTimelineElementDelete;
+    renameTrack = hook.handleTimelineTrackRename;
+    addFrame = hook.handleTimelineFrameAdd;
     return null;
   }
 
@@ -172,7 +248,9 @@ function renderTimelineEditingHook(input: {
   if (!groupMove) throw new Error("Expected hook to expose group move handler");
   if (!groupResize) throw new Error("Expected hook to expose group resize handler");
   if (!del) throw new Error("Expected hook to expose delete handler");
-  return { move, resize, groupMove, groupResize, del, unmount };
+  if (!renameTrack) throw new Error("Expected hook to expose track rename handler");
+  if (!addFrame) throw new Error("Expected hook to expose frame add handler");
+  return { move, resize, groupMove, groupResize, del, renameTrack, addFrame, unmount };
 }
 
 type TimelineRecordEdit = NonNullable<

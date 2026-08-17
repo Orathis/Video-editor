@@ -8,7 +8,11 @@ import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import { LANE_H, TRACK_H } from "./timelineLayout";
 import { AUTOMATION_LANE_H } from "./automationLaneHeight";
 import { getTimelinePropertyLanes } from "./TimelinePropertyLanes";
-import { resolveTrackKeyframeClip, useTimelineTrackLayout } from "./useTimelineTrackLayout";
+import {
+  resolveTimelineDisplayTrackOrder,
+  resolveTrackKeyframeClip,
+  useTimelineTrackLayout,
+} from "./useTimelineTrackLayout";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -93,6 +97,31 @@ describe("useTimelineTrackLayout", () => {
     unmount();
   });
 });
+
+describe("resolveTimelineDisplayTrackOrder", () => {
+  it("does not insert an upward-drag sentinel row before the drop commits", () => {
+    const trackOrder = [0, 1, 2, 3, 4, 5];
+
+    const displayOrder = resolveTimelineDisplayTrackOrder(
+      { started: true, previewTrack: -1, insertRow: 4 },
+      trackOrder,
+    );
+
+    expect(displayOrder).toBe(trackOrder);
+    expect(displayOrder).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it("keeps a downward insertion preview from changing the live row count", () => {
+    const trackOrder = [0, 1, 2, 3, 4, 5];
+
+    expect(
+      resolveTimelineDisplayTrackOrder(
+        { started: true, previewTrack: 6, insertRow: 6 },
+        trackOrder,
+      ),
+    ).toBe(trackOrder);
+  });
+});
 const audioClip = (id: string, over: Partial<TimelineElement> = {}): TimelineElement => ({
   id,
   key: id,
@@ -131,7 +160,7 @@ describe("a track several clips share", () => {
 
   /** Reserved height for the row, with only narration-1 ever expanded. */
   function rowHeight(selectedElementId: string | null): number {
-    usePlayerStore.setState({ expandedClipIds: new Set(["narration-1"]) });
+    usePlayerStore.setState({ expandedAudioClipIds: new Set(["narration-1"]) });
     let height = 0;
     function Probe() {
       height =
@@ -152,7 +181,7 @@ describe("a track several clips share", () => {
   });
 
   it("stays open at the same height when the selection moves to a sibling", () => {
-    // Expansion is stored per clip but reads as the row's: asking only about the
+    // Audio expansion is stored per clip but reads as the row's: asking only about the
     // active clip collapsed the row the moment another was clicked.
     expect(rowHeight("narration-2")).toBe(rowHeight("narration-1"));
   });

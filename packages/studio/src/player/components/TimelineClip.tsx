@@ -71,8 +71,11 @@ export const TimelineClip = memo(function TimelineClip({
     isSelected ? "is-selected" : "",
     isHovered ? "is-hovered" : "",
     isDragging ? "is-dragging" : "",
+    isDragging && isGestureActor ? "is-drag-ghost" : "",
+    isDragging && !isGestureActor ? "is-drag-source" : "",
     showDefaultText ? "" : "is-micro",
     isAudioTimelineElement(el) ? "is-audio" : "",
+    el.timelineLocked ? "is-locked" : "",
   ]
     .filter((className) => className.length > 0)
     .join(" ");
@@ -84,13 +87,13 @@ export const TimelineClip = memo(function TimelineClip({
     borderRadius: theme.clipRadius,
     zIndex: isDragging ? 20 : isSelected ? 10 : isHovered ? 5 : 1,
     // Regular cursor over clips (CapCut-style, user preference) — no grab hand.
-    cursor: "default",
+    cursor: el.timelineLocked ? "not-allowed" : "default",
     appearance: "none",
     color: "inherit",
     font: "inherit",
     padding: 0,
     textAlign: "left",
-    transform: isDragging ? "translateY(-1px)" : undefined,
+    transform: isDragging && isGestureActor ? "translateY(-1px)" : undefined,
   };
 
   return (
@@ -102,6 +105,8 @@ export const TimelineClip = memo(function TimelineClip({
       data-clip-start={el.start}
       data-clip-end={el.start + el.duration}
       data-clip-hidden={el.hidden ? "true" : undefined}
+      data-clip-locked={el.timelineLocked ? "true" : undefined}
+      data-timeline-drag-source={isDragging && !isGestureActor ? "true" : undefined}
       data-active={isActive ? "" : undefined}
       aria-hidden={isGestureActor ? "true" : undefined}
       tabIndex={isGestureActor ? undefined : tabIndex}
@@ -112,7 +117,7 @@ export const TimelineClip = memo(function TimelineClip({
       title={
         isComposition
           ? `${el.compositionSrc} • Double-click to open`
-          : `${displayLabel} • ${el.start.toFixed(1)}s – ${(el.start + el.duration).toFixed(1)}s`
+          : `${displayLabel} • ${el.start.toFixed(1)}s – ${(el.start + el.duration).toFixed(1)}s${el.timelineLocked ? " • Track locked" : ""}`
       }
       onPointerEnter={onHoverStart}
       onPointerLeave={onHoverEnd}
