@@ -57,7 +57,15 @@ async function bridgeHonoResponse(
 // ── Vite plugin ──────────────────────────────────────────────────────────────
 
 function devProjectApi(): Plugin {
-  const dataDir = resolve(__dirname, "data/projects");
+  // Keep local development zero-config, while allowing hosted Studio instances
+  // to put mutable projects and media on persistent storage. Railway exposes
+  // its attached volume path automatically; the explicit HyperFrames variable
+  // remains available for other hosting environments and local overrides.
+  const dataDir = resolve(
+    process.env["HYPERFRAMES_PROJECTS_DIR"] ??
+      process.env["RAILWAY_VOLUME_MOUNT_PATH"] ??
+      resolve(__dirname, "data/projects"),
+  );
   const runtimePath = resolve(__dirname, "../core/dist/hyperframe.runtime.iife.js");
 
   return {
