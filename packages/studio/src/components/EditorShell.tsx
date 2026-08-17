@@ -33,7 +33,9 @@ export interface EditorShellProps extends TimelineEditCallbackDeps {
   hidden?: boolean;
   timelineToolbar: ReactNode;
   renderClipContent: RenderClipContent;
+  handleTimelineElementDuplicate: (element: TimelineElement) => Promise<void> | void;
   handleTimelineElementDelete: (element: TimelineElement) => Promise<void> | void;
+  handleTimelineFrameAdd: () => Promise<void> | void;
   handleTimelineAssetDrop: (
     assetPath: string,
     placement: TimelineDropPlacement,
@@ -74,7 +76,9 @@ export function EditorShell({
   hidden,
   timelineToolbar,
   renderClipContent,
+  handleTimelineElementDuplicate,
   handleTimelineElementDelete,
+  handleTimelineFrameAdd,
   handleTimelineAssetDrop,
   handleTimelineBlockDrop,
   handleTimelineCompositionDrop,
@@ -85,6 +89,9 @@ export function EditorShell({
   handleTimelineElementResize,
   handleTimelineGroupResize,
   handleToggleTrackHidden,
+  handleToggleTrackLocked,
+  handleTimelineElementRename,
+  handleTimelineTrackRename,
   handleBlockedTimelineEdit,
   handleTimelineElementSplit,
   handleRazorSplit,
@@ -135,6 +142,9 @@ export function EditorShell({
     handleTimelineElementResize,
     handleTimelineGroupResize,
     handleToggleTrackHidden,
+    handleToggleTrackLocked,
+    handleTimelineElementRename,
+    handleTimelineTrackRename,
     handleBlockedTimelineEdit,
     handleTimelineElementSplit,
     handleRazorSplit,
@@ -173,7 +183,9 @@ export function EditorShell({
             onAssetDrop={handleTimelineAssetDrop}
             onBlockDrop={handleTimelineBlockDrop}
             onCompositionDrop={handleTimelineCompositionDrop}
+            onDuplicateElement={handleTimelineElementDuplicate}
             onDeleteElement={handleTimelineElementDelete}
+            onAddFrameTrack={handleTimelineFrameAdd}
             previewOverlay={
               <PreviewOverlays
                 shouldShowMotionPath={shouldShowMotionPath}
@@ -211,7 +223,9 @@ interface EditorShellBodyProps {
     sourcePath: string,
     placement: TimelineDropPlacement,
   ) => Promise<void> | void;
+  onDuplicateElement: (element: TimelineElement) => Promise<void> | void;
   onDeleteElement: (element: TimelineElement) => Promise<void> | void;
+  onAddFrameTrack: () => Promise<void> | void;
 }
 
 function EditorShellBody({
@@ -227,7 +241,9 @@ function EditorShellBody({
   onAssetDrop,
   onBlockDrop,
   onCompositionDrop,
+  onDuplicateElement,
   onDeleteElement,
+  onAddFrameTrack,
 }: EditorShellBodyProps) {
   const { compositionStack, updateCompositionStack, containerRef } = useNLEContext();
 
@@ -272,7 +288,9 @@ function EditorShellBody({
         onAssetDrop={onAssetDrop}
         onBlockDrop={onBlockDrop}
         onCompositionDrop={onCompositionDrop}
+        onDuplicateElement={onDuplicateElement}
         onDeleteElement={onDeleteElement}
+        onAddFrameTrack={onAddFrameTrack}
         onSelectTimelineElement={onSelectTimelineElement}
         timelineFooter={
           captionEditMode ? (

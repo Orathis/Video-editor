@@ -49,6 +49,7 @@ interface TimelineOverlaysProps {
   currentTime: number;
   onSplitElement: TimelineEditCallbacks["onSplitElement"];
   pinZoomBeforeEdit: () => void;
+  onDuplicateElement?: (element: TimelineElement) => Promise<void> | void;
   onDeleteElement?: (element: TimelineElement) => Promise<void> | void;
   gapContextMenu: TrackGapContextMenuState | null;
   onDismissGapContextMenu: () => void;
@@ -116,6 +117,7 @@ export function TimelineOverlays({
   currentTime,
   onSplitElement,
   pinZoomBeforeEdit,
+  onDuplicateElement,
   onDeleteElement,
   gapContextMenu,
   onDismissGapContextMenu,
@@ -208,6 +210,12 @@ export function TimelineOverlays({
           onSplit={(_element, time) => {
             const element = readCurrentElement(clipElement, clipTargetSessionEpoch);
             if (element) onSplitElement?.(element, time);
+          }}
+          onDuplicate={() => {
+            const element = readCurrentElement(clipElement, clipTargetSessionEpoch);
+            if (!element) return;
+            pinZoomBeforeEdit();
+            onDuplicateElement?.(element);
           }}
           onDelete={() => {
             const element = readCurrentElement(clipElement, clipTargetSessionEpoch);

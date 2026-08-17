@@ -1,6 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { usePlayerStore, type TimelineElement, type ZoomMode } from "../store/playerStore";
-import { getTimelinePixelsPerSecond } from "./timelineZoom";
 import {
   DRAG_EXTEND_MARGIN_PX,
   getTimelineDisplayContentWidth,
@@ -11,8 +10,10 @@ import type { DraggedClipState, ResizingClipState } from "./useTimelineClipDrag"
 interface UseTimelineGeometryInput {
   viewportWidth: number;
   effectiveDuration: number;
+  minimumDisplayDuration?: number;
   zoomMode: ZoomMode;
   manualZoomPercent: number;
+  manualPixelsPerSecond: number;
   ppsRef: RefObject<number>;
   fitPpsRef: RefObject<number>;
   draggedClip: DraggedClipState | null;
@@ -31,8 +32,10 @@ interface UseTimelineGeometryInput {
 export function useTimelineGeometry({
   viewportWidth,
   effectiveDuration,
+  minimumDisplayDuration = 0,
   zoomMode,
   manualZoomPercent,
+  manualPixelsPerSecond,
   ppsRef,
   fitPpsRef,
   draggedClip,
@@ -46,9 +49,15 @@ export function useTimelineGeometry({
   // Fit pps maps at least MIN_TIMELINE_EXTENT_S onto the viewport, so short
   // comps show a 60s ruler with usable empty space (see getTimelineFitPps).
   const fitPps = getTimelineFitPps(viewportWidth, effectiveDuration, contentOrigin);
-  const pps = getTimelinePixelsPerSecond(fitPps, zoomMode, manualZoomPercent);
+  // Manual mode is an absolute visual scale. Deriving it from the latest Fit
+  // basis would shrink every clip whenever an edit extends the composition.
+  const pps =
+    zoomMode === "manual" && Number.isFinite(manualPixelsPerSecond) && manualPixelsPerSecond > 0
+      ? manualPixelsPerSecond
+      : fitPps;
   ppsRef.current = pps;
-  const trackContentWidth = Math.max(0, effectiveDuration * pps);
+  const renderedDuration = Math.max(effectiveDuration, minimumDisplayDuration);
+  const trackContentWidth = Math.max(0, renderedDuration * pps);
   // Drag-to-extend: while a clip is dragged, keep the rendered extent a margin
   // past the ghost's end. Holding the pointer in the right edge zone then keeps
   // auto-scroll stepping (scrollWidth grows with the ghost), so the timeline

@@ -31,12 +31,14 @@ import {
   useTimelineElementVisibilityEditing,
   useTimelineTrackVisibilityEditing,
 } from "./timelineTrackVisibility";
+import { useTimelineTrackLockingEditing } from "./timelineTrackLocking";
 import { useTimelineGroupEditing } from "./useTimelineGroupEditing";
 import { serializeZLaneGesture } from "../components/nle/zLaneGesture";
 import { cutoverCommittedOrThrow, sdkTimingPersist } from "../utils/sdkCutover";
 import type { UseTimelineEditingOptions } from "./useTimelineEditingTypes";
 import { getStudioSaveErrorMessage } from "../utils/studioSaveDiagnostics";
 import { studioWriteHeaders } from "../utils/studioFileVersion";
+import { useTimelineClipOperations } from "./useTimelineClipOperations";
 
 type TimelineMoveUpdates = Pick<TimelineElement, "start" | "track"> & {
   stackingReorder?: TimelineStackingReorderIntent | null;
@@ -375,6 +377,19 @@ export function useTimelineEditing({
     forceReloadSdkSession,
   });
 
+  const handleToggleTrackLocked = useTimelineTrackLockingEditing({
+    projectIdRef,
+    activeCompPath,
+    showToast,
+    writeProjectFile,
+    recordEdit,
+    domEditSaveTimestampRef,
+    previewIframeRef,
+    pendingTimelineEditPathRef,
+    isRecordingRef,
+    forceReloadSdkSession,
+  });
+
   const handleToggleElementHidden = useTimelineElementVisibilityEditing({
     projectIdRef,
     activeCompPath,
@@ -388,10 +403,34 @@ export function useTimelineEditing({
     forceReloadSdkSession,
   });
 
+  const {
+    handleTimelineElementRename,
+    handleTimelineTrackRename,
+    handleTimelineFrameAdd,
+    handleTimelineElementDuplicate,
+  } = useTimelineClipOperations({
+    projectIdRef,
+    activeCompPath,
+    timelineElements,
+    showToast,
+    writeProjectFile,
+    recordEdit,
+    domEditSaveTimestampRef,
+    reloadPreview,
+    previewIframeRef,
+    isRecordingRef,
+    forceReloadSdkSession,
+    enqueueEdit,
+  });
+
   // fallow-ignore-next-line complexity
   const handleTimelineElementDelete = useCallback(
     // fallow-ignore-next-line complexity
     async (element: TimelineElement) => {
+      if (element.timelineLocked) {
+        showToast("Unlock this track before deleting its clips.", "info");
+        return;
+      }
       if (isRecordingRef?.current) {
         showToast("Cannot edit timeline while recording", "error");
         return;
@@ -505,11 +544,16 @@ export function useTimelineEditing({
     });
 
   const handleBlockedTimelineEdit = useCallback(
-    (_element: TimelineElement) => {
+    (element: TimelineElement) => {
       const now = Date.now();
       if (now - lastBlockedTimelineToastAtRef.current < 1500) return;
       lastBlockedTimelineToastAtRef.current = now;
-      showToast("This clip can't be moved or resized from the timeline yet.", "info");
+      showToast(
+        element.timelineLocked
+          ? "This track is locked. Unlock it to edit its clips."
+          : "This clip can't be moved or resized from the timeline yet.",
+        "info",
+      );
     },
     [showToast],
   );
@@ -531,7 +575,12 @@ export function useTimelineEditing({
     handleTimelineElementMove,
     handleTimelineElementResize,
     handleToggleTrackHidden,
+    handleToggleTrackLocked,
     handleToggleElementHidden,
+    handleTimelineElementRename,
+    handleTimelineTrackRename,
+    handleTimelineFrameAdd,
+    handleTimelineElementDuplicate,
     handleTimelineElementDelete,
     handleTimelineElementSplit: handleRazorSplit,
     handleRazorSplit,

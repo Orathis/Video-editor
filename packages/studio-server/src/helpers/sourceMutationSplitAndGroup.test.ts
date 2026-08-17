@@ -1,10 +1,41 @@
 import { parseHTML } from "linkedom";
 import { describe, expect, it } from "vitest";
 import {
+  duplicateElementInHtml,
   splitElementInHtml,
   unwrapElementsFromHtml,
   wrapElementsInHtml,
 } from "./sourceMutation.js";
+
+describe("duplicateElementInHtml", () => {
+  const source = `<!DOCTYPE html><html><head><style>#box { color: gold; }</style></head><body><div data-composition-id="root" data-duration="5"><div id="box" class="clip" data-start="1" data-duration="2" data-track-index="3" data-hf-id="hf-original"><span id="child" data-hf-id="hf-child">Hi</span></div></div></body></html>`;
+
+  it("clones the clip after its original range with unique ids and matching CSS", () => {
+    const result = duplicateElementInHtml(source, { id: "box" }, "box-copy", 3);
+    const { document } = parseHTML(result.html);
+    const clone = document.getElementById("box-copy");
+
+    expect(result.matched).toBe(true);
+    expect(clone?.getAttribute("data-start")).toBe("3");
+    expect(clone?.getAttribute("data-duration")).toBe("2");
+    expect(clone?.getAttribute("data-track-index")).toBe("3");
+    expect(clone?.getAttribute("data-hf-id")).toMatch(/^hf-/);
+    expect(clone?.getAttribute("data-hf-id")).not.toBe("hf-original");
+    expect(clone?.querySelector("span")?.getAttribute("data-hf-id")).not.toBe("hf-child");
+    expect(clone?.querySelector("span")?.getAttribute("id")).toBe("child-copy");
+    expect(result.html).toContain("#box-copy");
+  });
+
+  it("uses runtime duration when the source clip has no authored timing", () => {
+    const untimed = `<div data-composition-id="root"><h1 id="title">Hi</h1></div>`;
+    const result = duplicateElementInHtml(untimed, { id: "title" }, "title-copy", 4, 2);
+
+    expect(result.matched).toBe(true);
+    expect(result.html).toContain('id="title-copy"');
+    expect(result.html).toContain('data-start="4"');
+    expect(result.html).toContain('data-duration="2"');
+  });
+});
 
 describe("splitElementInHtml — hfId clone isolation", () => {
   it("does not copy data-hf-id to the cloned second half", () => {

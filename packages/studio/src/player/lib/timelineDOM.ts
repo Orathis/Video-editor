@@ -109,6 +109,7 @@ export function createTimelineElementFromManifestClip(params: {
   const entry: TimelineElement = {
     id: identity.id,
     label,
+    trackLabel: hostEl?.getAttribute("data-timeline-track-label")?.trim() || undefined,
     key: identity.key,
     kind: clip.kind,
     tag: resolveClipTag(clip),
@@ -131,6 +132,7 @@ export function createTimelineElementFromManifestClip(params: {
     sourceFile,
     playbackStart: clip.playbackStart,
     playbackRate: clip.playbackRate,
+    hasAudio: clip.kind === "audio" || clip.kind === "video" ? true : undefined,
   };
 
   if (hostEl) {
@@ -300,6 +302,7 @@ export function parseTimelineFromDOM(doc: Document, rootDuration: number): Timel
     const entry: TimelineElement = {
       id: identity.id,
       label,
+      trackLabel: el.getAttribute("data-timeline-track-label")?.trim() || undefined,
       key: identity.key,
       kind:
         compId && compId !== rootComp?.getAttribute("data-composition-id")

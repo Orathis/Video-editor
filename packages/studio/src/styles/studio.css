@@ -133,6 +133,68 @@ body {
   pointer-events: none;
 }
 
+/* Premiere-style track lock: clips stay readable, but lose colour and pick up
+   a restrained diagonal safety hatch so the state is visible without relying
+   on the small lock glyph alone. */
+.timeline-clip.is-locked {
+  filter: saturate(0.2) brightness(0.66);
+  border-color: rgba(198, 161, 91, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.24);
+}
+
+.timeline-clip.is-locked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.045) 0,
+    rgba(255, 255, 255, 0.045) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  pointer-events: none;
+}
+
+.timeline-track-row__content {
+  position: relative;
+}
+
+.timeline-hand-pan,
+.timeline-hand-pan * {
+  cursor: grab !important;
+}
+
+.timeline-hand-pan.is-panning,
+.timeline-hand-pan.is-panning * {
+  cursor: grabbing !important;
+}
+
+.timeline-track-row.is-locked .timeline-track-row__content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background:
+    linear-gradient(rgba(5, 6, 8, 0.22), rgba(5, 6, 8, 0.22)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(198, 161, 91, 0.035) 0,
+      rgba(198, 161, 91, 0.035) 2px,
+      transparent 2px,
+      transparent 11px
+    );
+  box-shadow: inset 0 1px rgba(198, 161, 91, 0.12);
+  pointer-events: none;
+}
+
+.timeline-track-row.is-locked .timeline-clip,
+.timeline-track-row.is-locked [data-automation-lane] {
+  opacity: 0.58;
+}
+
 .timeline-clip[data-active] {
   border-color: rgba(60, 230, 172, 0.55);
 }
@@ -180,6 +242,30 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* The anchored half of a move gesture. It deliberately looks different from
+   the dark translucent destination actor: cool silver outline + subdued source
+   texture says “this is where the picked-up media still lives until release.” */
+.timeline-clip.is-drag-source {
+  opacity: 0.58;
+  filter: saturate(0.42) brightness(0.72);
+  border-color: rgba(203, 213, 225, 0.72);
+  border-style: solid;
+  box-shadow:
+    inset 0 0 0 1px rgba(15, 23, 42, 0.72),
+    0 0 0 1px rgba(125, 211, 252, 0.18);
+}
+
+.timeline-clip.is-drag-source::before {
+  opacity: 1;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(226, 232, 240, 0.055) 0,
+    rgba(226, 232, 240, 0.055) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+}
+
 /* Keep the white selection outline while dragging (a plain box-shadow alone gets
    overridden by .is-dragging's drop shadow, so re-state both together). */
 .timeline-clip.is-selected.is-dragging {
@@ -192,6 +278,45 @@ body {
   box-shadow:
     0 0 0 1.5px rgba(255, 255, 255, 0.85),
     0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Premiere-style move preview: the real source clip remains anchored in its
+   row until pointer-up; this independent actor is only a translucent forecast
+   of the pending drop. The green reservation beneath it supplies the target
+   edge, while the clip texture keeps the preview immediately recognizable. */
+.timeline-gesture-preview {
+  opacity: 0.46;
+  filter: saturate(0.52) brightness(0.72) contrast(1.08);
+}
+
+.timeline-gesture-preview .timeline-clip {
+  border-style: dashed;
+  border-color: rgba(205, 213, 224, 0.72);
+  background-color: rgba(8, 11, 15, 0.76);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(60, 230, 172, 0.18),
+    0 10px 26px rgba(0, 0, 0, 0.46);
+}
+
+.timeline-gesture-preview .timeline-clip.is-audio.is-dragging {
+  background-color: rgba(17, 15, 27, 0.76);
+}
+
+/* The full embedded-audio child is quieter than an audio-only clip tile: it is
+   secondary media attached to the video above, with the editable volume line
+   drawn over it by TimelineAutomationLane. */
+.timeline-embedded-audio-row {
+  z-index: 0;
+  border-top: 1px solid rgba(125, 211, 252, 0.12);
+  border-bottom: 1px solid rgba(125, 211, 252, 0.08);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(15, 30, 43, 0.68), rgba(8, 17, 26, 0.84));
+  opacity: 0.72;
+}
+
+.timeline-embedded-audio-row [data-audio-waveform="true"] {
+  filter: saturate(0.82) brightness(0.88);
 }
 
 .timeline-clip__label {
@@ -229,6 +354,58 @@ body {
   white-space: nowrap;
 }
 
+/* Keyframes are points in time, not clips. Their visible glyphs stay compact
+   while the button around each one retains the larger accessible hit target. */
+.timeline-property-lane {
+  border-radius: 5px;
+  transition: background-color 120ms ease-out;
+}
+
+.timeline-property-lane:hover {
+  background-color: rgba(255, 255, 255, 0.018);
+}
+
+.timeline-keyframe {
+  border-radius: 6px;
+  outline: none;
+}
+
+.timeline-keyframe__glyph {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
+  transform-origin: center;
+  transition:
+    filter 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+.timeline-keyframe:hover .timeline-keyframe__glyph,
+.timeline-keyframe:focus-visible .timeline-keyframe__glyph {
+  filter: drop-shadow(0 0 3px rgba(60, 230, 172, 0.42));
+  transform: scale(1.28);
+}
+
+.timeline-keyframe:focus-visible {
+  box-shadow: 0 0 0 1px rgba(60, 230, 172, 0.76);
+}
+
+.timeline-disclosure-item[data-disclosure-phase="opening"] {
+  opacity: 0;
+  transform: translateY(-5px) scaleY(0.92);
+  transform-origin: top;
+}
+
+.timeline-disclosure-item[data-disclosure-phase="open"] {
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+}
+
+.timeline-disclosure-item[data-disclosure-phase="closing"],
+.timeline-disclosure-item[data-disclosure-phase="closed"] {
+  opacity: 0;
+  transform: translateY(-4px) scaleY(0.94);
+  transform-origin: top;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .timeline-clip {
     transition:
@@ -249,6 +426,32 @@ body {
 
   .timeline-clip__handle-bar {
     transition: opacity 120ms ease-out;
+  }
+
+  .timeline-property-lane,
+  .timeline-keyframe__glyph {
+    transition-duration: 120ms;
+  }
+
+  .timeline-track-row,
+  .timeline-track-row__content {
+    transition:
+      height 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      top 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .timeline-disclosure-item {
+    transition:
+      opacity 150ms ease-out,
+      transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .timeline-disclosure-button,
+  .timeline-disclosure-caret {
+    transition:
+      color 150ms ease-out,
+      background-color 150ms ease-out,
+      transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 

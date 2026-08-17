@@ -127,36 +127,37 @@ describe("variable timeline row geometry", () => {
 
 describe("collapsed timeline row geometry characterization", () => {
   it.each([
-    [0, 74],
-    [1, 122],
-    [4, 266],
+    [0, 24],
+    [1, 72],
+    [4, 216],
   ])("keeps row %i at content y=%i", (row, expectedTop) => {
     expect(getTimelineRowTop(row)).toBe(expectedTop);
   });
 
   it.each([
-    [74, 0],
-    [86, 0.25],
-    [146, 1.5],
-    [290, 4.5],
+    [24, 0],
+    [36, 0.25],
+    [96, 1.5],
+    [240, 4.5],
   ])("maps content y=%i to fractional row %f", (contentY, expectedRow) => {
     expect(getTimelineRowFromY(contentY)).toBe(expectedRow);
   });
 
   it.each([
-    [0, 146],
-    [1, 194],
-    [3, 290],
-    [5, 386],
+    [0, 96],
+    [1, 144],
+    [3, 240],
+    [5, 336],
   ])("keeps the %i-track canvas height at %i", (trackCount, expectedHeight) => {
     expect(getTimelineCanvasHeight(baseRows(trackCount))).toBe(expectedHeight);
   });
 });
 
-describe("track-area breathing pad y-math", () => {
+describe("track-area y-math", () => {
   describe("getTimelineRowTop", () => {
-    it("offsets the first lane below the ruler by the top pad", () => {
-      expect(getTimelineRowTop(0)).toBe(RULER_H + TRACKS_TOP_PAD);
+    it("places the first lane directly below the ruler", () => {
+      expect(TRACKS_TOP_PAD).toBe(0);
+      expect(getTimelineRowTop(0)).toBe(RULER_H);
     });
 
     it("advances by one track height per row, keeping the pad", () => {
@@ -164,9 +165,8 @@ describe("track-area breathing pad y-math", () => {
       expect(getTimelineRowTop(3)).toBe(RULER_H + TRACKS_TOP_PAD + 3 * TRACK_H);
     });
 
-    it("is a strict positive shift from the pre-pad formula (pad is non-zero)", () => {
-      expect(TRACKS_TOP_PAD).toBeGreaterThan(0);
-      expect(getTimelineRowTop(2)).toBe(RULER_H + 2 * TRACK_H + TRACKS_TOP_PAD);
+    it("does not insert empty space before the tracks", () => {
+      expect(getTimelineRowTop(2)).toBe(RULER_H + 2 * TRACK_H);
     });
   });
 
@@ -175,13 +175,6 @@ describe("track-area breathing pad y-math", () => {
       for (const row of [0, 1, 2, 7]) {
         expect(getTimelineRowFromY(getTimelineRowTop(row))).toBeCloseTo(row, 10);
       }
-    });
-
-    it("floors a y inside the top pad (above lane 0) to a negative fraction", () => {
-      // A drop in the pad between the ruler and lane 0 sits at row < 0, so a
-      // floor lands it on row -1 → getDefaultDroppedTrack floors to the top lane.
-      const yInPad = RULER_H + TRACKS_TOP_PAD / 2;
-      expect(getTimelineRowFromY(yInPad)).toBeLessThan(0);
     });
 
     it("maps a y in the middle of lane 1 into [1,2)", () => {
@@ -193,11 +186,9 @@ describe("track-area breathing pad y-math", () => {
   });
 
   describe("getTimelineCanvasHeight", () => {
-    it("reserves ruler + top pad + lanes + bottom pad", () => {
-      expect(getTimelineCanvasHeight([])).toBe(RULER_H + TRACKS_TOP_PAD + TRACKS_BOTTOM_PAD);
-      expect(getTimelineCanvasHeight(baseRows(3))).toBe(
-        RULER_H + TRACKS_TOP_PAD + 3 * TRACK_H + TRACKS_BOTTOM_PAD,
-      );
+    it("reserves ruler + lanes + bottom pad", () => {
+      expect(getTimelineCanvasHeight([])).toBe(RULER_H + TRACKS_BOTTOM_PAD);
+      expect(getTimelineCanvasHeight(baseRows(3))).toBe(RULER_H + 3 * TRACK_H + TRACKS_BOTTOM_PAD);
     });
 
     it("leaves room below the last lane for a drag-into-void new track", () => {
@@ -209,7 +200,7 @@ describe("track-area breathing pad y-math", () => {
     });
   });
 
-  describe("resolveTimelineAssetDrop honours the top pad", () => {
+  describe("resolveTimelineAssetDrop honours track geometry", () => {
     const base = {
       rectLeft: 0,
       rectTop: 0,
@@ -228,12 +219,6 @@ describe("track-area breathing pad y-math", () => {
       const { start, track } = resolveTimelineAssetDrop(base, clientX, clientY);
       expect(track).toBe(0);
       expect(start).toBe(1);
-    });
-
-    it("drops into the top pad → floors to the first lane (row < 0)", () => {
-      const clientY = RULER_H + TRACKS_TOP_PAD / 2; // inside the pad, above lane 0
-      const { track } = resolveTimelineAssetDrop(base, GUTTER, clientY);
-      expect(track).toBe(0);
     });
 
     it("drops below the last lane → appends a new track", () => {

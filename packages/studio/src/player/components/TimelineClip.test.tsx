@@ -27,11 +27,15 @@ function renderClip({
   pps = 100,
   isSelected = false,
   hasCustomContent = true,
+  isDragging = false,
+  isGestureActor = false,
 }: {
   element: TimelineElement;
   pps?: number;
   isSelected?: boolean;
   hasCustomContent?: boolean;
+  isDragging?: boolean;
+  isGestureActor?: boolean;
 }) {
   const host = document.createElement("div");
   document.body.append(host);
@@ -46,6 +50,8 @@ function renderClip({
         clipY={0}
         isSelected={isSelected}
         isHovered={false}
+        isDragging={isDragging}
+        isGestureActor={isGestureActor}
         hasCustomContent={hasCustomContent}
         capabilities={capabilities}
         isComposition={false}
@@ -127,5 +133,29 @@ describe("TimelineClip", () => {
     act(() => clip.click());
     expect(onClick).toHaveBeenCalledOnce();
     act(() => root.unmount());
+  });
+
+  it("distinguishes the anchored drag source from its destination ghost", () => {
+    const source = renderClip({
+      element: { id: "source", tag: "video", start: 1, duration: 2, track: 0 },
+      isDragging: true,
+    });
+    const sourceClip = source.host.querySelector<HTMLElement>(".timeline-clip");
+    expect(sourceClip?.classList.contains("is-drag-source")).toBe(true);
+    expect(sourceClip?.classList.contains("is-drag-ghost")).toBe(false);
+    expect(sourceClip?.getAttribute("data-timeline-drag-source")).toBe("true");
+
+    const ghost = renderClip({
+      element: { id: "ghost", tag: "video", start: 3, duration: 2, track: 1 },
+      isDragging: true,
+      isGestureActor: true,
+    });
+    const ghostClip = ghost.host.querySelector<HTMLElement>(".timeline-clip");
+    expect(ghostClip?.classList.contains("is-drag-ghost")).toBe(true);
+    expect(ghostClip?.classList.contains("is-drag-source")).toBe(false);
+    expect(ghostClip?.hasAttribute("data-timeline-drag-source")).toBe(false);
+
+    act(() => source.root.unmount());
+    act(() => ghost.root.unmount());
   });
 });

@@ -74,7 +74,7 @@ describe("useAutomationLanes", () => {
       ],
     });
     const bound = bindOnce(el({ automation, fxChain: CHAIN }));
-    expect(bound.lanes.map((l) => l.target)).toEqual(["fx.n2.frequency"]);
+    expect(bound.lanes.map((l) => l.target)).toEqual(["fx.n2.frequency", "volume"]);
   });
 
   it("gives one lane per automated parameter, in draw order", () => {
@@ -93,9 +93,9 @@ describe("useAutomationLanes", () => {
     expect(bound.lanes.map((l) => l.target)).toEqual(["fx.n2.frequency", "fx.n2.q", "volume"]);
   });
 
-  it("reads an element with neither attribute as an empty volume lane", () => {
+  it("gives an audio element with neither attribute a default volume lane", () => {
     const bound = bindOnce(el());
-    expect(bound.lanes).toEqual([]);
+    expect(bound.lanes).toEqual([{ target: "volume", points: [{ t: 0, v: 1 }] }]);
     expect(bound.chain).toBeNull();
   });
 
@@ -106,7 +106,7 @@ describe("useAutomationLanes", () => {
 
   it("survives an unreadable attribute instead of breaking the row", () => {
     const bound = bindOnce(el({ automation: "{not json", fxChain: "{also not}" }));
-    expect(bound.automation.lanes).toEqual([]);
+    expect(bound.automation.lanes).toEqual([{ target: "volume", points: [{ t: 0, v: 1 }] }]);
     expect(bound.chain).toBeNull();
   });
 });

@@ -57,6 +57,7 @@ export interface TimelineLaneBaseProps {
   renderClipOverlay?: (element: TimelineElement) => ReactNode;
   onDrillDown?: (element: TimelineElement) => void;
   onSelectElement?: (element: TimelineElement | null) => void;
+  onDeleteTrack?: (elements: readonly TimelineElement[]) => Promise<void> | void;
   setHoveredClip: (key: string | null) => void;
   setShowPopover: (v: boolean) => void;
   setRangeSelection: (v: null) => void;
@@ -108,9 +109,10 @@ export interface TimelineLaneBaseProps {
  */
 export interface TimelineLanesProps extends TimelineLaneBaseProps {
   /** Live-derived by TimelineCanvas from {@link TimelineLaneBaseProps.draggedClip}. */
-  draggedElement: TimelineElement | null;
   multiDragPreview: MultiDragPreviewInput | null;
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
+  onToggleTrackLocked: TimelineEditCallbacks["onToggleTrackLocked"];
+  onRenameTrack: TimelineEditCallbacks["onRenameTrack"];
   onTogglePropertyGroupKeyframe: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   onResizeElement: TimelineEditCallbacks["onResizeElement"];
   onMoveElement: TimelineEditCallbacks["onMoveElement"];

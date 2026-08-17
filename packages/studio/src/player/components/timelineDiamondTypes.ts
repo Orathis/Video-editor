@@ -89,7 +89,12 @@ export interface TimelineDiamondLaneProps extends Omit<
   onMoveKeyframe?: (target: TimelineKeyframeTarget, toClipPercentage: number) => Promise<boolean>;
 }
 
-export const DIAMOND_RATIO = 0.8;
+/**
+ * Keyframes should read as precise points on a time axis, not miniature clip
+ * blocks. Keep the visible glyph compact while TimelineDiamondLane preserves a
+ * much larger, accessible hit target around it.
+ */
+export const DIAMOND_RATIO = 0.5;
 
 /** Absolute time of a keyframe, for the screen-reader label. */
 export function keyframeTimeLabel(

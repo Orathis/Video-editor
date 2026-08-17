@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { isAudioTimelineElement, isMusicTrack, resolveBeatSourceTrack } from "./timelineInspector";
+import {
+  hasTimelineAudio,
+  isAudioTimelineElement,
+  isMusicTrack,
+  resolveBeatSourceTrack,
+} from "./timelineInspector";
 import type { TimelineElement } from "../player";
 
 // Minimal element factory for tests
 function el(
   overrides: Partial<
-    Pick<TimelineElement, "tag" | "src" | "id" | "domId" | "timelineRole" | "duration">
+    Pick<TimelineElement, "tag" | "src" | "id" | "domId" | "timelineRole" | "duration" | "hasAudio">
   >,
-): Pick<TimelineElement, "tag" | "src" | "id" | "domId" | "timelineRole" | "duration"> {
+): Pick<
+  TimelineElement,
+  "tag" | "src" | "id" | "domId" | "timelineRole" | "duration" | "hasAudio"
+> {
   return {
     tag: "audio",
     src: "assets/track.mp3",
@@ -43,6 +51,21 @@ describe("isAudioTimelineElement", () => {
   it("returns false for null/undefined", () => {
     expect(isAudioTimelineElement(null)).toBe(false);
     expect(isAudioTimelineElement(undefined)).toBe(false);
+  });
+});
+
+describe("hasTimelineAudio", () => {
+  it("keeps audio clips audio-bearing and exposes embedded video audio", () => {
+    expect(hasTimelineAudio(el({ tag: "audio" }))).toBe(true);
+    expect(hasTimelineAudio(el({ tag: "video", src: "assets/clip.mp4", hasAudio: true }))).toBe(
+      true,
+    );
+  });
+
+  it("keeps muted/visual-only video out of audio controls", () => {
+    expect(hasTimelineAudio(el({ tag: "video", src: "assets/clip.mp4", hasAudio: false }))).toBe(
+      false,
+    );
   });
 });
 

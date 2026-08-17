@@ -48,6 +48,10 @@ describe("AudioWaveform", () => {
       rich: false,
     });
 
+    const canvas = host.querySelector<HTMLCanvasElement>('[data-audio-waveform="true"]');
+    expect(canvas?.style.top).toBe("16px");
+    expect(canvas?.style.height).toBe("calc(100% - 16px)");
+
     act(() => root.unmount());
   });
 });

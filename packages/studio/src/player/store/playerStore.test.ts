@@ -26,6 +26,7 @@ describe("usePlayerStore", () => {
       expect(state.zoomMode).toBe("fit");
       expect(state.manualZoomPercent).toBe(100);
       expect(state.expandedClipIds).toEqual(new Set());
+      expect(state.expandedAudioClipIds).toEqual(new Set());
     });
   });
 
@@ -50,6 +51,18 @@ describe("usePlayerStore", () => {
       store.setClipExpanded("clip-1", false);
       store.setClipExpanded("clip-1", false);
       expect(usePlayerStore.getState().expandedClipIds).toEqual(new Set());
+    });
+  });
+
+  describe("expandedAudioClipIds", () => {
+    it("toggles audio disclosures independently from visual keyframes", () => {
+      const store = usePlayerStore.getState();
+      store.toggleAudioClipExpanded("audio-1");
+      expect(usePlayerStore.getState().expandedAudioClipIds).toEqual(new Set(["audio-1"]));
+      expect(usePlayerStore.getState().expandedClipIds).toEqual(new Set());
+
+      store.setAudioClipExpanded("audio-1", false);
+      expect(usePlayerStore.getState().expandedAudioClipIds).toEqual(new Set());
     });
   });
 
@@ -472,6 +485,7 @@ describe("usePlayerStore", () => {
     it("updates the manual zoom percent", () => {
       usePlayerStore.getState().setManualZoomPercent(200);
       expect(usePlayerStore.getState().manualZoomPercent).toBe(200);
+      expect(usePlayerStore.getState().timelinePps).toBe(200);
     });
 
     it("clamps to minimum of 10", () => {
@@ -488,7 +502,37 @@ describe("usePlayerStore", () => {
       usePlayerStore.getState().setTimelineScale(12, 12);
       usePlayerStore.getState().setManualZoomPercent(100_000);
       expect(usePlayerStore.getState().manualZoomPercent).toBe(12_000);
+      expect(usePlayerStore.getState().timelinePps).toBe(1_440);
       usePlayerStore.getState().setTimelineScale(100, 100);
+    });
+  });
+
+  describe("timeline scale pinning", () => {
+    it("keeps pixels per second fixed when a moved clip extends the fit duration", () => {
+      const store = usePlayerStore.getState();
+      store.setZoomMode("fit");
+      store.setTimelineScale(20, 20);
+
+      store.pinTimelineZoom(20, 20);
+      expect(usePlayerStore.getState()).toMatchObject({
+        zoomMode: "manual",
+        manualZoomPercent: 100,
+        timelinePps: 20,
+        timelineFitPps: 20,
+      });
+
+      // A longer composition halves Fit from 20px/s to 10px/s. The clips stay
+      // at 20px/s; only the control readout rebases from 100% to 200%.
+      store.setTimelineScale(10, 10);
+      expect(usePlayerStore.getState()).toMatchObject({
+        zoomMode: "manual",
+        manualZoomPercent: 200,
+        timelinePps: 20,
+        timelineFitPps: 10,
+      });
+
+      store.setZoomMode("fit");
+      store.setTimelineScale(100, 100);
     });
   });
 

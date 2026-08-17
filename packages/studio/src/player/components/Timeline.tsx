@@ -1,50 +1,36 @@
-import { useRef, useMemo, useCallback, useState, memo } from "react";
-import { useMusicBeatAnalysis } from "../../hooks/useMusicBeatAnalysis";
-import { remapBeatAnalysisToComposition } from "../../utils/beatEditActions";
+import { useRef, useMemo, useCallback, memo } from "react";
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
-import { useExpandedTimelineElements } from "../hooks/useExpandedTimelineElements";
 import { defaultTimelineTheme } from "./timelineTheme";
 import { useTimelineRangeSelection } from "./useTimelineRangeSelection";
 import { useTimelinePlayhead } from "./useTimelinePlayhead";
-import { useTimelineZoom } from "./useTimelineZoom";
 import { useTimelineAssetDrop } from "./timelineDragDrop";
 import { TimelineEmptyState } from "./TimelineEmptyState";
 import { TimelineCanvas } from "./TimelineCanvas";
-import { type KeyframeDiamondContextMenuState } from "./KeyframeDiamondContextMenu";
 import { useTimelineClipDrag } from "./useTimelineClipDrag";
-import { TimelineOverlays, type ClipContextMenuState } from "./TimelineOverlays";
+import { TimelineOverlays } from "./TimelineOverlays";
 import { useTimelineEditPinning } from "./useTimelineEditPinning";
 import { useTimelineStackingSync } from "./useTimelineStackingSync";
 import { useTimelineGeometry } from "./useTimelineGeometry";
-import { useAutoExpandKeyframedClips } from "./useAutoExpandKeyframedClips";
-import { GUTTER, LABEL_COL_W, TRACKS_LEFT_PAD } from "./timelineLayout";
+import { LABEL_COL_W } from "./timelineLayout";
 import { useTimelineScrollViewport } from "./useTimelineScrollViewport";
 import { useResolvedTimelineEditCallbacks } from "./useResolvedTimelineEditCallbacks";
 import type { TimelineProps } from "./TimelineTypes";
-import {
-  getTrackStyle,
-  useTimelineDisplayLayout,
-  useTimelineTrackLayout,
-} from "./useTimelineTrackLayout";
+import { getTrackStyle, useTimelineDisplayLayout } from "./useTimelineTrackLayout";
 import { useTimelineKeyframeHandlers } from "./useTimelineKeyframeHandlers";
 import { useTrackGapMenu } from "./useTrackGapMenu";
 import { useTimelineGapHighlights } from "./useTimelineGapHighlights";
 import { TimelineRazorGuide, useTimelineRazorInteraction } from "./TimelineRazorInteraction";
 import { useTimelinePerformanceTelemetry } from "./useTimelinePerformanceTelemetry";
-import {
-  getEffectiveTimelineDuration,
-  getTimelinePreviewElement,
-  hasKeyframedTimelineClips,
-} from "./timelineViewModel";
+import { getTimelinePreviewElement } from "./timelineViewModel";
 import { useTimelineSelectionLifecycle } from "./useTimelineSelectionLifecycle";
-import { useTimelineShiftModifier } from "./useTimelineShiftModifier";
 import { useTimelineTicks } from "./useTimelineTicks";
-import { getTimelineElementIndexes } from "../lib/timelineElementIndexes";
 import { getTimelineElementIdentity } from "../lib/timelineElementHelpers";
 import { useTimelineClipRenderWindow } from "./useTimelineClipRenderWindow";
 import { useTimelineActiveClips } from "./useTimelineActiveClips";
-import { useTimelineLaneMoveRefresh } from "./useTimelineLaneMoveRefresh";
 import { useTimelineLogicalFocus } from "./useTimelineLogicalFocus";
+import { TimelineAddFrameButton } from "./TimelineAddFrameButton";
+import { useTimelineModel } from "./useTimelineModel";
+import { useTimelineDeleteTrack } from "./useTimelineDeleteTrack";
 
 export {
   shouldAutoScrollTimeline,
@@ -73,7 +59,9 @@ export const Timeline = memo(function Timeline({
   onAssetDrop,
   onBlockDrop,
   onCompositionDrop,
+  onDuplicateElement: _onDuplicateElement,
   onDeleteElement: _onDeleteElement,
+  onAddFrameTrack,
   onMoveElement: onMoveElementOverride,
   onMoveElements: onMoveElementsOverride,
   onResizeElement: onResizeElementOverride,
@@ -105,52 +93,46 @@ export const Timeline = memo(function Timeline({
     onSplitElement: onSplitElementOverride,
   });
   const theme = useMemo(() => ({ ...defaultTimelineTheme, ...themeOverrides }), [themeOverrides]);
-  const refreshAfterLaneMove = useTimelineLaneMoveRefresh();
-  useMusicBeatAnalysis();
-  const rawElements = usePlayerStore((s) => s.elements);
-  const expandedElements = useExpandedTimelineElements();
-  const beatAnalysis = usePlayerStore((s) => s.beatAnalysis);
-  const musicElement = usePlayerStore((s) => getTimelineElementIndexes(s.elements).musicElement);
-  const beatEdits = usePlayerStore((s) => s.beatEdits);
-  const adjustedBeatAnalysis = useMemo(
-    () => remapBeatAnalysisToComposition(beatAnalysis, musicElement, beatEdits),
-    [beatAnalysis, musicElement, beatEdits],
-  );
-  const duration = usePlayerStore((s) => s.duration);
-  const timeDisplayMode = usePlayerStore((s) => s.timeDisplayMode);
-  const timelineReady = usePlayerStore((s) => s.timelineReady);
-  const selectedElementId = usePlayerStore((s) => s.selectedElementId);
-  const selectedElementIds = usePlayerStore((s) => s.selectedElementIds);
-  const focusedEaseSegment = usePlayerStore((s) => s.focusedEaseSegment);
-  const gsapAnimations = usePlayerStore((s) => s.gsapAnimations);
-  const labelMode = useMemo(() => hasKeyframedTimelineClips(gsapAnimations), [gsapAnimations]);
-  // The label column provides pre-t=0 space; otherwise keep TRACKS_LEFT_PAD after the gutter.
-  const contentOrigin = labelMode ? LABEL_COL_W + GUTTER : GUTTER + TRACKS_LEFT_PAD;
-  const contentGutter = labelMode ? GUTTER : 0;
-  const setSelectedElementId = usePlayerStore((s) => s.setSelectedElementId);
-  const currentTime = usePlayerStore((s) => s.currentTime);
-  const { zoomMode, manualZoomPercent, setZoomMode, setManualZoomPercent } = useTimelineZoom();
-  const playheadRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const activeTool = usePlayerStore((s) => s.activeTool);
-  const [hoveredClip, setHoveredClip] = useState<string | null>(null);
-  const isDragging = useRef(false);
-  const shiftHeld = useTimelineShiftModifier();
-  const [showPopover, setShowPopover] = useState(false);
-  const [kfContextMenu, setKfContextMenu] = useState<KeyframeDiamondContextMenuState | null>(null);
-  const [clipContextMenu, setClipContextMenu] = useState<ClipContextMenuState | null>(null);
-  const setContainerRef = useCallback((el: HTMLDivElement | null) => {
-    containerRef.current = el;
-  }, []);
-  const lastScrollLeftRef = useRef(0);
-  const effectiveDuration = useMemo(
-    () => getEffectiveTimelineDuration(duration, rawElements),
-    [duration, rawElements],
-  );
-  const keyframeCache = usePlayerStore((s) => s.keyframeCache);
-  useAutoExpandKeyframedClips(gsapAnimations);
+  const handleDeleteTrack = useTimelineDeleteTrack(_onDeleteElement);
   const {
+    refreshAfterLaneMove,
+    expandedElements,
+    adjustedBeatAnalysis,
+    timeDisplayMode,
+    timelineReady,
+    selectedElementId,
+    selectedElementIds,
+    focusedEaseSegment,
+    gsapAnimations,
+    labelMode,
+    contentOrigin,
+    contentGutter,
+    setSelectedElementId,
+    currentTime,
+    zoomMode,
+    manualZoomPercent,
+    setZoomMode,
+    setManualZoomPercent,
+    manualPixelsPerSecond,
+    playheadRef,
+    scrollRef,
+    activeTool,
+    handPan,
+    handPanExtentSeconds,
+    ppsRef,
+    hoveredClip,
+    setHoveredClip,
+    isDragging,
+    showPopover,
+    setShowPopover,
+    kfContextMenu,
+    setKfContextMenu,
+    clipContextMenu,
+    setClipContextMenu,
+    setContainerRef,
+    lastScrollLeftRef,
+    effectiveDuration,
+    keyframeCache,
     tracks,
     trackStyles,
     trackOrder,
@@ -158,15 +140,9 @@ export const Timeline = memo(function Timeline({
     laneCounts,
     rowGeometry,
     rowGeometryRef,
-  } = useTimelineTrackLayout(
-    expandedElements,
-    gsapAnimations,
-    selectedElementId,
-    selectedElementIds,
-  );
+  } = useTimelineModel(sessionEpoch);
   const expandedElementsRef = useRef(expandedElements);
   expandedElementsRef.current = expandedElements;
-  const ppsRef = useRef(100);
   const durationRef = useRef(effectiveDuration);
   durationRef.current = effectiveDuration;
   const fitPpsRef = useRef(100);
@@ -270,8 +246,10 @@ export const Timeline = memo(function Timeline({
     useTimelineGeometry({
       viewportWidth: viewport.clientWidth,
       effectiveDuration,
+      minimumDisplayDuration: handPanExtentSeconds,
       zoomMode,
       manualZoomPercent,
+      manualPixelsPerSecond,
       ppsRef,
       fitPpsRef,
       draggedClip,
@@ -445,7 +423,13 @@ export const Timeline = memo(function Timeline({
       ref={setContainerRef}
       aria-label="Timeline"
       data-timeline-element-count={expandedElements.length}
-      className={`relative border-t select-none h-full overflow-hidden ${assetDrop.isDragOver ? "ring-1 ring-inset ring-studio-accent/60" : ""} ${activeTool === "razor" ? "cursor-crosshair" : shiftHeld ? "cursor-crosshair" : "cursor-default"}`}
+      className={`relative border-t select-none h-full overflow-hidden ${assetDrop.isDragOver ? "ring-1 ring-inset ring-studio-accent/60" : ""} ${activeTool === "razor" ? "cursor-crosshair" : "cursor-default"}`}
+      onPointerEnter={handPan.handlePointerEnter}
+      onPointerLeave={handPan.handlePointerLeave}
+      onClickCapture={handPan.handleClickCapture}
+      onAuxClickCapture={handPan.handleClickCapture}
+      onDoubleClickCapture={handPan.handleClickCapture}
+      onContextMenuCapture={handPan.handleContextMenuCapture}
       onMouseMove={updateRazorGuide}
       onMouseLeave={clearRazorGuide}
       style={{
@@ -454,6 +438,7 @@ export const Timeline = memo(function Timeline({
         borderColor: theme.shellBorder,
       }}
     >
+      <TimelineAddFrameButton onAddFrameTrack={onAddFrameTrack} />
       <div
         ref={setScrollRef}
         // Stable owner for gestures that must survive virtual row/clip unmounts.
@@ -461,6 +446,9 @@ export const Timeline = memo(function Timeline({
         data-timeline-auto-scroll-left-inset={labelMode ? LABEL_COL_W : 0}
         tabIndex={-1}
         className={`${zoomMode === "fit" ? "overflow-x-hidden" : "overflow-x-auto"} overflow-y-auto h-full outline-none`}
+        // The timeline owns geometry anchoring; browser anchoring otherwise competes with it
+        // as drag overlays mount/unmount, making the whole track block snap back.
+        style={{ overflowAnchor: "none" }}
         onScroll={(e) => {
           lastScrollLeftRef.current = e.currentTarget.scrollLeft; // restored across post-edit reload
           recordTimelineScroll(e.currentTarget);
@@ -470,6 +458,10 @@ export const Timeline = memo(function Timeline({
         onDragOver={assetDrop.handleAssetDragOver}
         onDragLeave={assetDrop.handleAssetDragLeave}
         onDrop={assetDrop.handleAssetDrop}
+        onPointerDownCapture={handPan.handlePointerDownCapture}
+        onPointerMoveCapture={handPan.handlePointerMoveCapture}
+        onPointerUpCapture={handPan.handlePointerEndCapture}
+        onPointerCancelCapture={handPan.handlePointerEndCapture}
         onPointerDown={(e) => {
           // Interactive controls own their clicks; scrubbing would preventDefault and eat them.
           if (e.target instanceof Element && e.target.closest("button, input, select, a")) return;
@@ -529,6 +521,7 @@ export const Timeline = memo(function Timeline({
           playheadRef={playheadRef}
           onDrillDown={onDrillDown}
           onSelectElement={onSelectElement}
+          onDeleteTrack={handleDeleteTrack}
           setHoveredClip={setHoveredClip}
           setShowPopover={setShowPopover}
           setRangeSelection={setRangeSelection}
@@ -588,6 +581,7 @@ export const Timeline = memo(function Timeline({
         currentTime={currentTime}
         onSplitElement={onSplitElement}
         pinZoomBeforeEdit={pinZoomBeforeEdit}
+        onDuplicateElement={_onDuplicateElement}
         onDeleteElement={_onDeleteElement}
         gapContextMenu={gapMenuModel}
         onDismissGapContextMenu={dismissGapMenu}

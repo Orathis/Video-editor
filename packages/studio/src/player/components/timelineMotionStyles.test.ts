@@ -89,7 +89,9 @@ describe("timeline motion styles", () => {
     const handleClassMatches = timelineClipSource.match(/className="timeline-clip__handle-bar"/g);
 
     expect(handleClassMatches).toHaveLength(2);
-    expect(timelineClipSource).toContain('transform: isDragging ? "translateY(-1px)" : undefined');
+    expect(timelineClipSource).toContain(
+      'transform: isDragging && isGestureActor ? "translateY(-1px)" : undefined',
+    );
     expect(timelineClipSource).not.toContain("scale(");
   });
 

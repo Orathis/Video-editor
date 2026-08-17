@@ -190,7 +190,8 @@ describe("useTimelineAssetDrop", () => {
     });
 
     expect(onAssetDrop).not.toHaveBeenCalled();
-    expect(onBlockDrop).toHaveBeenCalledExactlyOnceWith("title-card", { start: 0, track: 0 });
+    // With the removed top breathing pad, y=100 lands in the second 48px row.
+    expect(onBlockDrop).toHaveBeenCalledExactlyOnceWith("title-card", { start: 0, track: 1 });
     act(() => view.root.unmount());
   });
 

@@ -72,6 +72,7 @@ import {
   removeElementFromHtml,
   patchElementInHtml,
   probeElementInSource,
+  duplicateElementInHtml,
   splitElementInHtml,
   wrapElementsInHtml,
   unwrapElementsFromHtml,
@@ -2690,6 +2691,59 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
         version,
       });
     }
+    const { version, backupPath } = writeMutationResult(
+      c,
+      ctx.project.dir,
+      ctx.filePath,
+      ctx.absPath,
+      result.html,
+    );
+    c.header("ETag", version);
+    return c.json({
+      ok: true,
+      changed: true,
+      content: result.html,
+      newId: result.newId,
+      path: ctx.filePath,
+      version,
+      backupPath,
+    });
+  });
+
+  api.post("/projects/:id/file-mutations/duplicate-element/*", async (c) => {
+    const ctx = await resolveFileMutationContext(c, adapter, "duplicate-element");
+    if ("error" in ctx) return ctx.error;
+
+    const parsed = await parseMutationBody<{
+      target?: MutationTarget;
+      newId?: string;
+      duplicateStart?: number;
+      elementDuration?: number;
+    }>(c);
+    if ("error" in parsed) return parsed.error;
+    if (typeof parsed.body.duplicateStart !== "number" || !parsed.body.newId) {
+      return c.json({ error: "target, duplicateStart, and newId required" }, 400);
+    }
+
+    let originalContent: string;
+    try {
+      originalContent = readFileSync(ctx.absPath, "utf-8");
+    } catch {
+      return c.json({ error: "not found" }, 404);
+    }
+    const result = duplicateElementInHtml(
+      originalContent,
+      parsed.target,
+      parsed.body.newId,
+      parsed.body.duplicateStart,
+      parsed.body.elementDuration,
+    );
+    if (!result.matched) {
+      const version = fileContentVersion(originalContent);
+      c.header("ETag", version);
+      return c.json({ ok: false, changed: false, content: originalContent, version });
+    }
+
     const { version, backupPath } = writeMutationResult(
       c,
       ctx.project.dir,

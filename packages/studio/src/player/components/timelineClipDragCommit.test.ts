@@ -513,11 +513,30 @@ describe("commitDraggedClipMove", () => {
     const b = { ...el("b", 3, 10, 5, "audio"), authoredTrack: 1 };
     const t = { ...el("t", 3, 0, 5, "audio"), authoredTrack: 1 };
 
-    const { onMoveElements } = runClipMove(
+    const { updateElement, onMoveElements } = runClipMove(
       drag(t, { previewStart: 0, previewTrack: 3, insertRow: 3 }),
       { elements: [v0, v1, a, b, t], trackOrder: [0, 1, 2, 3] },
     );
 
+    // The optimistic UI remains in absolute DISPLAY space below the two visual
+    // rows. It must never momentarily apply the audio-local 0/1/2 values and
+    // collapse audio into the visual tracks while save/reload converges.
+    expect(updateElement).toHaveBeenCalledWith("a", {
+      start: 0,
+      track: 2,
+      authoredTrack: 0,
+    });
+    expect(updateElement).toHaveBeenCalledWith("t", {
+      start: 0,
+      track: 3,
+      authoredTrack: 1,
+    });
+    expect(updateElement).toHaveBeenCalledWith("b", {
+      start: 10,
+      track: 4,
+      authoredTrack: 2,
+    });
+    // The source write still uses the audio zone's local authored coordinates.
     expect(editMap(onMoveElements.mock.calls[0][0])).toEqual({
       a: { start: 0, track: 0 },
       t: { start: 0, track: 1 },

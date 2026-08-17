@@ -372,6 +372,16 @@ function buildTrackInsertEdits(
   const topologyOrder = [...new Set(elements.filter(writable).map((e) => e.track))].sort(
     (a, b) => a - b,
   );
+  // `normalizeToZones` below runs on ONE writable zone/source-file slice, so
+  // its result is deliberately local (0..n). Those local values are exactly
+  // what the source file should persist, but they are NOT absolute display
+  // lanes when this slice is audio: audio starts below every visual row. Feeding
+  // the local 0..n values to the optimistic store temporarily overlays audio on
+  // visual rows; discovery then re-zones it, and the post-save reassertion puts
+  // it back again — the visible whole-timeline up/down flicker after a drop.
+  // Preserve the slice's current display origin for store updates while keeping
+  // the normalized local value as `persistTrack` for the file write.
+  const displayTrackOffset = topologyOrder[0] ?? 0;
   const topologyInsertRow = topologyOrder.filter((track) => track < targetTrack).length;
   const topologyTargetTrack = insertTrackValue(topologyOrder, topologyInsertRow);
   const normalized = normalizeToZones(
@@ -419,7 +429,11 @@ function buildTrackInsertEdits(
       keyOf(norm) === editKey || multi?.keys.has(keyOf(norm))
         ? (multi?.movedStart(src) ?? previewStart)
         : src.start;
-    edits.push({ element: src, updates: { start, track: norm.track } });
+    edits.push({
+      element: src,
+      updates: { start, track: displayTrackOffset + norm.track },
+      persistTrack: norm.track,
+    });
   }
   return { candidate, edits };
 }

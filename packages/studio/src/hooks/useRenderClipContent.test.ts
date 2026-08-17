@@ -119,6 +119,7 @@ describe("useRenderClipContent", () => {
         duration: 4,
         track: 0,
         src: resolvedRootMedia,
+        hasAudio: false,
       },
       null,
     );
@@ -142,6 +143,50 @@ describe("useRenderClipContent", () => {
         waveformUrl: "/api/projects/my-project/waveform/assets/clip.mp4",
       });
     }
+  });
+
+  it("keeps an embedded waveform visible on A/V video clips", () => {
+    usePlayerStore.setState({ thumbnailMode: "adaptive" });
+    const content = renderClipContent(
+      {
+        id: "interview",
+        tag: "video",
+        start: 0,
+        duration: 4,
+        track: 0,
+        src: "assets/interview.mp4",
+        hasAudio: true,
+      },
+      null,
+    );
+
+    expect(isValidElement<{ "data-av-clip-content"?: string; children?: ReactNode }>(content)).toBe(
+      true,
+    );
+    if (isValidElement<{ "data-av-clip-content"?: string; children?: ReactNode }>(content)) {
+      expect(content.props["data-av-clip-content"]).toBe("true");
+      expect(React.Children.count(content.props.children)).toBe(2);
+    }
+  });
+
+  it("renders only the waveform for an expanded A/V child row", () => {
+    usePlayerStore.setState({ thumbnailMode: "adaptive" });
+    const content = renderClipContent(
+      {
+        id: "interview",
+        tag: "video",
+        start: 0,
+        duration: 4,
+        track: 0,
+        src: "assets/interview.mp4",
+        hasAudio: true,
+      },
+      null,
+      { priority: "visible", rich: false, audioOnly: true },
+    );
+
+    expect(isValidElement(content)).toBe(true);
+    if (isValidElement(content)) expect(content.type).toBe(AudioWaveform);
   });
 
   it("passes empty labels to thumbnail content so TimelineClip owns clip names", () => {

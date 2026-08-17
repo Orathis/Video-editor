@@ -10,6 +10,9 @@ interface AudioWaveformProps {
   labelColor: string;
   trimStartFraction?: number;
   trimEndFraction?: number;
+  /** Pixels reserved above the peaks for the clip label. Embedded A/V strips
+   *  pass 0 because their own wrapper already sits below the video thumbnail. */
+  topInset?: number;
   projectId: string;
   sessionEpoch: number;
   priority: ThumbnailPriority;
@@ -107,10 +110,12 @@ export const AudioWaveform = memo(function AudioWaveform({
   labelColor,
   trimStartFraction,
   trimEndFraction,
+  topInset = 16,
   projectId,
   sessionEpoch,
   priority,
 }: AudioWaveformProps) {
+  const canvasTop = Math.max(0, topInset);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const cacheKey = waveformUrl ?? audioUrl;
@@ -181,13 +186,20 @@ export const AudioWaveform = memo(function AudioWaveform({
     <div className="absolute inset-0 overflow-hidden">
       <canvas
         ref={setCanvasRef}
+        data-audio-waveform="true"
         className="absolute inset-x-0 bottom-0 w-full"
-        style={{ top: 16 }}
+        // Canvas is a replaced element with an intrinsic 300×150 aspect ratio.
+        // `top` + `bottom` alone therefore does not constrain its height: the
+        // browser derives a very tall canvas from the clip width and paints the
+        // waveform below the tile's clipping window. Give it an explicit height
+        // so the peaks always occupy the visible body of the audio tile.
+        style={{ top: canvasTop, height: `calc(100% - ${canvasTop}px)` }}
       />
       {snapshot.status === "loading" && (
         <div
-          className="absolute inset-x-0 bottom-0 top-4 animate-pulse"
+          className="absolute inset-x-0 bottom-0 animate-pulse"
           style={{
+            top: canvasTop,
             background:
               "linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 100%)",
           }}

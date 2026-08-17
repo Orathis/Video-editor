@@ -16,6 +16,7 @@ interface TimelineGestureOverlayProps {
   scrollRef: React.RefObject<HTMLDivElement | null>;
   pixelsPerSecond: number;
   rowHeight: number;
+  resolvedTop: number | null;
   selectedElementId: string | null;
   currentTime: number;
   theme: TimelineTheme;
@@ -28,12 +29,13 @@ interface TimelineGestureOverlayProps {
   renderClipOverlay?: (element: TimelineElement) => ReactNode;
 }
 
-/** Stable canvas child that owns the live drag actor independently of source rows. */
+/** Stable canvas child that owns the translucent drop ghost independently of source rows. */
 export const TimelineGestureOverlay = memo(function TimelineGestureOverlay({
   drag,
   scrollRef,
   pixelsPerSecond,
   rowHeight,
+  resolvedTop,
   selectedElementId,
   currentTime,
   theme,
@@ -51,18 +53,26 @@ export const TimelineGestureOverlay = memo(function TimelineGestureOverlay({
         })
       : null;
   const position = drag ? getTimelineDragOverlayPosition(drag, scrollRef.current) : null;
+  const actorTop = resolvedTop ?? position?.top ?? 0;
   return (
-    <div data-timeline-gesture-overlay className="absolute inset-0 pointer-events-none">
+    <div
+      data-timeline-gesture-overlay
+      className="absolute inset-0 pointer-events-none overflow-clip"
+    >
       {element && position && (
         <div
           data-timeline-gesture-actor={element.key ?? element.id}
-          className="absolute"
+          data-timeline-drop-ghost
+          className="timeline-gesture-preview absolute"
           style={{
-            top: position.top,
+            top: 0,
             left: position.left,
             width: Math.max(element.duration * pixelsPerSecond, 4),
             height: rowHeight,
             zIndex: 40,
+            transform: `translate3d(0, ${actorTop}px, 0)`,
+            transition: "transform 120ms cubic-bezier(0.22, 0.8, 0.25, 1)",
+            willChange: "transform",
           }}
         >
           <TimelineClip

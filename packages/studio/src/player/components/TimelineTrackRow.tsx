@@ -10,12 +10,9 @@ interface TimelineTrackRowProps {
   /** Names the canvas-side content cell — the active clip's own property lanes,
    *  minted with this single id in TimelinePropertyLanes. */
   lanesId: string;
-  /** Names the header cell. Space-separated because the caret it lives under
-   *  expands two disjoint subtrees (the clip's keyframe lanes AND the track's
-   *  automation lanes) — see TimelineTrackHeader for why they cannot share one id. */
-  headerLanesId: string;
   top: number;
   height: number;
+  locked?: boolean;
   virtualized: boolean;
   background: string;
   borderColor: string;
@@ -30,9 +27,9 @@ export function TimelineTrackRow({
   logicalRow,
   propertyRows,
   lanesId,
-  headerLanesId,
   top,
   height,
+  locked = false,
   virtualized,
   background,
   borderColor,
@@ -45,7 +42,8 @@ export function TimelineTrackRow({
       data-index={index}
       data-timeline-row={index}
       data-timeline-row-key={rowKey}
-      className={virtualized ? "absolute left-0 right-0" : "relative"}
+      data-timeline-track-locked={locked ? "" : undefined}
+      className={`timeline-track-row overflow-clip ${locked ? "is-locked" : ""} ${virtualized ? "absolute left-0 right-0" : "relative"}`}
       style={{
         top: virtualized ? top : undefined,
         height,
@@ -61,7 +59,7 @@ export function TimelineTrackRow({
         data-timeline-logical-row-id={logicalRow.id}
         data-timeline-focus-id={logicalRow.id}
         tabIndex={rovingTargetId === logicalRow.id ? 0 : -1}
-        className="flex"
+        className="timeline-track-row__content flex overflow-clip"
         style={{ height }}
       >
         {children}
@@ -85,7 +83,7 @@ export function TimelineTrackRow({
             <div
               role="rowheader"
               aria-colindex={1}
-              aria-owns={timelineLogicalRowCellId(headerLanesId, row.id, "header")}
+              aria-owns={timelineLogicalRowCellId(lanesId, row.id, "header")}
             >
               {group}
             </div>

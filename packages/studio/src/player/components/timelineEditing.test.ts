@@ -652,7 +652,7 @@ describe("resolveTimelineAutoScroll", () => {
         110,
         120,
       ),
-    ).toEqual({ x: -9, y: -6 });
+    ).toEqual({ x: -9, y: -1.5 });
   });
 
   it("scrolls downward and rightward near the bottom-right edge", () => {
@@ -667,7 +667,7 @@ describe("resolveTimelineAutoScroll", () => {
         490,
         380,
       ),
-    ).toEqual({ x: 9, y: 6 });
+    ).toEqual({ x: 9, y: 1.5 });
   });
 
   it("uses the time-grid edge instead of the viewport edge when labels are sticky", () => {

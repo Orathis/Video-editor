@@ -13,6 +13,16 @@ export function isAudioTimelineElement(
   return Boolean(element.src && AUDIO_SOURCE_EXT_RE.test(element.src));
 }
 
+/** Media that exposes audio UI. Unlike `isAudioTimelineElement`, this includes
+ * an A/V video without moving that video into the timeline's audio zone. */
+export function hasTimelineAudio(
+  element: Pick<TimelineElement, "tag" | "src" | "hasAudio"> | null | undefined,
+): boolean {
+  if (!element) return false;
+  if (isAudioTimelineElement(element)) return true;
+  return element.tag.trim().toLowerCase() === "video" && element.hasAudio === true;
+}
+
 /** True for the music track: an audio element with data-timeline-role="music",
  *  or — when no role is set — an id matching the music regex. Voiceover/other
  *  audio (explicit non-music role) is excluded. */

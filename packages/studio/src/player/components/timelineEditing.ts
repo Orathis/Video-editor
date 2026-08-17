@@ -39,7 +39,8 @@ function clamp(value: number, min: number, max: number): number {
 
 const EDGE_TRACK_CREATE_THRESHOLD = 0.55;
 const AUTO_SCROLL_EDGE_ZONE = 40;
-const AUTO_SCROLL_MAX_SPEED = 12;
+const AUTO_SCROLL_MAX_SPEED_X = 12;
+const AUTO_SCROLL_MAX_SPEED_Y = 6;
 
 export interface TimelineMoveInput {
   start: number;
@@ -86,14 +87,20 @@ export function resolveTimelineAutoScroll(
   clientY: number,
   leftInset = 0,
 ): { x: number; y: number } {
-  const getAxisDelta = (start: number, end: number, pointer: number) => {
+  const getAxisDelta = (
+    start: number,
+    end: number,
+    pointer: number,
+    maxSpeed: number,
+    ease: boolean,
+  ) => {
     if (pointer < start + AUTO_SCROLL_EDGE_ZONE) {
       const proximity = Math.min(1, Math.max(0, 1 - (pointer - start) / AUTO_SCROLL_EDGE_ZONE));
-      return -Math.round(AUTO_SCROLL_MAX_SPEED * proximity);
+      return -maxSpeed * (ease ? proximity * proximity : proximity);
     }
     if (pointer > end - AUTO_SCROLL_EDGE_ZONE) {
       const proximity = Math.min(1, Math.max(0, 1 - (end - pointer) / AUTO_SCROLL_EDGE_ZONE));
-      return Math.round(AUTO_SCROLL_MAX_SPEED * proximity);
+      return maxSpeed * (ease ? proximity * proximity : proximity);
     }
     return 0;
   };
@@ -101,8 +108,14 @@ export function resolveTimelineAutoScroll(
   const horizontalStart = Math.min(bounds.right, bounds.left + Math.max(0, leftInset));
 
   return {
-    x: getAxisDelta(horizontalStart, bounds.right, clientX),
-    y: getAxisDelta(bounds.top, bounds.bottom, clientY),
+    // Horizontal keeps the established response for long timeline moves. The
+    // much shorter vertical range uses a quadratic ramp and half the peak
+    // velocity, preventing the entire audio stack from jumping 10–12px per RAF
+    // as a clip approaches the bottom edge.
+    x: Math.round(
+      getAxisDelta(horizontalStart, bounds.right, clientX, AUTO_SCROLL_MAX_SPEED_X, false),
+    ),
+    y: getAxisDelta(bounds.top, bounds.bottom, clientY, AUTO_SCROLL_MAX_SPEED_Y, true),
   };
 }
 

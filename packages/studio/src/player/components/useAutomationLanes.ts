@@ -26,7 +26,7 @@ import { resolveTimelineIdForSelection } from "../../utils/studioHelpers";
 import { getTimelineElementIdentity } from "../lib/timelineElementHelpers";
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import type { AutomationSelection } from "../store/automationSelectionSlice";
-import { elementAutomation, elementFxChain } from "./automationLaneData";
+import { elementFxChain, elementTimelineAutomation } from "./automationLaneData";
 import { createAutomationGestureKeys } from "./automationGestureKeys";
 
 export interface AutomationLaneBinding {
@@ -96,11 +96,11 @@ export function useAutomationLanes(): UseAutomationLanesResult {
   const bind = useCallback(
     (element: TimelineElement, isSelected: boolean): AutomationLaneBinding => {
       const chain = elementFxChain(element);
-      const automation = elementAutomation(element);
+      const automation = elementTimelineAutomation(element);
       const elementKey = getTimelineElementIdentity(element);
 
       const write = (next: HfAutomation, persist: boolean): void => {
-        if (!domEdit || !isSelected) return;
+        if (!domEdit || !isSelected || element.timelineLocked) return;
         const value = next.lanes.length > 0 ? serializeAutomation(next) : "";
         // Every write of one gesture under one key, so undo takes back the whole
         // drag rather than the last fragment history happened to keep.
@@ -141,7 +141,7 @@ export function useAutomationLanes(): UseAutomationLanesResult {
         // same tick would land on whichever element was selected before.
         // Selecting is its own gesture; the lane goes live after it.
         onSelect: () => void domEdit?.handleTimelineElementSelect(element),
-        readOnly: !domEdit || !isSelected,
+        readOnly: !domEdit || !isSelected || element.timelineLocked === true,
         commitTargetKey: domEdit ? commitTargetKey : null,
         selection: automationSelection?.elementKey === elementKey ? automationSelection : null,
         // Not gated on `isSelected`, unlike the writes above. A selection is

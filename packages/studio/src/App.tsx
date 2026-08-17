@@ -13,6 +13,7 @@ import { useFileManager } from "./hooks/useFileManager";
 import { usePreviewPersistence } from "./hooks/usePreviewPersistence";
 import { usePreviewDocumentVersion } from "./hooks/usePreviewDocumentVersion";
 import { useTimelineEditing } from "./hooks/useTimelineEditing";
+import { getTimelineEditorShellActions } from "./hooks/timelineEditorShellActions";
 import {
   persistTimelineMoveEditsAtomically,
   type TimelineMoveEditsHandler,
@@ -540,21 +541,10 @@ export function StudioApp() {
                     }
                     timelineToolbar={timelineToolbar}
                     renderClipContent={renderClipContent}
-                    handleTimelineElementDelete={timelineEditing.handleTimelineElementDelete}
-                    handleTimelineAssetDrop={timelineEditing.handleTimelineAssetDrop}
+                    {...getTimelineEditorShellActions(timelineEditing)}
                     handleTimelineBlockDrop={handleTimelineBlockDrop}
-                    handleTimelineCompositionDrop={timelineEditing.handleTimelineCompositionDrop}
                     handlePreviewBlockDrop={handlePreviewBlockDrop}
-                    handleTimelineFileDrop={timelineEditing.handleTimelineFileDrop}
-                    handleTimelineElementMove={timelineEditing.handleTimelineElementMove}
                     handleTimelineElementsMove={handleTimelineElementsMove}
-                    handleTimelineElementResize={timelineEditing.handleTimelineElementResize}
-                    handleTimelineGroupResize={timelineEditing.handleTimelineGroupResize}
-                    handleToggleTrackHidden={timelineEditing.handleToggleTrackHidden}
-                    handleBlockedTimelineEdit={timelineEditing.handleBlockedTimelineEdit}
-                    handleTimelineElementSplit={timelineEditing.handleTimelineElementSplit}
-                    handleRazorSplit={timelineEditing.handleRazorSplit}
-                    handleRazorSplitAll={timelineEditing.handleRazorSplitAll}
                     setCompIdToSrc={setCompIdToSrc}
                     setCompositionLoading={setCompositionLoading}
                     shouldShowMotionPath={shouldShowMotionPath}

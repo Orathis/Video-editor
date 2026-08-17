@@ -68,10 +68,17 @@ interface RenderHeaderOptions {
   clipCount?: number;
   currentTime?: number;
   expanded?: boolean;
+  audioExpanded?: boolean;
+  isAudioTrack?: boolean;
   onSeek?: (time: number) => void;
   onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   onToggleTrackHidden?: TimelineEditCallbacks["onToggleTrackHidden"];
+  onToggleTrackLocked?: TimelineEditCallbacks["onToggleTrackLocked"];
+  onRenameTrack?: TimelineEditCallbacks["onRenameTrack"];
+  onDeleteTrack?: (elements: readonly TimelineElement[]) => Promise<void> | void;
   onRemoveAutomationLane?: (target: string) => void;
+  onToggleAnimationExpanded?: () => void;
+  onToggleAudioExpanded?: () => void;
 }
 
 function renderHeader(options: RenderHeaderOptions = {}): {
@@ -83,6 +90,8 @@ function renderHeader(options: RenderHeaderOptions = {}): {
   document.body.append(host);
   const root = createRoot(host);
   const render = (next: RenderHeaderOptions) => {
+    const clip = next.keyframeClip ?? ELEMENT;
+    const audioTrack = next.isAudioTrack ?? clip.tag === "audio";
     act(() => {
       root.render(
         <TimelineTrackHeader
@@ -91,19 +100,26 @@ function renderHeader(options: RenderHeaderOptions = {}): {
           trackNumber={1 / 6}
           trackDisplayNumber={1}
           trackLabel="Hero card"
-          lanesId="timeline-lanes-track-0"
+          animationLanesId="timeline-lanes-track-0"
+          audioLanesId="timeline-lanes-track-0-audio"
           contentOrigin={LABEL_COL_W}
-          keyframeClip={next.keyframeClip ?? ELEMENT}
-          trackElements={next.trackElements ?? [next.keyframeClip ?? ELEMENT]}
+          keyframeClip={clip}
+          trackElements={next.trackElements ?? [clip]}
           clipCount={next.clipCount ?? 1}
-          isExpanded={next.expanded !== false}
+          isAnimationExpanded={next.expanded !== false}
+          isAudioExpanded={next.audioExpanded ?? (audioTrack && next.expanded !== false)}
           animations={next.animations ?? [POSITION, OPACITY]}
           currentTime={next.currentTime ?? 0}
           isTrackHidden={false}
-          isAudioTrack={false}
+          isTrackLocked={clip.timelineLocked === true}
+          isAudioTrack={audioTrack}
           theme={defaultTimelineTheme}
-          onToggleClipExpanded={vi.fn()}
+          onToggleAnimationExpanded={next.onToggleAnimationExpanded ?? vi.fn()}
+          onToggleAudioExpanded={next.onToggleAudioExpanded ?? vi.fn()}
           onToggleTrackHidden={next.onToggleTrackHidden ?? vi.fn()}
+          onToggleTrackLocked={next.onToggleTrackLocked ?? vi.fn()}
+          onRenameTrack={next.onRenameTrack}
+          onDeleteTrack={next.onDeleteTrack}
           onTogglePropertyGroupKeyframe={next.onTogglePropertyGroupKeyframe}
           onRemoveAutomationLane={next.onRemoveAutomationLane}
           onSeek={next.onSeek}
@@ -122,6 +138,41 @@ function click(host: HTMLElement, label: string) {
 }
 
 describe("TimelineTrackHeader", () => {
+  it("edits a track's name inline after a right-click", () => {
+    const onRenameTrack = vi.fn();
+    const { host, root } = renderHeader({ onRenameTrack });
+    const label = [...host.querySelectorAll("span")].find(
+      (candidate) => candidate.textContent === "Hero card",
+    );
+    expect(label).not.toBeUndefined();
+    act(() => label?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true })));
+
+    const input = host.querySelector<HTMLInputElement>('input[aria-label="Rename Hero card"]');
+    expect(input).not.toBeNull();
+    act(() => {
+      if (!input) return;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(
+        input,
+        "Opening title",
+      );
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => input?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+
+    expect(onRenameTrack).toHaveBeenCalledExactlyOnceWith([ELEMENT], "Opening title");
+    act(() => root.unmount());
+  });
+
+  it("deletes a track from the hover control", () => {
+    const onDeleteTrack = vi.fn();
+    const { host, root } = renderHeader({ onDeleteTrack });
+
+    click(host, "Delete Hero card track");
+
+    expect(onDeleteTrack).toHaveBeenCalledExactlyOnceWith([ELEMENT]);
+    act(() => root.unmount());
+  });
+
   // An expanded sub-composition child sits on the MASTER timeline at a
   // host-absolute start, but its tweens are parsed from its own file and are
   // local to it. Feeding the raw start straight into the clip-% math put every
@@ -205,6 +256,23 @@ describe("TimelineTrackHeader", () => {
 
     act(() => eye?.click());
     expect(onToggleTrackHidden).toHaveBeenCalledWith(1 / 6, true);
+    act(() => view.root.unmount());
+  });
+
+  it("locks and unlocks the track with the real fractional key", () => {
+    const onToggleTrackLocked = vi.fn();
+    const view = renderHeader({ onToggleTrackLocked });
+
+    click(view.host, "Lock track 1");
+    expect(onToggleTrackLocked).toHaveBeenCalledWith(1 / 6, true);
+
+    view.rerender({ keyframeClip: { ...ELEMENT, timelineLocked: true }, onToggleTrackLocked });
+    const unlock = view.host.querySelector<HTMLButtonElement>(
+      'button[aria-label="Unlock track 1"]',
+    );
+    expect(unlock?.getAttribute("aria-pressed")).toBe("true");
+    act(() => unlock?.click());
+    expect(onToggleTrackLocked).toHaveBeenLastCalledWith(1 / 6, false);
     act(() => view.root.unmount());
   });
 
@@ -458,6 +526,32 @@ describe("TimelineTrackHeader", () => {
         ],
       }),
     } as TimelineElement;
+
+    it("offers a separate Audio icon and baseline Volume lane before automation is authored", () => {
+      const onToggleAudioExpanded = vi.fn();
+      const bareAudio = { ...BED, automation: undefined };
+      const view = renderHeader({
+        keyframeClip: bareAudio,
+        animations: [POSITION],
+        audioExpanded: false,
+        onToggleAudioExpanded,
+      });
+
+      expect(
+        view.host.querySelector('button[data-timeline-control-category="animation"]'),
+      ).not.toBeNull();
+      const audioButton = view.host.querySelector<HTMLButtonElement>(
+        'button[data-timeline-control-category="audio"]',
+      );
+      expect(audioButton?.getAttribute("aria-label")).toBe("Expand Music Bed audio controls");
+      expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(0);
+
+      act(() => audioButton?.click());
+      expect(onToggleAudioExpanded).toHaveBeenCalledOnce();
+      view.rerender({ keyframeClip: bareAudio, animations: [POSITION], audioExpanded: true });
+      expect(view.host.querySelector('[data-automation-lane-label="Volume"]')).not.toBeNull();
+      act(() => view.root.unmount());
+    });
 
     it("names every envelope in the label column", () => {
       const { host, root } = renderHeader({ keyframeClip: BED, animations: [] });

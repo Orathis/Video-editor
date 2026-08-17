@@ -131,9 +131,9 @@ export const TimelineDiamondLane = memo(function TimelineDiamondLane({
 
   // When the beat strip occupies the top band, shrink the diamonds and center
   // them in the remaining bottom region so they don't collide with it.
-  // One consistent keyframe-diamond size everywhere (clip bars + property lanes),
-  // matching the property-lane size (LANE_H · ratio). Beat-strip tracks still
-  // shrink to fit under the strip.
+  // The compact glyph keeps keyframes reading as precise points instead of
+  // miniature clip blocks. The interactive target remains 24px high below.
+  // Beat-strip tracks still shrink to fit under the strip.
   const diamondSize = beatsActive
     ? Math.round(clipHeightPx * 0.45)
     : Math.round(LANE_H * DIAMOND_RATIO);
@@ -281,6 +281,9 @@ export const TimelineDiamondLane = memo(function TimelineDiamondLane({
         const atPlayhead = kf === playheadKeyframe;
         const isHighlighted = isKfSelected || atPlayhead;
         const color = isKfSelected ? accentColor : "#a3a3a3";
+        const groupLabel = kf.propertyGroup ?? "Motion";
+        const timeLabel = keyframeTimeLabel(clipStart, clipDuration, kf.percentage);
+        const percentageLabel = roundPct(kf.percentage);
 
         const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
           if (e.button !== 0) return;
@@ -332,7 +335,7 @@ export const TimelineDiamondLane = memo(function TimelineDiamondLane({
             // a key change remounts the button mid-drag (losing pointer capture).
             key={`${kf.animationId ?? i}:${kf.propertyGroup ?? ""}:${kf.tweenPercentage ?? kf.percentage}`}
             type="button"
-            className="absolute"
+            className="timeline-keyframe absolute"
             data-timeline-focus-id={focusId}
             data-keyframe-group={groupAware ? kf.propertyGroup : undefined}
             data-keyframe-percentage={
@@ -343,7 +346,7 @@ export const TimelineDiamondLane = memo(function TimelineDiamondLane({
             aria-current={atPlayhead ? "time" : undefined}
             data-keyframe-outside-clip={boundary ?? undefined}
             tabIndex={focusId === rovingTargetId ? 0 : -1}
-            aria-label={`${kf.propertyGroup ?? "Motion"} keyframe at ${keyframeTimeLabel(clipStart, clipDuration, kf.percentage)}${boundary ? ` (${boundary} clip)` : ""}`}
+            aria-label={`${groupLabel} keyframe at ${timeLabel}${boundary ? ` (${boundary} clip)` : ""}`}
             aria-pressed={isKfSelected}
             style={{
               left: leftPx,
@@ -388,9 +391,10 @@ export const TimelineDiamondLane = memo(function TimelineDiamondLane({
               e.stopPropagation();
               onContextMenuKeyframe?.(e, target);
             }}
-            title={`${roundPct(kf.percentage)}%${boundary ? ` · ${boundary} clip` : ""}`}
+            title={`${percentageLabel}%${boundary ? ` · ${boundary} clip` : ""}`}
           >
             <svg
+              className="timeline-keyframe__glyph"
               width={marker.visualSize}
               height={marker.visualSize}
               viewBox="0 0 10 10"

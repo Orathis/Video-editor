@@ -38,6 +38,12 @@ export interface TimelineEditCallbackDeps {
   ) => Promise<void> | void;
   handleTimelineGroupResize: NonNullable<TimelineEditCallbacks["onResizeElements"]>;
   handleToggleTrackHidden: (track: number, hidden: boolean) => Promise<void> | void;
+  handleToggleTrackLocked: (track: number, locked: boolean) => Promise<void> | void;
+  handleTimelineElementRename: (element: TimelineElement, label: string) => Promise<void> | void;
+  handleTimelineTrackRename: (
+    elements: readonly TimelineElement[],
+    label: string,
+  ) => Promise<void> | void;
   handleBlockedTimelineEdit: (element: TimelineElement, intent: BlockedTimelineEditIntent) => void;
   handleTimelineElementSplit: (element: TimelineElement, splitTime: number) => Promise<void> | void;
   handleRazorSplit: (element: TimelineElement, splitTime: number) => Promise<void> | void;
@@ -99,6 +105,9 @@ export function useTimelineEditCallbacks({
   handleTimelineElementResize,
   handleTimelineGroupResize,
   handleToggleTrackHidden,
+  handleToggleTrackLocked,
+  handleTimelineElementRename,
+  handleTimelineTrackRename,
   handleBlockedTimelineEdit,
   handleTimelineElementSplit,
   handleRazorSplit,
@@ -185,6 +194,9 @@ export function useTimelineEditCallbacks({
       onResizeElement: handleTimelineElementResize,
       onResizeElements: handleTimelineGroupResize,
       onToggleTrackHidden: handleToggleTrackHidden,
+      onToggleTrackLocked: handleToggleTrackLocked,
+      onRenameElement: handleTimelineElementRename,
+      onRenameTrack: handleTimelineTrackRename,
       onBlockedEditAttempt: handleBlockedTimelineEdit,
       onSplitElement: handleTimelineElementSplit,
       onRazorSplit: handleRazorSplit,
@@ -378,6 +390,9 @@ export function useTimelineEditCallbacks({
       handleTimelineElementResize,
       handleTimelineGroupResize,
       handleToggleTrackHidden,
+      handleToggleTrackLocked,
+      handleTimelineElementRename,
+      handleTimelineTrackRename,
       handleBlockedTimelineEdit,
       handleTimelineElementSplit,
       handleRazorSplit,

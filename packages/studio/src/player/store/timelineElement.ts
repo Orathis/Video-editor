@@ -12,6 +12,8 @@ import type { ClipManifestClip } from "../lib/playbackTypes";
 export interface TimelineElement {
   id: string;
   label?: string;
+  /** Optional authored name for the timeline row, independent of clip labels. */
+  trackLabel?: string;
   key?: string;
   kind?: ClipManifestClip["kind"];
   tag: string;
@@ -53,6 +55,10 @@ export interface TimelineElement {
   playbackStartAttr?: "media-start" | "playback-start";
   playbackRate?: number;
   sourceDuration?: number;
+  /** Whether this media clip carries an audible track. Always true for audio;
+   *  read from data-has-audio/muted for video. Visual zoning still follows
+   *  `tag`, so an A/V clip remains on a video lane while exposing audio tools. */
+  hasAudio?: boolean;
   volume?: number;
   /** Verbatim `data-fx-chain` / `data-automation`; see automationLaneData. */
   fxChain?: string;
