@@ -1,0 +1,34 @@
+# Railway builds Studio from the shared workspace source. Keep local tooling,
+# documentation, and large regression media out of the deployment archive.
+/.agents/
+/.claude/
+/.github/
+/docs/
+/examples/
+/skills/
+
+# Test suites and their committed video/audio fixtures are not runtime inputs.
+**/tests/
+**/*.test.*
+**/*.spec.*
+**/__fixtures__/
+**/__snapshots__/
+
+# Generated authoring, render, and browser artifacts.
+**/coverage/
+**/dist/
+/output/
+/renders/
+/captures/
+**/.hyperframes/
+**/.transcode-cache/
+**/.thumbnails/
+
+# Media in this repository is test/reference material. Runtime project media is
+# stored on the Railway volume mounted at /data/projects.
+**/*.mp3
+**/*.mp4
+**/*.mov
+**/*.MOV
+**/*.wav
+**/*.webm

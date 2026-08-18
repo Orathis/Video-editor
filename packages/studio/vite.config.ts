@@ -233,6 +233,10 @@ export default defineConfig({
   },
   server: {
     port: 5190,
+    // Railway health checks and generated service domains use hostnames that
+    // are not known at build time. Keep Vite's default host protection for
+    // local development, and relax it only inside a Railway deployment.
+    allowedHosts: process.env["RAILWAY_PROJECT_ID"] ? true : undefined,
     watch: {
       // A composition lives under this package's root, so Vite's HMR sees a
       // write to one as an html page dependency changing and full-reloads the
