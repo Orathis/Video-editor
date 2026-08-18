@@ -141,6 +141,9 @@ function parseFrontmatter(source: string, warnings: StoryboardWarning[]): Frontm
 
 function assignGlobal(globals: StoryboardGlobals, key: string, value: string): void {
   switch (key) {
+    case "title":
+      globals.title = value;
+      break;
     case "format":
       globals.format = value;
       break;
@@ -152,6 +155,44 @@ function assignGlobal(globals: StoryboardGlobals, key: string, value: string): v
       break;
     case "audience":
       globals.audience = value;
+      break;
+    case "kind":
+      if (["standalone", "reference", "template", "version"].includes(value)) {
+        globals.kind = value as StoryboardGlobals["kind"];
+      } else {
+        globals.extra[key] = value;
+      }
+      break;
+    case "group_id":
+      globals.groupId = value;
+      break;
+    case "template_id":
+      globals.templateId = value;
+      break;
+    case "template_revision": {
+      const revision = Number(value);
+      if (Number.isInteger(revision) && revision >= 0) globals.templateRevision = revision;
+      else globals.extra[key] = value;
+      break;
+    }
+    case "composition_path":
+      globals.compositionPath = value;
+      break;
+    case "analysis_id":
+      globals.analysisId = value;
+      break;
+    case "reference_asset":
+      globals.referenceAsset = value;
+      break;
+    case "source_url":
+      globals.sourceUrl = value;
+      break;
+    case "target_profile":
+      if (["9:16", "16:9", "4:5", "1:1"].includes(value)) {
+        globals.targetProfile = value as StoryboardGlobals["targetProfile"];
+      } else {
+        globals.extra[key] = value;
+      }
       break;
     default:
       globals.extra[key] = value;

@@ -25,8 +25,64 @@ async function filterCompositionFiles(projectDir: string, files: string[]): Prom
 export function registerProjectRoutes(api: Hono, adapter: StudioApiAdapter): void {
   // List all projects
   api.get("/projects", async (c) => {
-    const projects = await adapter.listProjects();
-    return c.json({ projects });
+    const allProjects = await adapter.listProjects();
+    return c.json({
+      projects: allProjects.filter((project) => !project.archived),
+      archivedProjects: allProjects.filter((project) => project.archived),
+    });
+  });
+
+  api.post("/projects", async (c) => {
+    if (!adapter.createProject) return c.json({ error: "Project creation is not available" }, 501);
+    const body = (await c.req.json().catch(() => null)) as {
+      sourceProjectId?: unknown;
+      title?: unknown;
+    } | null;
+    const sourceProjectId =
+      typeof body?.sourceProjectId === "string" ? body.sourceProjectId.trim() : "";
+    const title = typeof body?.title === "string" ? body.title.trim() : undefined;
+    if (!sourceProjectId) return c.json({ error: "sourceProjectId is required" }, 400);
+    try {
+      return c.json(await adapter.createProject({ sourceProjectId, title }), 201);
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : String(error) }, 400);
+    }
+  });
+
+  api.post("/projects/:id/title", async (c) => {
+    if (!adapter.renameProject) return c.json({ error: "Project rename is not available" }, 501);
+    const body = (await c.req.json().catch(() => null)) as { title?: unknown } | null;
+    const title = typeof body?.title === "string" ? body.title.trim() : "";
+    if (!title) return c.json({ error: "title is required" }, 400);
+    try {
+      return c.json(await adapter.renameProject(c.req.param("id"), title));
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : String(error) }, 400);
+    }
+  });
+
+  api.post("/projects/:id/archive", async (c) => {
+    if (!adapter.setProjectArchived) {
+      return c.json({ error: "Project archiving is not available" }, 501);
+    }
+    const body = (await c.req.json().catch(() => null)) as { archived?: unknown } | null;
+    if (typeof body?.archived !== "boolean") {
+      return c.json({ error: "archived must be a boolean" }, 400);
+    }
+    if (body.archived) {
+      const activeProjects = (await adapter.listProjects()).filter((project) => !project.archived);
+      if (
+        activeProjects.length <= 1 &&
+        activeProjects.some((project) => project.id === c.req.param("id"))
+      ) {
+        return c.json({ error: "At least one project must remain open" }, 400);
+      }
+    }
+    try {
+      return c.json(await adapter.setProjectArchived(c.req.param("id"), body.archived));
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : String(error) }, 400);
+    }
   });
 
   // Resolve session to project (multi-project mode)

@@ -98,10 +98,22 @@ function resolveExportRenderFps(): ExportRenderFpsResolution {
   const rawFpsSource = config?.fpsSource;
   const fps = Number(rawFps);
   if (!config || rawFps == null) {
-    return { fps: null, source: "default", rawFpsSource, rawFps, fallbackReason: "missing" };
+    return {
+      fps: null,
+      source: "default",
+      rawFpsSource,
+      rawFps,
+      fallbackReason: "missing",
+    };
   }
   if (!Number.isFinite(fps) || fps <= 0) {
-    return { fps: null, source: "default", rawFpsSource, rawFps, fallbackReason: "invalid" };
+    return {
+      fps: null,
+      source: "default",
+      rawFpsSource,
+      rawFps,
+      fallbackReason: "invalid",
+    };
   }
   const source =
     rawFpsSource === "render-options" || rawFpsSource === "default" ? rawFpsSource : "unknown";
@@ -417,7 +429,10 @@ export function initSandboxRuntimeModular(): void {
       return { code: "runtime_invalid_selector", category: "selector-invalid" };
     }
     if (message.includes("is not defined")) {
-      return { code: "runtime_reference_missing", category: "reference-missing" };
+      return {
+        code: "runtime_reference_missing",
+        category: "reference-missing",
+      };
     }
     return { code: "runtime_script_error", category: "script-error" };
   };
@@ -611,7 +626,9 @@ export function initSandboxRuntimeModular(): void {
     const compositionRoot = element.closest("[data-composition-id]");
     const inheritedStart = compositionRoot ? resolveStartForElement(compositionRoot, 0) : null;
     const inheritedDuration = compositionRoot
-      ? resolveDurationForElement(compositionRoot, { includeAuthoredTimingAttrs: true })
+      ? resolveDurationForElement(compositionRoot, {
+          includeAuthoredTimingAttrs: true,
+        })
       : null;
     return { compositionRoot, inheritedStart, inheritedDuration };
   };
@@ -935,7 +952,9 @@ export function initSandboxRuntimeModular(): void {
     ): RuntimeTimelineLike | null => {
       const gsapApi = window.gsap;
       if (!gsapApi || typeof gsapApi.timeline !== "function") return null;
-      const compositeTimeline = gsapApi.timeline({ paused: true }) as RuntimeTimelineLike;
+      const compositeTimeline = gsapApi.timeline({
+        paused: true,
+      }) as RuntimeTimelineLike;
       for (const candidate of candidates) {
         compositeTimeline.add(
           candidate.timeline,
@@ -951,7 +970,9 @@ export function initSandboxRuntimeModular(): void {
       if (!isUsableTimelineDuration(durationSeconds)) return null;
       const gsapApi = window.gsap;
       if (!gsapApi || typeof gsapApi.timeline !== "function") return null;
-      const fallbackTimeline = gsapApi.timeline({ paused: true }) as RuntimeTimelineLike;
+      const fallbackTimeline = gsapApi.timeline({
+        paused: true,
+      }) as RuntimeTimelineLike;
       if (existingRootTimeline) {
         try {
           fallbackTimeline.add(existingRootTimeline, 0);
@@ -1295,7 +1316,9 @@ export function initSandboxRuntimeModular(): void {
   // inner `_ease` here, once the eases are registered.
   const repairKeyframeInnerEase = (tlLike: unknown): void => {
     const g = (window as unknown as { gsap?: { parseEase?: (e: unknown) => unknown } }).gsap;
-    const tl = tlLike as { getChildren?: (a: boolean, b: boolean, c: boolean) => unknown[] } | null;
+    const tl = tlLike as {
+      getChildren?: (a: boolean, b: boolean, c: boolean) => unknown[];
+    } | null;
     if (!tl || typeof tl.getChildren !== "function" || !g || typeof g.parseEase !== "function")
       return;
     for (const child of tl.getChildren(true, true, true)) {
@@ -1725,6 +1748,11 @@ export function initSandboxRuntimeModular(): void {
   const metadataBoundMedia = new Set<HTMLMediaElement>();
   const volumeKeyframeCache = new WeakMap<HTMLMediaElement, VolumeKeyframe[]>();
 
+  const isSharedReferenceSceneMedia = (mediaEl: HTMLMediaElement): boolean =>
+    mediaEl instanceof HTMLVideoElement &&
+    mediaEl.classList.contains("reference-scene") &&
+    document.querySelector("video[data-reference-playback]") !== null;
+
   const scheduleMetadataDurationHydration = () => {
     if (state.tornDown) return;
     if (metadataRebindDebounceTimerId != null) {
@@ -1824,6 +1852,14 @@ export function initSandboxRuntimeModular(): void {
     for (const mediaEl of mediaEls) {
       if (metadataBoundMedia.has(mediaEl)) continue;
       metadataBoundMedia.add(mediaEl);
+      // Reconstructed references expose every cut as an editable video clip,
+      // but a single ignored playback element paints the unchanged flattened
+      // source. Do not initialize a decoder for every marker clip: dozens of
+      // decoders for one URL can leave the active seek on a black frame.
+      if (isSharedReferenceSceneMedia(mediaEl)) {
+        mediaEl.preload = "none";
+        continue;
+      }
       const parsedVolume = Number.parseFloat(mediaEl.dataset.volume ?? "");
       if (Number.isFinite(parsedVolume)) {
         mediaEl.volume = Math.max(0, Math.min(1, parsedVolume));
@@ -1981,8 +2017,9 @@ export function initSandboxRuntimeModular(): void {
   const syncMediaForCurrentState = () => {
     const cache = refreshRuntimeMediaCache({
       shouldIncludeElement: (element) =>
-        element.hasAttribute("data-start") ||
-        Boolean(resolveMediaCompositionContext(element).compositionRoot),
+        !isSharedReferenceSceneMedia(element) &&
+        (element.hasAttribute("data-start") ||
+          Boolean(resolveMediaCompositionContext(element).compositionRoot)),
       resolveStartSeconds: (element) => {
         return resolveAbsoluteMediaStartSeconds(element);
       },
@@ -2044,7 +2081,10 @@ export function initSandboxRuntimeModular(): void {
         onAutoplayBlocked: () => {
           if (state.mediaAutoplayBlockedPosted) return;
           state.mediaAutoplayBlockedPosted = true;
-          postRuntimeMessage({ source: "hf-preview", type: "media-autoplay-blocked" });
+          postRuntimeMessage({
+            source: "hf-preview",
+            type: "media-autoplay-blocked",
+          });
         },
       });
     }
@@ -2100,7 +2140,12 @@ export function initSandboxRuntimeModular(): void {
       const width = w ? parseInt(w, 10) : 0;
       const height = h ? parseInt(h, 10) : 0;
       if (width > 0 && height > 0) {
-        postRuntimeMessage({ source: "hf-preview", type: "stage-size", width, height });
+        postRuntimeMessage({
+          source: "hf-preview",
+          type: "stage-size",
+          width,
+          height,
+        });
       }
     }
     bindRootTimelineIfAvailable();
@@ -2791,7 +2836,9 @@ export function initSandboxRuntimeModular(): void {
       // timeline's full extent so it holds the final computed frame instead.
       // Adapters still receive the raw `t` (their media may run longer).
       // totalDuration() includes repeats; Infinity (infinite repeat) → no clamp.
-      const tlWithTotal = tl as RuntimeTimelineLike & { totalDuration?: () => number };
+      const tlWithTotal = tl as RuntimeTimelineLike & {
+        totalDuration?: () => number;
+      };
       let tlSeekTime = t;
       if (typeof tlWithTotal.totalDuration === "function") {
         try {
@@ -2929,12 +2976,18 @@ export function initSandboxRuntimeModular(): void {
               0;
             if (Number.isFinite(start) && state.currentTime >= start && state.currentTime < end) {
               if (!rawEl.paused) {
-                clock.attachAudioSource({ el: rawEl, compositionStart: start, mediaStart });
+                clock.attachAudioSource({
+                  el: rawEl,
+                  compositionStart: start,
+                  mediaStart,
+                });
                 foundActive = true;
               } else if (!rawEl.error && rawEl.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
                 // Audio is buffering — freeze visuals at last known position
                 // instead of falling through to monotonic (which runs ahead).
-                clock.attachAudioSource({ currentTimeSeconds: state.currentTime });
+                clock.attachAudioSource({
+                  currentTimeSeconds: state.currentTime,
+                });
                 foundActive = true;
               }
               break;

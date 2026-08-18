@@ -13,6 +13,7 @@ import { registerRegistryRoutes } from "./routes/registry.js";
 import { registerSelectionRoutes } from "./routes/selection.js";
 import { registerMediaRoutes } from "./routes/media.js";
 import { registerGlobalAssetRoutes } from "./routes/globalAssets.js";
+import { registerReferenceAnalysisRoutes } from "./routes/referenceAnalysis.js";
 
 /**
  * Create a Hono sub-app with all studio API routes.
@@ -25,6 +26,7 @@ export function createStudioApi(adapter: StudioApiAdapter): Hono {
 
   registerProjectRoutes(api, adapter);
   registerStoryboardRoutes(api, adapter);
+  registerReferenceAnalysisRoutes(api, adapter);
   registerFileRoutes(api, adapter);
   registerPreviewRoutes(api, adapter);
   registerLintRoutes(api, adapter);

@@ -1,46 +1,173 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  appendStoryboardFrame,
+  removeStoryboardFrame,
+  setFrameDuration,
+  setFrameImage,
+  setFrameTransition,
+} from "@hyperframes/core/storyboard";
 import type { StoryboardResponse } from "../../hooks/useStoryboard";
+import { useFileManagerContext } from "../../contexts/FileManagerContext";
 import { Button } from "../ui/Button";
 import { StoryboardDirection } from "./StoryboardDirection";
 import { StoryboardGrid } from "./StoryboardGrid";
 import { StoryboardScriptPanel } from "./StoryboardScriptPanel";
-import { StoryboardSourceEditor, type SourceFile } from "./StoryboardSourceEditor";
 import { StoryboardFrameFocus } from "./StoryboardFrameFocus";
-import { StoryboardReviewGuide } from "./StoryboardReviewGuide";
+import { ReferenceImportPanel } from "./ReferenceImportPanel";
+import { TemplateSlotsPanel } from "./TemplateSlotsPanel";
+import { StoryboardComparisonPanel } from "./StoryboardComparisonPanel";
+import {
+  STORYBOARD_SPLIT_VIEW_DOCK_ID,
+  resolveStoryboardComparison,
+} from "./SplitComparisonControl";
 import {
   AgentChatMessageButton,
   APPLY_STORYBOARD_FEEDBACK_MESSAGE,
 } from "./AgentChatMessageButton";
 import { useFrameComments, type CommentsSubmitState } from "./useFrameComments";
-
-type SubView = "board" | "source";
+import { commitStoryboardEdit, type StoryboardRecordEdit } from "./storyboardHistory";
 
 export interface StoryboardLoadedProps {
   projectId: string;
   data: StoryboardResponse;
   /** Re-fetch the manifest after a source edit is saved. */
   reload: () => void;
+  historyRevision: number;
+  recordEdit: StoryboardRecordEdit;
   /** Select a composition in the timeline (used by "Open in Preview"). */
   onSelectComposition: (path: string) => void;
+  onSelectStoryboard: (path: string) => void;
+  onCreateStoryboard: (title: string) => Promise<boolean>;
+  onRenameStoryboard: (path: string, title: string) => Promise<boolean>;
+  onArchiveStoryboard: (path: string) => Promise<boolean>;
+  onUnarchiveStoryboard: (path: string) => Promise<boolean>;
+  creatingStoryboard: boolean;
+  mutatingStoryboardPath: string | null;
+  storyboardError: string | null;
 }
 
 function clampIndex(index: number, count: number): number {
   return Math.max(1, Math.min(count, index));
 }
 
-/** A storyboard that exists on disk: Board (contact sheet) ↔ Source ↔ frame focus. */
+function comparisonStorageKey(projectId: string): string {
+  return `hyperframes:storyboard-comparison:${projectId}`;
+}
+
+function readStoredComparison(projectId: string): string {
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem(comparisonStorageKey(projectId)) ?? "";
+}
+
+/** A storyboard that exists on disk: visual contact sheet ↔ frame focus. */
 // fallow-ignore-next-line complexity
 export function StoryboardLoaded({
   projectId,
   data,
   reload,
+  historyRevision,
+  recordEdit,
   onSelectComposition,
+  onSelectStoryboard,
+  onCreateStoryboard,
+  onRenameStoryboard,
+  onArchiveStoryboard,
+  onUnarchiveStoryboard,
+  creatingStoryboard,
+  mutatingStoryboardPath,
+  storyboardError,
 }: StoryboardLoadedProps) {
-  const [subView, setSubView] = useState<SubView>("board");
-  const [sourceDirty, setSourceDirty] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [feedbackMessageCopied, setFeedbackMessageCopied] = useState(false);
-  const comments = useFrameComments(data.frames);
+  const [addingFrame, setAddingFrame] = useState(false);
+  const [addFrameError, setAddFrameError] = useState<string | null>(null);
+  const [deletingFrameIndex, setDeletingFrameIndex] = useState<number | null>(null);
+  const [deleteFrameError, setDeleteFrameError] = useState<string | null>(null);
+  const [importingReference, setImportingReference] = useState(false);
+  const [selectedComparisonPath, setSelectedComparisonPath] = useState(() =>
+    readStoredComparison(projectId),
+  );
+  const [pendingComparisonPaths, setPendingComparisonPaths] = useState<string[]>([]);
+  const [comparisonCounts, setComparisonCounts] = useState<{
+    reference: number;
+    secondary: number;
+  } | null>(null);
+  const { readProjectFile, writeProjectFile, uploadProjectFiles } = useFileManagerContext();
+  const comments = useFrameComments(projectId, data.frames, recordEdit);
+  const comparison = useMemo(
+    () => resolveStoryboardComparison(data.storyboards, data.path, selectedComparisonPath),
+    [data.path, data.storyboards, selectedComparisonPath],
+  );
+  const comparisonActive = Boolean(
+    selectedComparisonPath &&
+    comparison?.options.some((option) => option.path === selectedComparisonPath),
+  );
+  const selectedComparison = comparison?.options.find(
+    (option) => option.path === selectedComparisonPath,
+  );
+  const selectComparison = useCallback(
+    (path: string) => {
+      setSelectedComparisonPath(path);
+      setComparisonCounts(null);
+      if (path) window.sessionStorage.setItem(comparisonStorageKey(projectId), path);
+      else window.sessionStorage.removeItem(comparisonStorageKey(projectId));
+    },
+    [projectId],
+  );
+  const closeComparison = useCallback(() => {
+    setPendingComparisonPaths([]);
+    selectComparison("");
+  }, [selectComparison]);
+  const comparisonSelectionPaths = useMemo(
+    () =>
+      comparisonActive && comparison
+        ? [comparison.pair.referenceStoryboardPath, comparison.pair.secondaryStoryboardPath]
+        : pendingComparisonPaths,
+    [comparison, comparisonActive, pendingComparisonPaths],
+  );
+  const toggleComparisonSelection = useCallback(
+    (path: string) => {
+      if (comparisonSelectionPaths.includes(path)) {
+        const next = comparisonSelectionPaths.filter((selectedPath) => selectedPath !== path);
+        if (comparisonActive) selectComparison("");
+        setPendingComparisonPaths(next);
+        return;
+      }
+      const next = [...comparisonSelectionPaths, path];
+      if (next.length < 2) {
+        setPendingComparisonPaths(next);
+        return;
+      }
+      const selectedDocuments = next
+        .map((selectedPath) => data.storyboards.find((document) => document.path === selectedPath))
+        .filter((document) => document !== undefined);
+      const reference = selectedDocuments.find((document) => document.kind === "reference");
+      const secondary = selectedDocuments.find(
+        (document) => document.kind === "template" || document.kind === "version",
+      );
+      if (reference?.groupId && reference.groupId === secondary?.groupId) {
+        setPendingComparisonPaths([]);
+        selectComparison(secondary.path);
+        return;
+      }
+      setPendingComparisonPaths([path]);
+    },
+    [comparisonActive, comparisonSelectionPaths, data.storyboards, selectComparison],
+  );
+  const recordComparisonCounts = useCallback(
+    (reference: number, secondary: number) => setComparisonCounts({ reference, secondary }),
+    [],
+  );
+  const comparisonSummary =
+    comparisonActive && selectedComparison
+      ? `${
+          comparisonCounts
+            ? comparisonCounts.reference === comparisonCounts.secondary
+              ? `${comparisonCounts.reference} scenes`
+              : `${comparisonCounts.reference} / ${comparisonCounts.secondary} scenes`
+            : "Comparing"
+        } · Reference ↔ ${selectedComparison.kind === "template" ? "Template" : "Version"}`
+      : undefined;
   // When the board refreshes off a project change (agent revised frames), the
   // agent has likely consumed the comments file too — re-check so the pending
   // banner clears the moment revisions land, not on the next window focus.
@@ -49,8 +176,20 @@ export function StoryboardLoaded({
     void refreshPending();
   }, [data.signature, refreshPending]);
   useEffect(() => {
+    if (data.globals.compositionPath) onSelectComposition(data.globals.compositionPath);
+  }, [data.globals.compositionPath, onSelectComposition]);
+  useEffect(() => {
     if (comments.draftCount > 0) setFeedbackMessageCopied(false);
   }, [comments.draftCount]);
+  useEffect(() => {
+    setSelectedComparisonPath(readStoredComparison(projectId));
+    setPendingComparisonPaths([]);
+    setComparisonCounts(null);
+  }, [projectId]);
+  useEffect(() => {
+    if (!selectedComparisonPath || comparisonActive) return;
+    selectComparison("");
+  }, [comparisonActive, selectComparison, selectedComparisonPath]);
 
   const saveFeedbackAndCopyMessage = async () => {
     const saved = await comments.submit();
@@ -62,26 +201,65 @@ export function StoryboardLoaded({
       setFeedbackMessageCopied(false);
     }
   };
-  const sourceFiles = useMemo<SourceFile[]>(() => {
-    const files: SourceFile[] = [{ path: data.path, label: data.path }];
-    if (data.script?.exists) files.push({ path: data.script.path, label: data.script.path });
-    return files;
-    // Depend on the stable fields, not the `data.script` object — every reload()
-    // produces a fresh object and would needlessly re-create this array.
-  }, [data.path, data.script?.path, data.script?.exists]);
-
-  // Leaving the source editor drops its in-memory buffer; confirm when it's dirty.
-  // fallow-ignore-next-line complexity
-  const changeSubView = (next: SubView) => {
-    if (next === subView) return;
-    if (
-      subView === "source" &&
-      sourceDirty &&
-      !window.confirm("Discard unsaved markdown changes?")
-    ) {
-      return;
+  const editStoryboard = async (label: string, edit: (source: string) => string) => {
+    const source = await readProjectFile(data.path);
+    const changed = await commitStoryboardEdit({
+      projectId,
+      path: data.path,
+      before: source,
+      after: edit(source),
+      label,
+      writeFile: writeProjectFile,
+      recordEdit,
+    });
+    if (changed) reload();
+  };
+  const addFrame = async () => {
+    if (addingFrame) return;
+    setAddingFrame(true);
+    setAddFrameError(null);
+    try {
+      await editStoryboard("Add storyboard frame", appendStoryboardFrame);
+    } catch (error) {
+      setAddFrameError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setAddingFrame(false);
     }
-    setSubView(next);
+  };
+
+  const deleteFrame = async (index: number) => {
+    if (deletingFrameIndex !== null || data.frames.length <= 1) return;
+    setDeletingFrameIndex(index);
+    setDeleteFrameError(null);
+    try {
+      await editStoryboard("Delete storyboard frame", (source) =>
+        removeStoryboardFrame(source, index),
+      );
+    } catch (error) {
+      setDeleteFrameError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setDeletingFrameIndex(null);
+    }
+  };
+
+  const updateFrameDuration = async (index: number, seconds: number) => {
+    await editStoryboard("Change frame duration", (source) =>
+      setFrameDuration(source, index, seconds),
+    );
+  };
+
+  const updateFrameTransition = async (index: number, transition: string) => {
+    await editStoryboard("Change frame transition", (source) =>
+      setFrameTransition(source, index, transition),
+    );
+  };
+
+  const attachFrameImage = async (index: number, file: File) => {
+    const [imagePath] = await uploadProjectFiles([file], "assets/storyboard");
+    if (!imagePath) throw new Error("Image upload failed.");
+    await editStoryboard("Attach storyboard image", (source) =>
+      setFrameImage(source, index, imagePath),
+    );
   };
 
   const focusedFrame =
@@ -90,7 +268,7 @@ export function StoryboardLoaded({
   if (focusedFrame) {
     return (
       <StoryboardFrameFocus
-        key={focusedFrame.index}
+        key={`${historyRevision}:${focusedFrame.index}`}
         projectId={projectId}
         storyboardPath={data.path}
         frame={focusedFrame}
@@ -100,6 +278,7 @@ export function StoryboardLoaded({
           setFocusedIndex(clampIndex(focusedFrame.index + delta, data.frames.length))
         }
         onSaved={reload}
+        recordEdit={recordEdit}
         onSelectComposition={onSelectComposition}
         scriptExists={Boolean(data.script?.exists)}
         commentDraft={comments.drafts[focusedFrame.index] ?? ""}
@@ -121,34 +300,67 @@ export function StoryboardLoaded({
 
   return (
     <div className="flex w-full max-w-[100vw] flex-1 min-h-0 min-w-0 flex-col overflow-hidden bg-neutral-950 text-neutral-200">
-      <div className="flex flex-wrap items-center gap-3 border-b border-neutral-800 px-4 py-2">
-        <SubViewToggle value={subView} onChange={changeSubView} />
-        {subView === "board" && (
-          <CommentsSubmitBar
-            draftCount={comments.draftCount}
-            pendingCount={comments.pending?.length ?? 0}
-            submitState={comments.submitState}
-            submitError={comments.submitError}
-            messageCopied={feedbackMessageCopied}
-            onSave={() => void saveFeedbackAndCopyMessage()}
-            onMessageCopied={() => setFeedbackMessageCopied(true)}
-          />
-        )}
-      </div>
-      {subView === "board" ? (
-        <div className="flex-1 min-h-0 overflow-auto">
-          <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-8 sm:py-8">
-            <StoryboardDirection globals={data.globals} frameCount={data.frames.length} />
-            <StoryboardReviewGuide
-              frames={data.frames}
-              draftCount={comments.draftCount}
-              pendingCount={comments.pending?.length ?? 0}
-              onFeedbackMessageCopied={() => setFeedbackMessageCopied(true)}
+      <div className="flex-1 min-h-0 overflow-auto">
+        <div className="px-4 py-5 sm:px-8 sm:py-8">
+          <div className="mx-auto max-w-[1400px]">
+            <StoryboardDirection
+              frameCount={data.frames.length}
+              storyboards={data.storyboards}
+              archivedStoryboards={data.archivedStoryboards}
+              activePath={data.path}
+              onSelectStoryboard={onSelectStoryboard}
+              onCreateStoryboard={onCreateStoryboard}
+              onRenameStoryboard={onRenameStoryboard}
+              onArchiveStoryboard={onArchiveStoryboard}
+              onUnarchiveStoryboard={onUnarchiveStoryboard}
+              creatingStoryboard={creatingStoryboard}
+              mutatingStoryboardPath={mutatingStoryboardPath}
+              error={storyboardError}
+              onImportReference={() => setImportingReference(true)}
+              comparisonSelectionPaths={comparisonSelectionPaths}
+              comparisonSummary={comparisonSummary}
+              onToggleComparisonSelection={toggleComparisonSelection}
             />
-            <StoryboardWarnings
-              warnings={data.warnings}
-              onOpenSource={() => changeSubView("source")}
-            />
+          </div>
+          <div id={STORYBOARD_SPLIT_VIEW_DOCK_ID} className="empty:hidden">
+            {comparisonActive && comparison ? (
+              <StoryboardComparisonPanel
+                projectId={projectId}
+                referencePath={comparison.pair.referenceStoryboardPath}
+                referenceLabel={comparison.pair.referenceLabel}
+                secondaryPath={comparison.pair.secondaryStoryboardPath}
+                secondaryLabel={comparison.pair.secondaryLabel}
+                onClose={closeComparison}
+                onFrameCountsChange={recordComparisonCounts}
+                recordEdit={recordEdit}
+              />
+            ) : null}
+          </div>
+          <div data-storyboard-standard-content className="mx-auto max-w-[1400px]">
+            {data.globals.compositionPath &&
+            (data.globals.kind === "template" || data.globals.kind === "version") ? (
+              <TemplateSlotsPanel
+                projectId={projectId}
+                compositionPath={data.globals.compositionPath}
+                recordEdit={recordEdit}
+              />
+            ) : null}
+            {(comments.draftCount > 0 ||
+              (comments.pending?.length ?? 0) > 0 ||
+              comments.submitError) && (
+              <div className="mt-3 flex justify-end">
+                <CommentsSubmitBar
+                  draftCount={comments.draftCount}
+                  pendingCount={comments.pending?.length ?? 0}
+                  submitState={comments.submitState}
+                  submitError={comments.submitError}
+                  messageCopied={feedbackMessageCopied}
+                  onSave={() => void saveFeedbackAndCopyMessage()}
+                  onMessageCopied={() => setFeedbackMessageCopied(true)}
+                />
+              </div>
+            )}
+            <StoryboardWarnings warnings={data.warnings} />
             <StoryboardGrid
               projectId={projectId}
               frames={data.frames}
@@ -157,17 +369,32 @@ export function StoryboardLoaded({
               onCommentDraftChange={comments.setDraft}
               pendingComments={comments.pending}
               posterVersion={data.signature}
+              onAddFrame={() => void addFrame()}
+              addingFrame={addingFrame}
+              addFrameError={addFrameError}
+              onDeleteFrame={(index) => void deleteFrame(index)}
+              deletingFrameIndex={deletingFrameIndex}
+              deleteFrameError={deleteFrameError}
+              onDurationChange={updateFrameDuration}
+              onTransitionChange={updateFrameTransition}
+              onImageDrop={attachFrameImage}
             />
             {data.script && <StoryboardScriptPanel script={data.script} />}
           </div>
         </div>
-      ) : (
-        <StoryboardSourceEditor
-          files={sourceFiles}
-          onSaved={reload}
-          onDirtyChange={setSourceDirty}
+      </div>
+      {importingReference ? (
+        <ReferenceImportPanel
+          projectId={projectId}
+          recordEdit={recordEdit}
+          onClose={() => setImportingReference(false)}
+          onCommitted={(path) => {
+            setImportingReference(false);
+            onSelectStoryboard(path);
+            reload();
+          }}
         />
-      )}
+      ) : null}
     </div>
   );
 }
@@ -190,6 +417,7 @@ function CommentsSubmitBar({
   onSave: () => void;
   onMessageCopied: () => void;
 }) {
+  if (pendingCount === 0 && draftCount === 0 && !submitError) return null;
   return (
     <div className="ml-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2 sm:flex-none">
       {pendingCount > 0 && (
@@ -205,9 +433,6 @@ function CommentsSubmitBar({
             onCopied={onMessageCopied}
           />
         </>
-      )}
-      {pendingCount === 0 && draftCount === 0 && (
-        <span className="text-xs text-neutral-500">Add frame comments to request changes.</span>
       )}
       {submitError && (
         <span className="max-w-64 truncate text-xs text-red-400" title={submitError}>
@@ -229,13 +454,7 @@ function CommentsSubmitBar({
   );
 }
 
-function StoryboardWarnings({
-  warnings,
-  onOpenSource,
-}: {
-  warnings: StoryboardResponse["warnings"];
-  onOpenSource: () => void;
-}) {
+function StoryboardWarnings({ warnings }: { warnings: StoryboardResponse["warnings"] }) {
   if (warnings.length === 0) return null;
   return (
     <details className="mt-3 rounded-lg border border-amber-900/60 bg-amber-950/20 px-4 py-2 text-xs text-amber-200">
@@ -250,58 +469,6 @@ function StoryboardWarnings({
           </li>
         ))}
       </ul>
-      <button
-        type="button"
-        onClick={onOpenSource}
-        className="mt-2 rounded text-amber-100 underline underline-offset-2 hover:text-white"
-      >
-        Open source to fix
-      </button>
     </details>
-  );
-}
-
-const SUB_VIEWS: Array<{ value: SubView; label: string }> = [
-  { value: "board", label: "Board" },
-  { value: "source", label: "Source" },
-];
-
-function SubViewToggle({ value, onChange }: { value: SubView; onChange: (next: SubView) => void }) {
-  // Complete tabs contract: roving tabIndex + arrow-key navigation (the roles
-  // alone promised keyboard behavior the buttons didn't have).
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    e.preventDefault();
-    const currentIndex = SUB_VIEWS.findIndex((v) => v.value === value);
-    const delta = e.key === "ArrowRight" ? 1 : -1;
-    const next = SUB_VIEWS[(currentIndex + delta + SUB_VIEWS.length) % SUB_VIEWS.length];
-    if (next) onChange(next.value);
-  };
-
-  return (
-    <div
-      className="flex items-center gap-0.5 rounded-md bg-neutral-900 p-0.5"
-      role="tablist"
-      aria-label="Storyboard view"
-      onKeyDown={handleKeyDown}
-    >
-      {SUB_VIEWS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          role="tab"
-          aria-selected={value === option.value}
-          tabIndex={value === option.value ? 0 : -1}
-          onClick={() => onChange(option.value)}
-          className={`rounded px-3 py-1 text-xs font-medium transition-colors active:scale-[0.98] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-studio-accent ${
-            value === option.value
-              ? "bg-neutral-700 text-neutral-100"
-              : "text-neutral-400 hover:text-neutral-200"
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
   );
 }

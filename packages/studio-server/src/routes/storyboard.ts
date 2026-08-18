@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import type { Hono } from "hono";
 import type { StudioApiAdapter } from "../types.js";
 import { resolveWithinProject } from "../helpers/safePath.js";
@@ -8,12 +8,118 @@ import {
   SCRIPT_FILENAME,
   STORYBOARD_FILENAME,
   type StoryboardFrame,
+  type StoryboardKind,
+  type StoryboardTargetProfile,
 } from "@hyperframes/core/storyboard";
 
 /** A frame enriched with disk-resolution info the Studio needs to render tiles. */
 interface ResolvedStoryboardFrame extends StoryboardFrame {
   /** Whether `src` resolves to an existing file inside the project. */
   srcExists: boolean;
+}
+
+interface StoryboardDocument {
+  path: string;
+  label: string;
+  kind?: StoryboardKind;
+  groupId?: string;
+  templateId?: string;
+  templateRevision?: number;
+  compositionPath?: string;
+  analysisId?: string;
+  referenceAsset?: string;
+  sourceUrl?: string;
+  targetProfile?: StoryboardTargetProfile;
+}
+
+interface StoryboardCollections {
+  storyboards: StoryboardDocument[];
+  archivedStoryboards: StoryboardDocument[];
+}
+
+function isStoryboardPath(path: string): boolean {
+  return path === STORYBOARD_FILENAME || /^storyboards\/[^/\\]+\.md$/i.test(path);
+}
+
+function fallbackStoryboardLabel(path: string): string {
+  if (path === STORYBOARD_FILENAME) return "Main";
+  const filename = path.slice("storyboards/".length, -3);
+  return filename
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function storyboardMetadata(
+  projectDir: string,
+  path: string,
+): StoryboardDocument & { archived: boolean } {
+  const abs = resolveWithinProject(projectDir, path);
+  if (abs) {
+    try {
+      const globals = parseStoryboard(readFileSync(abs, "utf-8")).globals;
+      const authoredTitle = (globals.title ?? globals.extra.title)?.trim();
+      const relationship =
+        globals.kind && globals.kind !== "standalone"
+          ? {
+              kind: globals.kind,
+              groupId: globals.groupId,
+              templateId: globals.templateId,
+              templateRevision: globals.templateRevision,
+              compositionPath: globals.compositionPath,
+              analysisId: globals.analysisId,
+              referenceAsset: globals.referenceAsset,
+              sourceUrl: globals.sourceUrl,
+              targetProfile: globals.targetProfile,
+            }
+          : {};
+      return {
+        path,
+        label: authoredTitle || fallbackStoryboardLabel(path),
+        archived: globals.extra.archived?.trim().toLowerCase() === "true",
+        ...relationship,
+      };
+    } catch {
+      // A readable board with a malformed or missing title still gets a stable fallback label.
+    }
+  }
+  return { path, label: fallbackStoryboardLabel(path), archived: false };
+}
+
+function listStoryboards(projectDir: string): StoryboardCollections {
+  const paths: string[] = [];
+  const main = resolveWithinProject(projectDir, STORYBOARD_FILENAME);
+  if (main && existsSync(main)) paths.push(STORYBOARD_FILENAME);
+
+  const directory = resolveWithinProject(projectDir, "storyboards");
+  if (directory && existsSync(directory)) {
+    try {
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        if (entry.isFile() && entry.name.toLowerCase().endsWith(".md")) {
+          paths.push(`storyboards/${entry.name}`);
+        }
+      }
+    } catch {
+      // The main board remains usable even when an optional directory cannot be read.
+    }
+  }
+
+  const documents = paths
+    .sort((a, b) => {
+      if (a === STORYBOARD_FILENAME) return -1;
+      if (b === STORYBOARD_FILENAME) return 1;
+      return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+    })
+    .map((path) => storyboardMetadata(projectDir, path));
+  return {
+    storyboards: documents
+      .filter((document) => !document.archived)
+      .map(({ archived: _archived, ...document }) => document),
+    archivedStoryboards: documents
+      .filter((document) => document.archived)
+      .map(({ archived: _archived, ...document }) => document),
+  };
 }
 
 function resolveFrames(projectDir: string, frames: StoryboardFrame[]): ResolvedStoryboardFrame[] {
@@ -52,11 +158,19 @@ export function registerStoryboardRoutes(api: Hono, adapter: StudioApiAdapter): 
     if (!resolved) return c.json({ error: "not found" }, 404);
     const { project, signature } = resolved;
 
-    const abs = resolveWithinProject(project.dir, STORYBOARD_FILENAME);
+    const storyboardPath = c.req.query("path") ?? STORYBOARD_FILENAME;
+    if (!isStoryboardPath(storyboardPath)) {
+      return c.json({ error: "invalid storyboard path" }, 400);
+    }
+    const { storyboards, archivedStoryboards } = listStoryboards(project.dir);
+
+    const abs = resolveWithinProject(project.dir, storyboardPath);
     if (!abs || !existsSync(abs)) {
       return c.json({
         exists: false,
-        path: STORYBOARD_FILENAME,
+        path: storyboardPath,
+        storyboards,
+        archivedStoryboards,
         globals: { extra: {} },
         frames: [],
         warnings: [],
@@ -75,7 +189,9 @@ export function registerStoryboardRoutes(api: Hono, adapter: StudioApiAdapter): 
     const manifest = parseStoryboard(source);
     return c.json({
       exists: true,
-      path: STORYBOARD_FILENAME,
+      path: storyboardPath,
+      storyboards,
+      archivedStoryboards,
       globals: manifest.globals,
       frames: resolveFrames(project.dir, manifest.frames),
       warnings: manifest.warnings,

@@ -11,63 +11,19 @@ import {
   type StoryboardReviewStage,
 } from "./storyboardReviewStage";
 
-const GUIDE_COPY: Record<StoryboardReviewStage, { eyebrow: string; title: string; body: string }> =
-  {
-    empty: {
-      eyebrow: "Waiting for a plan",
-      title: "The storyboard has no frames yet",
-      body: "Ask your agent to draft the story plan. Frames will appear here automatically.",
-    },
-    "plan-review": {
-      eyebrow: "Ready for review",
-      title: "Review the story plan",
-      body: "Check the sequence, scene direction, and voiceover before visual work begins. Leave frame comments, save them, then reply in your terminal or IDE agent chat.",
-    },
-    "sketch-in-progress": {
-      eyebrow: "Build in progress",
-      title: "Visual sketches are in progress",
-      body: "New posters appear automatically as your agent builds them. You can comment now; wait until no frames remain in Outline before approving the layouts.",
-    },
-    "sketch-review": {
-      eyebrow: "Ready for review",
-      title: "Review the visual direction",
-      body: "Check composition, hierarchy, and copy. Save frame comments, then reply in your terminal or IDE agent chat.",
-    },
-    "animation-in-progress": {
-      eyebrow: "Build in progress",
-      title: "Animation is in progress",
-      body: "The board refreshes as frames advance. Review completed frames now; the final review is ready when every frame is Animated.",
-    },
-    "final-review": {
-      eyebrow: "Ready for review",
-      title: "Review motion and timing",
-      body: "Every frame is animated. Open a frame in Preview to review it in the timeline, or leave frame comments for another revision.",
-    },
-  };
+const GUIDE_EYEBROW: Record<StoryboardReviewStage, string> = {
+  empty: "Waiting for a plan",
+  "plan-review": "Ready for review",
+  "sketch-in-progress": "Build in progress",
+  "sketch-review": "Ready for review",
+  "animation-in-progress": "Build in progress",
+  "final-review": "Ready for review",
+};
 
-const REVIEW_ACTION_COPY: Record<
-  StoryboardReviewStage,
-  { body: string; approvalMessage?: string }
-> = {
-  empty: { body: "Add comments as previews arrive." },
-  "plan-review": {
-    body: "Add comments where you want changes. If everything looks right, approve this pass in agent chat.",
-    approvalMessage: "Approve this storyboard plan and continue to visual sketches.",
-  },
-  "sketch-in-progress": {
-    body: "Add comments as previews arrive. You’ll be prompted to approve when this pass is ready.",
-  },
-  "sketch-review": {
-    body: "Add comments where you want changes. If everything looks right, approve this pass in agent chat.",
-    approvalMessage: "Approve these storyboard sketches and continue to animation.",
-  },
-  "animation-in-progress": {
-    body: "Add comments as previews arrive. You’ll be prompted to approve when this pass is ready.",
-  },
-  "final-review": {
-    body: "Add comments where you want changes. If everything looks right, approve this pass in agent chat.",
-    approvalMessage: "Approve this final storyboard review and continue to rendering.",
-  },
+const REVIEW_APPROVAL_MESSAGES: Partial<Record<StoryboardReviewStage, string>> = {
+  "plan-review": "Approve this storyboard plan and continue to visual sketches.",
+  "sketch-review": "Approve these storyboard sketches and continue to animation.",
+  "final-review": "Approve this final storyboard review and continue to rendering.",
 };
 
 type ReviewStepOffset = -1 | 0 | 1;
@@ -121,19 +77,14 @@ export function StoryboardReviewGuide({
   onFeedbackMessageCopied,
 }: StoryboardReviewGuideProps) {
   const summary = deriveStoryboardReviewStage(frames);
-  const copy = GUIDE_COPY[summary.stage];
   const handoffStep = deriveStoryboardHandoffStep(draftCount, pendingCount);
   const progress = progressLabel(summary);
 
   return (
     <section className="mt-5 rounded-lg border border-neutral-800 bg-neutral-900/60 px-4 py-3">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="max-w-3xl">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-400">
-            {copy.eyebrow}
-          </div>
-          <h2 className="mt-0.5 text-sm font-semibold text-neutral-100">{copy.title}</h2>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-400">{copy.body}</p>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-400">
+          {GUIDE_EYEBROW[summary.stage]}
         </div>
         {summary.frameCount > 0 && (
           <div className="shrink-0">
@@ -271,16 +222,13 @@ function SaveFeedbackAction({ draftCount }: { draftCount: number }) {
 }
 
 function ReviewFramesAction({ stage }: { stage: StoryboardReviewStage }) {
-  const copy = REVIEW_ACTION_COPY[stage];
+  const approvalMessage = REVIEW_APPROVAL_MESSAGES[stage];
 
   return (
     <div className="mt-3 flex flex-col gap-3 rounded-md border border-neutral-800 bg-neutral-950/40 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <div className="text-xs font-semibold text-neutral-200">Next: review the frames</div>
-        <p className="mt-0.5 text-[11px] text-neutral-500">{copy.body}</p>
-      </div>
-      {copy.approvalMessage && (
-        <AgentChatMessageButton message={copy.approvalMessage} label="Copy approval message" />
+      <div className="text-xs font-semibold text-neutral-200">Next: review the frames</div>
+      {approvalMessage && (
+        <AgentChatMessageButton message={approvalMessage} label="Copy approval message" />
       )}
     </div>
   );
