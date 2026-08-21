@@ -7,6 +7,7 @@ import { type MediaCategory, getCategory, CATEGORY_LABELS, FILTER_ORDER } from "
 import { AudioRow } from "./AudioRow";
 import { GlobalAssetsView } from "./GlobalAssetsView";
 import { AssetCard, FontRow } from "./AssetCard";
+import { FusionImportButton } from "./FusionImportButton";
 
 interface AssetsTabProps {
   projectId: string;
@@ -276,6 +277,8 @@ export const AssetsTab = memo(function AssetsTab({
             />
           </>
         )}
+
+        <FusionImportButton />
 
         {/* Search */}
         {mediaAssets.length > 0 && (

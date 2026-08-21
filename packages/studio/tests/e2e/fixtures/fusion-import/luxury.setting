@@ -1,0 +1,41 @@
+{
+  GlobalRange = { 0, 89 },
+  Tools = ordered() {
+    Background1 = Background {
+      Inputs = {
+        Width = Input { Value = 1080 },
+        Height = Input { Value = 1920 },
+        TopLeftRed = Input { Value = 0.025 },
+        TopLeftGreen = Input { Value = 0.03 },
+        TopLeftBlue = Input { Value = 0.04 },
+        TopLeftAlpha = Input { Value = 1 },
+      },
+    },
+    TextSize = BezierSpline {
+      KeyFrames = {
+        [0] = { 0.035, Flags = { Linear = true } },
+        [30] = { 0.065, Flags = { Linear = true } },
+      },
+    },
+    Text1 = TextPlus {
+      Inputs = {
+        StyledText = Input { Value = "Your company. The answer AI recommends." },
+        Font = Input { Value = "Arial" },
+        Size = Input { SourceOp = "TextSize", Source = "Value" },
+        Red1 = Input { Value = 0.82 },
+        Green1 = Input { Value = 0.7 },
+        Blue1 = Input { Value = 0.35 },
+        Alpha1 = Input { Value = 1 },
+      },
+    },
+    Merge1 = Merge {
+      Inputs = {
+        Background = Input { SourceOp = "Background1", Source = "Output" },
+        Foreground = Input { SourceOp = "Text1", Source = "Output" },
+      },
+    },
+    MediaOut1 = MediaOut {
+      Inputs = { Input = Input { SourceOp = "Merge1", Source = "Output" } },
+    },
+  },
+}
