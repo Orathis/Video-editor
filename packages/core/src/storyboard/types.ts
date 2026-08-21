@@ -32,8 +32,16 @@ export const FRAME_STATUSES: readonly FrameStatus[] = ["outline", "built", "anim
 /** Default status when a frame omits one (it is still just an outline). */
 export const DEFAULT_FRAME_STATUS: FrameStatus = "outline";
 
+/** Relationship a storyboard has to a reusable reference-video template group. */
+export type StoryboardKind = "standalone" | "reference" | "template" | "version";
+
+/** First-class output layouts supported by reference-video templates. */
+export type StoryboardTargetProfile = "9:16" | "16:9" | "4:5" | "1:1";
+
 /** Global direction for the whole video, parsed from the frontmatter. */
 export interface StoryboardGlobals {
+  /** Short saved-board label shown in the Studio tab manager. */
+  title?: string;
   /** Canvas format as authored, e.g. `"1920x1080"`. */
   format?: string;
   /** One-line message / thesis of the video. */
@@ -42,6 +50,24 @@ export interface StoryboardGlobals {
   arc?: string;
   /** Target audience, e.g. `"indie devs on X"`. */
   audience?: string;
+  /** Role inside a reusable template group. Missing means `standalone`. */
+  kind?: StoryboardKind;
+  /** Stable id shared by a Reference, its Template, and all derived Versions. */
+  groupId?: string;
+  /** Stable id of the Template this Version was copied from. */
+  templateId?: string;
+  /** Template revision this independent Version last incorporated. */
+  templateRevision?: number;
+  /** Project-relative authored composition controlled by this board. */
+  compositionPath?: string;
+  /** Id of the precision analysis companion manifest, when one exists. */
+  analysisId?: string;
+  /** Uploaded project-local media used as the authoritative Reference. */
+  referenceAsset?: string;
+  /** Optional social URL retained for embedded reference and attribution. */
+  sourceUrl?: string;
+  /** Layout profile selected by a Template or Version. */
+  targetProfile?: StoryboardTargetProfile;
   /** Any frontmatter keys outside the known set, preserved verbatim. */
   extra: Record<string, string>;
 }

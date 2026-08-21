@@ -6,6 +6,7 @@ export interface ResolvedProject {
   id: string;
   dir: string;
   title?: string;
+  archived?: boolean;
   sessionId?: string;
 }
 
@@ -97,6 +98,21 @@ export interface StudioSelectionResponse {
 export interface StudioApiAdapter {
   /** List all available projects. */
   listProjects(): Promise<ResolvedProject[]> | ResolvedProject[];
+
+  /** Duplicate a project into a new, independently editable workspace. */
+  createProject?(opts: {
+    sourceProjectId: string;
+    title?: string;
+  }): Promise<ResolvedProject> | ResolvedProject;
+
+  /** Persist a human-readable project title. */
+  renameProject?(projectId: string, title: string): Promise<ResolvedProject> | ResolvedProject;
+
+  /** Hide or restore a project without removing its files. */
+  setProjectArchived?(
+    projectId: string,
+    archived: boolean,
+  ): Promise<ResolvedProject> | ResolvedProject;
 
   /** Resolve a project ID (or session ID) to its directory. Returns null if not found. */
   resolveProject(id: string): Promise<ResolvedProject | null> | ResolvedProject | null;

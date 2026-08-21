@@ -199,4 +199,40 @@ describe("composition loading overlay", () => {
 
     iframe.remove();
   });
+
+  it("does not block the visible preview on hidden future media", () => {
+    const { audio, iframe } = createAudioIframe();
+    audio.setAttribute("data-start", "12");
+    audio.style.visibility = "hidden";
+    Object.defineProperty(audio, "readyState", {
+      value: 0,
+      configurable: true,
+    });
+    Object.defineProperty(audio, "networkState", {
+      value: 2,
+      configurable: true,
+    });
+
+    expect(hasUnloadedAssets(iframe, false)).toBe(false);
+
+    iframe.remove();
+  });
+
+  it("still waits for the timed media visible at the playhead", () => {
+    const { audio, iframe } = createAudioIframe();
+    audio.setAttribute("data-start", "0");
+    audio.style.visibility = "visible";
+    Object.defineProperty(audio, "readyState", {
+      value: 0,
+      configurable: true,
+    });
+    Object.defineProperty(audio, "networkState", {
+      value: 2,
+      configurable: true,
+    });
+
+    expect(hasUnloadedAssets(iframe, false)).toBe(true);
+
+    iframe.remove();
+  });
 });

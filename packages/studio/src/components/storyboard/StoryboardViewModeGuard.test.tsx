@@ -53,6 +53,7 @@ function TestApp() {
           onBack={vi.fn()}
           onNavigate={onNavigate}
           onSaved={vi.fn()}
+          recordEdit={vi.fn(async () => {})}
           onSelectComposition={onSelectComposition}
           scriptExists={false}
           commentDraft=""

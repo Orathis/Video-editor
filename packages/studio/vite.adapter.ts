@@ -8,6 +8,7 @@ import {
   realpathSync,
   mkdirSync,
   copyFileSync,
+  cpSync,
   unlinkSync,
 } from "node:fs";
 import { join, relative, resolve, isAbsolute, dirname } from "node:path";
@@ -38,6 +39,51 @@ export function resolveViteAutoProxy(value: string | undefined): boolean {
 }
 
 export function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAdapter {
+  const projectMetadataPath = (projectDir: string) =>
+    join(projectDir, ".hyperframes", "studio-project.json");
+  interface ProjectMetadata {
+    title?: string;
+    archived?: boolean;
+  }
+  const readProjectMetadata = (projectDir: string): ProjectMetadata => {
+    try {
+      const metadata = JSON.parse(readFileSync(projectMetadataPath(projectDir), "utf-8")) as {
+        title?: unknown;
+        archived?: unknown;
+      };
+      return {
+        title:
+          typeof metadata.title === "string" && metadata.title.trim()
+            ? metadata.title.trim()
+            : undefined,
+        archived: metadata.archived === true,
+      };
+    } catch {
+      return {};
+    }
+  };
+  const writeProjectMetadata = (projectDir: string, patch: ProjectMetadata) => {
+    mkdirSync(dirname(projectMetadataPath(projectDir)), { recursive: true });
+    writeFileSync(
+      projectMetadataPath(projectDir),
+      `${JSON.stringify({ ...readProjectMetadata(projectDir), ...patch }, null, 2)}\n`,
+      "utf-8",
+    );
+  };
+  const uniqueProjectId = (title: string): string => {
+    const base =
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "project";
+    let id = base;
+    let suffix = 2;
+    while (existsSync(join(dataDir, id))) {
+      id = `${base}-${suffix}`;
+      suffix += 1;
+    }
+    return id;
+  };
   let _bundler:
     | ((
         dir: string,
@@ -137,14 +183,53 @@ export function createViteAdapter(dataDir: string, server: ViteDevServer): Studi
         )
         .map((d) => {
           const session = sessionMap.get(d.name);
+          const projectDir = join(dataDir, d.name);
+          const metadata = readProjectMetadata(projectDir);
           return {
             id: d.name,
-            dir: join(dataDir, d.name),
-            title: session?.title ?? d.name,
+            dir: projectDir,
+            title: session?.title ?? metadata.title ?? d.name,
+            archived: metadata.archived,
             sessionId: session?.sessionId,
           } satisfies ResolvedProject;
         })
         .sort((a, b) => (a.title ?? "").localeCompare(b.title ?? ""));
+    },
+
+    createProject({ sourceProjectId, title }) {
+      const source = this.resolveProject(sourceProjectId);
+      if (!source || source instanceof Promise) {
+        throw new Error("Source project not found");
+      }
+      const nextTitle = title?.trim() || `${source.title || source.id} copy`;
+      const id = uniqueProjectId(nextTitle);
+      const destination = join(dataDir, id);
+      cpSync(source.dir, destination, {
+        recursive: true,
+        filter: (path) => {
+          const name = path.slice(source.dir.length).replace(/^[/\\]+/, "");
+          return !/^(?:\.git|node_modules|\.thumbnails|\.transcode-cache|\.waveform-cache)(?:[/\\]|$)/.test(
+            name,
+          );
+        },
+      });
+      writeProjectMetadata(destination, { title: nextTitle, archived: false });
+      server.watcher.add(destination);
+      return { id, dir: destination, title: nextTitle, archived: false };
+    },
+
+    renameProject(projectId, title) {
+      const project = this.resolveProject(projectId);
+      if (!project || project instanceof Promise) throw new Error("Project not found");
+      writeProjectMetadata(project.dir, { title });
+      return { ...project, title };
+    },
+
+    setProjectArchived(projectId, archived) {
+      const project = this.resolveProject(projectId);
+      if (!project || project instanceof Promise) throw new Error("Project not found");
+      writeProjectMetadata(project.dir, { archived });
+      return { ...project, archived };
     },
 
     // fallow-ignore-next-line complexity
@@ -159,10 +244,12 @@ export function createViteAdapter(dataDir: string, server: ViteDevServer): Studi
             if (session.projectId) {
               projectDir = join(dataDir, session.projectId);
               if (existsSync(projectDir)) {
+                const metadata = readProjectMetadata(projectDir);
                 return {
                   id: session.projectId,
                   dir: realpathSync(projectDir),
-                  title: session.title,
+                  title: session.title || metadata.title,
+                  archived: metadata.archived,
                 };
               }
             }
@@ -172,7 +259,8 @@ export function createViteAdapter(dataDir: string, server: ViteDevServer): Studi
         }
         return null;
       }
-      return { id, dir: realpathSync(projectDir) };
+      const metadata = readProjectMetadata(projectDir);
+      return { id, dir: realpathSync(projectDir), ...metadata };
     },
 
     async bundle(dir: string) {

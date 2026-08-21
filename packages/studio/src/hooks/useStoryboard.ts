@@ -3,6 +3,8 @@ import type {
   StoryboardFrame,
   StoryboardGlobals,
   StoryboardWarning,
+  StoryboardKind,
+  StoryboardTargetProfile,
 } from "@hyperframes/core/storyboard";
 import { buildProjectApiPath } from "../utils/projectRouting";
 
@@ -19,10 +21,26 @@ export interface StoryboardScript {
   content: string;
 }
 
+export interface StoryboardDocument {
+  path: string;
+  label: string;
+  kind?: StoryboardKind;
+  groupId?: string;
+  templateId?: string;
+  templateRevision?: number;
+  compositionPath?: string;
+  analysisId?: string;
+  referenceAsset?: string;
+  sourceUrl?: string;
+  targetProfile?: StoryboardTargetProfile;
+}
+
 /** Shape of `GET /api/projects/:id/storyboard`. */
 export interface StoryboardResponse {
   exists: boolean;
   path: string;
+  storyboards: StoryboardDocument[];
+  archivedStoryboards: StoryboardDocument[];
   globals: StoryboardGlobals;
   frames: StoryboardFrameView[];
   warnings: StoryboardWarning[];
@@ -46,21 +64,25 @@ export interface UseStoryboardResult {
  * and project switches, so background refreshes (file-change polling, post-save
  * reloads) swap data without flashing the board.
  */
-export function useStoryboard(projectId: string | null): UseStoryboardResult {
+export function useStoryboard(
+  projectId: string | null,
+  storyboardPath = "STORYBOARD.md",
+): UseStoryboardResult {
   const [data, setData] = useState<StoryboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const hasDataRef = useRef(false);
-  const lastProjectRef = useRef<string | null>(null);
+  const lastRequestRef = useRef<string | null>(null);
 
   const reload = useCallback(() => setReloadKey((k) => k + 1), []);
 
   useEffect(() => {
     if (!projectId) return;
     let cancelled = false;
-    if (lastProjectRef.current !== projectId) {
-      lastProjectRef.current = projectId;
+    const requestKey = `${projectId}:${storyboardPath}`;
+    if (lastRequestRef.current !== requestKey) {
+      lastRequestRef.current = requestKey;
       hasDataRef.current = false;
       setData(null);
     }
@@ -69,7 +91,9 @@ export function useStoryboard(projectId: string | null): UseStoryboardResult {
 
     // Route through buildProjectApiPath so the (URL-derived) projectId is encoded
     // into the path rather than interpolated raw (CodeQL js/client-side-request-forgery).
-    fetch(buildProjectApiPath(projectId, "/storyboard"))
+    const apiPath = buildProjectApiPath(projectId, "/storyboard");
+    const query = new URLSearchParams({ path: storyboardPath });
+    fetch(`${apiPath}?${query.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error(`storyboard request failed: ${res.status}`);
         return res.json() as Promise<StoryboardResponse>;
@@ -93,7 +117,7 @@ export function useStoryboard(projectId: string | null): UseStoryboardResult {
     return () => {
       cancelled = true;
     };
-  }, [projectId, reloadKey]);
+  }, [projectId, reloadKey, storyboardPath]);
 
   return { data, loading, error, reload };
 }

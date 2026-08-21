@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Hono } from "hono";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -130,6 +130,115 @@ describe("GET /projects/:id/signature", () => {
     });
     const response = await app.request("http://localhost/projects/nope/signature");
     expect(response.status).toBe(404);
+  });
+});
+
+describe("project workspace mutations", () => {
+  it("separates open and archived projects", async () => {
+    const projectDir = createProjectDir();
+    const app = new Hono();
+    registerProjectRoutes(app, {
+      ...createAdapter(projectDir),
+      listProjects: () => [
+        { id: "demo", dir: projectDir, title: "Demo" },
+        { id: "old", dir: projectDir, title: "Old cut", archived: true },
+      ],
+    });
+
+    const response = await app.request("http://localhost/projects");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      projects: [{ id: "demo" }],
+      archivedProjects: [{ id: "old" }],
+    });
+  });
+
+  it("duplicates a project through the adapter", async () => {
+    const projectDir = createProjectDir();
+    const createProject = vi.fn(() => ({ id: "demo-copy", dir: projectDir, title: "Demo copy" }));
+    const app = new Hono();
+    registerProjectRoutes(app, { ...createAdapter(projectDir), createProject });
+
+    const response = await app.request("http://localhost/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sourceProjectId: "demo" }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(createProject).toHaveBeenCalledWith({ sourceProjectId: "demo", title: undefined });
+    expect(await response.json()).toMatchObject({ id: "demo-copy", title: "Demo copy" });
+  });
+
+  it("renames a project through the adapter", async () => {
+    const projectDir = createProjectDir();
+    const renameProject = vi.fn((id: string, title: string) => ({ id, dir: projectDir, title }));
+    const app = new Hono();
+    registerProjectRoutes(app, { ...createAdapter(projectDir), renameProject });
+
+    const response = await app.request("http://localhost/projects/demo/title", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Instagram Reference" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(renameProject).toHaveBeenCalledWith("demo", "Instagram Reference");
+  });
+
+  it("archives and restores a project through the adapter", async () => {
+    const projectDir = createProjectDir();
+    const setProjectArchived = vi.fn((id: string, archived: boolean) => ({
+      id,
+      dir: projectDir,
+      archived,
+    }));
+    const app = new Hono();
+    registerProjectRoutes(app, {
+      ...createAdapter(projectDir),
+      listProjects: () => [
+        { id: "demo", dir: projectDir },
+        { id: "other", dir: projectDir },
+      ],
+      setProjectArchived,
+    });
+
+    const archiveResponse = await app.request("http://localhost/projects/demo/archive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ archived: true }),
+    });
+    const restoreResponse = await app.request("http://localhost/projects/demo/archive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ archived: false }),
+    });
+
+    expect(archiveResponse.status).toBe(200);
+    expect(restoreResponse.status).toBe(200);
+    expect(setProjectArchived).toHaveBeenNthCalledWith(1, "demo", true);
+    expect(setProjectArchived).toHaveBeenNthCalledWith(2, "demo", false);
+  });
+
+  it("keeps at least one project open", async () => {
+    const projectDir = createProjectDir();
+    const setProjectArchived = vi.fn();
+    const app = new Hono();
+    registerProjectRoutes(app, {
+      ...createAdapter(projectDir),
+      listProjects: () => [{ id: "demo", dir: projectDir }],
+      setProjectArchived,
+    });
+
+    const response = await app.request("http://localhost/projects/demo/archive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ archived: true }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(setProjectArchived).not.toHaveBeenCalled();
   });
 });
 

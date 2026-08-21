@@ -12,6 +12,7 @@ import {
 import { FRAME_STATUS_META } from "./frameStatus";
 import type { CommentsSubmitState } from "./useFrameComments";
 import { isTypingTarget } from "../../utils/typingTarget";
+import { commitStoryboardEdit, type StoryboardRecordEdit } from "./storyboardHistory";
 
 export interface StoryboardFrameFocusProps {
   projectId: string;
@@ -23,6 +24,7 @@ export interface StoryboardFrameFocusProps {
   onNavigate: (delta: number) => void;
   /** Re-parse the manifest after an edit is saved. */
   onSaved: () => void;
+  recordEdit: StoryboardRecordEdit;
   /** Select a composition in the timeline (sets active comp + editing file + sidebar highlight). */
   onSelectComposition: (path: string) => void;
   /** Whether SCRIPT.md exists and owns final narration/TTS. */
@@ -59,6 +61,7 @@ export function StoryboardFrameFocus({
   onBack,
   onNavigate,
   onSaved,
+  recordEdit,
   onSelectComposition,
   scriptExists,
   commentDraft,
@@ -87,7 +90,15 @@ export function StoryboardFrameFocus({
       setError(null);
       try {
         const source = await readProjectFile(storyboardPath);
-        await writeProjectFile(storyboardPath, edit(source));
+        await commitStoryboardEdit({
+          projectId,
+          path: storyboardPath,
+          before: source,
+          after: edit(source),
+          label: "Edit storyboard voiceover",
+          writeFile: writeProjectFile,
+          recordEdit,
+        });
         onSaved();
         return true;
       } catch (err: unknown) {
@@ -97,7 +108,7 @@ export function StoryboardFrameFocus({
         setBusy(false);
       }
     },
-    [readProjectFile, writeProjectFile, storyboardPath, onSaved, busy],
+    [busy, onSaved, projectId, readProjectFile, recordEdit, storyboardPath, writeProjectFile],
   );
 
   const title = frame.title ?? `Frame ${frame.index}`;

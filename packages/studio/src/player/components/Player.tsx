@@ -38,6 +38,7 @@ function getShaderTransitionLoading(event: Event): boolean | null {
 }
 
 const COMPOSITION_LOADING_OVERLAY_DELAY_MS = 400;
+const ASSET_LOADING_OVERLAY_DELAY_MS = 300;
 const DEFAULT_PREVIEW_ERROR = "The composition preview did not become ready.";
 
 export function shouldShowCompositionLoadingOverlay(compositionLoading: boolean): boolean {
@@ -67,6 +68,28 @@ function isPreviewMediaElement(el: Element): el is HTMLMediaElement {
   return tagName === "video" || tagName === "audio";
 }
 
+/**
+ * Timed media outside the current playhead is deliberately hidden by the
+ * runtime. It may continue buffering in the background, but it must not hold
+ * the visible preview behind a full-canvas loading overlay. This matters for
+ * reconstructed reference edits where dozens of source-backed cuts can point
+ * at the same movie.
+ */
+function shouldAwaitPreviewMedia(el: HTMLMediaElement): boolean {
+  if (
+    el.matches("video.reference-scene") &&
+    el.ownerDocument.querySelector("video[data-reference-playback]")
+  ) {
+    return false;
+  }
+  if (!el.hasAttribute("data-start")) return true;
+  const style = el.ownerDocument.defaultView?.getComputedStyle(el);
+  if (style?.visibility === "hidden") return false;
+  // Audio commonly computes to `display: none` even while it is active at the
+  // playhead. Only visual media can use display as a reliable scheduling cue.
+  return el.tagName.toLowerCase() === "audio" || style?.display !== "none";
+}
+
 // Assets are considered ready when every `<video>`/`<audio>` has enough data
 // to play through without buffering, and every registered Lottie animation has
 // finished loading.
@@ -84,6 +107,7 @@ export function hasUnloadedAssets(iframe: HTMLIFrameElement, lastResult: boolean
     for (const el of doc.querySelectorAll("video, audio")) {
       if (
         isPreviewMediaElement(el) &&
+        shouldAwaitPreviewMedia(el) &&
         !el.error &&
         el.networkState !== MEDIA_NETWORK_NO_SOURCE &&
         el.readyState < MEDIA_HAVE_FUTURE_DATA
@@ -130,6 +154,7 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
     const loadCountRef = useRef(0);
     const assetPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const assetFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const assetShowRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const retryPreviewRef = useRef<(() => void) | null>(null);
     const retryCountRef = useRef(0);
     const [assetsLoading, setAssetsLoading] = useState(false);
@@ -332,10 +357,20 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
         clearTimeout(assetFadeRef.current);
         assetFadeRef.current = null;
       }
+      if (assetShowRef.current) {
+        clearTimeout(assetShowRef.current);
+        assetShowRef.current = null;
+      }
 
       if (assetsLoading) {
-        setAssetOverlayVisible(true);
         setAssetOverlayFading(false);
+        // Most local assets paint within a frame or two. Keep the already
+        // rendered canvas visible during that short warmup instead of flashing
+        // an opaque black cover on every composition open.
+        assetShowRef.current = setTimeout(() => {
+          setAssetOverlayVisible(true);
+          assetShowRef.current = null;
+        }, ASSET_LOADING_OVERLAY_DELAY_MS);
         return;
       }
 
@@ -350,6 +385,10 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
         if (assetFadeRef.current) {
           clearTimeout(assetFadeRef.current);
           assetFadeRef.current = null;
+        }
+        if (assetShowRef.current) {
+          clearTimeout(assetShowRef.current);
+          assetShowRef.current = null;
         }
       };
     }, [assetsLoading]);

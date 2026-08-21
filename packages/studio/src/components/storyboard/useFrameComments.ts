@@ -7,6 +7,7 @@ import {
   parseCommentsFile,
   type FrameCommentEntry,
 } from "./frameComments";
+import { commitStoryboardEdit, type StoryboardRecordEdit } from "./storyboardHistory";
 
 export type CommentsSubmitState = "idle" | "saving";
 
@@ -32,7 +33,11 @@ export interface FrameCommentsValue {
 }
 
 /** Per-frame comment drafts + the batch submit that writes the comments file. */
-export function useFrameComments(frames: StoryboardFrameView[]): FrameCommentsValue {
+export function useFrameComments(
+  projectId: string,
+  frames: StoryboardFrameView[],
+  recordEdit: StoryboardRecordEdit,
+): FrameCommentsValue {
   const { writeProjectFile, readOptionalProjectFile } = useFileManagerContext();
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [submitState, setSubmitState] = useState<CommentsSubmitState>("idle");
@@ -71,9 +76,18 @@ export function useFrameComments(frames: StoryboardFrameView[]): FrameCommentsVa
     setSubmitState("saving");
     setSubmitError(null);
     try {
-      const previous = parseCommentsFile(await readOptionalProjectFile(FRAME_COMMENTS_PATH));
+      const previousSource = await readOptionalProjectFile(FRAME_COMMENTS_PATH);
+      const previous = parseCommentsFile(previousSource);
       const file = buildCommentsFile(frames, drafts, previous, new Date().toISOString());
-      await writeProjectFile(FRAME_COMMENTS_PATH, `${JSON.stringify(file, null, 2)}\n`);
+      await commitStoryboardEdit({
+        projectId,
+        path: FRAME_COMMENTS_PATH,
+        before: previousSource,
+        after: `${JSON.stringify(file, null, 2)}\n`,
+        label: "Save storyboard feedback",
+        writeFile: writeProjectFile,
+        recordEdit,
+      });
       setDrafts({});
       setPending(file.comments);
       return true;
@@ -83,7 +97,16 @@ export function useFrameComments(frames: StoryboardFrameView[]): FrameCommentsVa
     } finally {
       setSubmitState("idle");
     }
-  }, [draftCount, submitState, frames, drafts, readOptionalProjectFile, writeProjectFile]);
+  }, [
+    draftCount,
+    submitState,
+    frames,
+    drafts,
+    projectId,
+    readOptionalProjectFile,
+    recordEdit,
+    writeProjectFile,
+  ]);
 
   return {
     drafts,

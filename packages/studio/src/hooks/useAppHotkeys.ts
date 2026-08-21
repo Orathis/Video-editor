@@ -11,6 +11,7 @@ import { shouldIgnoreHistoryShortcut } from "../utils/studioHelpers";
 import { canSplitElement } from "../utils/timelineElementSplit";
 import { trackStudioEvent } from "../utils/studioTelemetry";
 import { serializeStudioFileMutations } from "../utils/studioFileMutationCoordinator";
+import { STUDIO_HISTORY_APPLIED_EVENT } from "../components/storyboard/storyboardHistory";
 
 function iframeContentWindow(iframe: HTMLIFrameElement | null): Window | null {
   try {
@@ -421,6 +422,7 @@ export function useAppHotkeys({
       }
       if (result.ok && result.label) {
         onAfterUndoRedo?.();
+        window.dispatchEvent(new Event(STUDIO_HISTORY_APPLIED_EVENT));
         // If the active composition was among the written files, force-reload
         // the SDK session so its in-memory doc matches the reverted content.
         // writeHistoryFile sets domEditSaveTimestampRef which activates the

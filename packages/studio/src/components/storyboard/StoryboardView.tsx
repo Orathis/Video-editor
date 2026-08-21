@@ -1,15 +1,50 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Copy, Check } from "@phosphor-icons/react";
+import {
+  appendStoryboardFrame,
+  setStoryboardArchived,
+  setStoryboardTitle,
+} from "@hyperframes/core/storyboard";
 import { useStoryboard } from "../../hooks/useStoryboard";
 import { useProjectSignaturePoll } from "../../hooks/useProjectSignaturePoll";
+import { useFileManagerContext } from "../../contexts/FileManagerContext";
 import { copyTextToClipboard } from "../../utils/clipboard";
 import { Button } from "../ui/Button";
 import { StoryboardLoaded } from "./StoryboardLoaded";
+import {
+  commitStoryboardEdit,
+  STUDIO_HISTORY_APPLIED_EVENT,
+  type StoryboardRecordEdit,
+} from "./storyboardHistory";
 
 export interface StoryboardViewProps {
   projectId: string;
+  recordEdit: StoryboardRecordEdit;
   /** Select a composition in the timeline (used by the frame focus "Open in Preview"). */
   onSelectComposition: (path: string) => void;
+}
+
+const DEFAULT_STORYBOARD_PATH = "STORYBOARD.md";
+
+function selectedStoryboardStorageKey(projectId: string): string {
+  return `hf:storyboard:${projectId}:selected`;
+}
+
+function readSelectedStoryboard(projectId: string): string {
+  try {
+    return (
+      sessionStorage.getItem(selectedStoryboardStorageKey(projectId)) || DEFAULT_STORYBOARD_PATH
+    );
+  } catch {
+    return DEFAULT_STORYBOARD_PATH;
+  }
+}
+
+function nextStoryboardPath(paths: ReadonlyArray<{ path: string }>): string {
+  const existing = new Set(paths.map((storyboard) => storyboard.path.toLowerCase()));
+  let number = 2;
+  while (existing.has(`storyboards/storyboard-${number}.md`)) number += 1;
+  return `storyboards/storyboard-${number}.md`;
 }
 
 /**
@@ -18,12 +53,149 @@ export interface StoryboardViewProps {
  * {@link StoryboardLoaded} owns the Board ↔ Source experience.
  */
 // fallow-ignore-next-line complexity
-export function StoryboardView({ projectId, onSelectComposition }: StoryboardViewProps) {
-  const { data, loading, error, reload } = useStoryboard(projectId);
+export function StoryboardView({
+  projectId,
+  recordEdit,
+  onSelectComposition,
+}: StoryboardViewProps) {
+  const { readProjectFile, writeProjectFile, refreshFileTree } = useFileManagerContext();
+  const [storyboardPath, setStoryboardPath] = useState(() => readSelectedStoryboard(projectId));
+  const [creatingStoryboard, setCreatingStoryboard] = useState(false);
+  const [storyboardError, setStoryboardError] = useState<string | null>(null);
+  const [mutatingStoryboardPath, setMutatingStoryboardPath] = useState<string | null>(null);
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const { data, loading, error, reload } = useStoryboard(projectId, storyboardPath);
   // Keep the board current while an agent writes to the project: when the
   // project signature moves past the one `data` was loaded with, refetch. Also
   // upgrades the empty state the moment STORYBOARD.md lands on disk.
   useProjectSignaturePoll(projectId, data?.signature, reload);
+  useEffect(() => {
+    const onHistoryApplied = () => {
+      setHistoryRevision((revision) => revision + 1);
+      reload();
+    };
+    window.addEventListener(STUDIO_HISTORY_APPLIED_EVENT, onHistoryApplied);
+    return () => window.removeEventListener(STUDIO_HISTORY_APPLIED_EVENT, onHistoryApplied);
+  }, [reload]);
+
+  const selectStoryboard = useCallback(
+    (path: string) => {
+      setStoryboardPath(path);
+      setStoryboardError(null);
+      try {
+        sessionStorage.setItem(selectedStoryboardStorageKey(projectId), path);
+      } catch {
+        // Selection still works for this session when storage is unavailable.
+      }
+    },
+    [projectId],
+  );
+
+  const createStoryboard = useCallback(
+    async (title: string): Promise<boolean> => {
+      if (!data || creatingStoryboard) return false;
+      const normalizedTitle = title.trim();
+      if (!normalizedTitle) {
+        setStoryboardError("Enter a storyboard name.");
+        return false;
+      }
+      setCreatingStoryboard(true);
+      setStoryboardError(null);
+      try {
+        const path = nextStoryboardPath([...data.storyboards, ...data.archivedStoryboards]);
+        const source = setStoryboardTitle(appendStoryboardFrame(""), normalizedTitle);
+        await writeProjectFile(path, source);
+        await refreshFileTree();
+        selectStoryboard(path);
+        return true;
+      } catch (nextError) {
+        setStoryboardError(nextError instanceof Error ? nextError.message : String(nextError));
+        return false;
+      } finally {
+        setCreatingStoryboard(false);
+      }
+    },
+    [creatingStoryboard, data, refreshFileTree, selectStoryboard, writeProjectFile],
+  );
+
+  const renameStoryboard = useCallback(
+    async (path: string, title: string): Promise<boolean> => {
+      if (mutatingStoryboardPath) return false;
+      const normalizedTitle = title.trim();
+      if (!normalizedTitle) {
+        setStoryboardError("Enter a storyboard name.");
+        return false;
+      }
+      setMutatingStoryboardPath(path);
+      setStoryboardError(null);
+      try {
+        const source = await readProjectFile(path);
+        await commitStoryboardEdit({
+          projectId,
+          path,
+          before: source,
+          after: setStoryboardTitle(source, normalizedTitle),
+          label: `Rename storyboard to ${normalizedTitle}`,
+          writeFile: writeProjectFile,
+          recordEdit,
+        });
+        reload();
+        return true;
+      } catch (nextError) {
+        setStoryboardError(nextError instanceof Error ? nextError.message : String(nextError));
+        return false;
+      } finally {
+        setMutatingStoryboardPath(null);
+      }
+    },
+    [mutatingStoryboardPath, projectId, readProjectFile, recordEdit, reload, writeProjectFile],
+  );
+
+  const updateStoryboardArchive = useCallback(
+    async (path: string, archived: boolean): Promise<boolean> => {
+      if (!data || mutatingStoryboardPath) return false;
+      if (archived && data.storyboards.length <= 1) {
+        setStoryboardError("A project must keep at least one active storyboard.");
+        return false;
+      }
+      setMutatingStoryboardPath(path);
+      setStoryboardError(null);
+      try {
+        const source = await readProjectFile(path);
+        await commitStoryboardEdit({
+          projectId,
+          path,
+          before: source,
+          after: setStoryboardArchived(source, archived),
+          label: `${archived ? "Archive" : "Unarchive"} storyboard`,
+          writeFile: writeProjectFile,
+          recordEdit,
+        });
+        if (archived && path === data.path) {
+          const fallback = data.storyboards.find((storyboard) => storyboard.path !== path);
+          if (fallback) selectStoryboard(fallback.path);
+        } else {
+          reload();
+        }
+        return true;
+      } catch (nextError) {
+        setStoryboardError(nextError instanceof Error ? nextError.message : String(nextError));
+        return false;
+      } finally {
+        setMutatingStoryboardPath(null);
+      }
+    },
+    [
+      data,
+      mutatingStoryboardPath,
+      projectId,
+      readProjectFile,
+      recordEdit,
+      reload,
+      selectStoryboard,
+      writeProjectFile,
+    ],
+  );
 
   if (loading) return <StoryboardFrame>{<Message>Loading storyboard…</Message>}</StoryboardFrame>;
   if (error) {
@@ -49,10 +221,21 @@ export function StoryboardView({ projectId, onSelectComposition }: StoryboardVie
 
   return (
     <StoryboardLoaded
+      key={data.path}
       projectId={projectId}
       data={data}
       reload={reload}
+      historyRevision={historyRevision}
+      recordEdit={recordEdit}
       onSelectComposition={onSelectComposition}
+      onSelectStoryboard={selectStoryboard}
+      onCreateStoryboard={createStoryboard}
+      onRenameStoryboard={renameStoryboard}
+      onArchiveStoryboard={(path) => updateStoryboardArchive(path, true)}
+      onUnarchiveStoryboard={(path) => updateStoryboardArchive(path, false)}
+      creatingStoryboard={creatingStoryboard}
+      mutatingStoryboardPath={mutatingStoryboardPath}
+      storyboardError={storyboardError}
     />
   );
 }
