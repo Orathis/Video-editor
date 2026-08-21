@@ -362,6 +362,12 @@
       "types": "./dist/figma/index.d.ts",
       "environments": ["bun", "node"]
     },
+    "./fusion": {
+      "source": "./src/fusion/index.ts",
+      "runtime": "./dist/fusion/index.js",
+      "types": "./dist/fusion/index.d.ts",
+      "environments": ["browser", "bun", "node"]
+    },
     "./schemas/registry.json": {
       "source": "./schemas/registry.json",
       "runtime": "./schemas/registry.json",
